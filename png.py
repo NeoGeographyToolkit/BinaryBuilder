@@ -299,5 +299,6 @@ class boost(Package):
 #}
 
 if __name__ == '__main__':
-    e = Environment(CC='ccache gcc', CXX='ccache g++')
+    import os
+    e = Environment(CC='ccache gcc', CFLAGS='', CXX='ccache g++', CXXFLAGS='', MAKEOPTS='-j4', PATH=os.environ['PATH'])
     gdal(e).all(e)

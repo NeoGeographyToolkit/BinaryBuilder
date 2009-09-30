@@ -152,21 +152,23 @@ class Package(object):
         '''After configure, the source code should be ready to build.'''
 
         cmd=('./configure', '--prefix=%(INSTALL_DIR)s' % env) + args
-        return icall(*cmd, cwd=self.workdir)
+        return icall(*cmd, cwd=self.workdir, env=env)
 
     @stage
     def compile(self, env):
         '''After compile, the compiled code should exist.'''
 
-        cmd = ('make', ) + env.get('MAKEOPTS', ())
-        return icall(*cmd, cwd=self.workdir)
+        cmd = ('make', )
+        if 'MAKEOPTS' in env:
+            cmd += (env['MAKEOPTS'],)
+        return icall(*cmd, cwd=self.workdir, env=env)
 
     @stage
-    def install(self, unused_env):
+    def install(self, env):
         '''After install, the binaries should be on the live filesystem.'''
 
         cmd = ('make', 'install')
-        return icall(*cmd, cwd=self.workdir)
+        return icall(*cmd, cwd=self.workdir, env=env)
 
     def all(self, env):
         self.fetch(env)
@@ -195,7 +197,7 @@ class SVNPackage(Package):
         else:
             cmd = ('svn', 'checkout', self.src, self.localcopy)
 
-        icall(*cmd, cwd=self.workdir)
+        icall(*cmd, cwd=self.workdir, env=env)
 
     @stage
     def unpack(self, env):
@@ -209,6 +211,6 @@ class SVNPackage(Package):
         self.workdir = P.join(output_dir, self.pkgname)
 
         cmd = ('svn', 'export', self.localcopy, self.workdir)
-        icall(*cmd, cwd=self.workdir)
+        icall(*cmd, cwd=self.workdir, env=env)
 
         self._apply_patches()
