@@ -11,7 +11,7 @@ import sys
 import tarfile
 import urllib2
 
-from functools import wraps
+from functools import wraps, partial
 from glob import glob
 from hashlib import md5
 from shutil import rmtree
@@ -19,34 +19,34 @@ from urlparse import urlparse
 
 class PackageError(Exception):
     def __init__(self, pkg, message):
-        super(PackageError, self).__init__('Package[%s]: %s' % (pkg.pkgname, message))
-class HelperError(Exception): pass
+        super(PackageError, self).__init__('Package[%s] %s' % (pkg.pkgname, message))
+class HelperError(Exception):
+    def __init__(self, tool, message):
+        super(HelperError, self).__init__('Command[%s] %s' % (tool, message))
 
 def hash_file(filename):
     with file(filename, 'rb') as f:
         return md5(f.read()).hexdigest()
 
-info = print
-
-def error(value):
-    print >>sys.stderr, value
+info  = print
+error = partial(print, file=sys.stderr)
 
 def icall(*args, **kw):
     info(' '.join(args))
     try:
         subprocess.check_call(args, **kw)
-    except OSError, e:
-        raise HelperError('%s: %s' % (args[0],e))
+    except (OSError, subprocess.CalledProcessError), e:
+        raise HelperError(args[0], e)
 
 def stage(f):
     @wraps(f)
     def wrapper(self, *args, **kw):
         stage = f.__name__
-        info('%s.%s' % (self.pkgname, stage))
+        info('========== %s.%s ==========' % (self.pkgname, stage))
         try:
             return f(self, *args, **kw)
         except HelperError, e:
-            raise PackageError(self, 'Stage[%s] failed: %s' % (stage,e))
+            raise PackageError(self, 'Stage[%s] %s' % (stage,e))
     return wrapper
 
 class Environment(dict):
@@ -73,7 +73,10 @@ def get(url, output=None):
         base = P.basename(output)
 
     with file(output, 'wb') as f:
-        r = urllib2.urlopen(url)
+        try:
+            r = urllib2.urlopen(url)
+        except urllib2.HTTPError, e:
+            raise HelperError('urlopen', '%s: %s' % (url, e))
 
         current = 0
         size = int(r.info().get('Content-Length', -1))
@@ -88,7 +91,7 @@ def get(url, output=None):
             else:
                 info('\rDownloading %s: %i / %i kB (%0.2f%%)' % (base, current/1024., size/1024., current*100./size), end='')
             f.write(block)
-        info('Done')
+        info('\nDone')
 
 class Package(object):
 
@@ -96,14 +99,15 @@ class Package(object):
     chksum  = None
     patches = []
 
-    def __init__(self, env):
+    def __init__(self, unused_env):
         self.pkgname = self.__class__.__name__
 
         # Yes, it is possible to get a / into a class name.
         # os.path.join fails pathologically there.
         assert '/' not in self.pkgname
 
-        self.pkgdir  = P.dirname(inspect.getfile(self.__class__))
+        self.pkgdir  = P.abspath(P.dirname(inspect.getfile(self.__class__)))
+        info(self.pkgdir)
         self.tarball = None
         self.workdir = None
 
@@ -141,17 +145,24 @@ class Package(object):
 
         self.workdir = glob(P.join(output_dir, "*"))
         if len(self.workdir) != 1:
-            raise PackageError(self, 'Badly-formed tarball: there should be 1 file in the output, but there are %i' % len(self.workdir))
+            raise PackageError(self, 'Badly-formed tarball[%s]: there should be 1 file in the output dir [%s], but there are %i' %
+                               (self.tarball, output_dir, len(self.workdir)))
 
         self.workdir = self.workdir[0]
 
         self._apply_patches()
 
     @stage
-    def configure(self, env, *args):
+    def configure(self, env, other=(), with_=(), without=(), enable=(), disable=()):
         '''After configure, the source code should be ready to build.'''
 
-        cmd=('./configure', '--prefix=%(INSTALL_DIR)s' % env) + args
+        args = list(other)
+        args += ['--enable-%s'  % feature for feature in enable]
+        args += ['--disable-%s' % feature for feature in disable]
+        args += ['--with-%s'    % feature for feature in with_]
+        args += ['--without-%s' % feature for feature in without]
+
+        cmd=['./configure', '--prefix=%(INSTALL_DIR)s' % env] + args
         return icall(*cmd, cwd=self.workdir, env=env)
 
     @stage
@@ -170,18 +181,21 @@ class Package(object):
         cmd = ('make', 'install')
         return icall(*cmd, cwd=self.workdir, env=env)
 
-    def all(self, env):
-        self.fetch(env)
-        self.unpack(env)
-        self.configure(env)
-        self.compile(env)
-        self.install(env)
+    @staticmethod
+    def build(pkg, env):
+        # If it's a type, we instantiate it. Otherwise, we just use whatever it is.
+        if isinstance(pkg, type):
+            pkg = pkg(env)
+        pkg.fetch(env)
+        pkg.unpack(env)
+        pkg.configure(env)
+        pkg.compile(env)
+        pkg.install(env)
 
     def _apply_patches(self):
         for p in self.patches:
             cmd = ['patch',  '-p1',  '-i',  P.join(self.pkgdir, p)]
-            if icall(*cmd, cwd=self.workdir, stderr=open('/dev/null', 'w')) != 0:
-                raise PackageError(self, 'Could not apply patch %s' % p)
+            icall(*cmd, cwd=self.workdir)
 
 
 class SVNPackage(Package):
