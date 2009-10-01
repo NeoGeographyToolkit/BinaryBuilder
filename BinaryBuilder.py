@@ -7,11 +7,10 @@ import inspect
 import os
 import os.path as P
 import subprocess
-import sys
 import tarfile
 import urllib2
 
-from functools import wraps, partial
+from functools import wraps
 from glob import glob
 from hashlib import md5
 from shutil import rmtree
@@ -29,7 +28,9 @@ def hash_file(filename):
         return md5(f.read()).hexdigest()
 
 info  = print
-error = partial(print, file=sys.stderr)
+def error(*args, **kw):
+    args[0] = 'ERROR: ' + args[0]
+    print(*args, **kw)
 
 def icall(*args, **kw):
     info(' '.join(args))
@@ -42,7 +43,7 @@ def stage(f):
     @wraps(f)
     def wrapper(self, *args, **kw):
         stage = f.__name__
-        info('========== %s.%s ==========' % (self.pkgname, stage))
+        info('\n========== %s.%s ==========\n' % (self.pkgname, stage))
         try:
             return f(self, *args, **kw)
         except HelperError, e:
@@ -153,16 +154,22 @@ class Package(object):
         self._apply_patches()
 
     @stage
-    def configure(self, env, other=(), with_=(), without=(), enable=(), disable=()):
+    def configure(self, env, other=(), with_=(), without=(), enable=(), disable=(), configure='./configure'):
         '''After configure, the source code should be ready to build.'''
 
         args = list(other)
-        args += ['--enable-%s'  % feature for feature in enable]
-        args += ['--disable-%s' % feature for feature in disable]
-        args += ['--with-%s'    % feature for feature in with_]
-        args += ['--without-%s' % feature for feature in without]
+        for flag in 'enable', 'disable', 'with', 'without':
+            if flag == 'with':
+                value = locals()['with_']
+            else:
+                value = locals()[flag]
 
-        cmd=['./configure', '--prefix=%(INSTALL_DIR)s' % env] + args
+            if isinstance(value, basestring):
+                args += ['--%s-%s' % (flag, value)]
+            else:
+                args += ['--%s-%s'  % (flag, feature) for feature in value]
+
+        cmd=[configure, '--prefix=%(INSTALL_DIR)s' % env] + args
         return icall(*cmd, cwd=self.workdir, env=env)
 
     @stage
@@ -193,21 +200,44 @@ class Package(object):
         pkg.install(env)
 
     def _apply_patches(self):
-        for p in self.patches:
-            cmd = ['patch',  '-p1',  '-i',  P.join(self.pkgdir, p)]
+        # self.patches could be:
+        #    list of strings, interpreted as a list of patches
+        #    a basestring, interpreted as a patch or a dir of patches
+        patches = []
+        if self.patches is None:
+            return
+        elif isinstance(self.patches, basestring):
+            full = P.join(self.pkgdir, self.patches)
+            if not P.exists(full):
+                raise PackageError(self, 'Unknown patch: %s' % full)
+
+            if P.isdir(full):
+                patches = glob(P.join(full, '*'))
+            else:
+                patches = (full,)
+        else:
+            patches = (P.join(self.pkgdir, p) for p in self.patches)
+
+        def _apply(patch):
+            cmd = ('patch',  '-p1',  '-i', patch)
             icall(*cmd, cwd=self.workdir)
 
+        # We have a list of patches now, but we can't trust they're all there
+        for p in sorted(patches):
+            if not P.isfile(p):
+                raise PackageError(self, 'Unknown patch: %s' % p)
+            _apply(p)
 
 class SVNPackage(Package):
 
     def __init__(self, env):
-        super(SVNPackage, self).__init__()
+        super(SVNPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'svn', self.pkgname)
 
     @stage
     def fetch(self, env):
         if P.isdir(self.localcopy):
-            cmd = ('svn', 'update', self.src, self.localcopy)
+            cmd = ('svn', 'update', self.localcopy)
         else:
             cmd = ('svn', 'checkout', self.src, self.localcopy)
 
@@ -221,10 +251,9 @@ class SVNPackage(Package):
             rmtree(output_dir, False)
 
         os.mkdir(output_dir)
-
-        self.workdir = P.join(output_dir, self.pkgname)
+        self.workdir = P.join(output_dir, self.pkgname + '-svn')
 
         cmd = ('svn', 'export', self.localcopy, self.workdir)
-        icall(*cmd, cwd=self.workdir, env=env)
+        icall(*cmd, cwd=output_dir, env=env)
 
         self._apply_patches()
