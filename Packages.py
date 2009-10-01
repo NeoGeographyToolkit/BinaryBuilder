@@ -2,8 +2,9 @@
 
 from __future__ import print_function
 
-from BinaryBuilder import SVNPackage, Package, Environment, icall, PackageError
+from BinaryBuilder import SVNPackage, Package, icall
 import os.path as P
+import os
 
 # pychecker objects to the stage decorator "changing the signature"
 __pychecker__ = 'no-override'
@@ -163,20 +164,3 @@ class isis(Package):
 #
 #    cp -vr 3rdParty/lib/* 3rdParty/plugins "$ISIS_LIBDIR"
 #}
-
-if __name__ == '__main__':
-    import os
-    import sys
-
-    e = Environment(CC='ccache gcc', CFLAGS='', CXX='ccache g++', CXXFLAGS='', MAKEOPTS='-j4', PATH=os.environ['PATH'])
-
-    if len(sys.argv) == 1:
-        build = (zlib, png, jpeg, proj, gdal, ilmbase, openexr, boost, visionworkbench, isis, stereopipeline)
-    else:
-        build = (globals()[pkg] for pkg in sys.argv[1:])
-
-    try:
-        for pkg in build:
-            Package.build(pkg, e)
-    except PackageError, e:
-        print('ERROR: ', e)
