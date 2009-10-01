@@ -1,0 +1,34 @@
+From 71bdd455125f5bdf823fc5a9c26197297f06804e Mon Sep 17 00:00:00 2001
+From: Mike Lundy <mike@fluffypenguin.org>
+Date: Thu, 1 Oct 2009 10:16:25 -0700
+Subject: [PATCH] make "none" an option for opt and debug
+
+---
+ tools/build/v2/tools/builtin.jam |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/tools/build/v2/tools/builtin.jam b/tools/build/v2/tools/builtin.jam
+index d55f676..4179dd6 100644
+--- a/tools/build/v2/tools/builtin.jam
++++ b/tools/build/v2/tools/builtin.jam
+@@ -100,7 +100,7 @@ feature.feature stdlib             : native          : propagated composite ;
+ feature.feature link               : shared static   : propagated ;
+ feature.feature runtime-link       : shared static   : propagated ;
+ feature.feature runtime-debugging  : on off          : propagated ;
+-feature.feature optimization       : off speed space : propagated ;
++feature.feature optimization       : off speed space none : propagated ;
+ feature.feature profiling          : off on          : propagated ;
+ feature.feature inlining           : off on full     : propagated ;
+ feature.feature threading          : single multi    : propagated ;
+@@ -113,7 +113,7 @@ feature.feature asynch-exceptions  : off on          : propagated ;
+ # Whether all extern "C" functions are considered nothrow by default.
+ feature.feature extern-c-nothrow   : off on          : propagated ;
+ 
+-feature.feature debug-symbols      : on off          : propagated ;
++feature.feature debug-symbols      : on off none     : propagated ;
+ feature.feature define             :                 : free ;
+ feature.feature undef              :                 : free ;
+ feature.feature "include"          :                 : free path ; #order-sensitive ;
+-- 
+1.6.4
+
