@@ -15,7 +15,7 @@ if __name__ == '__main__':
                     MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME=os.environ['HOME'])
 
     if len(sys.argv) == 1:
-        build = (zlib, png, jpeg, proj, gdal, ilmbase, openexr, boost, visionworkbench)
+        build = (zlib, bzip2, png, jpeg, proj, gdal, ilmbase, openexr, boost, visionworkbench)
     else:
         build = (globals()[pkg] for pkg in sys.argv[1:])
 

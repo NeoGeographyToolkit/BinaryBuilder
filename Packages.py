@@ -107,10 +107,51 @@ class zlib(Package):
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
 
+class bzip2(Package):
+    src = 'http://www.bzip.org/1.0.5/bzip2-1.0.5.tar.gz'
+    chksum = '3c15a0c8d1d3ee1c46a1634d00617b1a'
+    patches = 'patches/bzip2'
+
+    @stage
+    def unpack(self):
+        super(bzip2, self).unpack()
+        self.helper('sed', '-i', '-e', 's:1\.0\.4:1.0.5:', 'Makefile-libbz2_so')
+
+    @stage
+    def configure(self):
+        pass
+
+    @stage
+    def compile(self):
+        cmd = ('make', )
+        if 'MAKEOPTS' in self.env:
+            cmd += (self.env['MAKEOPTS'],)
+        cmd1 = cmd + ('-f', 'Makefile-libbz2_so', 'all')
+        cmd2 = cmd + ('all',)
+        self.helper(*cmd1)
+        self.helper(*cmd2)
+
+    @stage
+    def install(self):
+        self.helper('install', '-d', '%(INSTALL_DIR)s/include' % self.env)
+        self.helper('install', '-d', '%(INSTALL_DIR)s/lib' % self.env)
+        self.helper('install', '-m0644', 'bzlib.h', '%(INSTALL_DIR)s/include' % self.env)
+        self.helper('install', '-m0755', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib' % self.env)
+        self.helper('ln', '-sf', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib/libbz2.so.1.0' % self.env)
+        self.helper('ln', '-sf', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib/libbz2.so.1' % self.env)
+        self.helper('ln', '-sf', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib/libbz2.so' % self.env)
+
+
 class boost(Package):
     src    = 'http://downloads.sourceforge.net/boost/boost_1_39_0.tar.gz'
     chksum = 'fcc6df1160753d0b8c835d17fdeeb0a7'
     patches = 'patches/boost'
+
+    def __init__(self, env):
+        super(boost, self).__init__(env)
+        self.env['CFLAGS']   = self.env.get('CFLAGS', '')    + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '')  + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')   + ' -L%(INSTALL_DIR)s/lib' % self.env
 
     @stage
     def configure(self):
@@ -135,7 +176,6 @@ class boost(Package):
                 '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
                 'threading=multi', 'link=shared', 'runtime-link=shared']
         self.helper(*cmd)
-        del self.env['BOOST_ROOT']
 
     # TODO: Might need some darwin path-munging with install_name_tool?
     @stage
@@ -146,7 +186,6 @@ class boost(Package):
                'threading=multi', 'link=shared', 'runtime-link=shared',
               'install']
         self.helper(*cmd)
-        del self.env['BOOST_ROOT']
 
 #class isis_linux64(Package):
 #

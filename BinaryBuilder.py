@@ -183,7 +183,7 @@ class Package(object):
                 args += ['--%s-%s'  % (flag, feature) for feature in value]
 
         cmd=[configure, '--prefix=%(INSTALL_DIR)s' % self.env] + args
-        return self.helper(*cmd)
+        self.helper(*cmd)
 
     @stage
     def compile(self):
@@ -192,14 +192,14 @@ class Package(object):
         cmd = ('make', )
         if 'MAKEOPTS' in self.env:
             cmd += (self.env['MAKEOPTS'],)
-        return self.helper(*cmd)
+        self.helper(*cmd)
 
     @stage
     def install(self):
         '''After install, the binaries should be on the live filesystem.'''
 
         cmd = ('make', 'install')
-        return self.helper(*cmd)
+        self.helper(*cmd)
 
     @staticmethod
     def build(pkg, env):
