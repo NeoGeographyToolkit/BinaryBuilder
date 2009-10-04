@@ -5,12 +5,13 @@ from __future__ import with_statement, print_function
 import errno
 import inspect
 import os
+import sys
 import os.path as P
 import subprocess
 import tarfile
 import urllib2
 
-from functools import wraps
+from functools import wraps, partial
 from glob import glob
 from hashlib import md5
 from shutil import rmtree
@@ -27,23 +28,34 @@ def hash_file(filename):
     with file(filename, 'rb') as f:
         return md5(f.read()).hexdigest()
 
-info  = print
-def error(*args, **kw):
-    args[0] = 'ERROR: ' + args[0]
-    print(*args, **kw)
+try:
+    from termcolor import colored
+except ImportError:
+    def colored(value, *unused_args, **unused_kw):
+        return value
 
-def icall(*args, **kw):
-    info(' '.join(args))
-    try:
-        subprocess.check_call(args, **kw)
-    except (OSError, subprocess.CalledProcessError), e:
-        raise HelperError(args[0], e)
+def _message(*args, **kw):
+    severity = kw.get('severity', 'info')
+    del kw['severity']
+
+    if severity == 'info':
+        args = [colored(i, 'green', attrs=['bold']) for i in args]
+        print(*args, **kw)
+    elif severity == 'error':
+        args = [colored(i, 'red', attrs=['bold']) for i in ['ERROR:'] + list(args)]
+        print(*args, **kw)
+    else:
+        raise Exception('Unknown severity')
+
+info  = partial(_message, severity='info')
+error = partial(_message, severity='error')
+
 
 def stage(f):
     @wraps(f)
     def wrapper(self, *args, **kw):
         stage = f.__name__
-        info('\n========== %s.%s ==========\n' % (self.pkgname, stage))
+        info('========== %s.%s ==========' % (self.pkgname, stage))
         try:
             return f(self, *args, **kw)
         except HelperError, e:
@@ -100,7 +112,7 @@ class Package(object):
     chksum  = None
     patches = []
 
-    def __init__(self, unused_env):
+    def __init__(self, env):
         self.pkgname = self.__class__.__name__
 
         # Yes, it is possible to get a / into a class name.
@@ -111,15 +123,16 @@ class Package(object):
         info(self.pkgdir)
         self.tarball = None
         self.workdir = None
+        self.env = dict(env)
 
     @stage
-    def fetch(self, env):
+    def fetch(self):
         '''After fetch, the source code should be available.'''
 
         assert self.src,    'No src defined for package %s' % self.pkgname
         assert self.chksum, 'No chksum defined for package %s' % self.pkgname
 
-        self.tarball = P.join(env['DOWNLOAD_DIR'], P.basename(urlparse(self.src).path))
+        self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(self.src).path))
 
         if not P.isfile(self.tarball):
             get(self.src, self.tarball)
@@ -128,11 +141,11 @@ class Package(object):
             raise PackageError(self, 'Checksum on file[%s] failed!' % self.tarball)
 
     @stage
-    def unpack(self, env):
+    def unpack(self):
         '''After unpack, the source code should be unpacked and should have any
         necessary patches applied.'''
 
-        output_dir = P.join(env['BUILD_DIR'], self.pkgname)
+        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
 
         if P.isdir(output_dir):
             info("Removing old build dir")
@@ -154,7 +167,7 @@ class Package(object):
         self._apply_patches()
 
     @stage
-    def configure(self, env, other=(), with_=(), without=(), enable=(), disable=(), configure='./configure'):
+    def configure(self, other=(), with_=(), without=(), enable=(), disable=(), configure='./configure'):
         '''After configure, the source code should be ready to build.'''
 
         args = list(other)
@@ -169,35 +182,35 @@ class Package(object):
             else:
                 args += ['--%s-%s'  % (flag, feature) for feature in value]
 
-        cmd=[configure, '--prefix=%(INSTALL_DIR)s' % env] + args
-        return icall(*cmd, cwd=self.workdir, env=env)
+        cmd=[configure, '--prefix=%(INSTALL_DIR)s' % self.env] + args
+        return self.helper(*cmd)
 
     @stage
-    def compile(self, env):
+    def compile(self):
         '''After compile, the compiled code should exist.'''
 
         cmd = ('make', )
-        if 'MAKEOPTS' in env:
-            cmd += (env['MAKEOPTS'],)
-        return icall(*cmd, cwd=self.workdir, env=env)
+        if 'MAKEOPTS' in self.env:
+            cmd += (self.env['MAKEOPTS'],)
+        return self.helper(*cmd)
 
     @stage
-    def install(self, env):
+    def install(self):
         '''After install, the binaries should be on the live filesystem.'''
 
         cmd = ('make', 'install')
-        return icall(*cmd, cwd=self.workdir, env=env)
+        return self.helper(*cmd)
 
     @staticmethod
     def build(pkg, env):
         # If it's a type, we instantiate it. Otherwise, we just use whatever it is.
         if isinstance(pkg, type):
             pkg = pkg(env)
-        pkg.fetch(env)
-        pkg.unpack(env)
-        pkg.configure(env)
-        pkg.compile(env)
-        pkg.install(env)
+        pkg.fetch()
+        pkg.unpack()
+        pkg.configure()
+        pkg.compile()
+        pkg.install()
 
     def _apply_patches(self):
         # self.patches could be:
@@ -220,13 +233,29 @@ class Package(object):
 
         def _apply(patch):
             cmd = ('patch',  '-p1',  '-i', patch)
-            icall(*cmd, cwd=self.workdir)
+            self.helper(*cmd)
 
         # We have a list of patches now, but we can't trust they're all there
         for p in sorted(patches):
             if not P.isfile(p):
                 raise PackageError(self, 'Unknown patch: %s' % p)
             _apply(p)
+
+
+    def helper(self, *args, **kw):
+        info(' '.join(args))
+        kw['stdout'] = kw.get('stdout', sys.stdout)
+        kw['stderr'] = kw.get('stderr', sys.stderr)
+
+        if 'cwd' not in kw:
+            kw['cwd'] = self.workdir
+        if 'env' not in kw:
+            kw['env'] = self.env
+
+        try:
+            subprocess.check_call(args, **kw)
+        except (OSError, subprocess.CalledProcessError), e:
+            raise HelperError(args[0], e)
 
 class SVNPackage(Package):
 
@@ -235,17 +264,17 @@ class SVNPackage(Package):
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'svn', self.pkgname)
 
     @stage
-    def fetch(self, env):
+    def fetch(self):
         if P.isdir(self.localcopy):
             cmd = ('svn', 'update', self.localcopy)
         else:
             cmd = ('svn', 'checkout', self.src, self.localcopy)
 
-        icall(*cmd, cwd=self.workdir, env=env)
+        self.helper(*cmd)
 
     @stage
-    def unpack(self, env):
-        output_dir = P.join(env['BUILD_DIR'], self.pkgname)
+    def unpack(self):
+        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         if P.isdir(output_dir):
             info("Removing old build dir")
             rmtree(output_dir, False)
@@ -254,6 +283,6 @@ class SVNPackage(Package):
         self.workdir = P.join(output_dir, self.pkgname + '-svn')
 
         cmd = ('svn', 'export', self.localcopy, self.workdir)
-        icall(*cmd, cwd=output_dir, env=env)
+        self.helper(*cmd, cwd=output_dir)
 
         self._apply_patches()
