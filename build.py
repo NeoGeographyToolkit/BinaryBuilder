@@ -11,7 +11,7 @@ from BinaryBuilder import Package, Environment, PackageError, error
 if __name__ == '__main__':
     e = Environment(CC='ccache gcc',  CFLAGS='',
                     CXX='ccache g++', CXXFLAGS='',
-                    LDFLAGS=r'-Wl,-rpath,/make/some/room/for/it',
+                    LDFLAGS=r'-Wl,-rpath,/make/some/room/for/it/it/might/be/pretty/long/so/keep/going',
                     MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME=os.environ['HOME'])
 
     if len(sys.argv) == 1:

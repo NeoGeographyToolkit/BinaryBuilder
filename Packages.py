@@ -101,24 +101,17 @@ class stereopipeline(SVNPackage):
         thirdparty = P.join(isisdir, '3rdParty', 'lib')
         includedir = P.join(self.env['NOINSTALL_DIR'], 'include')
 
-        needed = dict(
-            Sql     = '-lreadline -lpq -lmysqlclient_r',
-            xercesc = '-lxerces-c -licuuc -licudata'
-        )
-
-
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in noinstall_pkgs:
-                print('PKG_%s_LDFLAGS=-L%s %s' % (pkg.upper(), thirdparty, needed.get(pkg, '')), file=config)
+                #print('PKG_%s_LDFLAGS=-L%s %s' % (pkg.upper(), thirdparty, needed.get(pkg, '')), file=config)
+                print('PKG_%s_LDFLAGS=-L%s' % (pkg.upper(), thirdparty), file=config)
 
             qt_pkgs = 'Core Gui Network Sql Xml XmlPatterns'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
             print('PKG_ARBITRARY_QT_LDFLAGS="-L%s"' % thirdparty, file=config)
-            print('PKG_ARBITRARY_QT_LIBS="%s"' % ' '.join([needed[pkg] for pkg in qt_pkgs.split() if pkg in needed]), file=config)
-
-            print('PKG_XERCESC_LIBS="%s"' % needed['xercesc'], file=config)
+            print('PKG_SUPERLU_LIBS=%s' % glob(P.join(thirdparty, 'libsuperlu*.a'))[0], file=config)
 
         super(stereopipeline, self).configure(
             with_   = w,
@@ -399,5 +392,10 @@ class isis(Package):
 
     @stage
     def install(self):
-        cmd = ('cp', '-lr', self.workdir, P.join(self.env['INSTALL_DIR'], '..', 'isis3'))
+        isisdir = P.join(self.env['INSTALL_DIR'], '..', 'isis3')
+        cmd = ('cp', '-lr', self.workdir, isisdir)
         self.helper(*cmd)
+
+        # Idiots...
+        thirdparty = P.join(isisdir, '3rdParty', 'lib')
+        self.helper('ln', '-s', P.basename(glob(P.join(thirdparty, 'libgeos-3*.so'))[0]), P.join(thirdparty, 'libgeos.so'))

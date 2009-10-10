@@ -263,7 +263,7 @@ class Package(object):
     def helper(self, *args, **kw):
         info(' '.join(args))
         kw['stdout'] = kw.get('stdout', sys.stdout)
-        kw['stderr'] = kw.get('stderr', sys.stderr)
+        kw['stderr'] = kw.get('stderr', sys.stdout)
 
         if 'cwd' not in kw:
             kw['cwd'] = self.workdir
