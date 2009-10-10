@@ -8,12 +8,11 @@ import os
 import sys
 import os.path as P
 import subprocess
-import tarfile
 import urllib2
 
 from functools import wraps, partial
 from glob import glob
-from hashlib import md5
+from hashlib import sha1
 from shutil import rmtree
 from urlparse import urlparse
 
@@ -26,7 +25,7 @@ class HelperError(Exception):
 
 def hash_file(filename):
     with file(filename, 'rb') as f:
-        return md5(f.read()).hexdigest()
+        return sha1(f.read()).hexdigest()
 
 try:
     from termcolor import colored
@@ -64,9 +63,12 @@ def stage(f):
 
 class Environment(dict):
     def __init__(self, **kw):
-        self['DOWNLOAD_DIR'] = '/tmp/build/src'
-        self['BUILD_DIR']    = '/tmp/build/build'
-        self['INSTALL_DIR']  = '/tmp/build/install'
+        self.update(dict(
+            DOWNLOAD_DIR   = '/tmp/build/src',
+            BUILD_DIR      = '/tmp/build/build',
+            INSTALL_DIR    = '/tmp/build/install',
+            NOINSTALL_DIR  = '/tmp/build/noinstall'
+        ))
         self.update(kw)
 
         for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR'):
@@ -116,7 +118,7 @@ class Package(object):
         self.pkgname = self.__class__.__name__
 
         # Yes, it is possible to get a / into a class name.
-        # os.path.join fails pathologically there.
+        # os.path.join fails pathologically there. So catch that specific case.
         assert '/' not in self.pkgname
 
         self.pkgdir  = P.abspath(P.dirname(inspect.getfile(self.__class__)))
@@ -132,13 +134,21 @@ class Package(object):
         assert self.src,    'No src defined for package %s' % self.pkgname
         assert self.chksum, 'No chksum defined for package %s' % self.pkgname
 
-        self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(self.src).path))
+        if isinstance(self.src, basestring):
+            self.src = (self.src,)
+            self.chksum = (self.chksum,)
 
-        if not P.isfile(self.tarball):
-            get(self.src, self.tarball)
+        assert len(self.src) == len(self.chksum), 'len(src) and len(chksum) should be the same'
 
-        if hash_file(self.tarball) != self.chksum:
-            raise PackageError(self, 'Checksum on file[%s] failed!' % self.tarball)
+        for src,chksum in zip(self.src, self.chksum):
+
+            self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(src).path))
+
+            if not P.isfile(self.tarball):
+                get(src, self.tarball)
+
+            if hash_file(self.tarball) != chksum:
+                raise PackageError(self, 'Checksum on file[%s] failed!' % self.tarball)
 
     @stage
     def unpack(self):
@@ -147,13 +157,18 @@ class Package(object):
 
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
 
-        if P.isdir(output_dir):
-            info("Removing old build dir")
-            rmtree(output_dir, False)
+        self.remove_build(output_dir)
 
-        os.mkdir(output_dir)
+        import tarfile
+        mode = 'r'
+        if P.splitext(self.tarball)[-1] == '.Z':
+            # tarfile doesn't support lzw...
+            tmp = P.join(P.dirname(self.tarball), 'tmp-' + P.basename(self.tarball))
+            self.helper('cp', '-f', self.tarball, tmp)
+            self.helper('uncompress', '-f', tmp)
+            self.tarball = tmp[:-2]
 
-        tar = tarfile.open(self.tarball)
+        tar = tarfile.open(self.tarball, mode=mode)
         tar.extractall(path=output_dir)
         tar.close()
 
@@ -182,8 +197,11 @@ class Package(object):
             else:
                 args += ['--%s-%s'  % (flag, feature) for feature in value]
 
-        cmd=[configure, '--prefix=%(INSTALL_DIR)s' % self.env] + args
-        self.helper(*cmd)
+        # Did they pass a prefix? If not, add one.
+        if len([True for a in args if a[:9] == '--prefix=']) == 0:
+            args.append('--prefix=%(INSTALL_DIR)s' % self.env)
+
+        self.helper('./configure', *args)
 
     @stage
     def compile(self):
@@ -227,7 +245,7 @@ class Package(object):
             if P.isdir(full):
                 patches = glob(P.join(full, '*'))
             else:
-                patches = (full,)
+                patches = [full]
         else:
             patches = (P.join(self.pkgdir, p) for p in self.patches)
 
@@ -257,6 +275,13 @@ class Package(object):
         except (OSError, subprocess.CalledProcessError), e:
             raise HelperError(args[0], e)
 
+    def remove_build(self, output_dir):
+        if P.isdir(output_dir):
+            info("Removing old build dir")
+            rmtree(output_dir, False)
+
+        os.mkdir(output_dir)
+
 class SVNPackage(Package):
 
     def __init__(self, env):
@@ -275,11 +300,7 @@ class SVNPackage(Package):
     @stage
     def unpack(self):
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
-        if P.isdir(output_dir):
-            info("Removing old build dir")
-            rmtree(output_dir, False)
-
-        os.mkdir(output_dir)
+        self.remove_build(output_dir)
         self.workdir = P.join(output_dir, self.pkgname + '-svn')
 
         cmd = ('svn', 'export', self.localcopy, self.workdir)
