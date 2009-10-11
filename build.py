@@ -7,16 +7,7 @@ import os.path as P
 import sys
 import subprocess
 
-def findfile(filename, path=None):
-    if path is None: path = os.environ.get('PATH', [])
-    for dirname in path.split(':'):
-        possible = P.join(dirname, filename)
-        if P.isfile(possible):
-            return possible
-    raise Exception('Could not find file %s in path[%s]' % (filename, path))
-
 ccache = True
-
 
 from Packages import *
 from BinaryBuilder import Package, Environment, PackageError, error
