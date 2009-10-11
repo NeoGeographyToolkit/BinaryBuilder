@@ -33,8 +33,9 @@ class png(Package):
     chksum = 'a3f2df01871da15d66f103a5b4e793601e4d1043'
     def __init__(self, env):
         super(png, self).__init__(env)
-        self.env['CFLAGS'] = self.env.get('CFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(INSTALL_DIR)s/lib' % self.env
+        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(INSTALL_DIR)s/lib'     % self.env
 
 class gdal(Package):
     src    = 'http://download.osgeo.org/gdal/gdal-1.6.2.tar.gz'
@@ -77,8 +78,9 @@ class openexr(Package):
 
     def __init__(self, env):
         super(openexr, self).__init__(env)
-        self.env['CFLAGS'] = self.env.get('CFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(INSTALL_DIR)s/lib' % self.env
+        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(INSTALL_DIR)s/lib'     % self.env
 
     def configure(self):
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
@@ -224,9 +226,9 @@ class boost(Package):
 
     def __init__(self, env):
         super(boost, self).__init__(env)
-        self.env['CFLAGS']   = self.env.get('CFLAGS', '')    + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '')  + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')   + ' -L%(INSTALL_DIR)s/lib' % self.env
+        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(INSTALL_DIR)s/lib'     % self.env
 
     @stage
     def configure(self):
@@ -251,7 +253,7 @@ class boost(Package):
         self.args = [
             '-q', 'variant=myrelease', '--user-config=%s/user-config.jam' % self.workdir,
             '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
-            'threading=multi', 'link=shared', 'runtime-link=shared'
+            'threading=multi', 'link=shared', 'runtime-link=shared',
             '--without-mpi', '--without-python',
         ]
 
