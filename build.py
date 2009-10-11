@@ -24,6 +24,7 @@ from BinaryBuilder import Package, Environment, PackageError, error
 if __name__ == '__main__':
     e = Environment(CC       = 'gcc',
                     CXX      = 'g++',
+                    F77      = 'gfortran',
                     CFLAGS   = '',
                     CXXFLAGS = '',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BUILDNAME=stereopipeline-$(date +"%Y-%m-%d")
+BUILDNAME=stereopipeline-$(uname -s | tr A-Z a-z)-$(date +"%Y-%m-%d")
 
 self=$$
 
