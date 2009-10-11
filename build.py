@@ -16,6 +16,7 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         build = (zlib, bzip2, png, jpeg, proj, gdal, ilmbase, openexr, boost,
+                 clapack,
                  visionworkbench, gsl_headers, geos_headers, superlu_headers,
                  xercesc_headers, qt_headers, qwt_headers, cspice_headers, isis,
                  stereopipeline)
@@ -24,7 +25,7 @@ if __name__ == '__main__':
 
     try:
         for pkg in build:
-            if pkg == stereopipeline:
+            if pkg in (stereopipeline, visionworkbench):
                 e2 = e.copy()
                 e2['LDFLAGS'] = e.get('LDFLAGS', '') + ' -Wl,-rpath-link,%s' % P.join(e['INSTALL_DIR'], '..', 'isis3', '3rdParty', 'lib')
                 Package.build(pkg, e2)

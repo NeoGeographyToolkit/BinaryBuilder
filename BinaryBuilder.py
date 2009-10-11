@@ -20,8 +20,8 @@ class PackageError(Exception):
     def __init__(self, pkg, message):
         super(PackageError, self).__init__('Package[%s] %s' % (pkg.pkgname, message))
 class HelperError(Exception):
-    def __init__(self, tool, message):
-        super(HelperError, self).__init__('Command[%s] %s' % (tool, message))
+    def __init__(self, tool, env, message):
+        super(HelperError, self).__init__('Command[%s] %s\nEnv%s' % (tool, message, env))
 
 def hash_file(filename):
     with file(filename, 'rb') as f:
@@ -67,7 +67,9 @@ class Environment(dict):
             DOWNLOAD_DIR   = '/tmp/build/src',
             BUILD_DIR      = '/tmp/build/build',
             INSTALL_DIR    = '/tmp/build/install',
-            NOINSTALL_DIR  = '/tmp/build/noinstall'
+            NOINSTALL_DIR  = '/tmp/build/noinstall',
+            ISISROOT       = '/tmp/build/isis3',
+            ISIS3RDPARTY   = '/tmp/build/isis3/3rdParty/lib',
         ))
         self.update(kw)
 
@@ -91,7 +93,7 @@ def get(url, output=None):
         try:
             r = urllib2.urlopen(url)
         except urllib2.HTTPError, e:
-            raise HelperError('urlopen', '%s: %s' % (url, e))
+            raise HelperError('urlopen', None, '%s: %s' % (url, e))
 
         current = 0
         size = int(r.info().get('Content-Length', -1))
@@ -210,14 +212,21 @@ class Package(object):
         cmd = ('make', )
         if 'MAKEOPTS' in self.env:
             cmd += (self.env['MAKEOPTS'],)
-        self.helper(*cmd)
+
+        e = Environment(prefix=self.env['INSTALL_DIR'])
+        e.update(self.env)
+
+        self.helper(*cmd, env=e)
 
     @stage
     def install(self):
         '''After install, the binaries should be on the live filesystem.'''
 
+        e = Environment(prefix=self.env['INSTALL_DIR'])
+        e.update(self.env)
+
         cmd = ('make', 'install')
-        self.helper(*cmd)
+        self.helper(*cmd, env=e)
 
     @staticmethod
     def build(pkg, env):
@@ -273,7 +282,7 @@ class Package(object):
         try:
             subprocess.check_call(args, **kw)
         except (OSError, subprocess.CalledProcessError), e:
-            raise HelperError(args[0], e)
+            raise HelperError(args[0], kw['env'], e)
 
     def remove_build(self, output_dir):
         if P.isdir(output_dir):

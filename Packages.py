@@ -93,25 +93,22 @@ class stereopipeline(SVNPackage):
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph'.split()
 
-        isisdir = P.join(self.env['INSTALL_DIR'], '..', 'isis3')
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] \
           + [i + '=%(NOINSTALL_DIR)s' % self.env for i in noinstall_pkgs] \
-          + ['isis=%s' % isisdir]
+          + ['isis=%s' % self.env['ISISROOT']]
 
-        thirdparty = P.join(isisdir, '3rdParty', 'lib')
         includedir = P.join(self.env['NOINSTALL_DIR'], 'include')
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in noinstall_pkgs:
-                #print('PKG_%s_LDFLAGS=-L%s %s' % (pkg.upper(), thirdparty, needed.get(pkg, '')), file=config)
-                print('PKG_%s_LDFLAGS=-L%s' % (pkg.upper(), thirdparty), file=config)
+                print('PKG_%s_LDFLAGS=-L%s' % (pkg.upper(), self.env['ISIS3RDPARTY']), file=config)
 
             qt_pkgs = 'Core Gui Network Sql Xml XmlPatterns'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
-            print('PKG_ARBITRARY_QT_LDFLAGS="-L%s"' % thirdparty, file=config)
-            print('PKG_SUPERLU_LIBS=%s' % glob(P.join(thirdparty, 'libsuperlu*.a'))[0], file=config)
+            print('PKG_ARBITRARY_QT_LDFLAGS="-L%s"' % self.env['ISIS3RDPARTY'], file=config)
+            print('PKG_SUPERLU_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
 
         super(stereopipeline, self).configure(
             with_   = w,
@@ -124,11 +121,45 @@ class visionworkbench(SVNPackage):
     def configure(self):
         self.helper('./autogen')
 
-        w = [i + '=%(INSTALL_DIR)s' % self.env for i in ('jpeg', 'png', 'gdal', 'proj4', 'z', 'ilmbase', 'openexr', 'boost')]
+        w  = [i + '=%(INSTALL_DIR)s' % self.env for i in 'jpeg png gdal proj4 z ilmbase openexr boost flapack'.split()]
+
+        with file(P.join(self.workdir, 'config.options'), 'w') as config:
+            print('PKG_FLAPACK_LDFLAGS="-L%s -L%s"' % (P.join(self.env['INSTALL_DIR'], 'lib'), self.env['ISIS3RDPARTY']), file=config)
+
         super(visionworkbench, self).configure(with_ = w,
-                                               without=('tiff', 'gl', 'qt', 'hdf', 'cairomm', 'rabbitmq_c', 'protobuf', 'tcmalloc', 'x11'),
+                                               without=('tiff gl qt hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack'.split()),
                                                disable=('pkg_paths_default','static'),
                                                enable=('debug=ignore', 'optimize=ignore'))
+
+class lapack(Package):
+    src     = 'http://www.netlib.org/lapack/lapack-3.1.0.tgz'
+    chksum  = '6acf1483951cdcf16fc0e670ae1bc066ac1d185d'
+    patches = 'patches/lapack'
+
+    def __init__(self, env):
+        super(lapack, self).__init__(env)
+        self.env['NOOPT_FFLAGS'] = '-O'
+
+    def unpack(self):
+        super(lapack, self).unpack()
+        self.helper('cp', 'make.inc.example', 'make.inc')
+        self.helper('sed', '-i',
+            '-e', 's:g77:gfortran:',
+            '-e', r's:LOADOPTS =:LOADOPTS = ${LDFLAGS}:',
+            '-e', 's:../../blas\$(PLAT).a:-L%(ISIS3RDPARTY)s -lblas:' % self.env,
+            '-e', 's:lapack\$(PLAT).a:SRC/.libs/liblapack.a:',
+            'make.inc')
+
+        self.helper('sed', '-i',
+                    '-e', 's:LIBADD.*:& -L%(ISIS3RDPARTY)s -lblas:' % self.env,
+                    '-e', 's:.*LDFLAGS.*::',
+                    P.join('SRC', 'Makefile.am'))
+
+        self.helper('autoreconf' , '--force' , '--verbose', '--install')
+
+
+    def configure(self):
+        super(lapack, self).configure(with_='blas=-L%s -lblas' % self.env['ISIS3RDPARTY'])
 
 class zlib(Package):
     src     = 'http://www.zlib.net/zlib-1.2.3.tar.gz'
@@ -392,10 +423,9 @@ class isis(Package):
 
     @stage
     def install(self):
-        isisdir = P.join(self.env['INSTALL_DIR'], '..', 'isis3')
-        cmd = ('cp', '-lr', self.workdir, isisdir)
+        cmd = ('cp', '-lr', self.workdir, self.env['ISISROOT'])
         self.helper(*cmd)
 
         # Idiots...
-        thirdparty = P.join(isisdir, '3rdParty', 'lib')
-        self.helper('ln', '-s', P.basename(glob(P.join(thirdparty, 'libgeos-3*.so'))[0]), P.join(thirdparty, 'libgeos.so'))
+        self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], 'libgeos-3*.so'))[0]), P.join(self.env['ISIS3RDPARTY'], 'libgeos.so'))
+        self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], 'libblas.so.*'))[0]), P.join(self.env['ISIS3RDPARTY'], 'libblas.so'))
