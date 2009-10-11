@@ -239,19 +239,22 @@ class boost(Package):
         cmd = ['./bjam']
         if 'MAKEOPTS' in self.env:
             cmd += (self.env['MAKEOPTS'],)
-        cmd += ['-q', 'variant=myrelease', '--user-config=%s/user-config.jam' % self.workdir,
-                '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
-                'threading=multi', 'link=shared', 'runtime-link=shared']
+
+        self.args = [
+            '-q', 'variant=myrelease', '--user-config=%s/user-config.jam' % self.workdir,
+            '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
+            'threading=multi', 'link=shared', 'runtime-link=shared'
+            '--without-mpi', '--without-python',
+        ]
+
+        cmd += self.args
         self.helper(*cmd)
 
     # TODO: Might need some darwin path-munging with install_name_tool?
     @stage
     def install(self):
         self.env['BOOST_ROOT'] = self.workdir
-        cmd = ['./bjam', '-q', 'variant=myrelease', '--user-config=%s/user-config.jam' % self.workdir,
-               '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
-               'threading=multi', 'link=shared', 'runtime-link=shared',
-              'install']
+        cmd = ['./bjam'] + self.args + ['install']
         self.helper(*cmd)
 
 class HeaderPackage(Package):
@@ -337,10 +340,10 @@ class qt_headers(HeaderPackage):
         # This is amazingly ugly. All because OSX has a broken find(1). Sigh.
         try:
             P.walk('./', docopy, files)
-            max_length = os.sysconf('SC_ARG_MAX') - len('cp --parent ') - len(self.env['NOINSTALL_DIR'])
+            max_length = os.sysconf('SC_ARG_MAX') - len('cp -f --parent ') - len(self.env['NOINSTALL_DIR'])
             cmds = textwrap.wrap(' '.join(files), max_length)
             for f in cmds:
-                run = ['cp', '--parent'] + f.split() + [self.env['NOINSTALL_DIR']]
+                run = ['cp', '-f', '--parent'] + f.split() + [self.env['NOINSTALL_DIR']]
                 self.helper(*run)
         finally:
             os.chdir(pwd)
@@ -415,7 +418,7 @@ class isis(Package):
         self.remove_build(output_dir)
         self.workdir = P.join(output_dir, self.pkgname + '-rsync')
 
-        cmd = ('cp', '-lr', self.localcopy, self.workdir)
+        cmd = ('cp', '-lfr', self.localcopy, self.workdir)
         self.helper(*cmd, cwd=output_dir)
 
         self._apply_patches()
@@ -428,7 +431,7 @@ class isis(Package):
 
     @stage
     def install(self):
-        cmd = ('cp', '-lr', self.workdir, self.env['ISISROOT'])
+        cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
         self.helper(*cmd)
 
         # Idiots...
