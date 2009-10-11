@@ -171,17 +171,11 @@ class Package(object):
             zip.close()
 
         else:
-            import tarfile
+            flags = 'xf'
             if ext == '.Z':
-                # tarfile doesn't support lzw...
-                tmp = P.join(P.dirname(self.tarball), 'tmp-' + P.basename(self.tarball))
-                self.helper('cp', '-f', self.tarball, tmp)
-                self.helper('uncompress', '-f', tmp)
-                self.tarball = tmp[:-2]
+                flags = 'z' + flags
 
-            tar = tarfile.open(self.tarball, mode='r')
-            tar.extractall(path=output_dir)
-            tar.close()
+            self.helper('tar', flags, self.tarball, '-C',  output_dir)
 
         self.workdir = glob(P.join(output_dir, "*"))
         if len(self.workdir) != 1:
