@@ -1,0 +1,101 @@
+--- a/CMakeLists.txt.old	2009-03-12 10:39:41.000000000 +0100
++++ a/CMakeLists.txt	2009-03-12 10:47:37.000000000 +0100
+@@ -287,22 +287,45 @@
+     INCLUDE(Find3rdPartyDependencies)
+ ENDIF(WIN32)
+ 
++OPTION(ENABLE_XUL "Enable gecko plugin" ON)
++OPTION(ENABLE_PDF "Enable pdf plugin" ON)
++OPTION(ENABLE_XINE "Enable xine plugin" ON)
++OPTION(ENABLE_JPEG2K "Enable jp2 plugin" ON)
++OPTION(ENABLE_SVG "Enable svg plugin" ON)
++OPTION(ENABLE_FREETYPE "Enable freetype plugin" ON)
++OPTION(ENABLE_CURL "Enable curl plugin" ON)
++OPTION(ENABLE_GIF "Enable gif plugin" ON)
++OPTION(ENABLE_JPEG "Enable jpeg plugin" ON)
++OPTION(ENABLE_PNG "Enable png plugin" ON)
++OPTION(ENABLE_TIFF "Enable tiff plugin" ON)
++OPTION(ENABLE_XRANDR "Enable xrandr usage" ON)
++
+ # Common to all platforms:
++IF(ENABLE_FREETYPE)
+ FIND_PACKAGE(FreeType)
++ENDIF(ENABLE_FREETYPE)
+ FIND_PACKAGE(Inventor)
++IF(ENABLE_JPEG2K)
+ FIND_PACKAGE(Jasper)
++ENDIF(ENABLE_JPEG2K)
+ FIND_PACKAGE(OpenEXR)
+ FIND_PACKAGE(COLLADA)
+ FIND_PACKAGE(ZLIB)
++IF(ENABLE_XINE)
+ FIND_PACKAGE(Xine)
++ENDIF(ENABLE_XINE)
+ FIND_PACKAGE(OpenVRML)
+ FIND_PACKAGE(Performer)
+ FIND_PACKAGE(GDAL)
++IF(ENABLE_CURL)
+ FIND_PACKAGE(CURL)
++ENDIF(ENABLE_CURL)
+ FIND_PACKAGE(ITK)
+ FIND_PACKAGE(LibVNCServer)
+ FIND_PACKAGE(OurDCMTK)
++IF(ENABLE_XUL)
+ FIND_PACKAGE(XUL)
++ENDIF(ENABLE_XUL)
+ 
+ #use pkg-config to find various modues
+ INCLUDE(FindPkgConfig OPTIONAL)
+@@ -319,9 +342,13 @@
+         PKG_CHECK_MODULES(GTKGL gtkglext-x11-1.0)
+     ENDIF(WIN32)
+ 
++    IF(ENABLE_SVG)
+     PKG_CHECK_MODULES(RSVG librsvg-2.0)
++    ENDIF(ENABLE_SVG)
+     PKG_CHECK_MODULES(CAIRO cairo)
++    IF(ENABLE_PDF)
+     PKG_CHECK_MODULES(POPPLER poppler-glib)
++    ENDIF(ENABLE_PDF)
+ 
+ ENDIF(PKG_CONFIG_FOUND)
+ 
+@@ -417,10 +444,18 @@
+ # Image readers/writers depend on 3rd party libraries except for OS X which
+ # can use Quicktime.
+ IF(NOT APPLE)
++    IF(ENABLE_GIF)
+     FIND_PACKAGE(GIFLIB)
++    ENDIF(ENABLE_GIF)
++    IF(ENABLE_JPEG)
+     FIND_PACKAGE(JPEG)
++    ENDIF(ENABLE_JPEG)
++    IF(ENABLE_PNG)
+     FIND_PACKAGE(PNG)
++    ENDIF(ENABLE_PNG)
++    IF(ENABLE_TIFF)
+     FIND_PACKAGE(TIFF)
++    ENDIF(ENABLE_TIFF)
+ 
+     # QuickTime is required for OS X, but optional for Windows.
+     IF(WIN32)
+@@ -843,3 +878,7 @@
+   IMMEDIATE @ONLY)
+ ADD_CUSTOM_TARGET(uninstall
+   "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake")
++
++MESSAGE(STATUS "<<< Gentoo configuration >>>
++Build type: ${CMAKE_BUILD_TYPE}
++Install path: ${CMAKE_INSTALL_PREFIX}\n")
+--- a/src/osgViewer/CMakeLists.txt.old	2009-03-12 10:46:01.000000000 +0100
++++ a/src/osgViewer/CMakeLists.txt	2009-03-12 10:46:48.000000000 +0100
+@@ -91,7 +91,9 @@
+         INCLUDE(FindPkgConfig OPTIONAL)
+         IF (PKG_CONFIG_FOUND)
+ 
++	    IF(ENABLE_XRANDR)
+             PKG_CHECK_MODULES(XRANDR xrandr)
++	    ENDIF(ENABLE_XRANDR)
+             
+             IF (XRANDR_FOUND) 
+                 OPTION(OSGVIEWER_USE_XRANDR "Set to ON to enable Xrandr support for GraphicsWindowX11." ON)

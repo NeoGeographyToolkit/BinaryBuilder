@@ -161,18 +161,27 @@ class Package(object):
 
         self.remove_build(output_dir)
 
-        import tarfile
-        mode = 'r'
-        if P.splitext(self.tarball)[-1] == '.Z':
-            # tarfile doesn't support lzw...
-            tmp = P.join(P.dirname(self.tarball), 'tmp-' + P.basename(self.tarball))
-            self.helper('cp', '-f', self.tarball, tmp)
-            self.helper('uncompress', '-f', tmp)
-            self.tarball = tmp[:-2]
+        ext = P.splitext(self.tarball)[-1]
 
-        tar = tarfile.open(self.tarball, mode=mode)
-        tar.extractall(path=output_dir)
-        tar.close()
+        if ext == '.zip':
+            import zipfile
+
+            zip = zipfile.ZipFile(self.tarball)
+            zip.extractall(path=output_dir)
+            zip.close()
+
+        else:
+            import tarfile
+            if ext == '.Z':
+                # tarfile doesn't support lzw...
+                tmp = P.join(P.dirname(self.tarball), 'tmp-' + P.basename(self.tarball))
+                self.helper('cp', '-f', self.tarball, tmp)
+                self.helper('uncompress', '-f', tmp)
+                self.tarball = tmp[:-2]
+
+            tar = tarfile.open(self.tarball, mode='r')
+            tar.extractall(path=output_dir)
+            tar.close()
 
         self.workdir = glob(P.join(output_dir, "*"))
         if len(self.workdir) != 1:

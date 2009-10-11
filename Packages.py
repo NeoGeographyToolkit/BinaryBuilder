@@ -91,7 +91,7 @@ class stereopipeline(SVNPackage):
 
         noinstall_pkgs = 'spice qwt gsl geos superlu xercesc'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
-                          vw_stereo vw_cartography vw_interest_point openscenegraph'.split()
+                          vw_stereo vw_cartography vw_interest_point openscenegraph flapack'.split()
 
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] \
           + [i + '=%(NOINSTALL_DIR)s' % self.env for i in noinstall_pkgs] \
@@ -102,16 +102,21 @@ class stereopipeline(SVNPackage):
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in noinstall_pkgs:
                 print('PKG_%s_LDFLAGS=-L%s' % (pkg.upper(), self.env['ISIS3RDPARTY']), file=config)
+            print('PKG_FLAPACK_LDFLAGS="-L%s -L%s"' % (P.join(self.env['INSTALL_DIR'], 'lib'), self.env['ISIS3RDPARTY']), file=config)
 
             qt_pkgs = 'Core Gui Network Sql Xml XmlPatterns'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
             print('PKG_ARBITRARY_QT_LDFLAGS="-L%s"' % self.env['ISIS3RDPARTY'], file=config)
+            print('PKG_ARBITRARY_QT_MORE_LIBS="-lreadline -lmysqlclient_r -lpq"', file=config)
             print('PKG_SUPERLU_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
+            print('PKG_XERCESC_LDFLAGS="-L%s"' % self.env['ISIS3RDPARTY'], file=config)
+            print('PKG_XERCESC_MORE_LIBS="-licuuc -licudata"', file=config)
 
         super(stereopipeline, self).configure(
             with_   = w,
+            without = ['clapack', 'slapack'],
             disable = ['pkg_paths_default', 'static', 'qt-qmake']   + ['app-' + a for a in disable_apps.split()],
             enable  = ['debug=ignore', 'optimize=ignore'] + ['app-' + a for a in enable_apps.split()])
 
@@ -128,7 +133,7 @@ class visionworkbench(SVNPackage):
 
         super(visionworkbench, self).configure(with_ = w,
                                                without=('tiff gl qt hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack'.split()),
-                                               disable=('pkg_paths_default','static'),
+                                               disable=('pkg_paths_default','static', 'qt-qmake'),
                                                enable=('debug=ignore', 'optimize=ignore'))
 
 class lapack(Package):
@@ -427,5 +432,86 @@ class isis(Package):
         self.helper(*cmd)
 
         # Idiots...
-        self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], 'libgeos-3*.so'))[0]), P.join(self.env['ISIS3RDPARTY'], 'libgeos.so'))
-        self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], 'libblas.so.*'))[0]), P.join(self.env['ISIS3RDPARTY'], 'libblas.so'))
+        missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'), 
+                         ('libicuuc.so.*', 'libicuuc.so'), ('libicudata.so.*', 'libicudata.so'),
+                         ('libreadline.so.5', 'libreadline.so'))
+
+        for tgt, name in missing_links:
+            self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], tgt))[0]), P.join(self.env['ISIS3RDPARTY'], name))
+
+class osg(Package):
+    src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.2/source/OpenSceneGraph-2.8.2.zip'
+    chksum = 'f2f0a3285a022640345a81f536459f37f3f38d01'
+    patches = 'patches/osg'
+
+    @stage
+    def configure(self):
+        self.builddir = P.join(self.workdir, 'build')
+
+        def remove_danger(files, dirname, fnames):
+            files.extend([P.join(dirname,f) for f in fnames if f == 'CMakeLists.txt'])
+
+        files = []
+        P.walk(self.workdir, remove_danger, files)
+        cmd = ['sed',  '-i',
+                    '-e', '/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_BUILD_TYPE.*)/{s/^/#IGNORE /g}',
+                    '-e', '/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_INSTALL_PREFIX.*)/{s/^/#IGNORE /g}']
+
+        cmd.extend(files)
+        self.helper(*cmd)
+
+        build_rules = P.join(os.environ.get('TMPDIR', '/tmp'), 'my_rules.cmake')
+        with file(build_rules, 'w') as f:
+            print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (self.env['CC']), file=f)
+            print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
+            print('SET (CMAKE_CXX_COMPILER "%s" CACHE FILEPATH "C++ compiler" FORCE)' % (self.env['CXX']), file=f)
+            print('SET (CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
+
+        cmd = ['cmake']
+        args = [
+            '-DCMAKE_INSTALL_PREFIX=%(INSTALL_DIR)s' % self.env,
+            '-DCMAKE_BUILD_TYPE=MyBuild',
+            '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
+            '-DCMAKE_SKIP_RPATH=YES',
+        ]
+
+        for arg in ('XUL', 'PDF', 'XINE', 'JPEG2K', 'SVG', 'FREETYPE', 'CURL', 'GIF', 'TIFF', 'XRANDR'):
+            args.append('-DENABLE_%s=OFF' % arg)
+        for arg in ('JPEG', 'PNG'):
+            args.append('-DENABLE_%s=ON' % arg)
+
+        args.extend([
+            '-DCMAKE_PREFIX_PATH=%(INSTALL_DIR)s' % self.env,
+            '-DBUILD_OSG_APPLICATIONS=OFF',
+            '-DLIB_POSTFIX=',
+        ])
+
+
+        os.mkdir(self.builddir)
+
+        cmd = cmd + args + [self.workdir]
+
+        self.helper(*cmd, cwd=self.builddir)
+
+    @stage
+    def compile(self):
+        cmd = ('make', )
+        if 'MAKEOPTS' in self.env:
+            cmd += (self.env['MAKEOPTS'],)
+
+        e = self.env.copy()
+        if 'prefix' not in e:
+            e['prefix'] = self.env['INSTALL_DIR']
+
+        self.helper(*cmd, env=e, cwd=self.builddir)
+
+    @stage
+    def install(self):
+        '''After install, the binaries should be on the live filesystem.'''
+
+        e = self.env.copy()
+        if 'prefix' not in e:
+            e['prefix'] = self.env['INSTALL_DIR']
+
+        cmd = ('make', 'install')
+        self.helper(*cmd, env=e, cwd=self.builddir)
