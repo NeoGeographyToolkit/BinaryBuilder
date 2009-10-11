@@ -475,9 +475,9 @@ class osg(Package):
             '-DCMAKE_SKIP_RPATH=YES',
         ]
 
-        for arg in ('XUL', 'PDF', 'XINE', 'JPEG2K', 'SVG', 'FREETYPE', 'CURL', 'GIF', 'TIFF', 'XRANDR'):
+        for arg in 'XUL PDF XINE JPEG2K SVG FREETYPE CURL GIF TIFF XRANDR INVENTOR COLLADA OPENVRML PERFORMER ITK LIBVNCSERVER OURDCMTK GTK CAIRO'.split():
             args.append('-DENABLE_%s=OFF' % arg)
-        for arg in ('JPEG', 'PNG'):
+        for arg in ('JPEG', 'PNG', 'OPENEXR', 'ZLIB', 'GDAL'):
             args.append('-DENABLE_%s=ON' % arg)
 
         args.extend([
