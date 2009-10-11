@@ -109,7 +109,7 @@ class stereopipeline(SVNPackage):
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
             print('PKG_ARBITRARY_QT_LDFLAGS="-L%s"' % self.env['ISIS3RDPARTY'], file=config)
-            print('PKG_ARBITRARY_QT_MORE_LIBS="-lreadline -lmysqlclient_r -lpq"', file=config)
+            print('PKG_ARBITRARY_QT_MORE_LIBS="-lreadline -lmysqlclient_r -lpq -lssl -lcrypto"', file=config)
             print('PKG_SUPERLU_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
             print('PKG_XERCESC_LDFLAGS="-L%s"' % self.env['ISIS3RDPARTY'], file=config)
             print('PKG_XERCESC_MORE_LIBS="-licuuc -licudata"', file=config)
