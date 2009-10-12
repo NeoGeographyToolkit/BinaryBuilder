@@ -1,6 +1,6 @@
 #!/bin/bash
 
-BUILDNAME=stereopipeline-$(uname -s | tr A-Z a-z)-$(uname -m)-$(date +"%Y-%m-%d")
+BUILDNAME=stereopipeline-$(uname -s | tr A-Z a-z)-$(uname -m)-$(date +"%Y-%m-%d_%H-%M-%S")
 
 self=$$
 
@@ -30,6 +30,7 @@ for i in $ilib/*.so*; do cp -av $i $olib/; done
 for i in $obin/* $olib/*; do
     if [[ -f $i ]]; then
         chrpath -r '$ORIGIN/../../isis/lib:$ORIGIN/../../isis/3rdParty/lib:$ORIGIN/../lib' $i || die "chrpath failed"
+        strip -s $i
     fi
 done
 

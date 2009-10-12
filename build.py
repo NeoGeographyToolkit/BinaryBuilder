@@ -16,9 +16,9 @@ if __name__ == '__main__':
     e = Environment(CC       = 'gcc',
                     CXX      = 'g++',
                     F77      = 'gfortran',
-                    CFLAGS   = '',
-                    CXXFLAGS = '',
-                    LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
+                    CFLAGS   = '-O3 -pipe',
+                    CXXFLAGS = '-O3 -pipe',
+                    LDFLAGS  = r'-Wl,-O1 -Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME=os.environ['HOME'])
 
     if ccache:
