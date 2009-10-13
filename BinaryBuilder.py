@@ -16,6 +16,22 @@ from hashlib import sha1
 from shutil import rmtree
 from urlparse import urlparse
 
+def get_platform(pkg=None):
+    import platform
+    system = platform.system()
+    if system == 'Linux' and platform.architecture()[0] == '64bit':
+        return 'linux64'
+    elif system == 'Linux' and platform.architecture()[0] == '32bit':
+        return 'linux32'
+    elif system == 'Darwin': # ignore arch here, it seems to just return 32-bit
+        return 'osx32'
+    else:
+        message = 'Cannot match system to known platform'
+        if pkg is None:
+            raise Exception(message)
+        else:
+            raise PackageError(pkg, message)
+
 class PackageError(Exception):
     def __init__(self, pkg, message):
         super(PackageError, self).__init__('Package[%s] %s' % (pkg.pkgname, message))
@@ -38,7 +54,7 @@ def _message(*args, **kw):
     del kw['severity']
 
     if severity == 'info':
-        args = [colored(i, 'green', attrs=['bold']) for i in args]
+        args = [colored(i, 'blue', attrs=['bold']) for i in args]
         print(*args, **kw)
     elif severity == 'error':
         args = [colored(i, 'red', attrs=['bold']) for i in ['ERROR:'] + list(args)]
@@ -128,6 +144,7 @@ class Package(object):
         self.tarball = None
         self.workdir = None
         self.env = dict(env)
+        self.arch = get_platform(self)
 
     @stage
     def fetch(self):
@@ -172,8 +189,10 @@ class Package(object):
 
         else:
             flags = 'xf'
-            if ext == '.Z':
+            if ext == '.Z' or ext.endswith('gz'):
                 flags = 'z' + flags
+            elif ext.endswith('bz2'):
+                flags = 'j' + flags
 
             self.helper('tar', flags, self.tarball, '-C',  output_dir)
 

@@ -9,8 +9,12 @@ import subprocess
 
 ccache = True
 
-from Packages import *
-from BinaryBuilder import Package, Environment, PackageError, error
+from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
+                qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
+                ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
+                findfile
+
+from BinaryBuilder import Package, Environment, PackageError, error, get_platform
 
 if __name__ == '__main__':
     e = Environment(CC       = 'gcc',
@@ -18,8 +22,15 @@ if __name__ == '__main__':
                     F77      = 'gfortran',
                     CFLAGS   = '-O3 -pipe',
                     CXXFLAGS = '-O3 -pipe',
-                    LDFLAGS  = r'-Wl,-O1 -Wl,-rpath,/%s' % ('a'*100),
+                    LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME=os.environ['HOME'])
+
+    arch = get_platform()
+
+    if arch[:5] == 'linux':
+        e['LDFLAGS'] = e.get('LDFLAGS', '') + ' -Wl,-O1'
+    elif arch[:3] == 'osx':
+        e['PATH'] = e['HOME'] + '/local/coreutils/bin:' + e['PATH'] + ':/opt/local/bin'
 
     if ccache:
         compiler_dir = P.join(os.environ.get('TMPDIR', '/tmp'), 'mycompilers')
@@ -37,10 +48,14 @@ if __name__ == '__main__':
 
     if len(sys.argv) == 1:
         # Many things depend on isis 3rdparty, so do it first
-        build = (gsl_headers, geos_headers, superlu_headers, xercesc_headers,
-                 qt_headers, qwt_headers, cspice_headers, isis, zlib, bzip2,
-                 png, jpeg, proj, gdal, ilmbase, openexr, boost, osg,
-                 lapack, visionworkbench, stereopipeline)
+        build = [isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,
+                 qt_headers, qwt_headers, cspice_headers, zlib,
+                 png, jpeg, proj, gdal, ilmbase, openexr, boost, osg]
+
+        if arch[:5] == 'linux':
+            build.append(lapack)
+
+        build.extend([visionworkbench, stereopipeline])
     else:
         build = (globals()[pkg] for pkg in sys.argv[1:])
 

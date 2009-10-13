@@ -16,18 +16,6 @@ def findfile(filename, path=None):
             return possible
     raise Exception('Could not find file %s in path[%s]' % (filename, path))
 
-def get_platform(pkg):
-    import platform
-    system = platform.system()
-    if system == 'Linux' and platform.architecture()[0] == '64bit':
-        return 'linux64'
-    elif system == 'Linux' and platform.architecture()[0] == '32bit':
-        return 'linux32'
-    elif system == 'Darwin': # ignore arch here, it seems to just return 32-bit
-        return 'osx32'
-    else:
-        raise PackageError(pkg, 'Cannot match system to known platform')
-
 class png(Package):
     src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.40.tar.gz'
     chksum = 'a3f2df01871da15d66f103a5b4e793601e4d1043'
@@ -101,7 +89,7 @@ class stereopipeline(SVNPackage):
 
         noinstall_pkgs = 'spice qwt gsl geos superlu xercesc'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
-                          vw_stereo vw_cartography vw_interest_point openscenegraph flapack'.split()
+                          vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt'.split()
 
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] \
           + [i + '=%(NOINSTALL_DIR)s' % self.env for i in noinstall_pkgs] \
@@ -110,19 +98,18 @@ class stereopipeline(SVNPackage):
         includedir = P.join(self.env['NOINSTALL_DIR'], 'include')
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
-            for pkg in noinstall_pkgs:
-                print('PKG_%s_LDFLAGS=-L%s' % (pkg.upper(), self.env['ISIS3RDPARTY']), file=config)
-            print('PKG_FLAPACK_LDFLAGS="-L%s -L%s"' % (P.join(self.env['INSTALL_DIR'], 'lib'), self.env['ISIS3RDPARTY']), file=config)
+            for pkg in install_pkgs + noinstall_pkgs:
+                print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
 
             qt_pkgs = 'Core Gui Network Sql Xml XmlPatterns'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
-            print('PKG_ARBITRARY_QT_LDFLAGS="-L%s"' % self.env['ISIS3RDPARTY'], file=config)
-            print('PKG_ARBITRARY_QT_MORE_LIBS="-lreadline -lmysqlclient_r -lpq -lssl -lcrypto"', file=config)
-            print('PKG_SUPERLU_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
-            print('PKG_XERCESC_LDFLAGS="-L%s"' % self.env['ISIS3RDPARTY'], file=config)
-            print('PKG_XERCESC_MORE_LIBS="-licuuc -licudata"', file=config)
+
+            if self.arch[:5] == 'linux':
+                print('PKG_ARBITRARY_QT_MORE_LIBS="-lreadline -lmysqlclient_r -lpq -lssl -lcrypto"', file=config)
+                print('PKG_XERCESC_MORE_LIBS="-licuuc -licudata"', file=config)
+                print('PKG_SUPERLU_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
 
         super(stereopipeline, self).configure(
             with_   = w,
@@ -136,15 +123,20 @@ class visionworkbench(SVNPackage):
     def configure(self):
         self.helper('./autogen')
 
-        w  = [i + '=%(INSTALL_DIR)s' % self.env for i in 'jpeg png gdal proj4 z ilmbase openexr boost flapack'.split()]
+        enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools'.split()
+        disable_modules = 'gpu plate python gui'.split()
+        install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack'.split()
+
+        w  = [i + '=%(INSTALL_DIR)s' % self.env for i in install_pkgs]
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
-            print('PKG_FLAPACK_LDFLAGS="-L%s -L%s"' % (P.join(self.env['INSTALL_DIR'], 'lib'), self.env['ISIS3RDPARTY']), file=config)
+            for pkg in install_pkgs:
+                print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
 
-        super(visionworkbench, self).configure(with_ = w,
-                                               without=('tiff gl qt hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack'.split()),
-                                               disable=('pkg_paths_default','static', 'qt-qmake'),
-                                               enable=('debug=ignore', 'optimize=ignore'))
+        super(visionworkbench, self).configure(with_   = w,
+                                               without = ('tiff hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack qt'.split()),
+                                               disable = ['pkg_paths_default','static', 'qt-qmake'] + ['module-' + a for a in disable_modules],
+                                               enable  = ['debug=ignore', 'optimize=ignore']        + ['module-' + a for a in enable_modules])
 
 class lapack(Package):
     src     = 'http://www.netlib.org/lapack/lapack-3.1.0.tgz'
@@ -233,10 +225,15 @@ class boost(Package):
     @stage
     def configure(self):
         with file(P.join(self.workdir, 'user-config.jam'), 'w') as f:
+            if self.arch[:5] == 'linux':
+                toolkit = 'gcc'
+            elif self.arch[:3] == 'osx':
+                toolkit = 'darwin'
+
             print('variant myrelease : release : <optimization>none <debug-symbols>none ;', file=f)
             print('variant mydebug : debug : <optimization>none ;', file=f)
-            print('using gcc : : %s : <cxxflags>"%s" <linkflags>"%s -ldl" ;' %
-                  tuple(self.env.get(i, ' ') for i in ('CC', 'CXXFLAGS', 'LDFLAGS')), file=f)
+            args = [toolkit] + list(self.env.get(i, ' ') for i in ('CXX', 'CXXFLAGS', 'LDFLAGS'))
+            print('using %s : : %s : <cxxflags>"%s" <linkflags>"%s -ldl" ;' % tuple(args), file=f)
 
     # TODO: WRONG. There can be other things besides -j4 in MAKEOPTS
     @stage
@@ -305,18 +302,17 @@ class xercesc_headers(HeaderPackage):
     def configure(self):
         self.env['XERCESCROOT'] = self.workdir
 
-        arch = get_platform(self)
-        if arch  == 'linux64':
+        if self.arch  == 'linux64':
             arch = 'linux'
             bits = 64
-        elif arch == 'linux32':
+        elif self.arch == 'linux32':
             arch = 'linux'
             bits = 32
-        elif arch == 'osx32':
+        elif self.arch == 'osx32':
             arch = 'macosx'
             bits = 32
         else:
-            raise PackageError(self, 'Unsupported arch: %s' % arch)
+            raise PackageError(self, 'Unsupported arch: %s' % self.arch)
 
         cmd = ['./runConfigure', '-p%s' % arch, '-b%s' % bits, '-P%(NOINSTALL_DIR)s' % self.env]
         self.helper(*cmd, cwd=P.join(self.workdir, 'src', 'xercesc'))
@@ -328,10 +324,20 @@ class xercesc_headers(HeaderPackage):
         self.helper(*cmd)
 
 class qt_headers(HeaderPackage):
-    src = 'http://get.qt.nokia.com/qt/source/qt-x11-opensource-src-4.4.1.tar.bz2',
-    chksum = 'b0087fe51271f81d4dc35d4cb7518ef84a36f3c2',
+    def __init__(self, env):
+        super(qt_headers, self).__init__(env)
+        if self.arch[:5] == 'linux':
+            self.src = 'http://get.qt.nokia.com/qt/source/qt-x11-opensource-src-4.4.1.tar.bz2',
+            self.chksum = 'b0087fe51271f81d4dc35d4cb7518ef84a36f3c2',
+        elif self.arch[:3] == 'osx':
+            self.src = 'http://get.qt.nokia.com/qt/source/qt-mac-opensource-src-4.4.1.tar.bz2',
+            self.chksum = 'bc588e4d6a81093c736886caf306f660677d8a93',
+
     def configure(self):
-        self.helper('./configure', '-confirm-license')
+        args = ['./configure', '-confirm-license', '-fast']
+        if self.arch[:3] == 'osx':
+            args.append('-no-framework')
+        self.helper(*args)
 
     def install(self):
         ext = ('.h', '.pro', '.pri')
@@ -350,7 +356,8 @@ class qt_headers(HeaderPackage):
         # This is amazingly ugly. All because OSX has a broken find(1). Sigh.
         try:
             P.walk('./', docopy, files)
-            max_length = os.sysconf('SC_ARG_MAX') - len('cp -f --parent ') - len(self.env['NOINSTALL_DIR'])
+            # Divide by 2 to account for the environment size, which also counts
+            max_length = (os.sysconf('SC_ARG_MAX') - len('cp -f --parent    ') - len(self.env['NOINSTALL_DIR'])) / 2
             cmds = textwrap.wrap(' '.join(files), max_length)
             for f in cmds:
                 run = ['cp', '-f', '--parent'] + f.split() + [self.env['NOINSTALL_DIR']]
@@ -385,10 +392,9 @@ class cspice_headers(HeaderPackage):
 
     def __init__(self, env):
         super(cspice_headers, self).__init__(env)
-        arch = get_platform(self)
-        self.pkgname += '_' + arch
-        self.src    = self.PLATFORM[arch]['src']
-        self.chksum = self.PLATFORM[arch]['chksum']
+        self.pkgname += '_' + self.arch
+        self.src    = self.PLATFORM[self.arch]['src']
+        self.chksum = self.PLATFORM[self.arch]['chksum']
     def configure(self, *args, **kw): pass
     def install(self):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [P.join('%(NOINSTALL_DIR)s' % self.env, 'include')]
@@ -406,11 +412,10 @@ class isis(Package):
 
     def __init__(self, env):
         super(isis, self).__init__(env)
-        arch = get_platform(self)
 
-        self.pkgname += '_' + arch
+        self.pkgname += '_' + self.arch
 
-        self.src = self.PLATFORM[arch]
+        self.src = self.PLATFORM[self.arch]
 
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
@@ -445,9 +450,12 @@ class isis(Package):
         self.helper(*cmd)
 
         # Idiots...
-        missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'), 
-                         ('libicuuc.so.*', 'libicuuc.so'), ('libicudata.so.*', 'libicudata.so'),
-                         ('libreadline.so.5', 'libreadline.so'))
+        if self.arch[:5] == 'linux':
+            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'), 
+                             ('libicuuc.so.*', 'libicuuc.so'), ('libicudata.so.*', 'libicudata.so'),
+                             ('libreadline.so.5', 'libreadline.so'))
+        elif self.arch[:3] == 'osx':
+            missing_links = (('libgeos*.dylib', 'libgeos.dylib'), ('libsuperlu*.dylib', 'libsuperlu.dylib'))
 
         for tgt, name in missing_links:
             self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], tgt))[0]), P.join(self.env['ISIS3RDPARTY'], name))
@@ -466,9 +474,11 @@ class osg(Package):
 
         files = []
         P.walk(self.workdir, remove_danger, files)
-        cmd = ['sed',  '-i',
-                    '-e', '/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_BUILD_TYPE.*)/{s/^/#IGNORE /g}',
-                    '-e', '/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_INSTALL_PREFIX.*)/{s/^/#IGNORE /g}']
+        cmd = ['sed',  '-i', '',
+                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_BUILD_TYPE.*)/#IGNORE /g',
+                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_INSTALL_PREFIX.*)/#IGNORE /g',
+                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_OSX_ARCHITECTURES.*)/#IGNORE /g',
+              ]
 
         cmd.extend(files)
         self.helper(*cmd)
@@ -487,6 +497,9 @@ class osg(Package):
             '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
             '-DCMAKE_SKIP_RPATH=YES',
         ]
+
+        if self.arch[:3] == 'osx':
+            args.append('-DCMAKE_OSX_ARCHITECTURES=i386')
 
         for arg in 'XUL PDF XINE JPEG2K SVG FREETYPE CURL GIF TIFF XRANDR INVENTOR COLLADA OPENVRML PERFORMER ITK LIBVNCSERVER OURDCMTK GTK CAIRO'.split():
             args.append('-DENABLE_%s=OFF' % arg)
