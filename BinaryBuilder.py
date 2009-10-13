@@ -84,8 +84,8 @@ class Environment(dict):
             BUILD_DIR      = '/tmp/build/build',
             INSTALL_DIR    = '/tmp/build/install',
             NOINSTALL_DIR  = '/tmp/build/noinstall',
-            ISISROOT       = '/tmp/build/isis3',
-            ISIS3RDPARTY   = '/tmp/build/isis3/3rdParty/lib',
+            ISISROOT       = '/tmp/build/isis',
+            ISIS3RDPARTY   = '/tmp/build/isis/3rdParty/lib',
         ))
         self.update(kw)
 
