@@ -176,41 +176,6 @@ class zlib(Package):
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
 
-class bzip2(Package):
-    src = 'http://www.bzip.org/1.0.5/bzip2-1.0.5.tar.gz'
-    chksum = '8b02713ea0c8eb501cc8bdac4432d7f29700f767'
-    patches = 'patches/bzip2'
-
-    @stage
-    def unpack(self):
-        super(bzip2, self).unpack()
-        self.helper('sed', '-i', '-e', 's:1\.0\.4:1.0.5:', 'Makefile-libbz2_so')
-
-    @stage
-    def configure(self):
-        pass
-
-    @stage
-    def compile(self):
-        cmd = ('make', )
-        if 'MAKEOPTS' in self.env:
-            cmd += (self.env['MAKEOPTS'],)
-        cmd1 = cmd + ('-f', 'Makefile-libbz2_so', 'all')
-        cmd2 = cmd + ('all',)
-        self.helper(*cmd1)
-        self.helper(*cmd2)
-
-    @stage
-    def install(self):
-        self.helper('install', '-d', '%(INSTALL_DIR)s/include' % self.env)
-        self.helper('install', '-d', '%(INSTALL_DIR)s/lib' % self.env)
-        self.helper('install', '-m0644', 'bzlib.h', '%(INSTALL_DIR)s/include' % self.env)
-        self.helper('install', '-m0755', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib' % self.env)
-        self.helper('ln', '-sf', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib/libbz2.so.1.0' % self.env)
-        self.helper('ln', '-sf', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib/libbz2.so.1' % self.env)
-        self.helper('ln', '-sf', 'libbz2.so.1.0.5', '%(INSTALL_DIR)s/lib/libbz2.so' % self.env)
-
-
 class boost(Package):
     src    = 'http://downloads.sourceforge.net/boost/boost_1_39_0.tar.gz'
     chksum = 'fc0f98aea163f2edd8d74e18eafc4704d7d93d07'
