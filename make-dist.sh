@@ -12,7 +12,7 @@ die() {
 INSTALL_DIR=/tmp/build/install
 DIST_DIR=/tmp/build/${BUILDNAME}
 
-BINS="image2qtree colormap slopemap hillshade ipmatch ipfind stereo orthoproject bundle_adjust orbitviz disparitydebug point2mesh point2dem ctximage bundlevis isis_adjust"
+BINS="image2qtree colormap hillshade ipmatch ipfind stereo bundle_adjust orbitviz disparitydebug point2mesh point2dem bundlevis isis_adjust"
 
 obin="${DIST_DIR}/bin"
 olib="${DIST_DIR}/lib"
