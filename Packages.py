@@ -83,9 +83,8 @@ class stereopipeline(SVNPackage):
     def configure(self):
         self.helper('./autogen')
 
-        disable_apps = 'rmax2cahvor rmaxadjust results reconstruct'
-        enable_apps  = 'stereo orthoproject bundleadjust orbitviz disparitydebug\
-                         point2mesh point2dem ctximage bundlevis isisadjust'
+        disable_apps = 'rmax2cahvor rmaxadjust results reconstruct ctximage orthoproject'
+        enable_apps  = 'bundleadjust bundlevis disparitydebug isisadjust orbitviz point2dem point2mesh stereo'
 
         noinstall_pkgs = 'spice qwt gsl geos superlu xercesc'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
