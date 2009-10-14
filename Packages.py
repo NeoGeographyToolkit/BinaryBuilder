@@ -465,7 +465,7 @@ class osg(Package):
 
         files = []
         P.walk(self.workdir, remove_danger, files)
-        cmd = ['sed',  '-i', '',
+        cmd = ['sed',  '-ibak',
                     '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_BUILD_TYPE.*)/#IGNORE /g',
                     '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_INSTALL_PREFIX.*)/#IGNORE /g',
                     '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_OSX_ARCHITECTURES.*)/#IGNORE /g',
