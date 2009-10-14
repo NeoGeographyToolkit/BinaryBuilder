@@ -1,0 +1,11 @@
+#!/bin/sh
+
+if [[ $# -lt 1 ]]; then
+    echo "Usage: $0 <build-dir>"
+    exit -1
+fi
+
+set -x
+
+find $1 -name \*\.ii > saved-temps
+xargs grep '^#' < saved-temps | awk '{print $3}' | tr -d '<>"' | grep '^/' | grep -v "^${1}" | sort -u > all-includes
