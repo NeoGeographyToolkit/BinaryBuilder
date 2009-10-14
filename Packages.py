@@ -19,19 +19,10 @@ def findfile(filename, path=None):
 class png(Package):
     src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.40.tar.gz'
     chksum = 'a3f2df01871da15d66f103a5b4e793601e4d1043'
-    def __init__(self, env):
-        super(png, self).__init__(env)
-        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(INSTALL_DIR)s/lib'     % self.env
 
 class gdal(Package):
     src    = 'http://download.osgeo.org/gdal/gdal-1.6.2.tar.gz'
     chksum = '1d9e1d8f01f06bca99e7335d7e86dff784eee819'
-    def __init__(self, env):
-        super(gdal, self).__init__(env)
-        if self.arch[:3] == 'osx':
-            self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include' % self.env
 
     def configure(self):
         # Most of these are disabled due to external deps.
@@ -73,12 +64,6 @@ class openexr(Package):
     src     = 'http://download.savannah.nongnu.org/releases/openexr/openexr-1.6.1.tar.gz'
     chksum  = 'b3650e6542f0e09daadb2d467425530bc8eec333'
     patches = 'patches/openexr'
-
-    def __init__(self, env):
-        super(openexr, self).__init__(env)
-        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(INSTALL_DIR)s/lib'     % self.env
 
     def configure(self):
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
@@ -191,12 +176,6 @@ class boost(Package):
     src    = 'http://downloads.sourceforge.net/boost/boost_1_39_0.tar.gz'
     chksum = 'fc0f98aea163f2edd8d74e18eafc4704d7d93d07'
     patches = 'patches/boost'
-
-    def __init__(self, env):
-        super(boost, self).__init__(env)
-        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
-        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(INSTALL_DIR)s/lib'     % self.env
 
     @stage
     def configure(self):
