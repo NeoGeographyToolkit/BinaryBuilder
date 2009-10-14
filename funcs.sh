@@ -16,8 +16,10 @@ DARWIN_WHITELIST=(
 
 is_whitelist()
 {
-    elem="$1"
+    local elem="$1"
     shift 1
+
+    local i
 
     for i in "${DARWIN_WHITELIST[@]}"; do
         if [[ $i = $elem ]]; then
@@ -47,7 +49,7 @@ die() {
 set_rpath_linux() {
     local file="$1"
     shift 1
-    local rpath
+    local rpath i
     for i in "$@"; do
         rpath="${rpath}${rpath:+:}\$ORIGIN/$i"
     done
@@ -65,9 +67,10 @@ set_rpath_darwin() {
             continue
         fi
 
-        origin="$(dirname $file)"
-        base="$(basename $entry)"
-        new=""
+        local origin="$(dirname $file)"
+        local base="$(basename $entry)"
+        local new=""
+
         for rpath in "$@"; do
             if [[ -r "$origin/$rpath/$base" ]]; then
                 new="@executable_path/$rpath/$base"
