@@ -28,11 +28,15 @@ class png(Package):
 class gdal(Package):
     src    = 'http://download.osgeo.org/gdal/gdal-1.6.2.tar.gz'
     chksum = '1d9e1d8f01f06bca99e7335d7e86dff784eee819'
+    def __init__(self, env):
+        super(gdal, self).__init__(env)
+        if self.arch[:3] == 'osx':
+            self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include' % self.env
 
     def configure(self):
         # Most of these are disabled due to external deps.
         # Gif pulls in X for some reason.
-        w = ('threads', 'libtiff=internal', 'png=%(INSTALL_DIR)s' % self.env, 'jpeg=%(INSTALL_DIR)s' % self.env)
+        w = ['threads', 'libtiff=internal', 'jpeg=%(INSTALL_DIR)s' % self.env]
         wo = ('cfitsio', 'curl', 'dods-root', 'dwgdirect', 'dwg-plt', 'ecw',
               'expat', 'expat-inc', 'expat-lib', 'fme', 'geos', 'grass', 'hdf4',
               'hdf5', 'idb', 'ingres', 'jasper', 'jp2mrsid', 'kakadu',
@@ -40,6 +44,12 @@ class gdal(Package):
               'oci', 'oci-include', 'oci-lib', 'odbc', 'ogdi', 'pcraster', 'perl',
               'pg', 'php', 'python', 'ruby', 'sde', 'sde-version', 'sqlite3', 'xerces',
               'xerces-inc', 'xerces-lib', 'gif')
+
+        if self.arch[:5] == 'linux':
+            w.append('png=%(INSTALL_DIR)s' % self.env)
+        elif self.arch[:3] == 'osx':
+            w.append('png=%s' % P.join(self.env['ISISROOT'], '3rdParty'))
+
         super(gdal,self).configure(with_=w, without=wo, disable='static')
 
 class ilmbase(Package):
@@ -130,7 +140,9 @@ class visionworkbench(SVNPackage):
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in install_pkgs:
-                print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['INSTALL_DIR'],   'include'),
+                                                                    P.join(self.env['NOINSTALL_DIR'], 'include')), file=config)
+                print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
 
         super(visionworkbench, self).configure(with_   = w,
                                                without = ('tiff hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack qt'.split()),
@@ -337,6 +349,21 @@ class qwt_headers(HeaderPackage):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', '*.h')) + [P.join('%(NOINSTALL_DIR)s' % self.env, 'include')]
         self.helper(*cmd)
 
+class zlib_headers(HeaderPackage):
+    src     = 'http://www.zlib.net/zlib-1.2.3.tar.gz'
+    chksum  = '60faeaaf250642db5c0ea36cd6dcc9f99c8f3902'
+    patches = 'patches/zlib'
+    def configure(self):
+        super(zlib_headers,self).configure(other=['--shared'])
+    def install(self):
+        include_dir = P.join(self.env['NOINSTALL_DIR'], 'include')
+        self.helper('mkdir', '-p', include_dir)
+        self.helper('cp', '-vf', 'zlib.h', 'zconf.h', include_dir)
+
+class png_headers(HeaderPackage):
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.32.tar.gz'
+    chksum = '07511933cb4c074ccd8d881ff634df54ab49b8a6'
+
 class cspice_headers(HeaderPackage):
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
     PLATFORM = dict(
@@ -415,11 +442,11 @@ class isis(Package):
 
         # Idiots...
         if self.arch[:5] == 'linux':
-            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'), 
+            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'),
                              ('libicuuc.so.*', 'libicuuc.so'), ('libicudata.so.*', 'libicudata.so'),
                              ('libreadline.so.5', 'libreadline.so'))
         elif self.arch[:3] == 'osx':
-            missing_links = (('libgeos*.dylib', 'libgeos.dylib'), ('libsuperlu*.dylib', 'libsuperlu.dylib'))
+            missing_links = (('libgeos-3.0.0.dylib', 'libgeos.dylib'), ('libsuperlu_3.0.dylib', 'libsuperlu.dylib'))
 
         for tgt, name in missing_links:
             self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], tgt))[0]), P.join(self.env['ISIS3RDPARTY'], name))
@@ -475,7 +502,6 @@ class osg(Package):
             '-DBUILD_OSG_APPLICATIONS=OFF',
             '-DLIB_POSTFIX=',
         ])
-
 
         os.mkdir(self.builddir)
 

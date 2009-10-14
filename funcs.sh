@@ -74,7 +74,7 @@ set_rpath_darwin() {
             fi
         done
         if [[ -n $new ]]; then
-            install_name_tool -change $entry $new $file || die "install_name_tool failed"
+            install_name_tool -change $entry $new $file || die "FAILED: install_name_tool -change $entry $new $file"
         else
             echo "Skipped $file: $entry"
         fi

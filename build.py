@@ -12,7 +12,7 @@ ccache = True
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                findfile
+                findfile, zlib_headers, png_headers
 
 from BinaryBuilder import Package, Environment, PackageError, error, get_platform
 
@@ -31,6 +31,7 @@ if __name__ == '__main__':
         e['LDFLAGS'] = e.get('LDFLAGS', '') + ' -Wl,-O1'
     elif arch[:3] == 'osx':
         e['PATH'] = e['HOME'] + '/local/coreutils/bin:' + e['PATH'] + ':/opt/local/bin'
+        e['LDFLAGS'] = e.get('LDFLAGS', '') + ' -Wl,-headerpad_max_install_names'
 
     if ccache:
         compiler_dir = P.join(os.environ.get('TMPDIR', '/tmp'), 'mycompilers')
@@ -45,12 +46,20 @@ if __name__ == '__main__':
         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
         e.update(new)
+    else:
+        e['CFLAGS']   = e.get('CFLAGS', '')   + ' -save-temps'
+        e['CXXFLAGS'] = e.get('CXXFLAGS', '') + ' -save-temps'
 
     if len(sys.argv) == 1:
         # Many things depend on isis 3rdparty, so do it first
-        build = [isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,
-                 qt_headers, qwt_headers, cspice_headers, zlib,
-                 png, jpeg, proj, gdal, ilmbase, openexr, boost, osg]
+        build = [isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers]
+
+        if arch[:5] == 'linux':
+            build.extend([zlib, png])
+        elif arch[:3] == 'osx':
+            build.extend([zlib_headers, png_headers])
+
+        build.extend([jpeg, proj, gdal, ilmbase, openexr, boost, osg])
 
         if arch[:5] == 'linux':
             build.append(lapack)
