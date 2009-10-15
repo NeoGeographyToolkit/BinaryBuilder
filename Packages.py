@@ -177,6 +177,10 @@ class boost(Package):
     chksum = 'fc0f98aea163f2edd8d74e18eafc4704d7d93d07'
     patches = 'patches/boost'
 
+    def __init__(self, env):
+        super(boost, self).__init__(env)
+        self.env['NO_BZIP2'] = '1'
+
     @stage
     def configure(self):
         with file(P.join(self.workdir, 'user-config.jam'), 'w') as f:
