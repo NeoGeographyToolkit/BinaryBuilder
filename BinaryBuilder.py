@@ -97,6 +97,13 @@ class Environment(dict):
                     pass # Don't care if it already exists
                 else:
                     raise
+    def append(self, key, value):
+        if key in self:
+            self[key] += ' ' + value
+        else:
+            self[key] = value
+
+
 
 def get(url, output=None):
     if output is None:
