@@ -25,20 +25,21 @@ if __name__ == '__main__':
                     F77      = 'gfortran',
                     CFLAGS   = '-O3 -pipe',
                     CXXFLAGS = '-O3 -pipe',
-                    LDFLAGS  = r'-Wl,--enable-new-dtags -Wl,--hash-style=both -Wl,-rpath,/%s' % ('a'*100),
+                    LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME='/tmp/build')
 
     arch = get_platform()
 
     if arch == 'linux32':
         limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
+
     if arch[:5] == 'linux':
-        e.append('LDFLAGS', '-Wl,-O1')
+        e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
     elif arch[:3] == 'osx':
         p = e.get('PATH', [])
         if p:
             p = p.split(':')
-        e['PATH'] = ':'.join(['/home/mlundy/local/coreutils/bin'] + p + ['/opt/local/bin'])
+        e['PATH'] = ':'.join(['%s/local/coreutils/bin' % os.environ['HOME']] + p + ['/opt/local/bin'])
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
     if limit_symbols is not None:
