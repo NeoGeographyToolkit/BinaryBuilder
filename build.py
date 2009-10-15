@@ -23,7 +23,7 @@ if __name__ == '__main__':
                     CFLAGS   = '-O3 -pipe',
                     CXXFLAGS = '-O3 -pipe',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
-                    MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME=os.environ['HOME'])
+                    MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME='/tmp/build')
 
     arch = get_platform()
 
@@ -33,7 +33,12 @@ if __name__ == '__main__':
         e['PATH'] = e['HOME'] + '/local/coreutils/bin:' + e['PATH'] + ':/opt/local/bin'
         e['LDFLAGS'] = e.get('LDFLAGS', '') + ' -Wl,-headerpad_max_install_names'
 
-    if ccache:
+    if arch == 'linux32':
+        e['CC']  = '/home/mlundy/local/i686_linux_gcc4.1/bin/apgcc'
+        e['CXX'] = '/home/mlundy/local/i686_linux_gcc4.1/bin/apg++'
+        e['APBUILD_MINIMUM_GLIBC'] = '2.4'
+        e['APBUILD_DEBUG'] = '1';
+    elif ccache:
         compiler_dir = P.join(os.environ.get('TMPDIR', '/tmp'), 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),

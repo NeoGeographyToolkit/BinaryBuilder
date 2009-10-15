@@ -186,12 +186,7 @@ class Package(object):
         ext = P.splitext(self.tarball)[-1]
 
         if ext == '.zip':
-            import zipfile
-
-            zip = zipfile.ZipFile(self.tarball)
-            zip.extractall(path=output_dir)
-            zip.close()
-
+            self.helper('unzip', '-d', output_dir, self.tarball)
         else:
             flags = 'xf'
             if ext == '.Z' or ext.endswith('gz'):
