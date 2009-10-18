@@ -1,0 +1,59 @@
+From 6f675f69325c4510490cb765e8b1743add77e2ab Mon Sep 17 00:00:00 2001
+From: Mike Lundy <mike@fluffypenguin.org>
+Date: Sat, 17 Oct 2009 18:11:00 -0700
+Subject: [PATCH] override apple search method
+
+---
+ src/osgDB/FileUtils.cpp |   18 +++++++++++++++++-
+ 1 files changed, 17 insertions(+), 1 deletions(-)
+
+diff --git a/src/osgDB/FileUtils.cpp b/src/osgDB/FileUtils.cpp
+index a0c0315..535f926 100644
+--- a/src/osgDB/FileUtils.cpp
++++ b/src/osgDB/FileUtils.cpp
+@@ -34,6 +34,8 @@
+ #else // unix
+ 
+ #if defined( __APPLE__ )
++    #include <mach-o/dyld.h>
++    #include <libgen.h>
+     // I'm not sure how we would handle this in raw Darwin
+     // without the AvailablilityMacros.
+     #include <AvailabilityMacros.h>
+@@ -502,11 +504,23 @@ std::string osgDB::findFileInDirectory(const std::string& fileName,const std::st
+ 
+ static void appendInstallationLibraryFilePaths(osgDB::FilePathList& filepath)
+ {
+-#ifdef OSG_DEFAULT_LIBRARY_PATH
++#if 0
+ 
+     // Append the install prefix path to the library search path if configured
+     filepath.push_back(ADDQUOTES(OSG_DEFAULT_LIBRARY_PATH));
+ #endif
++#ifdef __APPLE__
++    const char* filename = _dyld_get_image_name(0);
++    if (filename) {
++        char *copy = new char[PATH_MAX];
++        realpath(filename, copy);
++        std::string top = std::string(dirname(dirname(copy))) + "/lib";
++        delete [] copy;
++        filepath.push_back(top);
++    }
++    else
++        osg::notify(osg::WARN) << "Could not get path to binary!" << std::endl;
++#endif
+ }
+ 
+ #if defined(WIN32) && !defined(__CYGWIN__)
+@@ -921,6 +935,8 @@ static void appendInstallationLibraryFilePaths(osgDB::FilePathList& filepath)
+ 
+         appendInstallationLibraryFilePaths(filepath);
+ 
++        return;
++
+         const std::string OSG_PLUGIN_PATH("/OpenSceneGraph/PlugIns");
+         CFURLRef  url;
+         CFBundleRef myBundle;
+-- 
+1.6.4.4
+

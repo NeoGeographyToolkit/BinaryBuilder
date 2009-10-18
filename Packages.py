@@ -180,6 +180,7 @@ class boost(Package):
     def __init__(self, env):
         super(boost, self).__init__(env)
         self.env['NO_BZIP2'] = '1'
+        self.env['NO_ZLIB']  = '1'
 
     @stage
     def configure(self):
@@ -481,8 +482,8 @@ class osg(Package):
             args.append('-DENABLE_%s=ON' % arg)
 
         args.extend([
-            '-DCMAKE_PREFIX_PATH=%(INSTALL_DIR)s' % self.env,
-            '-DBUILD_OSG_APPLICATIONS=OFF',
+            '-DCMAKE_PREFIX_PATH=%(INSTALL_DIR)s;%(NOINSTALL_DIR)s' % self.env,
+            '-DBUILD_OSG_APPLICATIONS=ON',
             '-DLIB_POSTFIX=',
         ])
 

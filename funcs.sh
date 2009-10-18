@@ -9,6 +9,7 @@ DARWIN_WHITELIST=(
 /System/Library/Frameworks/GLUT.framework/Versions/A/GLUT
 /System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL
 /System/Library/Frameworks/vecLib.framework/Versions/A/vecLib
+/System/Library/Frameworks/QuickTime.framework/Versions/A/QuickTime
 /usr/lib/libSystem.B.dylib
 /usr/lib/libgcc_s.1.dylib
 /usr/lib/libstdc++.6.dylib
@@ -33,14 +34,6 @@ getOS() {
     echo ${__OS:="$(uname -s)"}
 }
 
-shared_name() {
-    case $(getOS) in
-        Linux)  echo "so";;
-        Darwin) echo "dylib";;
-        *) die "Unknown OS: $(getOS)"
-    esac
-}
-
 die() {
     echo "$1" >&2
     kill -s SIGTERM $self
@@ -48,7 +41,8 @@ die() {
 
 set_rpath_linux() {
     local file="$1"
-    shift 1
+    local root="$2"
+    shift 2
     local rpath i
     for i in "$@"; do
         rpath="${rpath}${rpath:+:}\$ORIGIN/$i"
@@ -60,19 +54,19 @@ set_rpath_linux() {
 
 set_rpath_darwin() {
     local file="$1"
-    shift 1
-    otool -L $file | awk 'NR > 2 {print $1}' | while read entry; do
+    local root="$2"
+    shift 2
+    otool -L $file | awk 'NR > 1 {print $1}' | while read entry; do
 
         if is_whitelist $entry; then
             continue
         fi
 
-        local origin="$(dirname $file)"
         local base="$(basename $entry)"
         local new=""
 
         for rpath in "$@"; do
-            if [[ -r "$origin/$rpath/$base" ]]; then
+            if [[ -r "$root/$rpath/$base" ]]; then
                 new="@executable_path/$rpath/$base"
             fi
         done
@@ -90,4 +84,35 @@ set_rpath() {
         Darwin) set_rpath_darwin $* ;;
         *) die "Unknown OS: $(getOS)"
     esac
+}
+
+get_relative_path() {
+    local root="$1"
+    local path="$2"
+
+    root="$(cd $root && pwd)"
+    path="$(cd $(dirname $path) && pwd)"
+
+    if [[ -z $root ]] || [[ -z $path ]]; then
+        echo "root and path must exist" >&2
+        return 1
+    fi
+
+
+    # if $root isprefixof $path
+    if [[ ${path##$root} == $path ]]; then
+        echo "Path is not inside root" >&2
+        return 1
+    fi
+
+    local ret
+
+    while [[ $path != / ]]; do
+        if [[ $path == $root ]]; then
+            break
+        fi
+        path="$(dirname $path)"
+        ret="../$ret"
+    done
+    echo $ret
 }
