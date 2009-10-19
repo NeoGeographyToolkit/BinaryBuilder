@@ -31,7 +31,7 @@ for i in $obin/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \) );
         root="$(get_relative_path ${DIST_DIR} $i)"
         [[ -z "$root" ]] && die "failed to get relative path to root"
 
-        set_rpath $i $obin ../../isis/lib ../../isis/3rdParty/lib ../lib || die "set_rpath failed"
+        set_rpath $i $obin ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
         strip -S $i || die "Could not strip $i"
     fi
 done

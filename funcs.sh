@@ -41,11 +41,13 @@ die() {
 
 set_rpath_linux() {
     local file="$1"
-    local root="$2"
+    local bindir="$2"
     shift 2
-    local rpath i
+    local rpath i root
+    root=$(cd $bindir/.. && pwd)
     for i in "$@"; do
-        rpath="${rpath}${rpath:+:}\$ORIGIN/$i"
+        local relpath=$(get_relative_path $root $file)
+        rpath="${rpath}${rpath:+:}\$ORIGIN/${relpath}$i"
     done
 
     chrpath -r "$rpath" "$file" || die "chrpath failed"
@@ -54,7 +56,7 @@ set_rpath_linux() {
 
 set_rpath_darwin() {
     local file="$1"
-    local root="$2"
+    local bindir="$2"
     shift 2
     otool -L $file | awk 'NR > 1 {print $1}' | while read entry; do
 
@@ -66,7 +68,7 @@ set_rpath_darwin() {
         local new=""
 
         for rpath in "$@"; do
-            if [[ -r "$root/$rpath/$base" ]]; then
+            if [[ -r "$bindir/../$rpath/$base" ]]; then
                 new="@executable_path/$rpath/$base"
             fi
         done
