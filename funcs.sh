@@ -69,7 +69,7 @@ set_rpath_darwin() {
 
         for rpath in "$@"; do
             if [[ -r "$bindir/../$rpath/$base" ]]; then
-                new="@executable_path/$rpath/$base"
+                new="@executable_path/../$rpath/$base"
             fi
         done
         if [[ -n $new ]]; then
