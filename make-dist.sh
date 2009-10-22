@@ -11,7 +11,7 @@ BUILDNAME=stereopipeline-$(uname -s | tr A-Z a-z)-$(uname -m)-$(date +"%Y-%m-%d_
 INSTALL_DIR=/tmp/build/install
 DIST_DIR=/tmp/build/${BUILDNAME}
 
-BINS="bundle_adjust bundlevis colormap disparitydebug hillshade image2qtree ipfind ipmatch isis_adjust orbitviz point2dem point2mesh stereo osgviewer"
+BINS="bundlevis colormap disparitydebug hillshade image2qtree ipfind ipmatch isis_adjust orbitviz point2dem point2mesh stereo osgviewer"
 
 obin="${DIST_DIR}/bin"
 olib="${DIST_DIR}/lib"
