@@ -80,7 +80,7 @@ def stage(f):
 class Environment(dict):
     def __init__(self, **kw):
         self.update(dict(
-            DOWNLOAD_DIR   = '/tmp/build/src',
+            DOWNLOAD_DIR   = '/tmp/build-src',
             BUILD_DIR      = '/tmp/build/build',
             INSTALL_DIR    = '/tmp/build/install',
             NOINSTALL_DIR  = '/tmp/build/noinstall',
