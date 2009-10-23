@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ $# -gt 0 ]]; then
+    COPYDIR="$1"
+    shift 1
+fi
+
 # Need GNU coreutils
 export PATH="$HOME/local/coreutils/bin:$PATH"
 
@@ -38,6 +43,10 @@ done
 
 if [[ $(getOS) == Linux ]]; then
     ldd "${olib}/libaspCore.so" | grep 'lib\(stdc++\|gcc_s\)' | awk '{print $3}' | xargs cp -v -t ${olib}
+fi
+
+if [[ -n ${COPYDIR} ]]; then
+    cp -a ${COPYDIR}/* ${DIST_DIR}
 fi
 
 tar czf ${BUILDNAME}.tar.gz  -C ${DIST_DIR}/.. ${BUILDNAME}
