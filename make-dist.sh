@@ -47,6 +47,7 @@ fi
 
 if [[ -n ${COPYDIR} ]]; then
     (cd ${COPYDIR} && cp -aLv --parents . ${DIST_DIR})
+    find ${DIST_DIR} -name .svn -print0 | xargs -0 rm -rf
 fi
 
 tar czf ${BUILDNAME}.tar.gz  -C ${DIST_DIR}/.. ${BUILDNAME}
