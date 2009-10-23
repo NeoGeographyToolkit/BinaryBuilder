@@ -46,7 +46,7 @@ if [[ $(getOS) == Linux ]]; then
 fi
 
 if [[ -n ${COPYDIR} ]]; then
-    cp -a ${COPYDIR}/* ${DIST_DIR}
+    (cd ${COPYDIR} && cp -aLv --parents . ${DIST_DIR})
 fi
 
 tar czf ${BUILDNAME}.tar.gz  -C ${DIST_DIR}/.. ${BUILDNAME}
