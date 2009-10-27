@@ -74,7 +74,7 @@ class proj(Package):
     chksum  = 'ddfdad6cba28af5f91b14fd6690bd22bbbc79390'
 
 class stereopipeline(SVNPackage):
-    src     = 'https://babelfish.arc.nasa.gov/svn/stereopipeline/branches/aisr09'
+    src     = 'https://babelfish.arc.nasa.gov/svn/stereopipeline/tags/1.0.0'
     def configure(self):
         self.helper('./autogen')
 
@@ -112,7 +112,7 @@ class stereopipeline(SVNPackage):
             enable  = ['debug=ignore', 'optimize=ignore'] + ['app-' + a for a in enable_apps.split()])
 
 class visionworkbench(SVNPackage):
-    src     = 'https://babelfish.arc.nasa.gov/svn/visionworkbench/branches/aisr09'
+    src     = 'https://babelfish.arc.nasa.gov/svn/visionworkbench/tags/2.0_beta4'
 
     def configure(self):
         self.helper('./autogen')
