@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ $# -gt 0 ]]; then
-    COPYDIR="$1"
+    VERSION="$1"
     shift 1
 fi
 
@@ -11,7 +11,11 @@ export PATH="$HOME/local/coreutils/bin:$PATH"
 self=$$
 source ./funcs.sh
 
-BUILDNAME=stereopipeline-$(uname -s | tr A-Z a-z)-$(uname -m)-$(date +"%Y-%m-%d_%H-%M-%S")
+if [[ -n $VERSION ]]; then
+    BUILDNAME=stereopipeline-${VERSION}-$(uname -m)-$(getOS)
+else
+    BUILDNAME=stereopipeline-$(date +"%Y-%m-%d_%H-%M-%S")-$(uname -m)-$(getOS)
+fi
 
 INSTALL_DIR=/tmp/build/install
 DIST_DIR=/tmp/build/${BUILDNAME}
@@ -45,7 +49,8 @@ if [[ $(getOS) == Linux ]]; then
     ldd "${olib}/libaspCore.so" | grep 'lib\(stdc++\|gcc_s\)' | awk '{print $3}' | xargs cp -v -t ${olib}
 fi
 
-if [[ -n ${COPYDIR} ]]; then
+COPYDIR=dist-add
+if [[ -d ${COPYDIR} ]]; then
     (cd ${COPYDIR} && cp -aLv --parents . ${DIST_DIR})
     find ${DIST_DIR} -name .svn -print0 | xargs -0 rm -rf
 fi

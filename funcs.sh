@@ -31,7 +31,7 @@ is_whitelist()
 }
 
 getOS() {
-    echo ${__OS:="$(uname -s)"}
+    echo ${__OS:="$(uname -s | sed -e 's/Darwin/OSX/')"}
 }
 
 die() {
@@ -82,8 +82,8 @@ set_rpath_darwin() {
 
 set_rpath() {
     case $(getOS) in
-        Linux)  set_rpath_linux $* ;;
-        Darwin) set_rpath_darwin $* ;;
+        Linux) set_rpath_linux $* ;;
+        OSX)   set_rpath_darwin $* ;;
         *) die "Unknown OS: $(getOS)"
     esac
 }
