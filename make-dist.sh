@@ -12,9 +12,9 @@ self=$$
 source ./funcs.sh
 
 if [[ -n $VERSION ]]; then
-    BUILDNAME=stereopipeline-${VERSION}-$(uname -m)-$(getOS)
+    BUILDNAME=StereoPipeline-${VERSION}-$(uname -m)-$(getOS)
 else
-    BUILDNAME=stereopipeline-$(date +"%Y-%m-%d_%H-%M-%S")-$(uname -m)-$(getOS)
+    BUILDNAME=StereoPipeline-$(date +"%Y-%m-%d_%H-%M-%S")-$(uname -m)-$(getOS)
 fi
 
 INSTALL_DIR=/tmp/build/install
