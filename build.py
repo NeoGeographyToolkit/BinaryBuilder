@@ -20,8 +20,8 @@ limit_symbols = None
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('--save-temps', action='store_true',  default=False, help='Save build files to check include paths')
-    parser.add_option('--no-ccache',  action='store_false', default=True,  help='Disable ccache')
+    parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False, help='Save build files to check include paths')
+    parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,  help='Disable ccache')
 
     global opt
     (opt, args) = parser.parse_args()
