@@ -425,7 +425,6 @@ class isis(Package):
         cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
         self.helper(*cmd)
 
-        # Idiots...
         if self.arch[:5] == 'linux':
             missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'),
                              ('libicuuc.so.*', 'libicuuc.so'), ('libicudata.so.*', 'libicudata.so'),
@@ -434,7 +433,10 @@ class isis(Package):
             missing_links = (('libgeos-3.0.0.dylib', 'libgeos.dylib'), ('libsuperlu_3.0.dylib', 'libsuperlu.dylib'))
 
         for tgt, name in missing_links:
-            self.helper('ln', '-sf', P.basename(glob(P.join(self.env['ISIS3RDPARTY'], tgt))[0]), P.join(self.env['ISIS3RDPARTY'], name))
+            longname = glob(P.join(self.env['ISIS3RDPARTY'], tgt))
+            if not longname:
+                raise PackageError(self, 'Failed to find a longname to create %s symlink' % name)
+            self.helper('ln', '-sf', P.basename(longname[0]), P.join(self.env['ISIS3RDPARTY'], name))
 
 class osg(Package):
     src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.2/source/OpenSceneGraph-2.8.2.zip'
