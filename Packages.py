@@ -96,14 +96,12 @@ class stereopipeline(SVNPackage):
             for pkg in install_pkgs + noinstall_pkgs:
                 print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
 
-            qt_pkgs = 'Core Gui Network Sql Xml XmlPatterns'
+            qt_pkgs = 'Core Gui Network Sql Svg Xml XmlPatterns'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
 
             if self.arch[:5] == 'linux':
-                print('PKG_ARBITRARY_QT_MORE_LIBS="-lreadline -lmysqlclient_r -lpq -lssl -lcrypto"', file=config)
-                print('PKG_XERCESC_MORE_LIBS="-licuuc -licudata"', file=config)
                 print('PKG_SUPERLU_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
 
         super(stereopipeline, self).configure(
