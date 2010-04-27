@@ -5,11 +5,15 @@ if [[ $# -gt 0 ]]; then
     shift 1
 fi
 
+self=$$
+source ./funcs.sh
+
 # Need GNU coreutils
 export PATH="$HOME/local/coreutils/bin:$PATH"
 
-self=$$
-source ./funcs.sh
+if ! ls --version; then
+    die "Need gnu coreutils"
+fi
 
 if [[ -n $VERSION ]]; then
     BUILDNAME=StereoPipeline-${VERSION}-$(uname -m)-$(getOS)
