@@ -6,19 +6,30 @@ import os
 import os.path as P
 import subprocess
 import sys
+from optparse import OptionParser
+
 
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 findfile, zlib_headers, png_headers
 
-from BinaryBuilder import Package, Environment, PackageError, error, get_platform
+from BinaryBuilder import Package, Environment, PackageError, error, warn, get_platform
 
-ccache = True
 limit_symbols = None
-save_temps = False
 
 if __name__ == '__main__':
+    parser = OptionParser()
+    parser.add_option('--save-temps', action='store_true',  default=False, help='Save build files to check include paths')
+    parser.add_option('--no-ccache',  action='store_false', default=True,  help='Disable ccache')
+
+    global opt
+    (opt, args) = parser.parse_args()
+
+    if opt.ccache and opt.save_temps:
+        warn('--cache and --save-temps conflict. Disabling ccache.')
+        opt.ccache = False
+
     e = Environment(CC       = 'gcc',
                     CXX      = 'g++',
                     F77      = 'gfortran',
@@ -45,7 +56,7 @@ if __name__ == '__main__':
     if limit_symbols is not None:
         e.append('LDFLAGS', '-include %s' % limit_symbols)
 
-    if ccache and not save_temps:
+    if opt.ccache:
         compiler_dir = P.join(os.environ.get('TMPDIR', '/tmp'), 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
@@ -58,8 +69,7 @@ if __name__ == '__main__':
         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
         e.update(new)
-
-    if save_temps:
+    elif opt.save_temps:
         e.append('CFLAGS',   '-save-temps')
         e.append('CXXFLAGS', '-save-temps')
 
