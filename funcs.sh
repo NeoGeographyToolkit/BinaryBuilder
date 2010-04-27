@@ -34,32 +34,43 @@ getOS() {
     echo ${__OS:="$(uname -s | sed -e 's/Darwin/OSX/')"}
 }
 
+# Die from any subshell. Make sure you set $self before calling this.
 die() {
     echo "$1" >&2
     kill -s SIGTERM $self
 }
 
+# Magic here:
+# In linux, $ORIGIN means (to the dynamic loader)
+# "Path to the thing currently being loaded" (so, either to the bin or to the lib)
+# Therefore, construct an rpath made up of the origin, the path to the root of
+# the dist, and then the given list of rpaths, which should be relative to the
+# root of the dist.
 set_rpath_linux() {
     local file="$1"
-    local bindir="$2"
+    local root="$2"
     shift 2
-    local rpath i root
-    root=$(cd $bindir/.. && pwd)
-    for i in "$@"; do
-        local relpath=$(get_relative_path $root $file)
-        rpath="${rpath}${rpath:+:}\$ORIGIN/${relpath}$i"
+    local rpath elt
+    for elt in "$@"; do
+        rpath="${rpath}${rpath:+:}\$ORIGIN/${root}${elt}"
     done
 
     chrpath -r "$rpath" "$file" || die "chrpath failed"
 }
 
 
+# Magic here:
+# much like Linux's $ORIGIN, @executable_path is a runtime-determined value...
+# except that it always points to the BINARY that caused the load, not the
+# library (if it is one)
 set_rpath_darwin() {
     local file="$1"
-    local bindir="$2"
+    local root="$2"
     shift 2
+    # Skip the first line of otool, which is the object's SELF entry
     otool -L $file | awk 'NR > 1 {print $1}' | while read entry; do
 
+        # Don't warn me about things I know I'm skipping
         if is_whitelist $entry; then
             continue
         fi
@@ -67,8 +78,13 @@ set_rpath_darwin() {
         local base="$(basename $entry)"
         local new=""
 
+        # OSX rpath points to one specific file, not anything that matches the
+        # library SONAME. Therefore, do the library discovery right now, rather
+        # than delaying until runtime like in Linux
+
         for rpath in "$@"; do
-            if [[ -r "$bindir/../$rpath/$base" ]]; then
+            if [[ -r "${file}/${root}/$rpath/$base" ]]; then
+                # This code assumes that the binaries are installed at $DISTDIR/bin
                 new="@executable_path/../$rpath/$base"
             fi
         done

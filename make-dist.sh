@@ -18,6 +18,7 @@ else
 fi
 
 INSTALL_DIR=/tmp/build/install
+# Must be an absolute path
 DIST_DIR=/tmp/build/${BUILDNAME}
 
 BINS="bundlevis colormap disparitydebug hillshade image2qtree ipfind ipmatch isis_adjust orbitviz point2dem point2mesh stereo osgviewer"
@@ -37,10 +38,13 @@ rsync -am --delete --include='*.so*' --include='*.dylib*' --include='*/' --exclu
 for i in $obin/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \) ); do
     if [[ -f $i ]]; then
         echo "Processing $i"
+        # root is the relative path from the object in question to the top of
+        # the dist
         root="$(get_relative_path ${DIST_DIR} $i)"
         [[ -z "$root" ]] && die "failed to get relative path to root"
 
-        set_rpath $i $obin ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
+        # The rpaths given here are relative to the $root
+        set_rpath $i $root ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
         strip -S $i || die "Could not strip $i"
     fi
 done

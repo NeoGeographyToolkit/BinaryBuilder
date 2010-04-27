@@ -42,6 +42,7 @@ if __name__ == '__main__':
         e['PATH'] = ':'.join(['%s/local/coreutils/bin' % os.environ['HOME']] + p + ['/opt/local/bin'])
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
+    # XXX LDFLAGS? What?
     if limit_symbols is not None:
         e.append('LDFLAGS', '-include %s' % limit_symbols)
 
