@@ -54,9 +54,9 @@ class jpeg(Package):
     #chksum  = ''
     #patches = 'patches/jpeg6'
 
-    src     = 'http://www.ijg.org/files/jpegsrc.v7.tar.gz'
-    chksum  = '88cced0fc3dbdbc82115e1d08abce4e9d23a4b47'
-    patches = 'patches/jpeg7'
+    src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
+    chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
+    patches = 'patches/jpeg8'
 
     def configure(self):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
@@ -102,7 +102,7 @@ class stereopipeline(SVNPackage):
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
 
             if self.arch[:5] == 'linux':
-                print('PKG_SUPERLU_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
+                print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
 
         super(stereopipeline, self).configure(
             with_   = w,
