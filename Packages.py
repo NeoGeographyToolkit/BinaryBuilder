@@ -18,12 +18,12 @@ def findfile(filename, path=None):
     raise Exception('Could not find file %s in path[%s]' % (filename, path))
 
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.40.tar.gz'
-    chksum = 'a3f2df01871da15d66f103a5b4e793601e4d1043'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
+    chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
 
 class gdal(Package):
-    src    = 'http://download.osgeo.org/gdal/gdal-1.6.2.tar.gz'
-    chksum = '1d9e1d8f01f06bca99e7335d7e86dff784eee819'
+    src    = 'http://download.osgeo.org/gdal/gdal-1.7.1.tar.gz'
+    chksum = '1ff42b51f416da966ee25c42631a3faa3cca5d4d'
 
     def configure(self):
         # Most of these are disabled due to external deps.
@@ -166,9 +166,8 @@ class lapack(Package):
         super(lapack, self).configure(with_='blas=-L%s -lblas' % self.env['ISIS3RDPARTY'])
 
 class zlib(Package):
-    src     = 'http://www.zlib.net/zlib-1.2.3.tar.gz'
-    chksum  = '60faeaaf250642db5c0ea36cd6dcc9f99c8f3902'
-    patches = 'patches/zlib'
+    src     = 'http://www.zlib.net/zlib-1.2.5.tar.gz'
+    chksum  = '8e8b93fa5eb80df1afe5422309dca42964562d7e'
 
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
@@ -238,12 +237,12 @@ class HeaderPackage(Package):
         self.helper('make', 'install-data')
 
 class gsl_headers(HeaderPackage):
-    src = 'http://mirrors.kernel.org/gnu/gsl/gsl-1.7.tar.gz',
-    chksum = '0915f99c5eca63e6a4d4ed31b6a224789f918200',
+    src = 'http://mirrors.kernel.org/gnu/gsl/gsl-1.10.tar.gz',
+    chksum = '401d0203d362948e30d0b3c58601a3bc52d0bfd4',
 
 class geos_headers(HeaderPackage):
-    src = 'http://download.osgeo.org/geos/geos-3.0.0.tar.bz2',
-    chksum = '71090220351c8ae7bb147d74145fa5daf83e3c26',
+    src = 'http://download.osgeo.org/geos/geos-3.2.0.tar.bz2',
+    chksum = 'e6925763fb06fa6a7f358ede49bb89f96535b3ef',
     def configure(self):
         super(geos_headers, self).configure(disable=('python', 'ruby'))
 
@@ -285,17 +284,13 @@ class xercesc_headers(HeaderPackage):
         self.helper(*cmd)
 
 class qt_headers(HeaderPackage):
+    src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.6.2.tar.gz'
+    chksum = '977c10b88a2230e96868edc78a9e3789c0fcbf70'
     def __init__(self, env):
         super(qt_headers, self).__init__(env)
-        if self.arch[:5] == 'linux':
-            self.src = 'http://get.qt.nokia.com/qt/source/qt-x11-opensource-src-4.4.1.tar.bz2',
-            self.chksum = 'b0087fe51271f81d4dc35d4cb7518ef84a36f3c2',
-        elif self.arch[:3] == 'osx':
-            self.src = 'http://get.qt.nokia.com/qt/source/qt-mac-opensource-src-4.4.1.tar.bz2',
-            self.chksum = 'bc588e4d6a81093c736886caf306f660677d8a93',
 
     def configure(self):
-        args = ['./configure', '-confirm-license', '-fast']
+        args = ['./configure', '-opensource', '-fast', '-confirm-license']
         if self.arch[:3] == 'osx':
             args.append('-no-framework')
         self.helper(*args)
@@ -327,17 +322,16 @@ class qt_headers(HeaderPackage):
             os.chdir(pwd)
 
 class qwt_headers(HeaderPackage):
-    src = 'http://downloads.sourceforge.net/qwt/qwt-5.1.1.tar.bz2',
-    chksum = 'fdb85ceafaf6778ca7bd507e08215f6e0bc39757',
+    src = 'http://downloads.sourceforge.net/qwt/qwt-5.2.0.tar.bz2',
+    chksum = '8830498b87d99d4b7e95ee643f1f7ff178204ba9',
     def configure(self): pass
     def install(self):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', '*.h')) + [P.join('%(NOINSTALL_DIR)s' % self.env, 'include')]
         self.helper(*cmd)
 
 class zlib_headers(HeaderPackage):
-    src     = 'http://www.zlib.net/zlib-1.2.3.tar.gz'
-    chksum  = '60faeaaf250642db5c0ea36cd6dcc9f99c8f3902'
-    patches = 'patches/zlib'
+    src     = 'http://www.zlib.net/zlib-1.2.5.tar.gz'
+    chksum  = '8e8b93fa5eb80df1afe5422309dca42964562d7e'
     def configure(self):
         super(zlib_headers,self).configure(other=['--shared'])
     def install(self):
@@ -346,8 +340,8 @@ class zlib_headers(HeaderPackage):
         self.helper('cp', '-vf', 'zlib.h', 'zconf.h', include_dir)
 
 class png_headers(HeaderPackage):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.32.tar.gz'
-    chksum = '07511933cb4c074ccd8d881ff634df54ab49b8a6'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
+    chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
 
 class cspice_headers(HeaderPackage):
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
@@ -378,12 +372,12 @@ class cspice_headers(HeaderPackage):
 
 class isis(Package):
 
-    ### Needs: superlu-3.0 gsl-1.7 qwt-5.1.1 geos-3.0.0 spice-0061 xerces-c 2.7.0 (+icu 3.4.0) qt-4.4.1
+    ### Needs: superlu-3.0 gsl-1.10 qt-4.6.2 qwt-5.2.0 xerces-c-2.7.0 geos-3.2.0 spice-0063 kakadu-6.3.1 protobuf-2.?
 
     PLATFORM = dict(
-        linux64 = 'isisdist.wr.usgs.gov::isis3_x86-64_linux/isis/',
-        linux32 = 'isisdist.wr.usgs.gov::isis3_x86_linux/isis/',
-        osx32   = 'isisdist.wr.usgs.gov::isis3_intel_darwin/isis/',
+        linux64 = 'isisdist.wr.usgs.gov::x86-64_linux_RHEL54/isis/',
+        linux32 = 'isisdist.wr.usgs.gov::x86_linux_RHEL54/isis/',
+        osx32   = 'isisdist.wr.usgs.gov::x86_darwin_OSX105/isis/',
     )
 
     def __init__(self, env):
@@ -426,9 +420,7 @@ class isis(Package):
         self.helper(*cmd)
 
         if self.arch[:5] == 'linux':
-            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'),
-                             ('libicuuc.so.*', 'libicuuc.so'), ('libicudata.so.*', 'libicudata.so'),
-                             ('libreadline.so.5', 'libreadline.so'))
+            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'))
         elif self.arch[:3] == 'osx':
             missing_links = (('libgeos-3.0.0.dylib', 'libgeos.dylib'), ('libsuperlu_3.0.dylib', 'libsuperlu.dylib'))
 
