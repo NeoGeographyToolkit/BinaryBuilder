@@ -81,13 +81,15 @@ def stage(f):
 
 class Environment(dict):
     def __init__(self, **kw):
+        basedir = kw.get('BASEDIR', os.environ['HOME'])
         self.update(dict(
-            DOWNLOAD_DIR   = '/tmp/build-src',
-            BUILD_DIR      = '/tmp/build/build',
-            INSTALL_DIR    = '/tmp/build/install',
-            NOINSTALL_DIR  = '/tmp/build/noinstall',
-            ISISROOT       = '/tmp/build/isis',
-            ISIS3RDPARTY   = '/tmp/build/isis/3rdParty/lib',
+            HOME           = basedir,
+            DOWNLOAD_DIR   = P.join(basedir, 'build-src'),
+            BUILD_DIR      = P.join(basedir, 'build/build'),
+            INSTALL_DIR    = P.join(basedir, 'build/install'),
+            NOINSTALL_DIR  = P.join(basedir, 'build/noinstall'),
+            ISISROOT       = P.join(basedir, 'build/isis'),
+            ISIS3RDPARTY   = P.join(basedir, 'build/isis/3rdParty/lib'),
         ))
         self.update(kw)
 

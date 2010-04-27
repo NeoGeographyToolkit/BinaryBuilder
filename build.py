@@ -20,8 +20,10 @@ limit_symbols = None
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False, help='Save build files to check include paths')
-    parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,  help='Disable ccache')
+    parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
+    parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,   help='Disable ccache')
+    parser.add_option('--threads',                          dest='threads',    default=4,      help='Build threads to use')
+    parser.add_option('--base-dir',                         dest='basedir',    default='/tmp', help='Prefix of build dirs')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -30,13 +32,15 @@ if __name__ == '__main__':
         warn('--cache and --save-temps conflict. Disabling ccache.')
         opt.ccache = False
 
-    e = Environment(CC       = 'gcc',
+    e = Environment(BASEDIR  = opt.basedir,
+                    CC       = 'gcc',
                     CXX      = 'g++',
                     F77      = 'gfortran',
                     CFLAGS   = '-O3 -pipe',
                     CXXFLAGS = '-O3 -pipe',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
-                    MAKEOPTS='-j4', PATH=os.environ['PATH'], HOME='/tmp/build')
+                    MAKEOPTS='-j%s' % opt.threads,
+                    PATH=os.environ['PATH'])
 
     arch = get_platform()
 
@@ -62,7 +66,7 @@ if __name__ == '__main__':
         e.append('LDFLAGS', '-include %s' % limit_symbols)
 
     if opt.ccache:
-        compiler_dir = P.join(os.environ.get('TMPDIR', '/tmp'), 'mycompilers')
+        compiler_dir = P.join(opt.basedir, 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
             CXX = P.join(compiler_dir, e['CXX']),
