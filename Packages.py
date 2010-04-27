@@ -434,8 +434,8 @@ class isis(Package):
 
         if self.arch[:5] == 'linux':
             missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'))
-        elif self.arch[:3] == 'osx':
-            missing_links = (('libgeos-3.0.0.dylib', 'libgeos.dylib'), ('libsuperlu_3.0.dylib', 'libsuperlu.dylib'))
+        else:
+            missing_links = ()
 
         for tgt, name in missing_links:
             longname = glob(P.join(self.env['ISIS3RDPARTY'], tgt))
