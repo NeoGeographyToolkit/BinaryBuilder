@@ -57,7 +57,7 @@ if __name__ == '__main__':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
     # I should probably fix the gnu coreutils dep, but whatever
-    if os.system('cp --version') != 0:
+    if os.system('cp --version &>/dev/null') != 0:
         error('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
         sys.exit(-1)
 
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         e.append('CFLAGS',   '-save-temps')
         e.append('CXXFLAGS', '-save-temps')
 
-    if len(sys.argv) == 1:
+    if len(args) == 0:
         # Many things depend on isis 3rdparty, so do it first
         build = [isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers]
 
@@ -98,7 +98,7 @@ if __name__ == '__main__':
 
         build.extend([visionworkbench, stereopipeline])
     else:
-        build = (globals()[pkg] for pkg in sys.argv[1:])
+        build = (globals()[pkg] for pkg in args)
 
     try:
         for pkg in build:
