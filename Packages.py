@@ -2,11 +2,12 @@
 
 from __future__ import print_function
 
-from BinaryBuilder import SVNPackage, Package, stage, PackageError
-import os.path as P
 import os
-from glob import glob
+import os.path as P
 import textwrap
+
+from glob import glob
+from BinaryBuilder import SVNPackage, Package, stage, PackageError
 
 def findfile(filename, path=None):
     if path is None: path = os.environ.get('PATH', [])

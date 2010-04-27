@@ -5,9 +5,9 @@ from __future__ import with_statement, print_function
 import errno
 import inspect
 import os
-import sys
 import os.path as P
 import subprocess
+import sys
 import urllib2
 
 from functools import wraps, partial

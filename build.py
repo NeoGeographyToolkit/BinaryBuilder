@@ -4,20 +4,19 @@ from __future__ import print_function
 
 import os
 import os.path as P
-import sys
 import subprocess
-
-ccache = True
-limit_symbols = None
-save_temps = False
+import sys
 
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 findfile, zlib_headers, png_headers
 
-
 from BinaryBuilder import Package, Environment, PackageError, error, get_platform
+
+ccache = True
+limit_symbols = None
+save_temps = False
 
 if __name__ == '__main__':
     e = Environment(CC       = 'gcc',
