@@ -82,7 +82,7 @@ class stereopipeline(SVNPackage):
         disable_apps = 'rmax2cahvor rmaxadjust results reconstruct ctximage orthoproject'
         enable_apps  = 'bundleadjust bundlevis disparitydebug isisadjust orbitviz point2dem point2mesh stereo'
 
-        noinstall_pkgs = 'spice qwt gsl geos superlu xercesc'.split()
+        noinstall_pkgs = 'spice qwt gsl geos superlu xercesc kakadu'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt'.split()
 
@@ -365,7 +365,9 @@ class cspice_headers(HeaderPackage):
         self.chksum = self.PLATFORM[self.arch]['chksum']
     def configure(self, *args, **kw): pass
     def install(self):
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [P.join('%(NOINSTALL_DIR)s' % self.env, 'include')]
+        d = P.join('%(NOINSTALL_DIR)s' % self.env, 'include', 'naif')
+        self.helper('mkdir', '-p', d)
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [d]
         self.helper(*cmd)
 
 class isis(Package):
