@@ -211,7 +211,7 @@ class boost(Package):
             '-q', 'variant=myrelease', '--user-config=%s/user-config.jam' % self.workdir,
             '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
             'threading=multi', 'link=shared', 'runtime-link=shared',
-            '--without-mpi', '--without-python',
+            '--without-mpi', '--without-python', '--without-wave',
         ]
 
         cmd += self.args
