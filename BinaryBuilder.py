@@ -56,6 +56,8 @@ def _message(*args, **kw):
     if severity == 'info':
         args = [colored(i, 'blue', attrs=['bold']) for i in args]
         print(*args, **kw)
+    elif severity == 'warn':
+        args = [colored(i, 'yellow', attrs=['bold']) for i in ['WARNING:'] + list(args)]
     elif severity == 'error':
         args = [colored(i, 'red', attrs=['bold']) for i in ['ERROR:'] + list(args)]
         print(*args, **kw)
@@ -63,8 +65,8 @@ def _message(*args, **kw):
         raise Exception('Unknown severity')
 
 info  = partial(_message, severity='info')
+warn  = partial(_message, severity='warn')
 error = partial(_message, severity='error')
-
 
 def stage(f):
     @wraps(f)
