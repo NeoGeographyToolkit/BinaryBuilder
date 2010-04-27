@@ -168,6 +168,11 @@ class zlib(Package):
     src     = 'http://www.zlib.net/zlib-1.2.5.tar.gz'
     chksum  = '8e8b93fa5eb80df1afe5422309dca42964562d7e'
 
+    def unpack(self):
+        super(zlib, self).unpack()
+        self.helper('sed', '-i',
+                    r's|\<test "`\([^"]*\) 2>&1`" = ""|\1 2>/dev/null|', 'configure')
+
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
 
