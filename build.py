@@ -52,6 +52,11 @@ if __name__ == '__main__':
         e['PATH'] = ':'.join(['%s/local/coreutils/bin' % os.environ['HOME']] + p + ['/opt/local/bin'])
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
+    # I should probably fix the gnu coreutils dep, but whatever
+    if os.system('cp --version') != 0:
+        error('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
+        sys.exit(-1)
+
     # XXX LDFLAGS? What?
     if limit_symbols is not None:
         e.append('LDFLAGS', '-include %s' % limit_symbols)
