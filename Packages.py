@@ -100,6 +100,7 @@ class stereopipeline(SVNPackage):
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
             print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
+            print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
 
             if self.arch[:5] == 'linux':
                 print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
