@@ -49,6 +49,11 @@ class ilmbase(Package):
     chksum  = '143adc547be83c6df75831ae957eef4b2706c9c0'
     patches = 'patches/ilmbase'
 
+    def configure(self):
+        self.env['AUTOHEADER'] = '/bin/true'
+        self.helper('autoreconf', '-fvi')
+        super(ilmbase, self).configure()
+
 class jpeg(Package):
     #src     = 'http://www.ijg.org/files/jpegsrc.v6b.tar.gz'
     #chksum  = ''
@@ -67,6 +72,8 @@ class openexr(Package):
     patches = 'patches/openexr'
 
     def configure(self):
+        self.env['AUTOHEADER'] = '/bin/true'
+        self.helper('autoreconf', '-fvi')
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
                                       disable=('ilmbasetest', 'imfexamples'))
 

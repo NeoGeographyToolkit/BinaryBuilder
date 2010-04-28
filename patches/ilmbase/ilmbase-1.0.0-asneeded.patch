@@ -1,11 +1,12 @@
---- a/IlmThread/Makefile.in
-+++ b/IlmThread/Makefile.in
-@@ -209,7 +209,7 @@
+diff -urN ilmbase-1.0.1-old/IlmThread/Makefile.am ilmbase-1.0.1/IlmThread/Makefile.am
+--- ilmbase-1.0.1-old/IlmThread/Makefile.am	2010-04-27 17:12:05.000000000 -0700
++++ ilmbase-1.0.1/IlmThread/Makefile.am	2010-04-27 17:13:04.000000000 -0700
+@@ -11,7 +11,7 @@
  			  IlmThreadMutexPosix.cpp
  
  libIlmThread_la_LDFLAGS = -version-info @LIBTOOL_VERSION@ -no-undefined
 -libIlmThread_la_LIBADD = ../Iex/libIex.la
 +libIlmThread_la_LIBADD = ../Iex/libIex.la -lpthread
+ 
  libIlmThreadincludedir = $(includedir)/OpenEXR
- libIlmThreadinclude_HEADERS = IlmThreadPool.h IlmThread.h \
- 			      IlmThreadSemaphore.h IlmThreadMutex.h
+ 
