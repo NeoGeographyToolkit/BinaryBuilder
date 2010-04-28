@@ -18,12 +18,14 @@ from urlparse import urlparse
 
 def get_platform(pkg=None):
     import platform
-    system = platform.system()
-    if system == 'Linux' and platform.architecture()[0] == '64bit':
+    system  = platform.system()
+    machine = platform.machine()
+
+    if system == 'Linux' and machine == 'x86_64':
         return 'linux64'
-    elif system == 'Linux' and platform.architecture()[0] == '32bit':
+    elif system == 'Linux' and machine == 'i686':
         return 'linux32'
-    elif system == 'Darwin': # ignore arch here, it seems to just return 32-bit
+    elif system == 'Darwin' and machine == 'i386':
         return 'osx32'
     else:
         message = 'Cannot match system to known platform'
