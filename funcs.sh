@@ -43,6 +43,7 @@ die() {
 # Magic here:
 # In linux, $ORIGIN means (to the dynamic loader)
 # "Path to the thing currently being loaded" (so, either to the bin or to the lib)
+# It is the dirname of that path.
 # Therefore, construct an rpath made up of the origin, the path to the root of
 # the dist, and then the given list of rpaths, which should be relative to the
 # root of the dist.
@@ -61,12 +62,14 @@ set_rpath_linux() {
 
 # Magic here:
 # much like Linux's $ORIGIN, @executable_path is a runtime-determined value...
-# except that it always points to the BINARY that caused the load, not the
+# except that it always points to $(dirname BINARY) that caused the load, not the
 # library (if it is one)
 set_rpath_darwin() {
     local file="$1"
     local root="$2"
     shift 2
+    local dir="$(dirname $file)"
+
     # Skip the first line of otool, which is the object's SELF entry
     otool -L $file | awk 'NR > 1 {print $1}' | while read entry; do
 
@@ -83,7 +86,7 @@ set_rpath_darwin() {
         # than delaying until runtime like in Linux
 
         for rpath in "$@"; do
-            if [[ -r "${file}/${root}/$rpath/$base" ]]; then
+            if [[ -r "${dir}/${root}/$rpath/$base" ]]; then
                 # This code assumes that the binaries are installed at $DISTDIR/bin
                 new="@executable_path/../$rpath/$base"
             fi
@@ -91,11 +94,14 @@ set_rpath_darwin() {
         if [[ -n $new ]]; then
             install_name_tool -change $entry $new $file || die "FAILED: install_name_tool -change $entry $new $file"
         else
-            echo "Skipped $file: $entry"
+            echo "ERROR: Skipped $file: $entry"
         fi
     done
 }
 
+# This takes 2 arguments:
+# The first is the file (binary or library) to set rpath on
+# The second is the path from $(dirname $file) to the root of the dist
 set_rpath() {
     case $(getOS) in
         Linux) set_rpath_linux $* ;;
