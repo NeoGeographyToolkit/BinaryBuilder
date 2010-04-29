@@ -89,9 +89,12 @@ class stereopipeline(SVNPackage):
         disable_apps = 'rmax2cahvor rmaxadjust results reconstruct ctximage orthoproject'
         enable_apps  = 'bundleadjust bundlevis disparitydebug isisadjust orbitviz point2dem point2mesh stereo'
 
-        noinstall_pkgs = 'spice qwt gsl geos superlu xercesc kakadu'.split()
+        noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt'.split()
+
+        if self.arch[:5] == 'linux':
+            noinstall_pkgs += ['superlu']
 
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] \
           + [i + '=%(NOINSTALL_DIR)s' % self.env for i in noinstall_pkgs] \
@@ -111,6 +114,8 @@ class stereopipeline(SVNPackage):
 
             if self.arch[:5] == 'linux':
                 print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
+            elif self.arch[:3] == 'osx':
+                print('HAVE_PKG_SUPERLU=no', file=config)
 
         super(stereopipeline, self).configure(
             with_   = w,
