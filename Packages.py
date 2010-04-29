@@ -104,12 +104,32 @@ class stereopipeline(SVNPackage):
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in install_pkgs + noinstall_pkgs:
-                print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                ldflags=[]
+                ldflags.append('-L%s -L%s' % (self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')))
 
-            qt_pkgs = 'Core Gui Network Sql Svg Xml XmlPatterns'
+                if self.arch[:3] == 'osx':
+                    ldflags.append('-F%s -F%s' % (self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')))
+
+                print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
+
+            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+
+            if self.arch[:3] == 'osx':
+                libload = '-framework '
+            else:
+                libload = '-l'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
-            print('PKG_ARBITRARY_QT_CPPFLAGS="-I%s %s"' %  (includedir, ' '.join(['-I' + P.join(includedir, 'Qt%s' % pkg) for pkg in qt_pkgs.split()])), file=config)
+
+            qt_cppflags=['-I%s' % includedir]
+            qt_libs=[]
+
+            for module in qt_pkgs.split():
+                qt_cppflags.append('-I%s/%s' % (includedir, module))
+                qt_libs.append('%s%s' % (libload, module))
+
+            print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
+            print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
             print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
 
             if self.arch[:5] == 'linux':
