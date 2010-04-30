@@ -18,7 +18,7 @@ fi
 if [[ -n $VERSION ]]; then
     BUILDNAME=StereoPipeline-${VERSION}-$(uname -m)-$(getOS)
 else
-    BUILDNAME=StereoPipeline-$(date +"%Y-%m-%d_%H-%M-%S")-$(uname -m)-$(getOS)
+    BUILDNAME=StereoPipeline-$(uname -m)-$(getOS)-$(date +"%Y-%m-%d_%H-%M-%S")
 fi
 
 INSTALL_DIR=/tmp/build/install
