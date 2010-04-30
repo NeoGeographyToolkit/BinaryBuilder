@@ -75,7 +75,11 @@ set_rpath_darwin() {
     shift 2
     local dir="$(dirname $file)"
 
-    # Skip the first line of otool, which is the object's SELF entry
+    # This is the library's name for itself (equiv to soname in linux, except
+    # it has full path)
+    local myname=$(otool -D $file | tail -n1)
+
+    # Skip the first line of otool, which is the header
     otool -L $file | awk 'NR > 1 {print $1}' | while read entry; do
 
         # Don't warn me about things I know I'm skipping
@@ -111,7 +115,12 @@ set_rpath_darwin() {
             fi
         done
         if [[ -n $new ]]; then
-            install_name_tool -change $entry $new $file || die "FAILED: install_name_tool -change $entry $new $file"
+            # If the entry is the "self" one, it has to be changed differently
+            if [[ "$entry" = "$myname" ]]; then
+                install_name_tool -id $new $file || die "FAILED: install_name_tool -id $new $file"
+            else
+                install_name_tool -change $entry $new $file || die "FAILED: install_name_tool -change $entry $new $file"
+            fi
         else
             echo "ERROR: Skipped $file: $entry"
         fi
