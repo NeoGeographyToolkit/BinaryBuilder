@@ -50,7 +50,7 @@ class ilmbase(Package):
     patches = 'patches/ilmbase'
 
     def configure(self):
-        self.env['AUTOHEADER'] = '/bin/true'
+        self.env['AUTOHEADER'] = 'true'
         self.helper('autoreconf', '-fvi')
         super(ilmbase, self).configure()
 
@@ -72,7 +72,7 @@ class openexr(Package):
     patches = 'patches/openexr'
 
     def configure(self):
-        self.env['AUTOHEADER'] = '/bin/true'
+        self.env['AUTOHEADER'] = 'true'
         self.helper('autoreconf', '-fvi')
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
                                       disable=('ilmbasetest', 'imfexamples'))
