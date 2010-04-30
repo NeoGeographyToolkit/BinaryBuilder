@@ -30,6 +30,11 @@ is_whitelist()
     return 1
 }
 
+is_framework()
+{
+    echo $1 | grep -q '\.framework/'
+}
+
 getOS() {
     echo ${__OS:="$(uname -s | sed -e 's/Darwin/OSX/')"}
 }
@@ -78,13 +83,27 @@ set_rpath_darwin() {
             continue
         fi
 
-        local base="$(basename $entry)"
-        local new=""
+        # /tmp/build/install/lib/libvwCore.5.dylib
+        # base = libvwCore.5.dylib
+        # looks for @executable_path/../lib/libvwCore.5.dylib
+
+        # /opt/local/libexec/qt4-mac/lib/QtXml.framework/Versions/4/QtXml
+        # base = QtXml.framework/Versions/4/QtXml
+        # looks for @executable_path/../lib/QtXml.framework/Versions/4/QtXml
+
+        local base=""
+        if is_framework $entry; then
+            local fprefix="$(dirname ${entry%%.framework/*})"
+            base="${entry#${fprefix}/}"
+        else
+            base="$(basename $entry)"
+        fi
+
 
         # OSX rpath points to one specific file, not anything that matches the
         # library SONAME. Therefore, do the library discovery right now, rather
         # than delaying until runtime like in Linux
-
+        local new=""
         for rpath in "$@"; do
             if [[ -r "${dir}/${root}/$rpath/$base" ]]; then
                 # This code assumes that the binaries are installed at $DISTDIR/bin
