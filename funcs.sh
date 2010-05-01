@@ -61,7 +61,7 @@ set_rpath_linux() {
         rpath="${rpath}${rpath:+:}\$ORIGIN/${root}${elt}"
     done
 
-    chrpath -r "$rpath" "$file" || die "chrpath failed"
+    chrpath -r "$rpath" "$file" &>/dev/null || die "chrpath failed"
 }
 
 
