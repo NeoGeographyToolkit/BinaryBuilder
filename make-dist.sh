@@ -63,4 +63,10 @@ if [[ -d ${COPYDIR} ]]; then
     find ${DIST_DIR} -name .svn -print0 | xargs -0 rm -rf
 fi
 
-tar czf ${BUILDNAME}.tar.gz  -C ${DIST_DIR}/.. ${BUILDNAME}
+TOPLEVEL=$(cd ${DIST_DIR}/.. && pwd)
+
+set -x
+(cd ${TOPLEVEL} && find ${BUILDNAME} -name '*.debug') > ${BUILDNAME}.dlist
+
+tar czf ${BUILDNAME}.tar.gz        -X ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME}
+tar czf ${BUILDNAME}-debug.tar.gz  -T ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME} --no-recursion
