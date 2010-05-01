@@ -36,8 +36,8 @@ if __name__ == '__main__':
                     CC       = 'gcc',
                     CXX      = 'g++',
                     F77      = 'gfortran',
-                    CFLAGS   = '-O3 -pipe',
-                    CXXFLAGS = '-O3 -pipe',
+                    CFLAGS   = '-O3 -pipe -g',
+                    CXXFLAGS = '-O3 -pipe -g',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j%s' % opt.threads,
                     PATH=os.environ['PATH'])
