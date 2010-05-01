@@ -138,6 +138,77 @@ set_rpath() {
     esac
 }
 
+do_strip_darwin() {
+    local file="$1"
+    strip -S $file
+}
+
+STRIP_FLAGS_SAFE="--strip-unneeded"
+STRIP_FLAGS="${STRIP_FLAGS_SAFE} -R .comment"
+
+inode_var_name() {
+    stat -c 'INODE_%d_%i' "$1"
+}
+
+#save_elf_sources() {
+#    type -P debugedit >/dev/null || return 0
+#
+#    local file="$1"
+#    local inode=$(inode_var_name "$x")
+#    [[ -n ${!inode} ]] && return 0
+#    debugedit -b "${WORKDIR}" -d "${prepstrip_sources_dir}" \
+#        -l "${T}"/debug.sources "${x}"
+#}
+
+unset ${!INODE_*}
+
+save_elf_debug() {
+    local file="$1"
+    local debug="$(dirname $file)/$(basename $file).debug"
+
+    # dont save debug info twice
+    [[ $file == *".debug" ]] && return 0
+
+    local inode=$(inode_var_name "$file")
+
+    if [[ -n ${!inode} ]] ; then
+        ln "$(dirname $debug)/${!inode}.debug" "$debug"
+    else
+        eval $inode=\$file
+        objcopy --only-keep-debug "$file" "$debug"
+        objcopy --add-gnu-debuglink="$debug" "$file"
+    fi
+}
+
+do_strip_linux() {
+    local file="$1"
+
+    # Okay, first, try to save debug information!
+    local type=$(file "$file")
+
+    if [[ -z $type ]]; then
+        strip -g "$file"
+    elif [[ $type == *"current ar archive"* ]] ; then
+        strip -g "$file"
+    elif [[ $type == *"SB executable"* || $type == *"SB shared object"* ]] ; then
+        #save_elf_sources "$file"
+        save_elf_debug "$file"
+        strip $STRIP_FLAGS "$file"
+    elif [[ $type == *"SB relocatable"* ]] ; then
+        #save_elf_sources "$file"
+        strip $STRIP_FLAGS_SAFE "$file"
+    fi
+}
+
+# This takes 1 argument: the binary or library to strip
+do_strip() {
+    case $(getOS) in
+        Linux) do_strip_linux $* ;;
+        OSX)   do_strip_darwin $* ;;
+        *) die "Unknown OS: $(getOS)"
+    esac
+}
+
 get_relative_path() {
     local root="$1"
     local path="$2"

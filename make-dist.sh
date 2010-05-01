@@ -49,7 +49,7 @@ for i in $obin/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \) );
 
         # The rpaths given here are relative to the $root
         set_rpath $i $root ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
-        strip -S $i || die "Could not strip $i"
+        do_strip $i || die "Could not strip $i"
     fi
 done
 
