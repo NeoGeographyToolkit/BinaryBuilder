@@ -307,7 +307,7 @@ class Package(object):
     def helper(self, *args, **kw):
         info(' '.join(args))
         kw['stdout'] = kw.get('stdout', sys.stdout)
-        kw['stderr'] = kw.get('stderr', sys.stdout)
+        kw['stderr'] = kw.get('stderr', kw['stdout'])
 
         if 'cwd' not in kw:
             kw['cwd'] = self.workdir
@@ -315,7 +315,11 @@ class Package(object):
             kw['env'] = self.env
 
         try:
-            subprocess.check_call(args, **kw)
+            p = subprocess.Popen(args, **kw)
+            (out, err) = p.communicate()
+            if p.returncode != 0:
+                raise subprocess.CalledProcessError(p.returncode, args)
+            return out, err
         except (OSError, subprocess.CalledProcessError), e:
             raise HelperError(args[0], kw['env'], e)
 
@@ -332,14 +336,27 @@ class SVNPackage(Package):
         super(SVNPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'svn', self.pkgname)
 
+    def _get_current_url(self, path):
+        for line in self.helper('svn', 'info', path, stdout=subprocess.PIPE)[0].split('\n'):
+            tokens = line.split()
+            if tokens[0] == 'URL:':
+                return tokens[1]
+
     @stage
     def fetch(self):
-        if P.isdir(self.localcopy):
-            cmd = ('svn', 'update', self.localcopy)
-        else:
-            cmd = ('svn', 'checkout', self.src, self.localcopy)
-
-        self.helper(*cmd)
+        try:
+            if P.exists(self.localcopy):
+                url = self._get_current_url(self.localcopy)
+                if url == self.src:
+                    self.helper('svn', 'update', self.localcopy)
+                else:
+                    self.helper('svn', 'switch', self.src, self.localcopy)
+            else:
+                self.helper('svn', 'checkout', self.src, self.localcopy)
+        except HelperError, e:
+            warn('svn failed (removing %s): %s' % (self.localcopy, e))
+            rmtree(self.localcopy)
+            self.helper('svn', 'checkout', self.src, self.localcopy)
 
     @stage
     def unpack(self):
