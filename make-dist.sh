@@ -69,4 +69,6 @@ set -x
 (cd ${TOPLEVEL} && find ${BUILDNAME} -name '*.debug') > ${BUILDNAME}.dlist
 
 tar czf ${BUILDNAME}.tar.gz        -X ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME}
-tar czf ${BUILDNAME}-debug.tar.gz  -T ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME} --no-recursion
+if test -s ${BUILDNAME}.dlist; then
+    tar czf ${BUILDNAME}-debug.tar.gz  -T ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME} --no-recursion
+fi
