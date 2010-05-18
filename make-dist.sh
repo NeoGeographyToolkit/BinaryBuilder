@@ -11,7 +11,7 @@ source ./funcs.sh
 # Need GNU coreutils
 export PATH="$HOME/local/coreutils/bin:$PATH"
 
-if ! ls --version; then
+if ! ls --version >/dev/null; then
     die "Need gnu coreutils"
 fi
 
@@ -28,6 +28,7 @@ DIST_DIR=/tmp/build/${BUILDNAME}
 BINS="bundlevis colormap disparitydebug hillshade image2qtree ipfind ipmatch isis_adjust orbitviz point2dem point2mesh stereo osgviewer"
 
 obin="${DIST_DIR}/bin"
+olibexec="${DIST_DIR}/libexec"
 olib="${DIST_DIR}/lib"
 
 ibin="${INSTALL_DIR}/bin"
@@ -35,11 +36,15 @@ ilib="${INSTALL_DIR}/lib"
 
 rm -rf ${DIST_DIR}
 
-mkdir -p $obin $olib
-for i in ${BINS}; do cp -av $ibin/$i $obin/; done
+mkdir -p $obin $olib $olibexec
+for i in ${BINS}; do
+    cp -av $ibin/$i $olibexec/;
+    cp libexec-helper.sh ${obin}/$i
+done
+
 rsync -am --delete --include='*.so*' --include='*.dylib*' --include='*/' --exclude='*' $ilib/ $olib/
 
-for i in $obin/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \) ); do
+for i in $olibexec/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \) ); do
     if [[ -f $i ]]; then
         echo "Processing $i"
         # root is the relative path from the object in question to the top of
