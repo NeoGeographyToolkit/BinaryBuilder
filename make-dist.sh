@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 if [[ $# -gt 0 ]]; then
     VERSION="$1"
     shift 1
