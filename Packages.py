@@ -144,7 +144,7 @@ class stereopipeline(SVNPackage):
             enable  = ['debug=ignore', 'optimize=ignore'] + ['app-' + a for a in enable_apps.split()])
 
 class visionworkbench(SVNPackage):
-    src     = 'http://babelfish.arc.nasa.gov/svn/visionworkbench/trunk'
+    src     = 'http://svn.github.com/visionworkbench/visionworkbench.git'
 
     def configure(self):
         self.helper('./autogen')
