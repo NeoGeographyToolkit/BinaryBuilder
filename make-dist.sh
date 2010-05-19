@@ -41,7 +41,8 @@ rm -rf ${DIST_DIR}
 mkdir -p $obin $olib $olibexec
 for i in ${BINS}; do
     cp -av $ibin/$i $olibexec/;
-    cp libexec-helper.sh ${obin}/$i
+    cp libexec-helper.sh $obin/$i
+    chmod +x $olibexec/$i $obin/$i
 done
 
 rsync -am --delete --include='*.so*' --include='*.dylib*' --include='*/' --exclude='*' $ilib/ $olib/
