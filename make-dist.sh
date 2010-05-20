@@ -42,7 +42,6 @@ mkdir -p $obin $olib $olibexec
 for i in ${BINS}; do
     cp -av $ibin/$i $olibexec/;
     cp libexec-helper.sh $obin/$i
-    chmod +x $olibexec/$i $obin/$i
 done
 
 rsync -am --delete --include='*.so*' --include='*.dylib*' --include='*/' --exclude='*' $ilib/ $olib/
@@ -72,6 +71,8 @@ if [[ -d ${COPYDIR} ]]; then
 fi
 
 TOPLEVEL=$(cd ${DIST_DIR}/.. && pwd)
+
+chmod +x ${TOPLEVEL}/${BUILDNAME}/libexec/* ${TOPLEVEL}/${BUILDNAME}/bin/*
 
 set -x
 (cd ${TOPLEVEL} && find ${BUILDNAME} -name '*.debug') > ${BUILDNAME}.dlist
