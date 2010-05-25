@@ -82,7 +82,7 @@ class proj(Package):
     chksum  = 'ddfdad6cba28af5f91b14fd6690bd22bbbc79390'
 
 class stereopipeline(SVNPackage):
-    src     = 'http://babelfish.arc.nasa.gov/svn/stereopipeline/tags/1.0.1_rc1'
+    src     = 'http://babelfish.arc.nasa.gov/svn/stereopipeline/tags/1.0.1'
     def configure(self):
         self.helper('./autogen')
 
