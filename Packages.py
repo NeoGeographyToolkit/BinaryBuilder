@@ -420,26 +420,20 @@ class isis(Package):
 
     def __init__(self, env):
         super(isis, self).__init__(env)
-
-        self.pkgname += '_' + self.arch
-
-        self.src = self.PLATFORM[self.arch]
-
+        self.pkgname  += '_' + self.arch
+        self.src       = self.PLATFORM[self.arch]
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
     @stage
     def fetch(self):
-        if not P.exists(P.dirname(self.localcopy)):
-            os.mkdir(P.dirname(self.localcopy))
-        if not P.exists(self.localcopy):
-            os.mkdir(self.localcopy)
+        os.makedirs(self.localcopy)
         self.helper('rsync', '-azv', '--delete', '--exclude', 'doc/*', '--exclude', '*/doc/*', self.src, self.localcopy)
 
     @stage
     def unpack(self):
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.remove_build(output_dir)
-        self.workdir = P.join(output_dir, self.pkgname + '-rsync')
+        self.workdir = P.join(output_dir, self.pkgname)
 
         cmd = ('cp', '-lfr', self.localcopy, self.workdir)
         self.helper(*cmd, cwd=output_dir)
