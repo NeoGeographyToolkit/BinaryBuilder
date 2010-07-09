@@ -98,8 +98,6 @@ class Environment(dict):
             ISISROOT       = isisroot,
             ISIS3RDPARTY   = P.join(isisroot, '3rdParty', 'lib'),
         ))
-        if 'ISISROOT' in kw:
-            self['PROTECT_ISISROOT'] = True
         self.update(kw)
 
         for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR'):

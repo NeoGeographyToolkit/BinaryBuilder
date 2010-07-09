@@ -424,6 +424,19 @@ class isis(Package):
         self.src       = self.PLATFORM[self.arch]
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
+
+    def _fix_dev_symlinks(self):
+        if self.arch[:5] == 'linux':
+            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'))
+        else:
+            missing_links = ()
+
+        for tgt, name in missing_links:
+            longname = glob(P.join(self.env['ISIS3RDPARTY'], tgt))
+            if not longname:
+                raise PackageError(self, 'Failed to find a longname to create %s symlink' % name)
+            self.helper('ln', '-sf', P.basename(longname[0]), P.join(self.env['ISIS3RDPARTY'], name))
+
     @stage
     def fetch(self):
         os.makedirs(self.localcopy)
@@ -447,32 +460,32 @@ class isis(Package):
 
     @stage
     def install(self):
-        if not self.env.get('PROTECT_ISISROOT', False):
-            cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
-            self.helper(*cmd)
+        cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
+        self.helper(*cmd)
+        self._fix_dev_symlinks()
 
-        if self.arch[:5] == 'linux':
-            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'))
-        else:
-            missing_links = ()
 
-        for tgt, name in missing_links:
-            longname = glob(P.join(self.env['ISIS3RDPARTY'], tgt))
-            if not longname:
-                raise PackageError(self, 'Failed to find a longname to create %s symlink' % name)
-            self.helper('ln', '-sf', P.basename(longname[0]), P.join(self.env['ISIS3RDPARTY'], name))
 
-class isis_local(Package):
+class isis_local(isis):
     ''' This isis package just uses the isis in ISISROOT (it's your job to make sure the deps are correct) '''
 
     def __init__(self, env):
         super(isis_local, self).__init__(env)
-        self.pkgname   += '_FROM_ISISROOT'
+        self.pkgname   = None
         self.src       = None
-        self.localcopy = env['ISISROOT']
+        self.localcopy = None
 
     @stage
     def fetch(self): pass
+    @stage
+    def unpack(self): pass
+    @stage
+    def configure(self): pass
+    @stage
+    def compile(self): pass
+    @stage
+    def install(self):
+        self._fix_dev_symlinks()
 
 class osg(Package):
     src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.2/source/OpenSceneGraph-2.8.2.zip'
