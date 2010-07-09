@@ -83,16 +83,20 @@ def stage(f):
 
 class Environment(dict):
     def __init__(self, **kw):
-        basedir = kw.get('BASEDIR', os.environ['HOME'])
+        basedir  = kw.get('BASEDIR',  os.environ['HOME'])
+        isisroot = kw.get('ISISROOT', P.join(basedir, 'build', 'isis'))
+
         self.update(dict(
             HOME           = basedir,
             DOWNLOAD_DIR   = P.join(basedir, 'build-src'),
-            BUILD_DIR      = P.join(basedir, 'build/build'),
-            INSTALL_DIR    = P.join(basedir, 'build/install'),
-            NOINSTALL_DIR  = P.join(basedir, 'build/noinstall'),
-            ISISROOT       = P.join(basedir, 'build/isis'),
-            ISIS3RDPARTY   = P.join(basedir, 'build/isis/3rdParty/lib'),
+            BUILD_DIR      = P.join(basedir, 'build', 'build'),
+            INSTALL_DIR    = P.join(basedir, 'build', 'install'),
+            NOINSTALL_DIR  = P.join(basedir, 'build', 'noinstall'),
+            ISISROOT       = isisroot,
+            ISIS3RDPARTY   = P.join(isisroot, '3rdParty', 'lib'),
         ))
+        if 'ISISROOT' in kw:
+            self['PROTECT_ISISROOT'] = True
         self.update(kw)
 
         for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR'):

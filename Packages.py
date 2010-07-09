@@ -442,14 +442,14 @@ class isis(Package):
 
     @stage
     def configure(self): pass
-
     @stage
     def compile(self): pass
 
     @stage
     def install(self):
-        cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
-        self.helper(*cmd)
+        if not self.env.get('PROTECT_ISISROOT', False):
+            cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
+            self.helper(*cmd)
 
         if self.arch[:5] == 'linux':
             missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'))
@@ -461,6 +461,18 @@ class isis(Package):
             if not longname:
                 raise PackageError(self, 'Failed to find a longname to create %s symlink' % name)
             self.helper('ln', '-sf', P.basename(longname[0]), P.join(self.env['ISIS3RDPARTY'], name))
+
+class isis_local(Package):
+    ''' This isis package just uses the isis in ISISROOT (it's your job to make sure the deps are correct) '''
+
+    def __init__(self, env):
+        super(isis_local, self).__init__(env)
+        self.pkgname   += '_FROM_ISISROOT'
+        self.src       = None
+        self.localcopy = env['ISISROOT']
+
+    @stage
+    def fetch(self): pass
 
 class osg(Package):
     src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.2/source/OpenSceneGraph-2.8.2.zip'

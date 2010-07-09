@@ -12,7 +12,7 @@ from optparse import OptionParser
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                findfile, zlib_headers, png_headers
+                findfile, zlib_headers, png_headers, isis_local
 
 from BinaryBuilder import Package, Environment, PackageError, error, warn, get_platform
 
@@ -24,6 +24,8 @@ if __name__ == '__main__':
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,   help='Disable ccache')
     parser.add_option('--threads',                          dest='threads',    default=4,      help='Build threads to use')
     parser.add_option('--base-dir',                         dest='basedir',    default='/tmp', help='Prefix of build dirs')
+    parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
+    parser.add_option('--dev-env',    action='store_true',  dest='dev',        default=False,  help='Build everything but VW and ASP')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -40,7 +42,8 @@ if __name__ == '__main__':
                     CXXFLAGS = '-O3 -pipe -g',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j%s' % opt.threads,
-                    PATH=os.environ['PATH'])
+                    PATH=os.environ['PATH'],
+                    **({} if opt.isisroot is None else dict(ISISROOT=opt.isisroot)))
 
     arch = get_platform()
 
@@ -83,8 +86,11 @@ if __name__ == '__main__':
         e.append('CXXFLAGS', '-save-temps')
 
     if len(args) == 0:
-        # Many things depend on isis 3rdparty, so do it first
-        build = [isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers]
+        # Were we told what isis to use?
+        build = [isis_local if opt.isisroot is not None else isis]
+
+        # Many things depend on isis 3rdparty, so do it before the rest
+        build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers]
 
         if arch[:5] == 'linux':
             build.extend([zlib, png])
@@ -96,7 +102,8 @@ if __name__ == '__main__':
         if arch[:5] == 'linux':
             build.append(lapack)
 
-        build.extend([visionworkbench, stereopipeline])
+        if not opt.dev:
+            build.extend([visionworkbench, stereopipeline])
     else:
         build = (globals()[pkg] for pkg in args)
 
