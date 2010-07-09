@@ -69,6 +69,9 @@ def _message(*args, **kw):
 info  = partial(_message, severity='info')
 warn  = partial(_message, severity='warn')
 error = partial(_message, severity='error')
+def die(*args, **kw):
+    error(*args, **kw)
+    sys.exit(kw.get('code', -1))
 
 def stage(f):
     @wraps(f)

@@ -14,7 +14,7 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 findfile, zlib_headers, png_headers, isis_local
 
-from BinaryBuilder import Package, Environment, PackageError, error, warn, get_platform
+from BinaryBuilder import Package, Environment, PackageError, die, warn, get_platform
 
 limit_symbols = None
 
@@ -26,9 +26,23 @@ if __name__ == '__main__':
     parser.add_option('--base-dir',                         dest='basedir',    default='/tmp', help='Prefix of build dirs')
     parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
     parser.add_option('--dev-env',    action='store_true',  dest='dev',        default=False,  help='Build everything but VW and ASP')
+    parser.add_option('--coreutils',                        dest='coreutils',  default=None,   help='Bin directory holding GNU coreutils')
 
     global opt
     (opt, args) = parser.parse_args()
+
+    if opt.coreutils is not None:
+        if not P.isdir(opt.coreutils):
+            parser.print_help()
+            die('Illegal argument to --coreutils: path does not exist')
+        p = os.environ.get('PATH', [])
+        if p:
+            p = p.split(':')
+        os.environ['PATH'] = ':'.join([opt.coreutils] + p + ['/opt/local/bin'])
+
+    if opt.isisroot is not None and not P.isdir(opt.isisroot):
+        parser.print_help()
+        die('\nIllegal argument to --isisroot: path does not exist')
 
     if opt.ccache and opt.save_temps:
         warn('--cache and --save-temps conflict. Disabling ccache.')
@@ -53,16 +67,11 @@ if __name__ == '__main__':
     if arch[:5] == 'linux':
         e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
     elif arch[:3] == 'osx':
-        p = e.get('PATH', [])
-        if p:
-            p = p.split(':')
-        e['PATH'] = ':'.join(['%s/local/coreutils/bin' % os.environ['HOME']] + p + ['/opt/local/bin'])
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
     # I should probably fix the gnu coreutils dep, but whatever
     if os.system('cp --version &>/dev/null') != 0:
-        error('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
-        sys.exit(-1)
+        die('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
 
     # XXX LDFLAGS? What?
     if limit_symbols is not None:
@@ -112,7 +121,7 @@ if __name__ == '__main__':
             Package.build(pkg, e)
 
     except PackageError, e:
-        error(e)
+        die(e)
 
 #png -> zlib
 #boost -> bzip2
