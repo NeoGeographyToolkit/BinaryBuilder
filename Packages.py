@@ -415,8 +415,25 @@ class cspice_headers(HeaderPackage):
         self.helper(*cmd)
 
 class protobuf_headers(HeaderPackage):
-    src = 'http://protobuf.googlecode.com/files/protobuf-2.2.0.tar.gz'
-    chksum = '4c2473fc58d674b3f42bce5c9bcb99a241d6e4da'
+    PLATFORM = dict(
+        linux64 = dict(
+            src = 'http://protobuf.googlecode.com/files/protobuf-2.2.0.tar.gz'
+            chksum = '4c2473fc58d674b3f42bce5c9bcb99a241d6e4da'
+        ),
+        linux32 = dict(
+            src = 'http://protobuf.googlecode.com/files/protobuf-2.2.0.tar.gz'
+            chksum = '4c2473fc58d674b3f42bce5c9bcb99a241d6e4da'
+        ),
+        osx32 = dict(
+            src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz'
+            chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf'
+        ),
+    )
+    def __init__(self, env):
+        super(protobuf_headers, self).__init__(env)
+        self.pkgname += '_' + self.arch
+        self.src    = self.PLATFORM[self.arch]['src']
+        self.chksum = self.PLATFORM[self.arch]['chksum']
 
 class isis(Package):
 
