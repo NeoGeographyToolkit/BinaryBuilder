@@ -91,7 +91,7 @@ class stereopipeline(SVNPackage):
         disable_modules  = 'photometrytk'
         enable_modules   = 'controlnettk'
 
-        noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu'.split()
+        noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt'.split()
 
@@ -413,6 +413,10 @@ class cspice_headers(HeaderPackage):
         self.helper('mkdir', '-p', d)
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [d]
         self.helper(*cmd)
+
+class protobuf_headers(HeaderPackage):
+    src = 'http://protobuf.googlecode.com/files/protobuf-2.2.0.tar.gz'
+    chksum = '4c2473fc58d674b3f42bce5c9bcb99a241d6e4da'
 
 class isis(Package):
 

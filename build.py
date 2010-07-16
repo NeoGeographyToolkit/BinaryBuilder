@@ -12,7 +12,7 @@ from optparse import OptionParser
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                findfile, zlib_headers, png_headers, isis_local
+                findfile, zlib_headers, png_headers, isis_local, protobuf_headers
 
 from BinaryBuilder import Package, Environment, PackageError, die, warn, get_platform
 
@@ -99,7 +99,7 @@ if __name__ == '__main__':
         build = [isis_local if opt.isisroot is not None else isis]
 
         # Many things depend on isis 3rdparty, so do it before the rest
-        build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers]
+        build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf_headers]
 
         if arch[:5] == 'linux':
             build.extend([zlib, png])
