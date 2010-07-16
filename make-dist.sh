@@ -54,9 +54,13 @@ for i in $olibexec/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \
         root="$(get_relative_path ${DIST_DIR} $i)"
         [[ -z "$root" ]] && die "failed to get relative path to root"
 
-        # The rpaths given here are relative to the $root
-        set_rpath $i $root ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
-        do_strip $i || die "Could not strip $i"
+        case $i in
+            *.py) echo "Skipping python script $i";;
+            *)
+            # The rpaths given here are relative to the $root
+            set_rpath $i $root ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
+            do_strip $i || die "Could not strip $i"
+        esac
     fi
 done
 
