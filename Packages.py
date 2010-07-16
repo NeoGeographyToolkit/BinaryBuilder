@@ -445,7 +445,8 @@ class isis(Package):
 
     @stage
     def fetch(self):
-        os.makedirs(self.localcopy)
+        if not os.path.exists(self.localcopy):
+            os.makedirs(self.localcopy)
         self.helper('rsync', '-azv', '--delete', '--exclude', 'doc/*', '--exclude', '*/doc/*', self.src, self.localcopy)
 
     @stage
