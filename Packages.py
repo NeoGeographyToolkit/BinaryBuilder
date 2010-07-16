@@ -88,6 +88,8 @@ class stereopipeline(SVNPackage):
 
         disable_apps = 'rmax2cahvor rmaxadjust results reconstruct ctximage orthoproject'
         enable_apps  = 'bundleadjust bundlevis disparitydebug isisadjust orbitviz point2dem point2mesh stereo'
+        disable_modules  = 'photometrytk'
+        enable_modules   = 'controlnettk'
 
         noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
@@ -140,8 +142,12 @@ class stereopipeline(SVNPackage):
         super(stereopipeline, self).configure(
             with_   = w,
             without = ['clapack', 'slapack'],
-            disable = ['pkg_paths_default', 'static', 'qt-qmake']   + ['app-' + a for a in disable_apps.split()],
-            enable  = ['debug=ignore', 'optimize=ignore'] + ['app-' + a for a in enable_apps.split()])
+            disable = ['pkg_paths_default', 'static', 'qt-qmake']
+                      + ['app-' + a for a in disable_apps.split()]
+                      + ['module-' + a for a in disable_modules.split()],
+            enable  = ['debug=ignore', 'optimize=ignore']
+                      + ['app-' + a for a in enable_apps.split()]
+                      + ['module-' + a for a in enable_modules.split()])
 
 class visionworkbench(SVNPackage):
     src     = 'http://svn.github.com/visionworkbench/visionworkbench.git'
