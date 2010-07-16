@@ -27,7 +27,7 @@ INSTALL_DIR=/tmp/build/install
 # Must be an absolute path
 DIST_DIR=/tmp/build/${BUILDNAME}
 
-BINS="bundlevis colormap disparitydebug hillshade image2qtree ipfind ipmatch isis_adjust orbitviz point2dem point2mesh stereo osgviewer"
+BINS="bundlevis colormap disparitydebug hillshade image2qtree ipfind ipmatch isis_adjust orbitviz point2dem point2mesh stereo osgviewer reduce_match cnet_build pairlist_all.py pairlist_degree.py pairlist_seq.py cam2map4stereo.py hiedr2mosaic.py"
 
 obin="${DIST_DIR}/bin"
 olibexec="${DIST_DIR}/libexec"
