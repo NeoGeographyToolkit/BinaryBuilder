@@ -25,4 +25,4 @@ if test -z "$LIBEXEC"; then
     echo "Is your stereo pipeline install complete?" >&2
     exit 1
 fi
-"${LIBEXEC}/$(basename $0)" $*
+exec "${LIBEXEC}/$(basename $0)" $*
