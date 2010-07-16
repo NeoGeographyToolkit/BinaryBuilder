@@ -471,8 +471,6 @@ class isis_local(isis):
 
     def __init__(self, env):
         super(isis_local, self).__init__(env)
-        self.pkgname   = None
-        self.src       = None
         self.localcopy = None
 
     @stage
