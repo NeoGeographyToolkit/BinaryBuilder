@@ -384,7 +384,7 @@ class cspice_headers(HeaderPackage):
     PLATFORM = dict(
         linux64 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_64bit/packages/cspice.tar.Z',
-            chksum = '27643e4b7a872a9e663913f24807fbd9c9439710',
+            chksum = '29e3bdea10fd4005a4db8934b8d953c116a2cec7', # N0064
         ),
         linux32 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_32bit/packages/cspice.tar.Z',
