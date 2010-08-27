@@ -354,9 +354,13 @@ class qt_headers(HeaderPackage):
         # This is amazingly ugly. All because OSX has a broken find(1). Sigh.
         try:
             P.walk('./', docopy, files)
-            # Divide by 2 to account for the environment size, which also counts
-            max_length = (os.sysconf('SC_ARG_MAX') - len('cp -f --parent    ') - len(self.env['NOINSTALL_DIR'])) / 2
-            cmds = textwrap.wrap(' '.join(files), max_length)
+            # account for the environment size, which also counts
+            env_size = 0
+            for key,val in os.environ.items():
+                env_size+= len(key) + len(val) + 3
+
+            max_length = (os.sysconf('SC_ARG_MAX') - len('cp -f --parent    ') - len(self.env['NOINSTALL_DIR']) - env_size) - 256
+            cmds = textwrap.wrap(' '.join(files), max_length, break_long_words=False)
             for f in cmds:
                 run = ['cp', '-f', '--parent'] + f.split() + [self.env['NOINSTALL_DIR']]
                 self.helper(*run)
