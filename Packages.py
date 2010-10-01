@@ -7,7 +7,7 @@ import os.path as P
 import textwrap
 
 from glob import glob
-from BinaryBuilder import SVNPackage, Package, stage, PackageError
+from BinaryBuilder import SVNPackage, Package, stage, PackageError, warn
 
 def findfile(filename, path=None):
     if path is None: path = os.environ.get('PATH', [])
@@ -466,6 +466,7 @@ class isis(Package):
             devsep = lib.partition('.so.')
             dev = devsep[0] + '.so'
             if not P.exists(dev):
+                warn('Creating isis dev symlink %s for %s' % (P.basename(dev), P.basename(lib)))
                 self.helper('ln', '-sf', P.basename(lib), dev)
 
     @stage
