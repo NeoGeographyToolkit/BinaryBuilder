@@ -473,17 +473,16 @@ class isis(Package):
     def fetch(self):
         if not os.path.exists(self.localcopy):
             os.makedirs(self.localcopy)
-        self.helper('rsync', '-azv', '--delete', '--exclude', 'doc/*', '--exclude', '*/doc/*', self.src, self.localcopy)
+        self.copytree(self.src, self.localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*'])
 
     @stage
     def unpack(self):
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.remove_build(output_dir)
         self.workdir = P.join(output_dir, self.pkgname)
-
-        cmd = ('cp', '-lfr', self.localcopy, self.workdir)
-        self.helper(*cmd, cwd=output_dir)
-
+        if not P.exists(self.workdir):
+            os.makedirs(self.workdir)
+        self.copytree(self.localcopy + '/', self.workdir, ['--link-dest=%s' % self.localcopy])
         self._apply_patches()
 
     @stage
@@ -493,8 +492,7 @@ class isis(Package):
 
     @stage
     def install(self):
-        cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
-        self.helper(*cmd)
+        self.copytree(self.workdir + '/', self.env['ISISROOT'], ['--link-dest=%s' % self.localcopy])
         self._fix_dev_symlinks(self.env['ISIS3RDPARTY'])
 
 

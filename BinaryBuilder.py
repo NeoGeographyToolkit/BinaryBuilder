@@ -328,6 +328,13 @@ class Package(object):
         except (OSError, subprocess.CalledProcessError), e:
             raise HelperError(args[0], kw['env'], e)
 
+    def copytree(self, src, dest, args=None):
+        call = ['rsync', '-a', '--delete']
+        if args is not None:
+            call += args
+        call += [src, dest]
+        self.helper(*call)
+
     def remove_build(self, output_dir):
         if P.isdir(output_dir):
             info("Removing old build dir")
