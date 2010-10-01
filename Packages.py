@@ -456,17 +456,17 @@ class isis(Package):
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
 
-    def _fix_dev_symlinks(self):
-        if self.arch[:5] == 'linux':
-            missing_links = (('libgeos-3*.so', 'libgeos.so'),  ('libblas.so.*', 'libblas.so'))
-        else:
-            missing_links = ()
+    def _fix_dev_symlinks(self, Dir):
+        if self.arch[:5] != 'linux':
+            return
 
-        for tgt, name in missing_links:
-            longname = glob(P.join(self.env['ISIS3RDPARTY'], tgt))
-            if not longname:
-                raise PackageError(self, 'Failed to find a longname to create %s symlink' % name)
-            self.helper('ln', '-sf', P.basename(longname[0]), P.join(self.env['ISIS3RDPARTY'], name))
+        for lib in glob(P.join(Dir, '*.so.*')):
+            if P.islink(lib):
+                continue
+            devsep = lib.partition('.so.')
+            dev = devsep[0] + '.so'
+            if not P.exists(dev):
+                self.helper('ln', '-sf', P.basename(lib), dev)
 
     @stage
     def fetch(self):
@@ -494,8 +494,7 @@ class isis(Package):
     def install(self):
         cmd = ('cp', '-lfr', self.workdir, self.env['ISISROOT'])
         self.helper(*cmd)
-        self._fix_dev_symlinks()
-
+        self._fix_dev_symlinks(self.env['ISIS3RDPARTY'])
 
 
 class isis_local(isis):
