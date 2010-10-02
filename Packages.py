@@ -139,6 +139,8 @@ class stereopipeline(SVNPackage):
             elif self.arch[:3] == 'osx':
                 print('HAVE_PKG_SUPERLU=no', file=config)
 
+            print('PKG_GEOS_LIBS=-lgeos-3.2.0', file=config)
+
         super(stereopipeline, self).configure(
             with_   = w,
             without = ['clapack', 'slapack'],
