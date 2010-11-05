@@ -443,7 +443,17 @@ class protobuf_headers(HeaderPackage):
 
 class isis(Package):
 
-    ### Needs: superlu-3.0 gsl-1.10 qt-4.6.2 qwt-5.2.0 xerces-c-2.7.0 geos-3.2.0 spice-0063 kakadu-6.3.1 protobuf-2.?
+
+    ### ISIS 3.2.0 Needs:
+    # geos-3.2.0
+    # gsl-1.10
+    # kakadu-6.3.1
+    # protobuf-2.?
+    # qt-4.6.2
+    # qwt-5.2.0
+    # spice-0063
+    # superlu-3.0
+    # xerces-c-2.7.0
 
     PLATFORM = dict(
         linux64 = 'isisdist.wr.usgs.gov::x86-64_linux_RHEL54/isis/',
