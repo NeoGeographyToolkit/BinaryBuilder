@@ -7,7 +7,7 @@ import os.path as P
 import textwrap
 
 from glob import glob
-from BinaryBuilder import SVNPackage, Package, stage, PackageError, warn
+from BinaryBuilder import SVNPackage, GITPackage, Package, stage, PackageError, warn
 
 def findfile(filename, path=None):
     if path is None: path = os.environ.get('PATH', [])
@@ -81,8 +81,8 @@ class proj(Package):
     src     = 'http://download.osgeo.org/proj/proj-4.6.1.tar.gz'
     chksum  = 'ddfdad6cba28af5f91b14fd6690bd22bbbc79390'
 
-class stereopipeline(SVNPackage):
-    src     = 'http://svn.github.com/NeoGeographyToolkit/StereoPipeline.git'
+class stereopipeline(GITPackage):
+    src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
         self.helper('./autogen')
 
@@ -151,8 +151,8 @@ class stereopipeline(SVNPackage):
                       + ['app-' + a for a in enable_apps.split()]
                       + ['module-' + a for a in enable_modules.split()])
 
-class visionworkbench(SVNPackage):
-    src     = 'http://svn.github.com/visionworkbench/visionworkbench.git'
+class visionworkbench(GITPackage):
+    src     = 'http://github.com/visionworkbench/visionworkbench.git'
 
     def configure(self):
         self.helper('./autogen')

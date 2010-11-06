@@ -342,6 +342,32 @@ class Package(object):
 
         os.mkdir(output_dir)
 
+class GITPackage(Package):
+    def __init__(self, env):
+        super(GITPackage, self).__init__(env)
+        self.localcopy = P.join(env['DOWNLOAD_DIR'], 'git', self.pkgname)
+
+    def _git(self, *args):
+        cmd = ['git', '--git-dir', self.localcopy]
+        cmd.extend(args)
+        self.helper(*cmd)
+
+    @stage
+    def fetch(self):
+        if P.exists(self.localcopy):
+            self._git('fetch', 'origin')
+        else:
+            self.helper('git', 'clone', '--mirror', self.src, self.localcopy)
+
+    @stage
+    def unpack(self):
+        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
+        self.remove_build(output_dir)
+        self.workdir = P.join(output_dir, self.pkgname + '-git')
+        os.mkdir(self.workdir)
+        self.helper('git', 'clone', self.localcopy, self.workdir)
+        self._apply_patches()
+
 class SVNPackage(Package):
 
     def __init__(self, env):
