@@ -172,7 +172,7 @@ class visionworkbench(GITPackage):
         super(visionworkbench, self).configure(with_   = w,
                                                without = ('tiff hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack qt'.split()),
                                                disable = ['pkg_paths_default','static', 'qt-qmake'] + ['module-' + a for a in disable_modules],
-                                               enable  = ['debug=ignore', 'optimize=ignore']        + ['module-' + a for a in enable_modules])
+                                               enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 
 class lapack(Package):
     src     = 'http://www.netlib.org/lapack/lapack-3.1.0.tgz'
