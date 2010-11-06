@@ -14,7 +14,7 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 findfile, zlib_headers, png_headers, isis_local, protobuf_headers
 
-from BinaryBuilder import Package, Environment, PackageError, die, warn, get_platform
+from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform
 
 limit_symbols = None
 
@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
     parser.add_option('--dev-env',    action='store_true',  dest='dev',        default=False,  help='Build everything but VW and ASP')
     parser.add_option('--coreutils',                        dest='coreutils',  default=None,   help='Bin directory holding GNU coreutils')
+    parser.add_option('--pretend',    action='store_true',  dest='pretend',    default=False,  help='Show the list of packages without actually doing anything')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -45,8 +46,7 @@ if __name__ == '__main__':
         die('\nIllegal argument to --isisroot: path does not exist')
 
     if opt.ccache and opt.save_temps:
-        warn('--cache and --save-temps conflict. Disabling ccache.')
-        opt.ccache = False
+        die('--ccache and --save-temps conflict. Disabling ccache.')
 
     e = Environment(BASEDIR  = opt.basedir,
                     CC       = 'gcc',
@@ -115,6 +115,10 @@ if __name__ == '__main__':
             build.extend([visionworkbench, stereopipeline])
     else:
         build = (globals()[pkg] for pkg in args)
+
+    if opt.pretend:
+        info('I want to build:\n%s' % ' '.join(map(lambda x: x.__name__, build)))
+        sys.exit(0)
 
     try:
         for pkg in build:
