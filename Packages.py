@@ -175,8 +175,8 @@ class visionworkbench(GITPackage):
                                                enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 
 class lapack(Package):
-    src     = 'http://www.netlib.org/lapack/lapack-3.1.0.tgz'
-    chksum  = '6acf1483951cdcf16fc0e670ae1bc066ac1d185d'
+    src     = 'http://www.netlib.org/lapack/lapack-3.2.1.tgz'
+    chksum  = 'c75223fdef3258c461370af5d2b889d580d7f38a'
     patches = 'patches/lapack'
 
     def __init__(self, env):
@@ -281,8 +281,8 @@ class HeaderPackage(Package):
         self.helper('make', 'install-data')
 
 class gsl_headers(HeaderPackage):
-    src = 'http://mirrors.kernel.org/gnu/gsl/gsl-1.10.tar.gz',
-    chksum = '401d0203d362948e30d0b3c58601a3bc52d0bfd4',
+    src = 'http://mirrors.kernel.org/gnu/gsl/gsl-1.13.tar.gz',
+    chksum = '02db78b9583bc7b2a577da6f45f5dd9f23ef737e',
 
 class geos_headers(HeaderPackage):
     src = 'http://download.osgeo.org/geos/geos-3.2.0.tar.bz2',
@@ -301,31 +301,8 @@ class superlu_headers(HeaderPackage):
         self.helper(*cmd)
 
 class xercesc_headers(HeaderPackage):
-    src = 'http://archive.apache.org/dist/xml/xerces-c/Xerces-C_2_7_0/source/xerces-c-src_2_7_0.tar.gz',
-    chksum = '56f9587f33fca0a573a45f07762e3262a255d73f',
-    def configure(self):
-        self.env['XERCESCROOT'] = self.workdir
-
-        if self.arch  == 'linux64':
-            arch = 'linux'
-            bits = 64
-        elif self.arch == 'linux32':
-            arch = 'linux'
-            bits = 32
-        elif self.arch == 'osx32':
-            arch = 'macosx'
-            bits = 32
-        else:
-            raise PackageError(self, 'Unsupported arch: %s' % self.arch)
-
-        cmd = ['./runConfigure', '-p%s' % arch, '-b%s' % bits, '-P%(NOINSTALL_DIR)s' % self.env]
-        self.helper(*cmd, cwd=P.join(self.workdir, 'src', 'xercesc'))
-    def compile(self):
-        self.helper('make', 'Prepare', cwd=P.join(self.workdir, 'src', 'xercesc'))
-    def install(self):
-        d = P.join(self.env['NOINSTALL_DIR'], 'include')
-        cmd = ['cp', '-vfR', P.join(self.workdir, 'include', 'xercesc'), d]
-        self.helper(*cmd)
+    src = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
+    chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
 
 class qt_headers(HeaderPackage):
     src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.6.2.tar.gz'
@@ -421,44 +398,26 @@ class cspice_headers(HeaderPackage):
         self.helper(*cmd)
 
 class protobuf_headers(HeaderPackage):
-    PLATFORM = dict(
-        linux64 = dict(
-            src = 'http://protobuf.googlecode.com/files/protobuf-2.2.0.tar.gz',
-            chksum = '4c2473fc58d674b3f42bce5c9bcb99a241d6e4da',
-        ),
-        linux32 = dict(
-            src = 'http://protobuf.googlecode.com/files/protobuf-2.2.0.tar.gz',
-            chksum = '4c2473fc58d674b3f42bce5c9bcb99a241d6e4da',
-        ),
-        osx32 = dict(
-            src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz',
-            chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf',
-        ),
-    )
-    def __init__(self, env):
-        super(protobuf_headers, self).__init__(env)
-        self.pkgname += '_' + self.arch
-        self.src    = self.PLATFORM[self.arch]['src']
-        self.chksum = self.PLATFORM[self.arch]['chksum']
+    src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz'
+    chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf'
 
 class isis(Package):
 
-
-    ### ISIS 3.2.0 Needs:
+    ### ISIS 3.2.1 Needs:
     # geos-3.2.0
-    # gsl-1.10
-    # kakadu-6.3.1
-    # protobuf-2.?
+    # gsl-1.13
+    # kakadu-6.3.1?
+    # protobuf-2.3.0
     # qt-4.6.2
     # qwt-5.2.0
     # spice-0063
     # superlu-3.0
-    # xerces-c-2.7.0
+    # xerces-c-3.1.1?
 
     PLATFORM = dict(
-        linux64 = 'isisdist.wr.usgs.gov::x86-64_linux_RHEL54/isis/',
-        linux32 = 'isisdist.wr.usgs.gov::x86_linux_RHEL54/isis/',
-        osx32   = 'isisdist.wr.usgs.gov::x86_darwin_OSX105/isis/',
+        linux64 = 'isisdist.wr.usgs.gov::x86-64_linux_RHEL/isis/',
+        linux32 = 'isisdist.wr.usgs.gov::x86_linux_RHEL/isis/',
+        osx32   = 'isisdist.wr.usgs.gov::x86_darwin_OSX/isis/',
     )
 
     def __init__(self, env):
