@@ -170,7 +170,7 @@ class visionworkbench(GITPackage):
                 print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
 
         super(visionworkbench, self).configure(with_   = w,
-                                               without = ('tiff hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack qt'.split()),
+                                               without = ('tiff hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack qt opencv'.split()),
                                                disable = ['pkg_paths_default','static', 'qt-qmake'] + ['module-' + a for a in disable_modules],
                                                enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 
