@@ -373,11 +373,11 @@ class cspice_headers(HeaderPackage):
         ),
         linux32 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_32bit/packages/cspice.tar.Z',
-            chksum = 'b7d51a021f0edb2ffd9cbd6b3d1fc70cf2533b93',
+            chksum = 'df8ad284db3efef912a0a3090acedd2c4561a25f', # N0064
         ),
         osx32   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/cspice.tar.Z',
-            chksum = '6148ae487eb66e99df92d2b7cf00bfd187633c0c',
+            chksum = '3a1174d0b5ca183168115d8259901e923b97eec0', # N0064
         ),
     )
 
