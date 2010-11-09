@@ -128,7 +128,6 @@ if __name__ == '__main__':
         die(e)
 
 #png -> zlib
-#boost -> bzip2
 #gdal -> jpeg, png, proj
 #openexr -> ilmbase zlib
 #visionworkbench -> boost openexr gdal png

@@ -55,10 +55,6 @@ class ilmbase(Package):
         super(ilmbase, self).configure()
 
 class jpeg(Package):
-    #src     = 'http://www.ijg.org/files/jpegsrc.v6b.tar.gz'
-    #chksum  = ''
-    #patches = 'patches/jpeg6'
-
     src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
     chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
     patches = 'patches/jpeg8'
