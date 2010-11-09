@@ -35,6 +35,7 @@ olib="${DIST_DIR}/lib"
 
 ibin="${INSTALL_DIR}/bin"
 ilib="${INSTALL_DIR}/lib"
+idoc="${INSTALL_DIR}/share/doc/StereoPipeline"
 
 rm -rf ${DIST_DIR}
 
@@ -69,11 +70,15 @@ if [[ $(getOS) == Linux ]]; then
     ldd "${olib}/libaspCore.so" | grep 'lib\(stdc++\|gcc_s\)' | awk '{print $3}' | xargs cp -v -t ${olib}
 fi
 
-COPYDIR=dist-add
-if [[ -d ${COPYDIR} ]]; then
-    (cd ${COPYDIR} && cp -aLv --parents . ${DIST_DIR})
-    find ${DIST_DIR} -name .svn -print0 | xargs -0 rm -rf
+if [[ -d dist-add ]]; then
+    (cd dist-add && cp -aLv --parents . ${DIST_DIR})
 fi
+
+if [[ -d $idoc ]]; then
+    (cd $idoc && cp -aLv --parents . ${DIST_DIR})
+fi
+
+find ${DIST_DIR} -name .svn -print0 | xargs -0 rm -rf
 
 TOPLEVEL=$(cd ${DIST_DIR}/.. && pwd)
 
