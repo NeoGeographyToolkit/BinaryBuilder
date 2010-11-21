@@ -14,8 +14,8 @@ class png(Package):
     chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
 
 class gdal(Package):
-    src    = 'http://download.osgeo.org/gdal/gdal-1.7.2.tar.gz'
-    chksum = 'a03127530708e3924aec7b505cc2ca4f8153f13c'
+    src    = 'http://download.osgeo.org/gdal/gdal-1.7.3.tar.gz'
+    chksum = '58d4355fe792ad618bb74605dc1a084a0aeb7cb1'
 
     def configure(self):
         # Most of these are disabled due to external deps.
