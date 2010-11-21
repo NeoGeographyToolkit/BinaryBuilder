@@ -471,8 +471,7 @@ class isis_local(isis):
     @stage
     def compile(self): pass
     @stage
-    def install(self):
-        self._fix_dev_symlinks()
+    def install(self): pass
 
 class osg(Package):
     src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.2/source/OpenSceneGraph-2.8.2.zip'
