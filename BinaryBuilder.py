@@ -246,7 +246,7 @@ class Package(object):
         self.helper('./configure', *args)
 
     @stage
-    def compile(self):
+    def compile(self, cwd=None):
         '''After compile, the compiled code should exist.'''
 
         cmd = ('make', )
@@ -256,17 +256,17 @@ class Package(object):
         e = Environment(prefix=self.env['INSTALL_DIR'])
         e.update(self.env)
 
-        self.helper(*cmd, env=e)
+        self.helper(*cmd, env=e, cwd=cwd)
 
     @stage
-    def install(self):
+    def install(self, cwd=None):
         '''After install, the binaries should be on the live filesystem.'''
 
         e = Environment(prefix=self.env['INSTALL_DIR'])
         e.update(self.env)
 
         cmd = ('make', 'install')
-        self.helper(*cmd, env=e)
+        self.helper(*cmd, env=e, cwd=cwd)
 
     @staticmethod
     def build(pkg, env):
@@ -314,9 +314,9 @@ class Package(object):
         kw['stdout'] = kw.get('stdout', sys.stdout)
         kw['stderr'] = kw.get('stderr', kw['stdout'])
 
-        if 'cwd' not in kw:
+        if kw.get('cwd', None) is None:
             kw['cwd'] = self.workdir
-        if 'env' not in kw:
+        if kw.get('env', None) is None:
             kw['env'] = self.env
 
         try:
