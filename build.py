@@ -12,9 +12,9 @@ from optparse import OptionParser
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                findfile, zlib_headers, png_headers, isis_local, protobuf_headers
+                zlib_headers, png_headers, isis_local, protobuf_headers
 
-from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform
+from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile
 
 limit_symbols = None
 

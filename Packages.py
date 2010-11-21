@@ -7,15 +7,7 @@ import os.path as P
 import textwrap
 
 from glob import glob
-from BinaryBuilder import SVNPackage, GITPackage, Package, stage, PackageError, warn
-
-def findfile(filename, path=None):
-    if path is None: path = os.environ.get('PATH', [])
-    for dirname in path.split(':'):
-        possible = P.join(dirname, filename)
-        if P.isfile(possible):
-            return possible
-    raise Exception('Could not find file %s in path[%s]' % (filename, path))
+from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn
 
 class png(Package):
     src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
@@ -489,76 +481,7 @@ class osg(Package):
 
     @stage
     def configure(self):
-        self.builddir = P.join(self.workdir, 'build')
-
-        def remove_danger(files, dirname, fnames):
-            files.extend([P.join(dirname,f) for f in fnames if f == 'CMakeLists.txt'])
-
-        files = []
-        P.walk(self.workdir, remove_danger, files)
-        cmd = ['sed',  '-ibak',
-                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_BUILD_TYPE.*)/#IGNORE /g',
-                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_INSTALL_PREFIX.*)/#IGNORE /g',
-                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_OSX_ARCHITECTURES.*)/#IGNORE /g',
-              ]
-
-        cmd.extend(files)
-        self.helper(*cmd)
-
-        build_rules = P.join(self.env['BASEDIR'], 'my_rules.cmake')
-        with file(build_rules, 'w') as f:
-            print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (findfile(self.env['CC'], self.env['PATH'])), file=f)
-            print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
-            print('SET (CMAKE_CXX_COMPILER "%s" CACHE FILEPATH "C++ compiler" FORCE)' % (findfile(self.env['CXX'], self.env['PATH'])), file=f)
-            print('SET (CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
-
-        cmd = ['cmake']
-        args = [
-            '-DCMAKE_INSTALL_PREFIX=%(INSTALL_DIR)s' % self.env,
-            '-DCMAKE_BUILD_TYPE=MyBuild',
-            '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
-            '-DCMAKE_SKIP_RPATH=YES',
-        ]
-
-        if self.arch[:3] == 'osx':
-            args.append('-DCMAKE_OSX_ARCHITECTURES=i386')
-
-        for arg in 'XUL PDF XINE JPEG2K SVG FREETYPE CURL GIF TIFF XRANDR INVENTOR COLLADA OPENVRML PERFORMER ITK LIBVNCSERVER OURDCMTK GTK CAIRO'.split():
-            args.append('-DENABLE_%s=OFF' % arg)
-        for arg in ('JPEG', 'PNG', 'OPENEXR', 'ZLIB', 'GDAL'):
-            args.append('-DENABLE_%s=ON' % arg)
-
-        args.extend([
-            '-DCMAKE_PREFIX_PATH=%(INSTALL_DIR)s;%(NOINSTALL_DIR)s' % self.env,
-            '-DBUILD_OSG_APPLICATIONS=ON',
-            '-DLIB_POSTFIX=',
-        ])
-
-        os.mkdir(self.builddir)
-
-        cmd = cmd + args + [self.workdir]
-
-        self.helper(*cmd, cwd=self.builddir)
-
-    @stage
-    def compile(self):
-        cmd = ('make', )
-        if 'MAKEOPTS' in self.env:
-            cmd += (self.env['MAKEOPTS'],)
-
-        e = self.env.copy()
-        if 'prefix' not in e:
-            e['prefix'] = self.env['INSTALL_DIR']
-
-        self.helper(*cmd, env=e, cwd=self.builddir)
-
-    @stage
-    def install(self):
-        '''After install, the binaries should be on the live filesystem.'''
-
-        e = self.env.copy()
-        if 'prefix' not in e:
-            e['prefix'] = self.env['INSTALL_DIR']
-
-        cmd = ('make', 'install')
-        self.helper(*cmd, env=e, cwd=self.builddir)
+        super(osg, self).configure(
+                enable='JPEG PNG OPENEXR ZLIB GDAL'.split(),
+                disable='XUL PDF XINE JPEG2K SVG FREETYPE CURL GIF TIFF XRANDR INVENTOR COLLADA OPENVRML PERFORMER ITK LIBVNCSERVER OURDCMTK GTK CAIRO'.split(),
+                other=['-DBUILD_OSG_APPLICATIONS=ON'])
