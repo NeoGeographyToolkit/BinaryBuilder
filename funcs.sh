@@ -10,6 +10,10 @@ DARWIN_WHITELIST=(
 /System/Library/Frameworks/OpenGL.framework/Versions/A/OpenGL
 /System/Library/Frameworks/vecLib.framework/Versions/A/vecLib
 /System/Library/Frameworks/QuickTime.framework/Versions/A/QuickTime
+/System/Library/Frameworks/Accelerate.framework/Versions/A/Accelerate
+/System/Library/Frameworks/AppKit.framework/Versions/C/AppKit
+/System/Library/Frameworks/Cocoa.framework/Versions/A/Cocoa
+/usr/lib/libobjc.A.dylib
 /usr/lib/libSystem.B.dylib
 /usr/lib/libgcc_s.1.dylib
 /usr/lib/libstdc++.6.dylib
