@@ -69,6 +69,12 @@ if __name__ == '__main__':
     elif arch[:3] == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
+        # ISIS only supports 32-bit
+        e.append('CFLAGS',   '-arch i386')
+        e.append('CXXFLAGS', '-arch i386')
+        e.append('LDFLAGS',  '-arch i386')
+
+
     # I should probably fix the gnu coreutils dep, but whatever
     if os.system('cp --version &>/dev/null') != 0:
         die('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
