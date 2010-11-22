@@ -37,8 +37,8 @@ class gdal(Package):
         super(gdal,self).configure(with_=w, without=wo, disable='static')
 
 class ilmbase(Package):
-    src     = 'http://download.savannah.nongnu.org/releases/openexr/ilmbase-1.0.1.tar.gz'
-    chksum  = '143adc547be83c6df75831ae957eef4b2706c9c0'
+    src     = 'http://download.savannah.nongnu.org/releases/openexr/ilmbase-1.0.2.tar.gz'
+    chksum  = 'fe6a910a90cde80137153e25e175e2b211beda36'
     patches = 'patches/ilmbase'
 
     def configure(self):
