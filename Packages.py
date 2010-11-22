@@ -78,10 +78,10 @@ class stereopipeline(GITPackage):
     def configure(self):
         self.helper('./autogen')
 
-        disable_apps = 'rmax2cahvor rmaxadjust results reconstruct ctximage orthoproject'
-        enable_apps  = 'bundleadjust bundlevis disparitydebug isisadjust orbitviz point2dem point2mesh stereo'
-        disable_modules  = 'photometrytk'
-        enable_modules   = 'controlnettk'
+        disable_apps = 'bundleadjust isisadjustwrite plateorthoproject reconstruct results rmax2cahvor rmaxadjust'
+        enable_apps  = 'aligndem bundlevis demprofile disparitydebug geodiff hsvmerge isisadjust orbitviz orthoproject point2dem point2mesh stereo'
+        disable_modules  = 'photometrytk controlnettk mpi'
+        enable_modules   = 'core spiceio isisio sessions'
 
         noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
@@ -149,11 +149,12 @@ class visionworkbench(GITPackage):
     def configure(self):
         self.helper('./autogen')
 
-        enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools'.split()
-        disable_modules = 'gpu plate python gui'.split()
-        install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack'.split()
+        enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools bundleadjustment'.split()
+        disable_modules = 'gpu plate python gui photometry'.split()
+        install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf'.split()
 
         w  = [i + '=%(INSTALL_DIR)s' % self.env for i in install_pkgs]
+        w.append('protobuf=%(INSTALL_DIR)s' % self.env)
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in install_pkgs:
@@ -162,7 +163,7 @@ class visionworkbench(GITPackage):
                 print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
 
         super(visionworkbench, self).configure(with_   = w,
-                                               without = ('tiff hdf cairomm rabbitmq_c protobuf tcmalloc x11 clapack slapack qt opencv'.split()),
+                                               without = ('tiff hdf cairomm zeromq rabbitmq_c tcmalloc x11 clapack slapack qt opencv cg'.split()),
                                                disable = ['pkg_paths_default','static', 'qt-qmake'] + ['module-' + a for a in disable_modules],
                                                enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 

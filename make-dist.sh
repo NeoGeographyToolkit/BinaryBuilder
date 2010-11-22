@@ -27,42 +27,36 @@ INSTALL_DIR=/tmp/build/install
 # Must be an absolute path
 DIST_DIR=/tmp/build/${BUILDNAME}
 
-BINS="               \
-  aligndem           \
-  bundle_adjust      \
-  bundlevis          \
-  cam2map4stereo.py  \
-  cnet_build         \
-  cnet_convert       \
-  cnet_merge         \
-  dem_profile        \
-  disparitydebug     \
-  geodiff            \
-  hiedr2mosaic.py    \
-  hsv_merge          \
-  image2qtree        \
-  isis_adjust        \
-  isis_adjust_write  \
-  orbitviz           \
-  osgviewer          \
-  pairlist_all.py    \
-  pairlist_degree.py \
-  pairlist_seq.py    \
-  phoinit.py         \
-  phosolve.py        \
-  pmipmap.py         \
-  point2dem          \
-  point2mesh         \
-  reduce_match       \
-  stereo             \
-  stereo_corr        \
-  stereo_fltr        \
-  stereo_pprc        \
-  stereo_rfne        \
-  stereo_tri         \
+BINS="              \
+  aligndem          \
+  bundlevis         \
+  cam2map4stereo.py \
+  dem_profile       \
+  disparitydebug    \
+  geodiff           \
+  hiedr2mosaic.py   \
+  hsv_merge         \
+  isis_adjust       \
+  orbitviz          \
+  orthoproject      \
+  point2dem         \
+  point2mesh        \
+  stereo            \
+  stereo_corr       \
+  stereo_fltr       \
+  stereo_pprc       \
+  stereo_rfne       \
+  stereo_tri        \
+  colormap          \
+  geoblend          \
+  georef            \
+  grassfirealpha    \
+  hillshade         \
+  image2qtree       \
+  ipfind            \
+  ipmatch           \
+  osgviewer         \
 "
-
-#/bin/sh ../../../libtool   --mode=install /usr/bin/install -c isis_position_extract '/tmp/build/install/libexec'
 
 obin="${DIST_DIR}/bin"
 olibexec="${DIST_DIR}/libexec"
