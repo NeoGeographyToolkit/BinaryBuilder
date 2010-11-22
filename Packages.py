@@ -43,6 +43,8 @@ class ilmbase(Package):
 
     def configure(self):
         self.env['AUTOHEADER'] = 'true'
+        # XCode in snow leopard removed this flag entirely (way to go, guys)
+        self.helper('sed', '-ibak', '-e', 's/-Wno-long-double//g', 'configure.ac')
         self.helper('autoreconf', '-fvi')
         super(ilmbase, self).configure()
 
@@ -61,6 +63,8 @@ class openexr(Package):
 
     def configure(self):
         self.env['AUTOHEADER'] = 'true'
+        # XCode in snow leopard removed this flag entirely (way to go, guys)
+        self.helper('sed', '-ibak', '-e', 's/-Wno-long-double//g', 'configure.ac')
         self.helper('autoreconf', '-fvi')
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
                                       disable=('ilmbasetest', 'imfexamples'))
