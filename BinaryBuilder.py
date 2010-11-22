@@ -421,7 +421,7 @@ class CMakePackage(Package):
         super(CMakePackage, self).__init__(env)
 
     @stage
-    def configure(self, other=(), enable=(), disable=()):
+    def configure(self, other=(), enable=(), disable=(), with_=(), without=()):
         self.builddir = P.join(self.workdir, 'build')
 
         def remove_danger(files, dirname, fnames):
@@ -461,6 +461,10 @@ class CMakePackage(Package):
             args.append('-DENABLE_%s=OFF' % arg)
         for arg in enable:
             args.append('-DENABLE_%s=ON' % arg)
+        for arg in without:
+            args.append('-DWITH_%s=OFF' % arg)
+        for arg in with_:
+            args.append('-DWITH_%s=ON' % arg)
 
         args.extend([
             '-DCMAKE_PREFIX_PATH=%(INSTALL_DIR)s;%(NOINSTALL_DIR)s' % self.env,

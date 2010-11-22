@@ -481,6 +481,6 @@ class osg(CMakePackage):
     @stage
     def configure(self):
         super(osg, self).configure(
-                enable='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
-                disable='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
+                with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
+                without='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
                 other=['-DBUILD_OSG_APPLICATIONS=ON'])
