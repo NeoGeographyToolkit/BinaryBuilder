@@ -1,0 +1,75 @@
+From feeeb4f2db6a5d5fd8a94f5b75628b5acf5c1763 Mon Sep 17 00:00:00 2001
+From: Mike Lundy <mike@fluffypenguin.org>
+Date: Sun, 21 Nov 2010 22:07:17 -0800
+Subject: [PATCH] remove library search path idiocy again
+
+---
+ OpenSceneGraph-2.8.3/src/osgDB/FileUtils.cpp |   27 +++++++++++++++++++++++++-
+ 1 files changed, 26 insertions(+), 1 deletions(-)
+
+diff --git a/OpenSceneGraph-2.8.3/src/osgDB/FileUtils.cpp b/OpenSceneGraph-2.8.3/src/osgDB/FileUtils.cpp
+index 65f955b..b818522 100644
+--- OpenSceneGraph-2.8.3/src/osgDB/FileUtils.cpp
++++ OpenSceneGraph-2.8.3/src/osgDB/FileUtils.cpp
+@@ -43,6 +43,7 @@ typedef char TCHAR;
+ #else // unix
+ 
+ #if defined( __APPLE__ )
++    #include <mach-o/dyld.h>
+     // I'm not sure how we would handle this in raw Darwin
+     // without the AvailablilityMacros.
+     #include <AvailabilityMacros.h>
+@@ -65,6 +66,8 @@ typedef char TCHAR;
+     #include <unistd.h>
+     #include <sys/types.h>
+     #include <sys/stat.h>
++    #include <libgen.h>
++    #include <limits.h>
+ #endif
+ 
+     // set up _S_ISDIR()
+@@ -547,11 +550,31 @@ std::string osgDB::findFileInDirectory(const std::string& fileName,const std::st
+ 
+ static void appendInstallationLibraryFilePaths(osgDB::FilePathList& filepath)
+ {
+-#ifdef OSG_DEFAULT_LIBRARY_PATH
++#if 0
+ 
+     // Append the install prefix path to the library search path if configured
+     filepath.push_back(ADDQUOTES(OSG_DEFAULT_LIBRARY_PATH));
+ #endif
++#ifdef __APPLE__
++    const char* filename2 = _dyld_get_image_name(0);
++    char *filename = new char[PATH_MAX];
++    strcpy(filename, filename2);
++
++#else
++    char *filename = new char[PATH_MAX];
++    readlink("/proc/self/exe", filename, PATH_MAX);
++#endif
++
++    if (filename && filename[0] != '\0') {
++        char *copy = new char[PATH_MAX];
++        realpath(filename, copy);
++        std::string top = std::string(dirname(dirname(copy))) + "/lib";
++        delete [] copy;
++        filepath.push_back(top);
++    }
++    else
++        osg::notify(osg::WARN) << "Could not get path to binary!" << std::endl;
++    delete [] filename;
+ }
+ 
+ #if defined(WIN32) && !defined(__CYGWIN__)
+@@ -966,6 +989,8 @@ static void appendInstallationLibraryFilePaths(osgDB::FilePathList& filepath)
+ 
+         appendInstallationLibraryFilePaths(filepath);
+ 
++        return;
++
+         const std::string OSG_PLUGIN_PATH("/OpenSceneGraph/PlugIns");
+         CFURLRef  url;
+         CFBundleRef myBundle;
+-- 
+1.7.3.2
+

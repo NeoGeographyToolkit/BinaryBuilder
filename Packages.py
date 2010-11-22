@@ -473,14 +473,14 @@ class isis_local(isis):
     @stage
     def install(self): pass
 
-class osg(Package):
-    src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.2/source/OpenSceneGraph-2.8.2.zip'
-    chksum = 'f2f0a3285a022640345a81f536459f37f3f38d01'
+class osg(CMakePackage):
+    src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.3/source/OpenSceneGraph-2.8.3.zip'
+    chksum = '90502e4cbd47aac1689cc39d25ab62bbe0bba9fc'
     patches = 'patches/osg'
 
     @stage
     def configure(self):
         super(osg, self).configure(
-                enable='JPEG PNG OPENEXR ZLIB GDAL'.split(),
-                disable='XUL PDF XINE JPEG2K SVG FREETYPE CURL GIF TIFF XRANDR INVENTOR COLLADA OPENVRML PERFORMER ITK LIBVNCSERVER OURDCMTK GTK CAIRO'.split(),
+                enable='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
+                disable='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
                 other=['-DBUILD_OSG_APPLICATIONS=ON'])
