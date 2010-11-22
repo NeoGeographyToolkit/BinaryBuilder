@@ -44,6 +44,7 @@ BINS="               \
   isis_adjust        \
   isis_adjust_write  \
   orbitviz           \
+  osgviewer          \
   pairlist_all.py    \
   pairlist_degree.py \
   pairlist_seq.py    \
