@@ -4,14 +4,18 @@ if test -z "$ISISROOT"; then
     exit 1
 fi
 
+TOPLEVEL="$(cd $(dirname $0)/.. && pwd)"
+LIB="$(cd ${TOPLEVEL}/lib 2>/dev/null && pwd)"
+LIBEXEC="$(cd ${TOPLEVEL}/libexec 2>/dev/null && pwd)"
+
 case $(uname -s) in
     Linux)
-        export LD_LIBRARY_PATH="$ISISROOT/lib:$ISISROOT/3rdParty/lib${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"
+        export LD_LIBRARY_PATH="$ISISROOT/lib:$ISISROOT/3rdParty/lib:${LIB}${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"
         export OSG_LIBRARY_PATH="${LD_LIBRARY_PATH}"
         ;;
     Darwin)
-        export DYLD_FALLBACK_LIBRARY_PATH="$ISISROOT/lib:$ISISROOT/3rdParty/lib${DYLD_FALLBACK_LIBRARY_PATH:+:}$DYLD_FALLBACK_LIBRARY_PATH"
-        export DYLD_FALLBACK_FRAMEWORK_PATH="$ISISROOT/lib:$ISISROOT/3rdParty/lib${DYLD_FALLBACK_FRAMEWORK_PATH:+:}$DYLD_FALLBACK_FRAMEWORK_PATH"
+        export DYLD_FALLBACK_LIBRARY_PATH="$ISISROOT/lib:$ISISROOT/3rdParty/lib:${LIB}${DYLD_FALLBACK_LIBRARY_PATH:+:}$DYLD_FALLBACK_LIBRARY_PATH"
+        export DYLD_FALLBACK_FRAMEWORK_PATH="$ISISROOT/lib:$ISISROOT/3rdParty/lib:${LIB}${DYLD_FALLBACK_FRAMEWORK_PATH:+:}$DYLD_FALLBACK_FRAMEWORK_PATH"
         export OSG_LIBRARY_PATH="${DYLD_FALLBACK_LIBRARY_PATH}"
         ;;
     *)
@@ -19,8 +23,6 @@ case $(uname -s) in
         exit 1
         ;;
 esac
-TOPLEVEL="$(cd $(dirname $0)/.. && pwd)"
-LIBEXEC="$(cd ${TOPLEVEL}/libexec 2>/dev/null && pwd)"
 
 if test -z "$LIBEXEC"; then
     echo "Could not find libexec (looked in ${TOPLEVEL}/libexec)." >&2
