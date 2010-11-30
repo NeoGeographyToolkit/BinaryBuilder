@@ -416,6 +416,13 @@ def findfile(filename, path=None):
     raise Exception('Could not find file %s in path[%s]' % (filename, path))
 
 class CMakePackage(Package):
+    BLACKLIST_VARS = (
+            'CMAKE_BUILD_TYPE',
+            'CMAKE_INSTALL_PREFIX',
+            'CMAKE_OSX_ARCHITECTURES',
+            'CMAKE_OSX_DEPLOYMENT_TARGET',
+            'CMAKE_OSX_SYSROOT',
+    )
 
     def __init__(self, env):
         super(CMakePackage, self).__init__(env)
@@ -429,11 +436,11 @@ class CMakePackage(Package):
 
         files = []
         P.walk(self.workdir, remove_danger, files)
-        cmd = ['sed',  '-ibak',
-                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_BUILD_TYPE.*)/#IGNORE /g',
-                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_INSTALL_PREFIX.*)/#IGNORE /g',
-                    '-e', 's/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*CMAKE_OSX_ARCHITECTURES.*)/#IGNORE /g',
-              ]
+        cmd = ['sed', '-ibak']
+        # strip out vars we must control from every CMakeLists.txt
+        for var in self.BLACKLIST_VARS:
+            cmd.append('-e')
+            cmd.append('s/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*%s.*)/#BINARY BUILDER IGNORE /g' % var)
 
         cmd.extend(files)
         self.helper(*cmd)
@@ -455,7 +462,9 @@ class CMakePackage(Package):
         ]
 
         if self.arch[:3] == 'osx':
-            args.append('-DCMAKE_OSX_ARCHITECTURES=i386')
+            args.append('-DCMAKE_OSX_ARCHITECTURES=%s' % self.env['OSX_ARCH'])
+            args.append('-DCMAKE_OSX_SYSROOT=%s' % self.env['OSX_SYSROOT'])
+            args.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=%s' % self.env['OSX_TARGET'])
 
         for arg in disable:
             args.append('-DENABLE_%s=OFF' % arg)

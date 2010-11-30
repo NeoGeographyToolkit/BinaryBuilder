@@ -69,13 +69,25 @@ if __name__ == '__main__':
     elif arch[:3] == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
+        # ISIS only supports 32-bit
+        osx_arch = 'i386' #SEMICOLON-DELIMITED
+        # We're targeting 10.5
+        target = '10.5'
+        # And also using the matching sdk for good measure
+        sysroot = '/Developer/SDKs/MacOSX%s.sdk' % target
+
+        # CMake needs these vars to not screw things up.
+        e.append('OSX_SYSROOT', sysroot)
+        e.append('OSX_ARCH', osx_arch)
+        e.append('OSX_TARGET', target)
+
         for f in ('CFLAGS', 'CXXFLAGS', 'LDFLAGS'):
-            # ISIS only supports 32-bit
-            e.append(f, '-arch i386')
-            # We're targeting 10.5
-            e.append(f, '-mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk')
-            # Resolve a bug with the previous option on 10.6 (see http://markmail.org/message/45nbrtxsxvsjedpn)
-            e.append(f, '-Wl,-no_compact_linkedit')
+            e.append(f, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
+            e.append(f, '-mmacosx-version-min=%s -isysroot %s' % (target, sysroot))
+
+        # Resolve a bug with -mmacosx-version-min on 10.6 (see
+        # http://markmail.org/message/45nbrtxsxvsjedpn)
+        e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
 
     # I should probably fix the gnu coreutils dep, but whatever
     if os.system('cp --version &>/dev/null') != 0:
