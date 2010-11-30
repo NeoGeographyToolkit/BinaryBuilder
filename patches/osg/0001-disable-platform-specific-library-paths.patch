@@ -1,0 +1,33 @@
+From 75829767ac7edc2efdb7413c02d4b687d1163b58 Mon Sep 17 00:00:00 2001
+From: Mike Lundy <mike@fluffypenguin.org>
+Date: Mon, 29 Nov 2010 20:01:55 -0800
+Subject: [PATCH] disable platform-specific library paths.
+
+Instead, OSG_LIBRARY_PATH must be set.
+---
+ OpenSceneGraph-2.8.3/src/osgDB/Registry.cpp |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
+
+diff --git a/OpenSceneGraph-2.8.3/src/osgDB/Registry.cpp b/OpenSceneGraph-2.8.3/src/osgDB/Registry.cpp
+index 2955915..1a7361a 100644
+--- OpenSceneGraph-2.8.3/src/osgDB/Registry.cpp
++++ OpenSceneGraph-2.8.3/src/osgDB/Registry.cpp
+@@ -425,8 +425,13 @@ void Registry::initLibraryFilePathList()
+         //notify(DEBUG_INFO) << "OSG_LD_LIBRARY_PATH("<<ptr<<")"<<std::endl;
+         setLibraryFilePathList(ptr);
+     }
+-    
+-    appendPlatformSpecificLibraryFilePaths(_libraryFilePath);
++
++    if (!ptr || strlen(ptr) == 0) {
++      notify(FATAL) << "OSG_LIBRARY_PATH was not set! Terminating." << std::endl;
++      std::abort();
++    }
++
++    //appendPlatformSpecificLibraryFilePaths(_libraryFilePath);
+ 
+ }
+ 
+-- 
+1.7.3.2
+
