@@ -69,11 +69,13 @@ if __name__ == '__main__':
     elif arch[:3] == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
-        # ISIS only supports 32-bit
-        e.append('CFLAGS',   '-arch i386')
-        e.append('CXXFLAGS', '-arch i386')
-        e.append('LDFLAGS',  '-arch i386')
-
+        for f in ('CFLAGS', 'CXXFLAGS', 'LDFLAGS'):
+            # ISIS only supports 32-bit
+            e.append(f, '-arch i386')
+            # We're targeting 10.5
+            e.append(f, '-mmacosx-version-min=10.5 -isysroot /Developer/SDKs/MacOSX10.5.sdk')
+            # Resolve a bug with the previous option on 10.6 (see http://markmail.org/message/45nbrtxsxvsjedpn)
+            e.append(f, '-Wl,-no_compact_linkedit')
 
     # I should probably fix the gnu coreutils dep, but whatever
     if os.system('cp --version &>/dev/null') != 0:
