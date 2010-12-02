@@ -28,12 +28,9 @@ INSTALL_DIR=/tmp/build/install
 DIST_DIR=/tmp/build/${BUILDNAME}
 
 BINS="              \
-  aligndem          \
   bundlevis         \
   cam2map4stereo.py \
-  dem_profile       \
   disparitydebug    \
-  geodiff           \
   hiedr2mosaic.py   \
   hsv_merge         \
   isis_adjust       \
@@ -48,9 +45,6 @@ BINS="              \
   stereo_rfne       \
   stereo_tri        \
   colormap          \
-  geoblend          \
-  georef            \
-  grassfirealpha    \
   hillshade         \
   image2qtree       \
   ipfind            \
