@@ -93,6 +93,9 @@ if __name__ == '__main__':
     if os.system('cp --version &>/dev/null') != 0:
         die('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
 
+    for f in ('CFLAGS', 'CXXFLAGS'):
+        e.append(f, '-m%i' % arch[1])
+
     # XXX LDFLAGS? What?
     if limit_symbols is not None:
         e.append('LDFLAGS', '-include %s' % limit_symbols)
