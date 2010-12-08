@@ -22,11 +22,11 @@ def get_platform(pkg=None):
     machine = platform.machine()
 
     if system == 'Linux' and machine == 'x86_64':
-        return 'linux64'
+        return 'linux', 64, 'linux64'
     elif system == 'Linux' and machine == 'i686':
-        return 'linux32'
+        return 'linux', 32, 'linux32'
     elif system == 'Darwin' and machine == 'i386':
-        return 'osx32'
+        return 'osx', 32, 'osx32'
     else:
         message = 'Cannot match system to known platform'
         if pkg is None:
@@ -461,7 +461,7 @@ class CMakePackage(Package):
             '-DCMAKE_INSTALL_DO_STRIP=OFF',
         ]
 
-        if self.arch[:3] == 'osx':
+        if self.arch[0] == 'osx':
             args.append('-DCMAKE_OSX_ARCHITECTURES=%s' % self.env['OSX_ARCH'])
             args.append('-DCMAKE_OSX_SYSROOT=%s' % self.env['OSX_SYSROOT'])
             args.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=%s' % self.env['OSX_TARGET'])

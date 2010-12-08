@@ -29,9 +29,9 @@ class gdal(Package):
               'pg', 'php', 'python', 'ruby', 'sde', 'sde-version', 'sqlite3', 'xerces',
               'xerces-inc', 'xerces-lib', 'gif')
 
-        if self.arch[:5] == 'linux':
+        if self.arch[0] == 'linux':
             w.append('png=%(INSTALL_DIR)s' % self.env)
-        elif self.arch[:3] == 'osx':
+        elif self.arch[0] == 'osx':
             w.append('png=%s' % P.join(self.env['ISISROOT'], '3rdParty'))
 
         super(gdal,self).configure(with_=w, without=wo, disable='static')
@@ -87,7 +87,7 @@ class stereopipeline(GITPackage):
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt'.split()
 
-        if self.arch[:5] == 'linux':
+        if self.arch[0] == 'linux':
             noinstall_pkgs += ['superlu']
 
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] \
@@ -101,14 +101,14 @@ class stereopipeline(GITPackage):
                 ldflags=[]
                 ldflags.append('-L%s -L%s' % (self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')))
 
-                if self.arch[:3] == 'osx':
+                if self.arch[0] == 'osx':
                     ldflags.append('-F%s -F%s' % (self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')))
 
                 print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
 
             qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
 
-            if self.arch[:3] == 'osx':
+            if self.arch[0] == 'osx':
                 libload = '-framework '
             else:
                 libload = '-l'
@@ -126,9 +126,9 @@ class stereopipeline(GITPackage):
             print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
             print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
 
-            if self.arch[:5] == 'linux':
+            if self.arch[0] == 'linux':
                 print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
-            elif self.arch[:3] == 'osx':
+            elif self.arch[0] == 'osx':
                 print('HAVE_PKG_SUPERLU=no', file=config)
 
             print('PKG_GEOS_LIBS=-lgeos-3.2.0', file=config)
@@ -222,9 +222,9 @@ class boost(Package):
     @stage
     def configure(self):
         with file(P.join(self.workdir, 'user-config.jam'), 'w') as f:
-            if self.arch[:5] == 'linux':
+            if self.arch[0] == 'linux':
                 toolkit = 'gcc'
-            elif self.arch[:3] == 'osx':
+            elif self.arch[0] == 'osx':
                 toolkit = 'darwin'
 
             print('variant myrelease : release : <optimization>none <debug-symbols>none ;', file=f)
@@ -305,7 +305,7 @@ class qt_headers(HeaderPackage):
 
     def configure(self):
         args = ['./configure', '-opensource', '-fast', '-confirm-license']
-        if self.arch[:3] == 'osx':
+        if self.arch[0] == 'osx':
             args.append('-no-framework')
         self.helper(*args)
 
@@ -380,9 +380,9 @@ class cspice_headers(HeaderPackage):
 
     def __init__(self, env):
         super(cspice_headers, self).__init__(env)
-        self.pkgname += '_' + self.arch
-        self.src    = self.PLATFORM[self.arch]['src']
-        self.chksum = self.PLATFORM[self.arch]['chksum']
+        self.pkgname += '_' + self.arch[2]
+        self.src    = self.PLATFORM[self.arch[2]]['src']
+        self.chksum = self.PLATFORM[self.arch[2]]['chksum']
     def configure(self, *args, **kw): pass
     def install(self):
         d = P.join('%(NOINSTALL_DIR)s' % self.env, 'include', 'naif')
@@ -415,13 +415,13 @@ class isis(Package):
 
     def __init__(self, env):
         super(isis, self).__init__(env)
-        self.pkgname  += '_' + self.arch
-        self.src       = self.PLATFORM[self.arch]
+        self.pkgname  += '_' + self.arch[2]
+        self.src       = self.PLATFORM[self.arch[2]]
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
 
     def _fix_dev_symlinks(self, Dir):
-        if self.arch[:5] != 'linux':
+        if self.arch[0] != 'linux':
             return
 
         for lib in glob(P.join(Dir, '*.so.*')):

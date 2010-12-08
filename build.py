@@ -61,12 +61,12 @@ if __name__ == '__main__':
 
     arch = get_platform()
 
-    if arch == 'linux32':
+    if arch[2] == 'linux32':
         limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
 
-    if arch[:5] == 'linux':
+    if arch[0] == 'linux':
         e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
-    elif arch[:3] == 'osx':
+    elif arch[0] == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
         # ISIS only supports 32-bit
@@ -121,14 +121,14 @@ if __name__ == '__main__':
         # Many things depend on isis 3rdparty, so do it before the rest
         build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf_headers]
 
-        if arch[:5] == 'linux':
+        if arch[0] == 'linux':
             build.extend([zlib, png])
-        elif arch[:3] == 'osx':
+        elif arch[0] == 'osx':
             build.extend([zlib_headers, png_headers])
 
         build.extend([jpeg, proj, gdal, ilmbase, openexr, boost, osg])
 
-        if arch[:5] == 'linux':
+        if arch[0] == 'linux':
             build.append(lapack)
 
         if not opt.dev:
