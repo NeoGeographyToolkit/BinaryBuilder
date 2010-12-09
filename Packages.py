@@ -20,21 +20,24 @@ class gdal(Package):
     def configure(self):
         # Most of these are disabled due to external deps.
         # Gif pulls in X for some reason.
-        w = ['threads', 'libtiff=internal', 'jpeg=%(INSTALL_DIR)s' % self.env]
-        wo = ('cfitsio', 'curl', 'dods-root', 'dwgdirect', 'dwg-plt', 'ecw',
-              'expat', 'expat-inc', 'expat-lib', 'fme', 'geos', 'grass', 'hdf4',
-              'hdf5', 'idb', 'ingres', 'jasper', 'jp2mrsid', 'kakadu',
-              'libgrass', 'macosx-framework', 'mrsid', 'msg', 'mysql', 'netcdf',
-              'oci', 'oci-include', 'oci-lib', 'odbc', 'ogdi', 'pcraster', 'perl',
-              'pg', 'php', 'python', 'ruby', 'sde', 'sde-version', 'sqlite3', 'xerces',
-              'xerces-inc', 'xerces-lib', 'gif')
+        w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg=%(INSTALL_DIR)s' % self.env]
+        wo = \
+          '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
+             geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass libtool
+             macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pam pcidsk
+             pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
+             static-proj4 xerces xerces-inc xerces-lib'''.split()
 
         if self.arch[0] == 'linux':
-            w.append('png=%(INSTALL_DIR)s' % self.env)
+            searchdir = self.env['INSTALL_DIR']
         elif self.arch[0] == 'osx':
-            w.append('png=%s' % P.join(self.env['ISISROOT'], '3rdParty'))
+            searchdir = self.env['ISIS3RDPARTY']
 
-        super(gdal,self).configure(with_=w, without=wo, disable='static')
+        # gdal needs this or it tries to go off and do its own search thing...
+        for pkg in 'libz', 'png':
+            w.append('%s=%s' % (pkg, searchdir))
+
+        super(gdal,self).configure(with_=w, without=wo, disable='static', enable='shared')
 
 class ilmbase(Package):
     src     = 'http://download.savannah.nongnu.org/releases/openexr/ilmbase-1.0.2.tar.gz'
