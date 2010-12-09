@@ -5,8 +5,8 @@ if test -z "$ISISROOT"; then
 fi
 
 TOPLEVEL="$(cd $(dirname $0)/.. && pwd)"
-LIB="$(cd ${TOPLEVEL}/lib 2>/dev/null && pwd)"
-LIBEXEC="$(cd ${TOPLEVEL}/libexec 2>/dev/null && pwd)"
+LIB="${TOPLEVEL}/lib"
+PROGRAM="${TOPLEVEL}/libexec/$(basename $0)"
 
 case $(uname -s) in
     Linux)
@@ -24,9 +24,9 @@ case $(uname -s) in
         ;;
 esac
 
-if test -z "$LIBEXEC"; then
-    echo "Could not find libexec (looked in ${TOPLEVEL}/libexec)." >&2
-    echo "Is your stereo pipeline install complete?" >&2
+if ! test -f "${PROGRAM}"; then
+    echo "Could not find ${PROGRAM}" >&2
+    echo "Is your stereo pipeline install incomplete?" >&2
     exit 1
 fi
-exec "${LIBEXEC}/$(basename $0)" $*
+exec "${PROGRAM}" $*
