@@ -18,6 +18,10 @@ from BinaryBuilder import Package, Environment, PackageError, die, info, get_pla
 
 limit_symbols = None
 
+CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
+LD_FLAGS = ('LDFLAGS')
+ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
@@ -81,9 +85,8 @@ if __name__ == '__main__':
         e.append('OSX_ARCH', osx_arch)
         e.append('OSX_TARGET', target)
 
-        for f in ('CFLAGS', 'CXXFLAGS', 'LDFLAGS'):
-            e.append(f, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
-            e.append(f, '-mmacosx-version-min=%s -isysroot %s' % (target, sysroot))
+        e.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
+        e.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (target, sysroot))
 
         # Resolve a bug with -mmacosx-version-min on 10.6 (see
         # http://markmail.org/message/45nbrtxsxvsjedpn)
@@ -93,8 +96,7 @@ if __name__ == '__main__':
     if os.system('cp --version &>/dev/null') != 0:
         die('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
 
-    for f in ('CFLAGS', 'CXXFLAGS'):
-        e.append(f, '-m%i' % arch[1])
+    e.append_many(ALL_FLAGS, '-m%i' % arch[1])
 
     # XXX LDFLAGS? What?
     if limit_symbols is not None:

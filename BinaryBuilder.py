@@ -114,6 +114,9 @@ class Environment(dict):
         else:
             self[key] = value
 
+    def append_many(self, key_seq, value):
+        for k in key_seq:
+            self.append(k, value)
 
 
 def get(url, output=None):
