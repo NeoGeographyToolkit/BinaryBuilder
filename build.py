@@ -56,8 +56,8 @@ if __name__ == '__main__':
                     CC       = 'gcc',
                     CXX      = 'g++',
                     F77      = 'gfortran',
-                    CFLAGS   = '-O3 -pipe -g',
-                    CXXFLAGS = '-O3 -pipe -g',
+                    CFLAGS   = '-O3 -g',
+                    CXXFLAGS = '-O3 -g',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j%s' % opt.threads,
                     PATH=os.environ['PATH'],
@@ -115,9 +115,11 @@ if __name__ == '__main__':
         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
         e.update(new)
-    elif opt.save_temps:
-        e.append('CFLAGS',   '-save-temps')
-        e.append('CXXFLAGS', '-save-temps')
+
+    if opt.save_temps:
+        e.append_many(CC_FLAGS, '-save-temps')
+    else:
+        e.append_many(CC_FLAGS, '-pipe')
 
     if len(args) == 0:
         # Were we told what isis to use?
