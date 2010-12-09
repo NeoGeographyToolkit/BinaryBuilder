@@ -124,3 +124,4 @@ tar czf ${BUILDNAME}.tar.gz        -X ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDN
 if test -s ${BUILDNAME}.dlist; then
     tar czf ${BUILDNAME}-debug.tar.gz  -T ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME} --no-recursion
 fi
+rm ${BUILDNAME}.dlist
