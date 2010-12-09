@@ -1,6 +1,8 @@
 #!/bin/sh
 
 self=$$
+trap 'exit 1' SIGTERM
+
 TOPLEVEL="$(cd $(dirname $0)/.. && pwd)"
 LIBEXEC="${ASP_DEBUG_DIR:-${TOPLEVEL}/libexec}"
 
