@@ -243,3 +243,16 @@ get_relative_path() {
     done
     echo $ret
 }
+
+# Keep this in sync with the function in libexec-funcs.sh
+isis_version() {
+    local ROOT="${1:-$ISISROOT}"
+    local ISIS_HEADER="${ROOT}/src/base/objs/Constants/Constants.h"
+    local version="$(grep version $ISIS_HEADER 2>/dev/null | tr ')' '(' | cut -d"(" -f2)"
+    if test -z "${version}"; then
+        msg "Unable to locate ISIS version header."
+        msg "Expected it at $ISIS_HEADER"
+        die "Perhaps your ISISROOT ($ROOT) is incorrect?"
+    fi
+    echo "$version"
+}

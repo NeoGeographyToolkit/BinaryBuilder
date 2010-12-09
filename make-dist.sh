@@ -23,9 +23,11 @@ else
     BUILDNAME=StereoPipeline-$(uname -m)-$(getOS)-$(date +"%Y-%m-%d_%H-%M-%S")
 fi
 
-INSTALL_DIR=/tmp/build/install
 # Must be an absolute path
-DIST_DIR=/tmp/build/${BUILDNAME}
+BUILD_DIR="/tmp/build"
+
+INSTALL_DIR="${BUILD_DIR}/install"
+DIST_DIR="${BUILD_DIR}/${BUILDNAME}"
 
 BINS="              \
   bundlevis         \
@@ -63,10 +65,18 @@ idoc="${INSTALL_DIR}/share/doc/StereoPipeline"
 rm -rf ${DIST_DIR}
 
 mkdir -p $obin $olib $olibexec
+cp -av libexec-funcs.sh $olibexec
 for i in ${BINS}; do
     cp -av $ibin/$i $olibexec/;
-    cp libexec-helper.sh $obin/$i
+    cp -av libexec-helper.sh $obin/$i
 done
+
+isis="${BUILD_DIR}/isis"
+ISIS_VERSION="$(isis_version $isis)"
+
+cat <<EOF > "$olibexec/constants.h"
+BAKED_ISIS_VERSION=${ISIS_VERSION}"
+EOF
 
 rsync -am --delete --include='*.so*' --include='*.dylib*' --include='*/' --exclude='*' $ilib/ $olib/
 
