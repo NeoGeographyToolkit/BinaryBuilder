@@ -68,14 +68,14 @@ mkdir -p $obin $olib $olibexec
 cp -av libexec-funcs.sh $olibexec
 for i in ${BINS}; do
     cp -av $ibin/$i $olibexec/;
-    cp -av libexec-helper.sh $obin/$i
+    cp -a libexec-helper.sh $obin/$i
 done
 
 isis="${BUILD_DIR}/isis"
 ISIS_VERSION="$(isis_version $isis)"
 
-cat <<EOF > "$olibexec/constants.h"
-BAKED_ISIS_VERSION=${ISIS_VERSION}"
+cat <<EOF > "$olibexec/constants.sh"
+BAKED_ISIS_VERSION="${ISIS_VERSION}"
 EOF
 
 rsync -am --delete --include='*.so*' --include='*.dylib*' --include='*/' --exclude='*' $ilib/ $olib/
@@ -91,6 +91,7 @@ for i in $olibexec/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \
         case $i in
             *.py) echo "Skipping python script $i";;
             */stereo) echo "Skipping python script without .py $i";;
+            *.sh) echo "Skipping shell script $i";;
             *)
             # The rpaths given here are relative to the $root
             set_rpath $i $root ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
