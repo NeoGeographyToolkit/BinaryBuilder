@@ -26,7 +26,7 @@ class gdal(Package):
         w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg=%(INSTALL_DIR)s' % self.env]
         wo = \
           '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
-             geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass libtool
+             geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
              macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pam pcidsk
              pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
              static-proj4 xerces xerces-inc xerces-lib'''.split()
