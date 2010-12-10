@@ -143,8 +143,8 @@ class visionworkbench(GITPackage):
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in install_pkgs:
-                print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['INSTALL_DIR'],   'include'),
-                                                                    P.join(self.env['NOINSTALL_DIR'], 'include')), file=config)
+                print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
+                                                                    P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
 
         super(visionworkbench, self).configure(with_   = w,

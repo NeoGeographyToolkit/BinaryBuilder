@@ -167,9 +167,9 @@ class Package(object):
         self.env = dict(env)
         self.arch = get_platform(self)
 
-        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(INSTALL_DIR)s/include -I%(NOINSTALL_DIR)s/include' % self.env
-        self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(INSTALL_DIR)s/include -I%(NOINSTALL_DIR)s/include' % self.env
-        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include -I%(NOINSTALL_DIR)s/include' % self.env
+        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
         self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(ISIS3RDPARTY)s -L%(INSTALL_DIR)s/lib'              % self.env
 
     @stage
