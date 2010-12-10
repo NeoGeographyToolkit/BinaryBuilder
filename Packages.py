@@ -10,13 +10,12 @@ from glob import glob
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn
 
 class gdal(Package):
-    src    = 'http://download.osgeo.org/gdal/gdal-1.7.3.tar.gz'
-    chksum = '58d4355fe792ad618bb74605dc1a084a0aeb7cb1'
+    src     = 'http://download.osgeo.org/gdal/gdal-1.7.3.tar.gz'
+    chksum  = '58d4355fe792ad618bb74605dc1a084a0aeb7cb1'
+    patches = 'patches/gdal'
 
     def configure(self):
-        # Most of these are disabled due to external deps.
-        # Gif pulls in X for some reason.
-        w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg=%(INSTALL_DIR)s' % self.env]
+        w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib']
         wo = \
           '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
@@ -24,15 +23,7 @@ class gdal(Package):
              pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
              static-proj4 xerces xerces-inc xerces-lib'''.split()
 
-        if self.arch[0] == 'linux':
-            searchdir = self.env['INSTALL_DIR']
-        elif self.arch[0] == 'osx':
-            searchdir = self.env['ISIS3RDPARTY']
-
-        # gdal needs this or it tries to go off and do its own search thing...
-        for pkg in 'libz', 'png':
-            w.append('%s=%s' % (pkg, searchdir))
-
+        self.helper('./autogen.sh')
         super(gdal,self).configure(with_=w, without=wo, disable='static', enable='shared')
 
 class ilmbase(Package):
