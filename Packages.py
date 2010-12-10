@@ -13,6 +13,9 @@ class png(Package):
     src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
     chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
 
+    def configure(self):
+        super(png,self).configure(disable='static')
+
 class gdal(Package):
     src    = 'http://download.osgeo.org/gdal/gdal-1.7.3.tar.gz'
     chksum = '58d4355fe792ad618bb74605dc1a084a0aeb7cb1'
@@ -49,7 +52,7 @@ class ilmbase(Package):
         # XCode in snow leopard removed this flag entirely (way to go, guys)
         self.helper('sed', '-ibak', '-e', 's/-Wno-long-double//g', 'configure.ac')
         self.helper('autoreconf', '-fvi')
-        super(ilmbase, self).configure()
+        super(ilmbase, self).configure(disable='static')
 
 class jpeg(Package):
     src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
@@ -70,11 +73,14 @@ class openexr(Package):
         self.helper('sed', '-ibak', '-e', 's/-Wno-long-double//g', 'configure.ac')
         self.helper('autoreconf', '-fvi')
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
-                                      disable=('ilmbasetest', 'imfexamples'))
+                                      disable=('ilmbasetest', 'imfexamples', 'static'))
 
 class proj(Package):
     src     = 'http://download.osgeo.org/proj/proj-4.6.1.tar.gz'
     chksum  = 'ddfdad6cba28af5f91b14fd6690bd22bbbc79390'
+
+    def configure(self):
+        super(proj,self).configure(disable='static')
 
 class stereopipeline(GITPackage):
     src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
@@ -198,7 +204,7 @@ class lapack(Package):
 
 
     def configure(self):
-        super(lapack, self).configure(with_='blas=-L%s -lblas' % self.env['ISIS3RDPARTY'])
+        super(lapack, self).configure(disable='static', with_='blas=-L%s -lblas' % self.env['ISIS3RDPARTY'])
 
 class zlib(Package):
     src     = 'http://www.zlib.net/zlib-1.2.5.tar.gz'
