@@ -12,7 +12,7 @@ from optparse import OptionParser
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                zlib_headers, png_headers, isis_local, protobuf_headers
+                zlib_headers, png_headers, isis_local, protobuf_headers, jpeg_headers
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile
 
@@ -129,11 +129,11 @@ if __name__ == '__main__':
         build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf_headers]
 
         if arch[0] == 'linux':
-            build.extend([zlib, png])
+            build.extend([zlib, png, jpeg])
         elif arch[0] == 'osx':
-            build.extend([zlib_headers, png_headers])
+            build.extend([zlib_headers, png_headers, jpeg_headers])
 
-        build.extend([jpeg, proj, gdal, ilmbase, openexr, boost, osg])
+        build.extend([proj, gdal, ilmbase, openexr, boost, osg])
 
         if arch[0] == 'linux':
             build.append(lapack)

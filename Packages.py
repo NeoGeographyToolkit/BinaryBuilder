@@ -9,13 +9,6 @@ import textwrap
 from glob import glob
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn
 
-class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
-    chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
-
-    def configure(self):
-        super(png,self).configure(disable='static')
-
 class gdal(Package):
     src    = 'http://download.osgeo.org/gdal/gdal-1.7.3.tar.gz'
     chksum = '58d4355fe792ad618bb74605dc1a084a0aeb7cb1'
@@ -53,14 +46,6 @@ class ilmbase(Package):
         self.helper('sed', '-ibak', '-e', 's/-Wno-long-double//g', 'configure.ac')
         self.helper('autoreconf', '-fvi')
         super(ilmbase, self).configure(disable='static')
-
-class jpeg(Package):
-    src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
-    chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
-    patches = 'patches/jpeg8'
-
-    def configure(self):
-        super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class openexr(Package):
     src     = 'http://download.savannah.nongnu.org/releases/openexr/openexr-1.6.1.tar.gz'
@@ -206,18 +191,6 @@ class lapack(Package):
     def configure(self):
         super(lapack, self).configure(disable='static', with_='blas=-L%s -lblas' % self.env['ISIS3RDPARTY'])
 
-class zlib(Package):
-    src     = 'http://www.zlib.net/zlib-1.2.5.tar.gz'
-    chksum  = '8e8b93fa5eb80df1afe5422309dca42964562d7e'
-
-    def unpack(self):
-        super(zlib, self).unpack()
-        self.helper('sed', '-i',
-                    r's|\<test "`\([^"]*\) 2>&1`" = ""|\1 2>/dev/null|', 'configure')
-
-    def configure(self):
-        super(zlib,self).configure(other=('--shared',))
-
 class boost(Package):
     src    = 'http://downloads.sourceforge.net/boost/boost_1_39_0.tar.gz'
     chksum = 'fc0f98aea163f2edd8d74e18eafc4704d7d93d07'
@@ -356,6 +329,18 @@ class qwt_headers(HeaderPackage):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', '*.h')) + [P.join('%(NOINSTALL_DIR)s' % self.env, 'include')]
         self.helper(*cmd)
 
+class zlib(Package):
+    src     = 'http://www.zlib.net/zlib-1.2.5.tar.gz'
+    chksum  = '8e8b93fa5eb80df1afe5422309dca42964562d7e'
+
+    def unpack(self):
+        super(zlib, self).unpack()
+        self.helper('sed', '-i',
+                    r's|\<test "`\([^"]*\) 2>&1`" = ""|\1 2>/dev/null|', 'configure')
+
+    def configure(self):
+        super(zlib,self).configure(other=('--shared',))
+
 class zlib_headers(HeaderPackage):
     src     = 'http://www.zlib.net/zlib-1.2.5.tar.gz'
     chksum  = '8e8b93fa5eb80df1afe5422309dca42964562d7e'
@@ -365,6 +350,29 @@ class zlib_headers(HeaderPackage):
         include_dir = P.join(self.env['NOINSTALL_DIR'], 'include')
         self.helper('mkdir', '-p', include_dir)
         self.helper('cp', '-vf', 'zlib.h', 'zconf.h', include_dir)
+
+class jpeg(Package):
+    src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
+    chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
+    patches = 'patches/jpeg8'
+
+    def configure(self):
+        super(jpeg, self).configure(enable=('shared',), disable=('static',))
+
+class jpeg_headers(HeaderPackage):
+    src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
+    chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
+    patches = 'patches/jpeg8'
+
+    def configure(self):
+        super(jpeg_headers, self).configure(enable=('shared',), disable=('static',))
+
+class png(Package):
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
+    chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
+
+    def configure(self):
+        super(png,self).configure(disable='static')
 
 class png_headers(HeaderPackage):
     src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
@@ -498,3 +506,5 @@ class osg(CMakePackage):
                 with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
                 without='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
                 other=['-DBUILD_OSG_APPLICATIONS=ON'])
+
+# vim:foldmethod=indent
