@@ -24,11 +24,14 @@ ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
 
 if __name__ == '__main__':
     parser = OptionParser()
+    parser.set_defaults(mode='all')
     parser.add_option('--build-root',                       dest='buildroot',  default='/tmp', help='Prefix of build dirs')
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,   help='Disable ccache')
     parser.add_option('--clean-build',action='store_true',  dest='clean_build',default=False,  help='Remove build files before starting run')
     parser.add_option('--coreutils',                        dest='coreutils',  default=None,   help='Bin directory holding GNU coreutils')
     parser.add_option('--dev-env',    action='store_true',  dest='dev',        default=False,  help='Build everything but VW and ASP')
+    parser.add_option('--fetch',      action='store_const', dest='mode',       const='fetch',  help='Fetch sources only, don\'t build')
+    parser.add_option('--no-fetch',   action='store_const', dest='mode',       const='nofetch',help='Build, but do not fetch (will fail if sources are missing)')
     parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',    default=False,  help='Show the list of packages without actually doing anything')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
@@ -152,15 +155,14 @@ if __name__ == '__main__':
         info('I want to build:\n%s' % ' '.join(map(lambda x: x.__name__, build)))
         sys.exit(0)
 
+    modes = dict(
+        all     = lambda pkg : Package.build(pkg, skip_fetch=False),
+        fetch   = lambda pkg : pkg.fetch(),
+        nofetch = lambda pkg : Package.build(pkg, skip_fetch=True))
+
     try:
         for pkg in build:
-            Package.build(pkg, e)
+            modes[opt.mode](pkg(e))
 
     except PackageError, e:
         die(e)
-
-#png -> zlib
-#gdal -> jpeg, png, proj
-#openexr -> ilmbase zlib
-#visionworkbench -> boost openexr gdal png
-#stereopipeline -> gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers

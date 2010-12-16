@@ -279,11 +279,11 @@ class Package(object):
         self.helper(*cmd, env=e, cwd=cwd)
 
     @staticmethod
-    def build(pkg, env):
+    def build(pkg, skip_fetch=False):
         # If it's a type, we instantiate it. Otherwise, we just use whatever it is.
-        if isinstance(pkg, type):
-            pkg = pkg(env)
-        pkg.fetch()
+        assert isinstance(pkg, Package)
+        if not skip_fetch:
+            pkg.fetch()
         pkg.unpack()
         pkg.configure()
         pkg.compile()
