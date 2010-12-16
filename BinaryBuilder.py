@@ -86,28 +86,36 @@ def stage(f):
 
 class Environment(dict):
     def __init__(self, **kw):
-        basedir  = kw.get('BASEDIR',  os.environ['HOME'])
-        isisroot = kw.get('ISISROOT', P.join(basedir, 'build', 'isis'))
+        buildroot  = kw.get('BUILDROOT',  os.environ['HOME'])
+        isisroot = kw.get('ISISROOT', P.join(buildroot, 'build', 'isis'))
 
         self.update(dict(
-            HOME           = basedir,
-            DOWNLOAD_DIR   = P.join(basedir, 'build-src'),
-            BUILD_DIR      = P.join(basedir, 'build', 'build'),
-            INSTALL_DIR    = P.join(basedir, 'build', 'install'),
-            NOINSTALL_DIR  = P.join(basedir, 'build', 'noinstall'),
+            HOME           = buildroot,
+            DOWNLOAD_DIR   = P.join(buildroot, 'build-src'),
+            BUILD_DIR      = P.join(buildroot, 'build', 'build'),
+            INSTALL_DIR    = P.join(buildroot, 'build', 'install'),
+            NOINSTALL_DIR  = P.join(buildroot, 'build', 'noinstall'),
             ISISROOT       = isisroot,
             ISIS3RDPARTY   = P.join(isisroot, '3rdParty', 'lib'),
         ))
         self.update(kw)
 
-        for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR'):
+    def remove_build_dirs(self):
+        for d in 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR':
+            try:
+                rmtree(self[d])
+            except OSError, o:
+                if o.errno != errno.ENOENT: # Don't care if it wasn't there
+                    raise
+
+    def create_dirs(self):
+        for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR'):
             try:
                 os.makedirs(self[d])
             except OSError, o:
-                if o.errno == errno.EEXIST:
-                    pass # Don't care if it already exists
-                else:
+                if o.errno != errno.EEXIST: # Don't care if it already exists
                     raise
+
     def append(self, key, value):
         if key in self:
             self[key] += ' ' + value
@@ -448,7 +456,7 @@ class CMakePackage(Package):
         cmd.extend(files)
         self.helper(*cmd)
 
-        build_rules = P.join(self.env['BASEDIR'], 'my_rules.cmake')
+        build_rules = P.join(self.env['BUILDROOT'], 'my_rules.cmake')
         with file(build_rules, 'w') as f:
             print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (findfile(self.env['CC'], self.env['PATH'])), file=f)
             print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)

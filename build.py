@@ -24,14 +24,15 @@ ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
+    parser.add_option('--build-root',                       dest='buildroot',  default='/tmp', help='Prefix of build dirs')
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,   help='Disable ccache')
-    parser.add_option('--threads',                          dest='threads',    default=4,      help='Build threads to use')
-    parser.add_option('--base-dir',                         dest='basedir',    default='/tmp', help='Prefix of build dirs')
-    parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
-    parser.add_option('--dev-env',    action='store_true',  dest='dev',        default=False,  help='Build everything but VW and ASP')
+    parser.add_option('--clean-build',action='store_true',  dest='clean_build',default=False,  help='Remove build files before starting run')
     parser.add_option('--coreutils',                        dest='coreutils',  default=None,   help='Bin directory holding GNU coreutils')
+    parser.add_option('--dev-env',    action='store_true',  dest='dev',        default=False,  help='Build everything but VW and ASP')
+    parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',    default=False,  help='Show the list of packages without actually doing anything')
+    parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
+    parser.add_option('--threads',                          dest='threads',    default=4,      help='Build threads to use')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -52,7 +53,7 @@ if __name__ == '__main__':
     if opt.ccache and opt.save_temps:
         die('--ccache and --save-temps conflict. Disabling ccache.')
 
-    e = Environment(BASEDIR  = opt.basedir,
+    e = Environment(BUILDROOT = opt.buildroot,
                     CC       = 'gcc',
                     CXX      = 'g++',
                     F77      = 'gfortran',
@@ -62,6 +63,10 @@ if __name__ == '__main__':
                     MAKEOPTS='-j%s' % opt.threads,
                     PATH=os.environ['PATH'],
                     **({} if opt.isisroot is None else dict(ISISROOT=opt.isisroot)))
+
+    if opt.clean_build:
+        e.remove_build_dirs()
+    e.create_dirs()
 
     arch = get_platform()
 
@@ -103,7 +108,7 @@ if __name__ == '__main__':
         e.append('LDFLAGS', '-include %s' % limit_symbols)
 
     if opt.ccache:
-        compiler_dir = P.join(opt.basedir, 'mycompilers')
+        compiler_dir = P.join(opt.buildroot, 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
             CXX = P.join(compiler_dir, e['CXX']),
