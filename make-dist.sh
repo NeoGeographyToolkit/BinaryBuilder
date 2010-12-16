@@ -65,10 +65,11 @@ idoc="${INSTALL_DIR}/share/doc/StereoPipeline"
 
 rm -rf ${DIST_DIR}
 
+echo "Adding binaries"
 mkdir -p $obin $olib $olibexec
-cp -av libexec-funcs.sh $olibexec
+cp -a libexec-funcs.sh $olibexec
 for i in ${BINS}; do
-    cp -av $ibin/$i $olibexec/;
+    cp -a $ibin/$i $olibexec/;
     cp -a libexec-helper.sh $obin/$i
 done
 
@@ -78,20 +79,21 @@ cat <<EOF > "$olibexec/constants.sh"
 BAKED_ISIS_VERSION="${ISIS_VERSION}"
 EOF
 
+echo "Adding libraries"
 rsync -am --delete --include='*.so*' --include='*.dylib*' --include='*/' --exclude='*' $ilib/ $olib/
 
+echo "Setting RPATH and stripping binaries"
 for i in $olibexec/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \) ); do
     if [[ -f $i ]]; then
-        echo "Processing $i"
         # root is the relative path from the object in question to the top of
         # the dist
         root="$(get_relative_path ${DIST_DIR} $i)"
         [[ -z "$root" ]] && die "failed to get relative path to root"
 
         case $i in
-            *.py) echo "Skipping python script $i";;
-            */stereo) echo "Skipping python script without .py $i";;
-            *.sh) echo "Skipping shell script $i";;
+            *.py) echo "    Skipping python script $i";;
+            */stereo) echo "    Skipping python script without .py $i";;
+            *.sh) echo "    Skipping shell script $i";;
             *)
             # The rpaths given here are relative to the $root
             set_rpath $i $root ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
@@ -100,14 +102,17 @@ for i in $olibexec/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \
     fi
 done
 
+echo "Adding libstdc++ and libgcc_s, if needed"
 if [[ $(getOS) == Linux ]]; then
     ldd "${olib}/libaspCore.so" | grep 'lib\(stdc++\|gcc_s\)' | awk '{print $3}' | xargs cp -v -t ${olib}
 fi
 
+echo "Adding files in dist-add"
 if [[ -d dist-add ]]; then
     (cd dist-add && cp -aLv --parents . ${DIST_DIR})
 fi
 
+echo "Adding docs"
 if [[ -d $idoc ]]; then
     (cd $idoc && cp -aLv --parents . ${DIST_DIR})
 fi
@@ -118,11 +123,12 @@ TOPLEVEL=$(cd ${DIST_DIR}/.. && pwd)
 
 chmod +x ${TOPLEVEL}/${BUILDNAME}/libexec/* ${TOPLEVEL}/${BUILDNAME}/bin/*
 
-set -x
 (cd ${TOPLEVEL} && find ${BUILDNAME} -name '*.debug') > ${BUILDNAME}.dlist
 
+echo "Creating tarball: ${BUILDNAME}.tar.gz"
 tar czf ${BUILDNAME}.tar.gz        -X ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME}
 if test -s ${BUILDNAME}.dlist; then
+    echo "Creating debug tarball: ${BUILDNAME}-debug.tar.gz"
     tar czf ${BUILDNAME}-debug.tar.gz  -T ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME} --no-recursion
 fi
 rm ${BUILDNAME}.dlist
