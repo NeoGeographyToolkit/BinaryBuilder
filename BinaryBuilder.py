@@ -91,6 +91,7 @@ class Environment(dict):
         self.update(dict(
             HOME           = buildroot,
             DOWNLOAD_DIR   = P.join(buildroot, 'tarballs'),
+            BUILD_BASE     = P.join(buildroot, 'build'),
             BUILD_DIR      = P.join(buildroot, 'build', 'object'),
             INSTALL_DIR    = P.join(buildroot, 'build', 'base', 'install'),
             NOINSTALL_DIR  = P.join(buildroot, 'build', 'base', 'noinstall'),
@@ -100,12 +101,12 @@ class Environment(dict):
         self['ISIS3RDPARTY'] = P.join(self['ISISROOT'], '3rdParty', 'lib')
 
     def remove_build_dirs(self):
-        for d in 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR':
-            try:
-                rmtree(self[d])
-            except OSError, o:
-                if o.errno != errno.ENOENT: # Don't care if it wasn't there
-                    raise
+        try:
+            info('Removing build and install dirs: %s' % self['BUILD_BASE'])
+            rmtree(self['BUILD_BASE'])
+        except OSError, o:
+            if o.errno != errno.ENOENT: # Don't care if it wasn't there
+                raise
 
     def create_dirs(self):
         for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR'):
