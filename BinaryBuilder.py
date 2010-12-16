@@ -335,6 +335,8 @@ class Package(object):
             if p.returncode != 0:
                 raise subprocess.CalledProcessError(p.returncode, args)
             return out, err
+        except (TypeError,), e:
+            raise Exception('%s\n%s' % (e.message, '\t\n'.join(['\t%s=%s%s' % (name, type(value).__name__, value) for name,value in kw['env'].iteritems() if not isinstance(value, basestring)])))
         except (OSError, subprocess.CalledProcessError), e:
             raise HelperError(args[0], kw['env'], e)
 
