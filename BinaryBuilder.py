@@ -6,10 +6,12 @@ import errno
 import inspect
 import os
 import os.path as P
+import platform
 import subprocess
 import sys
 import urllib2
 
+from collections import namedtuple
 from functools import wraps, partial
 from glob import glob
 from hashlib import sha1
@@ -17,16 +19,16 @@ from shutil import rmtree
 from urlparse import urlparse
 
 def get_platform(pkg=None):
-    import platform
     system  = platform.system()
     machine = platform.machine()
+    p = namedtuple('Platform', 'os bits osbits system machine prettyos')
 
     if system == 'Linux' and machine == 'x86_64':
-        return 'linux', 64, 'linux64'
+        return p('linux', 64, 'linux64', system, machine, 'Linux')
     elif system == 'Linux' and machine == 'i686':
-        return 'linux', 32, 'linux32'
+        return p('linux', 32, 'linux32', system, machine, 'Linux')
     elif system == 'Darwin' and machine == 'i386':
-        return 'osx', 32, 'osx32'
+        return p('osx', 32, 'osx32', system, machine, 'OSX')
     else:
         message = 'Cannot match system to known platform'
         if pkg is None:
@@ -474,7 +476,7 @@ class CMakePackage(Package):
             '-DCMAKE_INSTALL_DO_STRIP=OFF',
         ]
 
-        if self.arch[0] == 'osx':
+        if self.arch.os == 'osx':
             args.append('-DCMAKE_OSX_ARCHITECTURES=%s' % self.env['OSX_ARCH'])
             args.append('-DCMAKE_OSX_SYSROOT=%s' % self.env['OSX_SYSROOT'])
             args.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=%s' % self.env['OSX_TARGET'])

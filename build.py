@@ -80,12 +80,12 @@ if __name__ == '__main__':
 
     arch = get_platform()
 
-    if arch[2] == 'linux32':
+    if arch.osbits == 'linux32':
         limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
 
-    if arch[0] == 'linux':
+    if arch.os == 'linux':
         e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
-    elif arch[0] == 'osx':
+    elif arch.os == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
         # ISIS only supports 32-bit
@@ -111,7 +111,7 @@ if __name__ == '__main__':
     if os.system('cp --version &>/dev/null') != 0:
         die('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
 
-    e.append_many(ALL_FLAGS, '-m%i' % arch[1])
+    e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 
     # XXX LDFLAGS? What?
     if limit_symbols is not None:
@@ -143,14 +143,14 @@ if __name__ == '__main__':
         # Many things depend on isis 3rdparty, so do it before the rest
         build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf_headers]
 
-        if arch[0] == 'linux':
+        if arch.os == 'linux':
             build.extend([zlib, png, jpeg])
-        elif arch[0] == 'osx':
+        elif arch.os == 'osx':
             build.extend([zlib_headers, png_headers, jpeg_headers])
 
         build.extend([proj, gdal, ilmbase, openexr, boost, osg])
 
-        if arch[0] == 'linux':
+        if arch.os == 'linux':
             build.append(lapack)
 
         if not opt.dev:
