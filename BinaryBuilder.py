@@ -194,7 +194,7 @@ class Package(object):
         self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(ISIS3RDPARTY)s -L%(INSTALL_DIR)s/lib'              % self.env
 
     @stage
-    def fetch(self):
+    def fetch(self, skip=False):
         '''After fetch, the source code should be available.'''
 
         assert self.src,    'No src defined for package %s' % self.pkgname
@@ -211,10 +211,12 @@ class Package(object):
             self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(src).path))
 
             if not P.isfile(self.tarball):
+                if skip: raise PackageError(self, 'Fetch is skipped and no src available')
                 get(src, self.tarball)
 
             if hash_file(self.tarball) != chksum:
-                raise PackageError(self, 'Checksum on file[%s] failed!' % self.tarball)
+                os.remove(self.tarball)
+                raise PackageError(self, 'Checksum on file[%s] failed. Removed!' % self.tarball)
 
     @stage
     def unpack(self):
@@ -296,8 +298,7 @@ class Package(object):
     def build(pkg, skip_fetch=False):
         # If it's a type, we instantiate it. Otherwise, we just use whatever it is.
         assert isinstance(pkg, Package)
-        if not skip_fetch:
-            pkg.fetch()
+        pkg.fetch(skip=skip_fetch)
         pkg.unpack()
         pkg.configure()
         pkg.compile()
@@ -379,10 +380,12 @@ class GITPackage(Package):
         self.helper(*cmd)
 
     @stage
-    def fetch(self):
+    def fetch(self, skip=False):
         if P.exists(self.localcopy):
+            if skip: return
             self._git('fetch', 'origin')
         else:
+            if skip: raise PackageError(self, 'Fetch is skipped and no src available')
             self.helper('git', 'clone', '--mirror', self.src, self.localcopy)
 
     @stage
@@ -407,15 +410,17 @@ class SVNPackage(Package):
                 return tokens[1]
 
     @stage
-    def fetch(self):
+    def fetch(self, skip=False):
         try:
             if P.exists(self.localcopy):
+                if skip: return
                 url = self._get_current_url(self.localcopy)
                 if url == self.src:
                     self.helper('svn', 'update', self.localcopy)
                 else:
                     self.helper('svn', 'switch', self.src, self.localcopy)
             else:
+                if skip: raise PackageError(self, 'Fetch is skipped and no src available')
                 self.helper('svn', 'checkout', self.src, self.localcopy)
         except HelperError, e:
             warn('svn failed (removing %s): %s' % (self.localcopy, e))

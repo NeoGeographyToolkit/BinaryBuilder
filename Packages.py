@@ -7,7 +7,7 @@ import os.path as P
 import textwrap
 
 from glob import glob
-from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn
+from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError
 
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/gdal-1.7.3.tar.gz'
@@ -442,9 +442,11 @@ class isis(Package):
                 self.helper('ln', '-sf', P.basename(lib), dev)
 
     @stage
-    def fetch(self):
+    def fetch(self, skip=False):
         if not os.path.exists(self.localcopy):
+            if skip: raise PackageError(self, 'Fetch is skipped and no src available')
             os.makedirs(self.localcopy)
+        if skip: return
         self.copytree(self.src, self.localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*'])
 
     @stage
@@ -476,7 +478,7 @@ class isis_local(isis):
         self.localcopy = None
 
     @stage
-    def fetch(self): pass
+    def fetch(self, skip=False): pass
     @stage
     def unpack(self): pass
     @stage
