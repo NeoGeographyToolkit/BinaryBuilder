@@ -15,7 +15,7 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 zlib_headers, png_headers, isis_local, protobuf_headers, jpeg_headers
 
-from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile
+from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path
 
 limit_symbols = None
 
@@ -42,14 +42,7 @@ if __name__ == '__main__':
     global opt
     (opt, args) = parser.parse_args()
 
-    if opt.coreutils is not None:
-        if not P.isdir(opt.coreutils):
-            parser.print_help()
-            die('Illegal argument to --coreutils: path does not exist')
-        p = os.environ.get('PATH', [])
-        if p:
-            p = p.split(':')
-        os.environ['PATH'] = ':'.join([opt.coreutils] + p + ['/opt/local/bin'])
+    tweak_path(opt.coreutils)
 
     if opt.isisroot is not None and not P.isdir(opt.isisroot):
         parser.print_help()
@@ -106,10 +99,6 @@ if __name__ == '__main__':
         # Resolve a bug with -mmacosx-version-min on 10.6 (see
         # http://markmail.org/message/45nbrtxsxvsjedpn)
         e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
-
-    # I should probably fix the gnu coreutils dep, but whatever
-    if os.system('cp --version &>/dev/null') != 0:
-        die('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
 
     e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 

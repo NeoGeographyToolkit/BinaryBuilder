@@ -36,6 +36,17 @@ def get_platform(pkg=None):
         else:
             raise PackageError(pkg, message)
 
+def tweak_path(coreutils=None):
+    if coreutils is not None:
+        if not P.isdir(coreutils):
+            die('coreutils path %s does not exist' % coreutils)
+        p = os.environ.get('PATH', [])
+        if p:
+            p = p.split(':')
+        os.environ['PATH'] = ':'.join([coreutils] + p + ['/opt/local/bin'])
+    if os.system('cp --version &>/dev/null') != 0:
+        die('Your cp doesn\'t appear to be GNU coreutils. Install coreutils and put it in your path.')
+
 class PackageError(Exception):
     def __init__(self, pkg, message):
         super(PackageError, self).__init__('Package[%s] %s' % (pkg.pkgname, message))
