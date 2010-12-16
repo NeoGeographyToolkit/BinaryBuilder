@@ -23,6 +23,13 @@ CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
 ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
 
+def get_cores():
+    try:
+        n = os.sysconf('SC_NPROCESSORS_ONLN')
+        return n if n else 2
+    except:
+        return 2
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.set_defaults(mode='all')
@@ -37,12 +44,14 @@ if __name__ == '__main__':
     parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',    default=False,  help='Show the list of packages without actually doing anything')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
-    parser.add_option('--threads',                          dest='threads',    default=4,      help='Build threads to use')
+    parser.add_option('--threads',                          dest='threads',    default=2*get_cores(), help='Build threads to use')
 
     global opt
     (opt, args) = parser.parse_args()
 
     tweak_path(opt.coreutils)
+
+    info('Using %d build processes' % opt.threads)
 
     if opt.isisroot is not None and not P.isdir(opt.isisroot):
         parser.print_help()
