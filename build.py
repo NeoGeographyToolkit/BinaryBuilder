@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 import os.path as P
+import tarfile
 import subprocess
 import sys
 from optparse import OptionParser
@@ -25,6 +26,7 @@ ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
 if __name__ == '__main__':
     parser = OptionParser()
     parser.set_defaults(mode='all')
+    parser.add_option('--base',       action='append',      dest='base',       default=[],     help='Provide a tarball to use as a base system')
     parser.add_option('--build-root',                       dest='buildroot',  default='/tmp', help='Prefix of build dirs')
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,   help='Disable ccache')
     parser.add_option('--clean-build',action='store_true',  dest='clean_build',default=False,  help='Remove build files before starting run')
@@ -70,6 +72,11 @@ if __name__ == '__main__':
     if opt.clean_build:
         e.remove_build_dirs()
     e.create_dirs()
+
+    for base in opt.base:
+        tar = tarfile.open(base, 'r')
+        tar.extractall(path=e['INSTALL_DIR'])
+        tar.close()
 
     arch = get_platform()
 
