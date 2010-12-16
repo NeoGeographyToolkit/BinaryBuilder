@@ -87,18 +87,17 @@ def stage(f):
 class Environment(dict):
     def __init__(self, **kw):
         buildroot  = kw.get('BUILDROOT',  os.environ['HOME'])
-        isisroot = kw.get('ISISROOT', P.join(buildroot, 'build', 'isis'))
 
         self.update(dict(
             HOME           = buildroot,
-            DOWNLOAD_DIR   = P.join(buildroot, 'build-src'),
-            BUILD_DIR      = P.join(buildroot, 'build', 'build'),
-            INSTALL_DIR    = P.join(buildroot, 'build', 'install'),
-            NOINSTALL_DIR  = P.join(buildroot, 'build', 'noinstall'),
-            ISISROOT       = isisroot,
-            ISIS3RDPARTY   = P.join(isisroot, '3rdParty', 'lib'),
+            DOWNLOAD_DIR   = P.join(buildroot, 'tarballs'),
+            BUILD_DIR      = P.join(buildroot, 'build', 'object'),
+            INSTALL_DIR    = P.join(buildroot, 'build', 'base', 'install'),
+            NOINSTALL_DIR  = P.join(buildroot, 'build', 'base', 'noinstall'),
+            ISISROOT       = P.join(buildroot, 'build', 'base', 'isis')
         ))
         self.update(kw)
+        self['ISIS3RDPARTY'] = P.join(self['ISISROOT'], '3rdParty', 'lib')
 
     def remove_build_dirs(self):
         for d in 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR':

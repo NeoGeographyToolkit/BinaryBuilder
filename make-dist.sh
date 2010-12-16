@@ -24,10 +24,11 @@ else
 fi
 
 # Must be an absolute path
-BUILD_DIR="/tmp/build"
+BASEDIR="/tmp/build"
 
-INSTALL_DIR="${BUILD_DIR}/install"
-DIST_DIR="${BUILD_DIR}/${BUILDNAME}"
+INSTALL_DIR="${BASEDIR}/base/install"
+DIST_DIR="${BASEDIR}/${BUILDNAME}"
+ISIS_DIR="${BASEDIR}/base/isis"
 
 BINS="              \
   bundlevis         \
@@ -71,8 +72,7 @@ for i in ${BINS}; do
     cp -a libexec-helper.sh $obin/$i
 done
 
-isis="${BUILD_DIR}/isis"
-ISIS_VERSION="$(isis_version $isis)"
+ISIS_VERSION="$(isis_version $ISIS_DIR)"
 
 cat <<EOF > "$olibexec/constants.sh"
 BAKED_ISIS_VERSION="${ISIS_VERSION}"
