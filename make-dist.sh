@@ -30,6 +30,10 @@ INSTALL_DIR="${BASEDIR}/base/install"
 DIST_DIR="${BASEDIR}/${BUILDNAME}"
 ISIS_DIR="${BASEDIR}/base/isis"
 
+# XXX: For the rpath OSX code to work right, there must be a directory "isis"
+# as a sibling of DIST_DIR. For the moment, make a symlink.
+ln -s "${ISIS_DIR}" "${BASEDIR}/isis"
+
 BINS="              \
   bundlevis         \
   cam2map4stereo.py \
