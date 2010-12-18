@@ -17,8 +17,6 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path
 
-limit_symbols = None
-
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
 ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
@@ -82,9 +80,6 @@ if __name__ == '__main__':
 
     arch = get_platform()
 
-    if arch.osbits == 'linux32':
-        limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
-
     if arch.os == 'linux':
         e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
     elif arch.os == 'osx':
@@ -112,15 +107,15 @@ if __name__ == '__main__':
     e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 
     # XXX LDFLAGS? What?
-    if limit_symbols is not None:
+    if arch.osbits == 'linux32':
+        limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
         e.append('LDFLAGS', '-include %s' % limit_symbols)
 
     if opt.ccache:
         compiler_dir = P.join(opt.buildroot, 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
-            CXX = P.join(compiler_dir, e['CXX']),
-        )
+            CXX = P.join(compiler_dir, e['CXX']))
 
         if not P.exists(compiler_dir):
             os.mkdir(compiler_dir)
