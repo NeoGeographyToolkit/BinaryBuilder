@@ -58,6 +58,7 @@ if __name__ == '__main__':
     if opt.ccache and opt.save_temps:
         die('--ccache and --save-temps conflict. Disabling ccache.')
 
+    # -Wl,-z,now ?
     e = Environment(BUILDROOT = opt.buildroot,
                     CC       = 'gcc',
                     CXX      = 'g++',
