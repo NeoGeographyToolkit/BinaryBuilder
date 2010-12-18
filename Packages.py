@@ -119,6 +119,7 @@ class stereopipeline(GITPackage):
             print('PKG_GEOS_LIBS=-lgeos-3.2.0', file=config)
 
         super(stereopipeline, self).configure(
+            other   = '--docdir=%s/doc' % self.env['INSTALL_DIR'],
             with_   = w,
             without = ['clapack', 'slapack'],
             disable = ['pkg_paths_default', 'static', 'qt-qmake']

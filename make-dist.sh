@@ -65,7 +65,7 @@ olib="${DIST_DIR}/lib"
 
 ibin="${INSTALL_DIR}/bin"
 ilib="${INSTALL_DIR}/lib"
-idoc="${INSTALL_DIR}/share/doc/StereoPipeline"
+idoc="${INSTALL_DIR}/doc"
 
 rm -rf ${DIST_DIR}
 
