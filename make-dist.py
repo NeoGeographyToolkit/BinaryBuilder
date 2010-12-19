@@ -1,23 +1,27 @@
-#!/bin/bash
+#!/usr/bin/env python
 
 from __future__ import print_function
 
 import time
 import os.path as P
+import os
 import tempfile
 import re
 import errno
-from shutil import copy2, copystat, Error
+import tarfile
+import shutil
+import logging
 from os import makedirs, remove, listdir, chmod
 from optparse import OptionParser
 from collections import namedtuple
 from subprocess import Popen, PIPE
 from glob import glob
 from BinaryBuilder import get_platform, tweak_path
+from tempfile import NamedTemporaryFile
 
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
-LIB_WHITELIST = '''
+LIB_SYSTEM_LIST = '''
     AGL
     Accelerate
     AppKit
@@ -30,11 +34,43 @@ LIB_WHITELIST = '''
     OpenGL
     QuickTime
     vecLib
+
     libobjc.A.dylib
     libSystem.B.dylib
-    libgcc_s.1.dylib
-    libstdc++.6.dylib
+
+    libGL.so.1
+    libGLU.so.1
+    libICE.so.6
+    libSM.so.6
+    libX11.so.6
+    libXext.so.6
+    libXi.so.6
+    libXmu.so.6
+    libXrandr.so.2
+    libXt.so.6
+    libc.so.6
+    libdl.so.2
+    libglut.so.3
+    libm.so.6
+    libpthread.so.0
+    librt.so.1
 '''.split()
+
+# prefixes of libs that we always ship
+LIB_SHIP_PREFIX = '''
+    libstdc++.
+    libgcc_s.
+'''.split()
+
+logger = None
+def setup_logging(level = logging.DEBUG):
+    global logger
+    logger = logging.getLogger('make-dist')
+    logger.setLevel(level)
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+    #ch.setFormatter(logging.Formatter("MMOO %(message)s"))
+    logger.addHandler(ch)
 
 def tarball_name():
     arch = get_platform()
@@ -44,8 +80,11 @@ def tarball_name():
         return 'StereoPipeline-%s-%s-%s' % (arch.machine, arch.prettyos, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
 
 def run(*args, **kw):
-    ret = Popen(args, stdout=PIPE).communicate()[0]
-    if len(ret) == 0 and kw.get('need_output', True):
+    need_output = kw.pop('need_output', True)
+    logger.debug('run: [%s]' % ' '.join(args))
+    kw['stdout'] = PIPE
+    ret = Popen(args, **kw).communicate()[0]
+    if need_output and len(ret) == 0:
         raise Exception('%s: failed (no output)' % (args,))
     return ret
 
@@ -90,11 +129,18 @@ def otool(filename):
     return Ret(soname=soname, sopath=sopath, libs=libs)
 
 def required_libs(filename):
-    ''' Returns a list of required SONAMEs for the given binary '''
+    ''' Returns a dict where the keys are required SONAMEs and the values are proposed full paths. '''
     arch = get_platform()
-    tool = dict(osx   = lambda: otool(filename).libs.keys(),
-                linux = lambda: readelf(filename).needed)
+    def linux():
+        soname = set(readelf(filename).needed)
+        return dict((k,v) for k,v in ldd(filename).iteritems() if k in soname)
+    tool = dict(osx   = lambda: otool(filename).libs,
+                linux = linux)
     return tool[arch.os]()
+
+def is_binary(filename):
+    ret = run('file', filename)
+    return (ret.find('ELF') != -1) or (ret.find('Mach-O') != -1)
 
 def grep(regex, filename):
     ret = []
@@ -106,20 +152,16 @@ def grep(regex, filename):
                 ret.append(m)
     return ret
 
-class Prefix(object):
-    def __init__(self, directory):
-        self._base = directory
+class Prefix(str):
+    def __new__(cls, directory):
+        return str.__new__(cls, P.normpath(directory))
     def base(self, *args):
-        return P.normpath(P.join(self._base, *args))
-    def bin(self, *args):
-        args = ['bin'] + list(args)
-        return self.base(*args)
-    def lib(self, *args):
-        args = ['lib'] + list(args)
-        return self.base(*args)
-    def libexec(self, *args):
-        args = ['libexec'] + list(args)
-        return self.base(*args)
+        return P.join(self, *args)
+    def __getattr__(self, name):
+        def f(*args):
+            args = [name] + list(args)
+            return self.base(*args)
+        return f
 
 def rm_f(filename):
     ''' An rm that doesn't care if the file isn't there '''
@@ -128,6 +170,15 @@ def rm_f(filename):
     except OSError, o:
         if o.errno != errno.ENOENT: # Don't care if it wasn't there
             raise
+
+def mkdir_f(dirname):
+    ''' A mkdir -p that doesn't care if the dir is there '''
+    try:
+        makedirs(dirname)
+    except OSError, o:
+        if o.errno == errno.EEXIST and P.isdir(dirname):
+            return
+        raise
 
 # Keep this in sync with the function in libexec-funcs.sh
 def isis_version(isisroot):
@@ -153,18 +204,32 @@ def mergetree(src, dst):
             if P.isdir(srcname):
                 mergetree(srcname, dstname)
             else:
-                copy2(srcname, dstname)
-        except Error, err:
+                copy(srcname, dstname)
+        except shutil.Error, err:
             errors.extend(err.args[0])
         except EnvironmentError, why:
             errors.append((srcname, dstname, str(why)))
     try:
-        copystat(src, dst)
+        shutil.copystat(src, dst)
     except OSError, why:
         errors.extend((src, dst, str(why)))
     if errors:
-        raise Error, errors
+        raise shutil.Error, errors
 
+def copy(src, dst, hardlink = True):
+    if P.isdir(dst):
+        dst = P.join(dst, P.basename(src))
+
+    logger.debug('%s -> %s' % (src, dst))
+
+    if hardlink:
+        try:
+            os.link(src, dst)
+            return
+        except OSError, o:
+            if o.errno != errno.EXDEV: # Invalid cross-device link
+                raise
+    shutil.copy2(src, dst)
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -172,38 +237,67 @@ if __name__ == '__main__':
     parser.add_option('--coreutils',   dest='coreutils', default=None, help='Bin directory holding GNU coreutils')
     parser.add_option('--prefix',      dest='prefix',    default='/tmp/build/base/install', help='Root of the installed files')
     parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
+    parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
 
     global opt
     (opt, args) = parser.parse_args()
+
+    setup_logging(opt.loglevel)
 
     tweak_path(opt.coreutils)
 
     BUILDNAME  = tarball_name()
     INSTALLDIR = Prefix(opt.prefix)
     DISTDIR    = Prefix(P.join(tempfile.mkdtemp(), BUILDNAME))
-    ISISROOT   = P.join(P.basename(INSTALLDIR.base()), 'isis') # sibling to INSTALLDIR
+    ISISROOT   = P.join(P.dirname(INSTALLDIR.base()), 'isis') # sibling to INSTALLDIR
 
-    liblist = set()
+    deplist = dict()
 
     # Make all the output directories
     [makedirs(i) for i in DISTDIR.bin(), DISTDIR.lib(), DISTDIR.libexec()]
 
-    print('Adding binaries')
-    copy2('libexec-funcs.sh', DISTDIR.libexec()) #XXX Don't depend on cwd
+    print('Adding requested files')
+    copy('libexec-funcs.sh', DISTDIR.libexec()) #XXX Don't depend on cwd
     with file(opt.include, 'r') as f:
-        for binname in f:
-            copy2(binname, DISTDIR.libexec())
-            copy2('libexec-helper.sh', DISTDIR.bin(binname)) #XXX Don't depend on cwd
-            [liblist.add(lib) for lib in required_libs(binname)]
+        for line in f:
+            relglob = line.strip()
+            for inpath in glob(INSTALLDIR.base(relglob)):
+                relpath = P.relpath(inpath, INSTALLDIR.base())
+                if relpath.startswith('bin/'):
+                    basename = P.basename(relpath)
+                    outpath = DISTDIR.libexec(basename)
+                    copy('libexec-helper.sh', DISTDIR.bin(basename)) #XXX Don't depend on cwd
+                else:
+                    outpath = DISTDIR.base(relpath)
+
+                mkdir_f(P.dirname(outpath))
+                copy(inpath, outpath)
+
+                if is_binary(outpath):
+                    deplist.update(required_libs(outpath))
 
     print('Adding ISIS version check')
-    with file(DISTDIR.libexec('constants.sh')), 'w') as f:
+    with file(DISTDIR.libexec('constants.sh'), 'w') as f:
         print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
 
     print('Adding libraries')
-    # XXX Doesn't handle dlopen libs
-    [liblist.remove(lib) for lib in LIB_WHITELIST]
-    for lib in liblist:
+
+    # Remove the libs we definitely want from the system
+    [deplist.pop(k, None) for k in LIB_SYSTEM_LIST]
+
+    # Handle the shiplist separately
+    for copy_lib in LIB_SHIP_PREFIX:
+        found = None
+        for soname in deplist.keys():
+            if soname.startswith(copy_lib):
+                found = soname
+                break
+        if found:
+            copy(deplist[found], DISTDIR.lib())
+            del deplist[found]
+
+    no_such_libs = []
+    for lib in deplist:
         # We look for our deps in three places. Every library we need must be
         # in one of these three, or be on the whitelist. If we find it in the
         # install/lib dir, we copy it to the distdir
@@ -214,37 +308,60 @@ if __name__ == '__main__':
             checklib = P.join(searchdir, lib)
             if P.exists(checklib):
                 if searchdir == INSTALLLIB:
-                    copy2(checklib, DISTDIR.lib())
+                    copy(checklib, DISTDIR.lib())
                 break
         else:
-            raise Exception('Failed to find lib %s in any of our dirs' % lib)
+            no_such_libs.append(lib)
+
+    if no_such_libs:
+        raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(no_such_libs))
 
     #XXX Don't depend on cwd
     print('Adding files in dist-add')
     if P.exists('dist-add'): #XXX Don't depend on cwd
-        mergetree('dist-add', DISTDIR)
+        mergetree('dist-add', DISTDIR.base())
 
     print('Adding docs')
-    mergetree(INSTALLDIR.doc(), DISTDIR)
+    if P.exists(INSTALLDIR.doc()):
+        mergetree(INSTALLDIR.doc(), DISTDIR)
 
     print('Removing dotfiles from dist')
-    [remove(i) for i in run('find', DISTDIR, '-name', '.*', '-print0').split('\0') if len(i) > 0 and i != '.' and i != '..']
+    [remove(i) for i in run('find', DISTDIR, '-name', '.*', '-print0', need_output=False).split('\0') if len(i) > 0 and i != '.' and i != '..']
 
-    [chmod(file, 755) for file in glob(DISTDIR.libexec('*')) + glob(DISTDIR.bin('*'))]
+    [chmod(file, 0755) for file in glob(DISTDIR.libexec('*')) + glob(DISTDIR.bin('*'))]
+
+#echo "Creating tarball: ${BUILDNAME}.tar.gz"
+#tar czf ${BUILDNAME}.tar.gz        -X ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME}
+#if test -s ${BUILDNAME}.dlist; then
+#    echo "Creating debug tarball: ${BUILDNAME}-debug.tar.gz"
+#    tar czf ${BUILDNAME}-debug.tar.gz  -T ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME} --no-recursion
+#fi
+#rm ${BUILDNAME}.dlist
+    DIST_PARENT = P.dirname(DISTDIR)
+
+    debuglist = NamedTemporaryFile()
+
+    run('find', BUILDNAME, '-name', '*.debug', '-fprint', debuglist.name, cwd=DIST_PARENT, need_output=False)
 
     print('Creating tarball %s.tar.gz' % BUILDNAME)
-    tar = tarfile.open('%s.tar.gz' % BUILDNAME, 'w:gz')
-    tar.add(DISTDIR.base(), exclude = lambda f: f.endswith('.debug'))
-    tar.close()
+    run('tar', 'czf', '%s.tar.gz' % BUILDNAME, '-X', debuglist.name, '-C', DIST_PARENT, BUILDNAME, need_output=False)
 
-    tar = tarfile.open('%s-debug.tar.gz' % BUILDNAME, 'w:gz')
-    tar.add(DISTDIR.base(), exclude = lambda f: not f.endswith('.debug'))
-    has_debug = len(tar.getnames()) > 0
-    tar.close()
-    if has_debug:
+    if P.getsize(debuglist.name) > 0:
         print('Creating debug tarball %s-debug.tar.gz' % BUILDNAME)
-    else:
-        remove('%s-debug.tar.gz' % BUILDNAME)
+        run('tar', 'czf', '%s-debug.tar.gz' % BUILDNAME, '-T', debuglist.name, '-C', DIST_PARENT, BUILDNAME, '--no-recursion', need_output=False)
+
+
+    #tar = tarfile.open('%s.tar.gz' % BUILDNAME, 'w:gz')
+    #tar.add(DISTDIR.base(), exclude = lambda f: f.endswith('.debug'))
+    #tar.close()
+
+    #tar = tarfile.open('%s-debug.tar.gz' % BUILDNAME, 'w:gz')
+    #tar.add(DISTDIR.base(), exclude = lambda f: not f.endswith('.debug'))
+    #has_debug = len(tar.getnames()) > 0
+    #tar.close()
+    #if not has_debug:
+    #    print('Removing debug tarball (no debug info found)')
+    #    remove('%s-debug.tar.gz' % BUILDNAME)
 
 '''
 echo "Setting RPATH and stripping binaries"
