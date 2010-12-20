@@ -20,4 +20,4 @@ bin/image2qtree
 bin/ipfind
 bin/ipmatch
 bin/osgviewer
-lib/osgPlugins-*/osgdb_jpeg.*
+lib/osgPlugins-*/osgdb_*

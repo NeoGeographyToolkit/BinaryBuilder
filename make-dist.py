@@ -220,23 +220,26 @@ def mergetree(src, dst):
         raise shutil.Error, errors
 
 INSTALLED = set()
-def copy(src, dst, hardlink = False):
+def copy(src, dst):
     if P.isdir(dst):
         dst = P.join(dst, P.basename(src))
 
     logger.debug('%s -> %s' % (src, dst))
 
-    if hardlink:
-        try:
-            os.link(src, dst)
-        except OSError, o:
-            if o.errno != errno.EXDEV: # Invalid cross-device link
-                raise
-        else:
-            assert dst not in INSTALLED, 'Added %s twice!' % dst
-            INSTALLED.add(dst)
-            return
-    shutil.copy2(src, dst)
+    #if hardlink:
+    #    try:
+    #        os.link(src, dst)
+    #    except OSError, o:
+    #        if o.errno != errno.EXDEV: # Invalid cross-device link
+    #            raise
+    #    else:
+    #        assert dst not in INSTALLED, 'Added %s twice!' % dst
+    #        INSTALLED.add(dst)
+    #        return
+    if P.islink(src):
+        os.symlink(os.readlink(src), dst)
+    else:
+        shutil.copy2(src, dst)
     assert dst not in INSTALLED, 'Added %s twice!' % dst
     INSTALLED.add(dst)
 
@@ -264,8 +267,13 @@ def strip(filename):
 
 def save_elf_debug(filename):
     debug = '%s.debug' % filename
-    run('objcopy', '--only-keep-debug', filename, debug)
-    run('objcopy', '--add-gnu-debuglink=%s' % debug, filename)
+    try:
+        run('objcopy', '--only-keep-debug', filename, debug)
+        run('objcopy', '--add-gnu-debuglink=%s' % debug, filename)
+    except Exception:
+        logger.warning('Failed to split debug info for %s' % filename)
+        if P.exists(debug):
+            os.remove(debug)
 
 def set_rpath(filename, toplevel, searchpath):
     pass
@@ -282,6 +290,11 @@ def snap_symlinks(src):
     if not P.islink(src):
         return [src]
     return [src] + snap_symlinks(P.join(P.dirname(src), os.readlink(src)))
+
+def copy_with_links(src, dst):
+    assert P.isdir(dst), 'Destination must be a directory'
+    for link in snap_symlinks(src):
+        copy(link, dst)
 
 def flatten(lol):
     return itertools.chain(*lol)
@@ -341,10 +354,11 @@ if __name__ == '__main__':
         print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
 
     print('Adding libraries')
-
+    print('\tRemoving system libs')
     # Remove the libs we definitely want from the system
     [deplist.pop(k, None) for k in LIB_SYSTEM_LIST]
 
+    print('\tAdding forced-ship libraries')
     # Handle the shiplist separately
     for copy_lib in LIB_SHIP_PREFIX:
         found = None
@@ -353,9 +367,10 @@ if __name__ == '__main__':
                 found = soname
                 break
         if found:
-            copy(deplist[found], DISTDIR.lib())
+            copy_with_links(deplist[found], DISTDIR.lib())
             del deplist[found]
 
+    print('\tFinding deps in search path')
     no_such_libs = []
     for lib in deplist:
         # We look for our deps in three places. Every library we need must be
@@ -365,8 +380,7 @@ if __name__ == '__main__':
             checklib = P.join(searchdir, lib)
             if P.exists(checklib):
                 if searchdir == INSTALLDIR.lib():
-                    for link in snap_symlinks(checklib):
-                        copy(link, DISTDIR.lib())
+                    copy_with_links(checklib, DISTDIR.lib())
                 break
         else:
             no_such_libs.append(lib)
