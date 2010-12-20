@@ -8,9 +8,9 @@ import os
 import tempfile
 import re
 import errno
-import tarfile
 import shutil
 import logging
+import itertools
 from os import makedirs, remove, listdir, chmod
 from optparse import OptionParser
 from collections import namedtuple
@@ -80,10 +80,13 @@ def tarball_name():
         return 'StereoPipeline-%s-%s-%s' % (arch.machine, arch.prettyos, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
 
 def run(*args, **kw):
-    need_output = kw.pop('need_output', True)
+    need_output = kw.pop('output', False)
     logger.debug('run: [%s]' % ' '.join(args))
     kw['stdout'] = PIPE
-    ret = Popen(args, **kw).communicate()[0]
+    p = Popen(args, **kw)
+    ret = p.communicate()[0]
+    if p.returncode != 0:
+        raise Exception('%s: command returned %d' % (args, p.returncode))
     if need_output and len(ret) == 0:
         raise Exception('%s: failed (no output)' % (args,))
     return ret
@@ -94,7 +97,7 @@ def readelf(filename):
     needed = []
     soname = None
     rpath = []
-    for line in run('readelf', '-d', filename).split('\n'):
+    for line in run('readelf', '-d', filename, output=True).split('\n'):
         m = r.search(line)
         if m:
             if   m.group(1) == 'NEEDED': needed.append(m.group(2))
@@ -105,7 +108,7 @@ def readelf(filename):
 def ldd(filename):
     libs = {}
     r = re.compile('^\s*(\S+) => (\S+)')
-    for line in run('ldd', filename).split('\n'):
+    for line in run('ldd', filename, output=True).split('\n'):
         m = r.search(line)
         if m:
             libs[m.group(1)] = (None if m.group(2) == 'not' else m.group(2))
@@ -114,7 +117,7 @@ def ldd(filename):
 def otool(filename):
     Ret = namedtuple('otool', 'soname sopath libs')
     r = re.compile('^\s*(\S+)')
-    lines = run('otool', '-L', filename).split('\n')
+    lines = run('otool', '-L', filename, output=True).split('\n')
     libs = {}
     soname = None
     sopath = None
@@ -139,7 +142,7 @@ def required_libs(filename):
     return tool[arch.os]()
 
 def is_binary(filename):
-    ret = run('file', filename)
+    ret = run('file', filename, output=True)
     return (ret.find('ELF') != -1) or (ret.find('Mach-O') != -1)
 
 def grep(regex, filename):
@@ -216,7 +219,8 @@ def mergetree(src, dst):
     if errors:
         raise shutil.Error, errors
 
-def copy(src, dst, hardlink = True):
+INSTALLED = set()
+def copy(src, dst, hardlink = False):
     if P.isdir(dst):
         dst = P.join(dst, P.basename(src))
 
@@ -225,11 +229,62 @@ def copy(src, dst, hardlink = True):
     if hardlink:
         try:
             os.link(src, dst)
-            return
         except OSError, o:
             if o.errno != errno.EXDEV: # Invalid cross-device link
                 raise
+        else:
+            assert dst not in INSTALLED, 'Added %s twice!' % dst
+            INSTALLED.add(dst)
+            return
     shutil.copy2(src, dst)
+    assert dst not in INSTALLED, 'Added %s twice!' % dst
+    INSTALLED.add(dst)
+
+def strip(filename):
+    flags = None
+
+    def linux(filename):
+        typ = run('file', filename, output=True)
+        if typ.find('current ar archive') != -1:
+            return ['-g']
+        elif typ.find('SB executable') != -1 or typ.find('SB shared object') != -1:
+            save_elf_debug(filename)
+            return ['--strip-unneeded', '-R', '.comment']
+        elif typ.find('SB relocatable') != -1:
+            return ['--strip-unneeded']
+        return None
+    def osx(filename):
+        return ['-S']
+
+    tool = dict(linux=linux, osx=osx)
+    flags = tool[get_platform().os](filename)
+    flags.append(filename)
+    run('strip', *flags)
+
+
+def save_elf_debug(filename):
+    debug = '%s.debug' % filename
+    run('objcopy', '--only-keep-debug', filename, debug)
+    run('objcopy', '--add-gnu-debuglink=%s' % debug, filename)
+
+def set_rpath(filename, toplevel, searchpath):
+    pass
+    # Relative path from the file to the top of the dist
+    #rel_to_top = P.relpath(toplevel, filename)
+    #search_from_top = map(lambda p: P.relpath(p, toplevel))
+
+def bake(filename, toplevel, searchpath):
+    set_rpath(filename, toplevel, searchpath)
+    strip(filename)
+
+def snap_symlinks(src):
+    assert not P.isdir(src), 'Cannot chase symlinks on a directory'
+    if not P.islink(src):
+        return [src]
+    return [src] + snap_symlinks(P.join(P.dirname(src), os.readlink(src)))
+
+def flatten(lol):
+    return itertools.chain(*lol)
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -250,6 +305,7 @@ if __name__ == '__main__':
     INSTALLDIR = Prefix(opt.prefix)
     DISTDIR    = Prefix(P.join(tempfile.mkdtemp(), BUILDNAME))
     ISISROOT   = P.join(P.dirname(INSTALLDIR.base()), 'isis') # sibling to INSTALLDIR
+    SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
     deplist = dict()
 
@@ -261,9 +317,13 @@ if __name__ == '__main__':
     with file(opt.include, 'r') as f:
         for line in f:
             relglob = line.strip()
-            for inpath in glob(INSTALLDIR.base(relglob)):
+            inpaths = glob(INSTALLDIR.base(relglob))
+            assert len(inpaths) > 0, 'No matches for include list entry %s' % relglob
+            inpaths = flatten([snap_symlinks(inpath) for inpath in inpaths])
+            for inpath in inpaths:
                 relpath = P.relpath(inpath, INSTALLDIR.base())
                 if relpath.startswith('bin/'):
+                    assert not P.islink(relpath), 'Cannot deal with sylinks in the bindir'
                     basename = P.basename(relpath)
                     outpath = DISTDIR.libexec(basename)
                     copy('libexec-helper.sh', DISTDIR.bin(basename)) #XXX Don't depend on cwd
@@ -301,14 +361,12 @@ if __name__ == '__main__':
         # We look for our deps in three places. Every library we need must be
         # in one of these three, or be on the whitelist. If we find it in the
         # install/lib dir, we copy it to the distdir
-        ISISLIB      = P.join(ISISROOT, 'lib')
-        ISIS3RDPARTY = P.join(ISISROOT, '3rdParty', 'lib')
-        INSTALLLIB   = INSTALLDIR.lib()
-        for searchdir in ISISLIB, ISIS3RDPARTY, INSTALLLIB:
+        for searchdir in SEARCHPATH:
             checklib = P.join(searchdir, lib)
             if P.exists(checklib):
-                if searchdir == INSTALLLIB:
-                    copy(checklib, DISTDIR.lib())
+                if searchdir == INSTALLDIR.lib():
+                    for link in snap_symlinks(checklib):
+                        copy(link, DISTDIR.lib())
                 break
         else:
             no_such_libs.append(lib)
@@ -325,30 +383,28 @@ if __name__ == '__main__':
     if P.exists(INSTALLDIR.doc()):
         mergetree(INSTALLDIR.doc(), DISTDIR)
 
+    print('Baking RPATH and stripping binaries')
+    for path in INSTALLED:
+        if not is_binary(path): continue
+        bake(path, DISTDIR, SEARCHPATH)
+
     print('Removing dotfiles from dist')
-    [remove(i) for i in run('find', DISTDIR, '-name', '.*', '-print0', need_output=False).split('\0') if len(i) > 0 and i != '.' and i != '..']
+    [remove(i) for i in run('find', DISTDIR, '-name', '.*', '-print0').split('\0') if len(i) > 0 and i != '.' and i != '..']
 
     [chmod(file, 0755) for file in glob(DISTDIR.libexec('*')) + glob(DISTDIR.bin('*'))]
 
-#echo "Creating tarball: ${BUILDNAME}.tar.gz"
-#tar czf ${BUILDNAME}.tar.gz        -X ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME}
-#if test -s ${BUILDNAME}.dlist; then
-#    echo "Creating debug tarball: ${BUILDNAME}-debug.tar.gz"
-#    tar czf ${BUILDNAME}-debug.tar.gz  -T ${BUILDNAME}.dlist -C ${TOPLEVEL} ${BUILDNAME} --no-recursion
-#fi
-#rm ${BUILDNAME}.dlist
     DIST_PARENT = P.dirname(DISTDIR)
 
     debuglist = NamedTemporaryFile()
 
-    run('find', BUILDNAME, '-name', '*.debug', '-fprint', debuglist.name, cwd=DIST_PARENT, need_output=False)
+    run('find', BUILDNAME, '-name', '*.debug', '-fprint', debuglist.name, cwd=DIST_PARENT)
 
     print('Creating tarball %s.tar.gz' % BUILDNAME)
-    run('tar', 'czf', '%s.tar.gz' % BUILDNAME, '-X', debuglist.name, '-C', DIST_PARENT, BUILDNAME, need_output=False)
+    run('tar', 'czf', '%s.tar.gz' % BUILDNAME, '-X', debuglist.name, '-C', DIST_PARENT, BUILDNAME)
 
     if P.getsize(debuglist.name) > 0:
         print('Creating debug tarball %s-debug.tar.gz' % BUILDNAME)
-        run('tar', 'czf', '%s-debug.tar.gz' % BUILDNAME, '-T', debuglist.name, '-C', DIST_PARENT, BUILDNAME, '--no-recursion', need_output=False)
+        run('tar', 'czf', '%s-debug.tar.gz' % BUILDNAME, '-T', debuglist.name, '-C', DIST_PARENT, BUILDNAME, '--no-recursion')
 
 
     #tar = tarfile.open('%s.tar.gz' % BUILDNAME, 'w:gz')
@@ -363,24 +419,3 @@ if __name__ == '__main__':
     #    print('Removing debug tarball (no debug info found)')
     #    remove('%s-debug.tar.gz' % BUILDNAME)
 
-'''
-echo "Setting RPATH and stripping binaries"
-for i in $olibexec/* $(find $olib -type f \( -name '*.dylib*' -o -name '*.so*' \) ); do
-    if [[ -f $i ]]; then
-        # root is the relative path from the object in question to the top of
-        # the dist
-        root="$(get_relative_path ${DIST_DIR} $i)"
-        [[ -z "$root" ]] && die "failed to get relative path to root"
-
-        case $i in
-            *.py) echo "    Skipping python script $i";;
-            */stereo) echo "    Skipping python script without .py $i";;
-            *.sh) echo "    Skipping shell script $i";;
-            *)
-            # The rpaths given here are relative to the $root
-            set_rpath $i $root ../isis/lib ../isis/3rdParty/lib lib || die "set_rpath failed"
-            do_strip $i || die "Could not strip $i"
-        esac
-    fi
-done
-'''
