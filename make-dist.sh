@@ -71,7 +71,6 @@ rm -rf ${DIST_DIR}
 
 echo "Adding binaries"
 mkdir -p $obin $olib $olibexec
-cp -a libexec-funcs.sh $olibexec
 for i in ${BINS}; do
     cp -a $ibin/$i $olibexec/;
     cp -a libexec-helper.sh $obin/$i
