@@ -6,15 +6,20 @@ import itertools
 import shutil
 import re
 import errno
-from os import makedirs, remove, listdir, chmod, symlink, readlink
+from os import makedirs, remove, listdir, chmod, symlink, readlink, getcwd
 from subprocess import Popen, PIPE
 from collections import namedtuple
 from BinaryBuilder import get_platform
-from tempfile import mkdtemp
+from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
 
 global logger
 logger = logging.getLogger()
+
+def default_baker(filename, distdir, searchpath):
+    if not is_binary(filename): return
+    set_rpath(filename, distdir, searchpath)
+    strip(filename)
 
 class DistManager(object):
 
@@ -25,12 +30,18 @@ class DistManager(object):
         self.deplist  = dict()
 
     def add_executable(self, inpath, wrapper_file='libexec-helper.sh'):
+        ''' 'inpath' should be a file. This will add the executable to libexec/
+            and the wrapper script to bin/ (with the basename of the exe) '''
         assert not P.islink(inpath), 'Cannot deal with sylinks in the bindir'
         base = P.basename(inpath)
         self._add_file(inpath, self.distdir.libexec(base))
         self._add_file(wrapper_file, self.distdir.bin(base))
 
     def add_library(self, inpath, symlinks_too=True, add_deps=True):
+        ''' 'symlinks_too' means follow all symlinks, and add what they point
+            to. 'add_deps' means scan the library and add its required dependencies
+            to deplist.'''
+
         for p in snap_symlinks(inpath) if symlinks_too else [inpath]:
             # This relpath weirdness is because libdirs can have subdirs
             ps = P.normpath(p).split('/')
@@ -43,7 +54,17 @@ class DistManager(object):
                 raise Exception('Expected library %s to be in a libdir' % p)
             self._add_file(p, self.distdir.lib(relpath), add_deps=add_deps)
 
+    def add_glob(self, pattern, prefix, require_match=True):
+        ''' Add a pattern to the tree. pattern must be relative to an
+            installroot, provided in 'prefix' '''
+        pat = P.join(prefix, pattern)
+        inpaths = glob(pat)
+        if require_match:
+            assert len(inpaths) > 0, 'No matches for glob pattern %s' % pat
+        [self.add_smart(i, prefix) for i in inpaths]
+
     def add_smart(self, inpath, prefix):
+        ''' Looks at the relative path, and calls the correct add_* function '''
         inpath = P.abspath(inpath)
         assert P.commonprefix([inpath, prefix]) == prefix, 'path[%s] must be within prefix[%s]' % (inpath, prefix)
 
@@ -58,13 +79,17 @@ class DistManager(object):
             self._add_file(inpath, P.distdir(relpath))
 
     def add_directory(self, src, dst=None):
+        ''' Recursively add a directory. Will NOT do the right thing if called on a binary or library. '''
         if dst is None: dst = self.distdir
         mergetree(src, dst, self._add_file)
 
     def remove_deps(self, seq):
+        ''' Filter deps out of the deplist '''
         [self.deplist.pop(k, None) for k in seq]
 
     def resolve_deps(self, nocopy, copy, search = None):
+        ''' Find as many of the currently-listed deps as possible. If the dep
+            is found in one of the 'copy' dirs, copy it (without deps) to the dist.'''
         if search is None:
             search = list(itertools.chain(nocopy, copy))
         logger.debug('Searching: %s' % (search,))
@@ -81,15 +106,41 @@ class DistManager(object):
                     break
         self.remove_deps(found)
 
-    def clean_dist(self):
+    def create_file(self, relpath, mode='w'):
+        return file(self.distdir.base(relpath), mode)
+
+    def bake(self, searchpath, baker = default_baker):
+        for filename in self.distlist:
+            baker(filename, searchpath, self.distdir)
+
         [remove(i) for i in run('find', self.distdir, '-name', '.*', '-print0').split('\0') if len(i) > 0 and i != '.' and i != '..']
         [chmod(file, 0755) for file in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*'))]
+
+    def make_tarball(self, include = None, exclude = None, name = None):
+        if name is None: name = '%s.tar.gz' % self.tarname
+
+        cmd = ['tar', 'czf', name, '-C', P.dirname(self.distdir), self.tarname]
+        if include is not None:
+            cmd += ['-T', include, '--no-recursion']
+        if exclude is not None:
+            cmd += ['-X', exclude]
+
+        logger.info('Creating tarball %s' % name)
+        run(*cmd)
+
+    def find_filter(self, *filter):
+        files = NamedTemporaryFile()
+        cmd = ['find', self.tarname] + list(filter) + ['-fprint', files.name]
+        run(*cmd, cwd=P.dirname(self.distdir))
+        return files
 
     def _add_file(self, src, dst, keep_symlink=True, add_deps=True):
         assert not P.isdir(src), 'Source path must not be a dir'
         assert not P.exists(dst), 'Cannot overwrite %s' % dst
 
-        assert not P.relpath(P.abspath(dst), self.distdir).startswith('..'), \
+        dst = P.abspath(dst)
+
+        assert not P.relpath(dst, self.distdir).startswith('..'), \
                'destination %s must be within distdir[%s]' % (dst, self.distdir)
 
         assert dst not in self.distlist, 'Added %s twice!' % dst
@@ -109,7 +160,7 @@ class DistManager(object):
 
 def run(*args, **kw):
     need_output = kw.pop('output', False)
-    logger.debug('run: [%s]' % ' '.join(args))
+    logger.debug('run: [%s] (wd=%s)' % (' '.join(args), kw.get('cwd', getcwd())))
     kw['stdout'] = PIPE
     p = Popen(args, **kw)
     ret = p.communicate()[0]

@@ -2,15 +2,13 @@
 
 from __future__ import print_function
 
-from BinaryDist import grep, DistManager, Prefix, run, set_rpath, strip, is_binary
+from BinaryDist import grep, DistManager, Prefix
 
 import time
 import os.path as P
 import logging
 from optparse import OptionParser
-from glob import glob
 from BinaryBuilder import get_platform
-from tempfile import NamedTemporaryFile
 
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
@@ -70,10 +68,6 @@ def isis_version(isisroot):
         raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT ($s) is incorrect?' % (header, isisroot))
     return m[0].group(1)
 
-def bake(filename, toplevel, searchpath):
-    set_rpath(filename, toplevel, searchpath)
-    strip(filename)
-
 if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
@@ -86,25 +80,18 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=opt.loglevel)
 
-
-    BUILDNAME  = tarball_name()
-    mgr = DistManager(BUILDNAME)
+    mgr = DistManager(tarball_name())
     INSTALLDIR = Prefix(opt.prefix)
-    DISTDIR    = mgr.distdir
     ISISROOT   = P.join(P.dirname(INSTALLDIR.base()), 'isis') # sibling to INSTALLDIR
     SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
     print('Adding requested files')
     with file(opt.include, 'r') as f:
         for line in f:
-            relglob = line.strip()
-            inpaths = glob(INSTALLDIR.base(relglob))
-            assert len(inpaths) > 0, 'No matches for include list entry %s' % relglob
-            for inpath in inpaths:
-                mgr.add_smart(inpath, INSTALLDIR)
+            mgr.add_glob(line.strip(), INSTALLDIR)
 
     print('Adding ISIS version check')
-    with file(mgr.distdir.libexec('constants.sh'), 'w') as f:
+    with mgr.create_file('libexec/constants.sh') as f:
         print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
 
     print('Adding libraries')
@@ -127,35 +114,20 @@ if __name__ == '__main__':
     print('\tFinding deps in search path')
     mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
                        copy = [INSTALLDIR.lib()])
-
     if mgr.deplist:
         raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
 
+    print('Adding files in dist-add and docs')
     #XXX Don't depend on cwd
-    print('Adding files in dist-add')
-    if P.exists('dist-add'): #XXX Don't depend on cwd
-        mgr.add_directory('dist-add')
-
-    print('Adding docs')
-    if P.exists(INSTALLDIR.doc()):
-        mgr.add_directory(INSTALLDIR.doc())
+    for dir in 'dist-add', INSTALLDIR.doc():
+        if P.exists(dir):
+            mgr.add_directory(dir)
 
     print('Baking RPATH and stripping binaries')
-    for path in mgr.distlist:
-        if not is_binary(path): continue
-        bake(path, DISTDIR, SEARCHPATH)
+    mgr.bake(SEARCHPATH)
 
-    mgr.clean_dist()
+    debuglist = mgr.find_filter('-name', '*.debug')
 
-    DIST_PARENT = P.dirname(DISTDIR)
-
-    debuglist = NamedTemporaryFile()
-
-    run('find', BUILDNAME, '-name', '*.debug', '-fprint', debuglist.name, cwd=DIST_PARENT)
-
-    print('Creating tarball %s.tar.gz' % BUILDNAME)
-    run('tar', 'czf', '%s.tar.gz' % BUILDNAME, '-X', debuglist.name, '-C', DIST_PARENT, BUILDNAME)
-
+    mgr.make_tarball(exclude = debuglist.name)
     if P.getsize(debuglist.name) > 0:
-        print('Creating debug tarball %s-debug.tar.gz' % BUILDNAME)
-        run('tar', 'czf', '%s-debug.tar.gz' % BUILDNAME, '-T', debuglist.name, '-C', DIST_PARENT, BUILDNAME, '--no-recursion')
+        mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.gz' % mgr.tarname)
