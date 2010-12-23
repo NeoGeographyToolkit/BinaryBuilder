@@ -329,11 +329,11 @@ def save_elf_debug(filename):
             remove(debug)
 
 def set_rpath(filename, toplevel, searchpath):
-    rel_to_top = P.relpath(toplevel, filename)
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     def linux():
+        rel_to_top = P.relpath(toplevel, P.dirname(filename))
         rpath = [P.join('$ORIGIN', rel_to_top, path) for path in searchpath]
-        if run('chrpath', '-r', ':'.join(rpath), filename) is None:
+        if run('chrpath', '-r', ':'.join(rpath), filename, raise_on_failure = False) is None:
             logger.warn('Failed to set_rpath on %s' % filename)
     def osx():
         info = otool(filename)
