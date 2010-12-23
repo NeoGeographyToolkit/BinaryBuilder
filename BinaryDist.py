@@ -160,15 +160,21 @@ class DistManager(object):
 
 def run(*args, **kw):
     need_output = kw.pop('output', False)
+    raise_on_failure = kw.pop('raise_on_failure', True)
     logger.debug('run: [%s] (wd=%s)' % (' '.join(args), kw.get('cwd', getcwd())))
     kw['stdout'] = PIPE
     kw['stderr'] = PIPE
     p = Popen(args, **kw)
     ret, err = p.communicate()
+    msg = None
     if p.returncode != 0:
-        raise Exception('%s: command returned %d (%s)' % (args, p.returncode, err))
-    if need_output and len(ret) == 0:
-        raise Exception('%s: failed (no output). (%s)' % (args,err))
+        msg = '%s: command returned %d (%s)' % (args, p.returncode, err)
+    elif need_output and len(ret) == 0:
+        msg = '%s: failed (no output). (%s)' % (args,err)
+    if msg is not None:
+        if raise_on_failure: raise Exception(msg)
+        logger.warn(msg)
+        return None
     return ret
 
 def readelf(filename):
@@ -324,17 +330,47 @@ def save_elf_debug(filename):
 
 def set_rpath(filename, toplevel, searchpath):
     rel_to_top = P.relpath(toplevel, filename)
+    assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     def linux():
-        rpath = []
-        for path in searchpath:
-            assert not P.isabs(path), 'set_rpath: searchpaths must be relative to distdir [didn\'t like %s]' % path
-            rpath.append(P.join('$ORIGIN', rel_to_top, path))
-        try:
-            run('chrpath', '-r', ':'.join(rpath), filename)
-        except Exception, e:
-            logger.warn('Failed to set_rpath on %s' % e)
+        rpath = [P.join('$ORIGIN', rel_to_top, path) for path in searchpath]
+        if run('chrpath', '-r', ':'.join(rpath), filename) is None:
+            logger.warn('Failed to set_rpath on %s' % filename)
     def osx():
-        pass
+        info = otool(filename)
+        info.libs[info.soname] = info.sopath
+        for sopath in info.libs.values():
+            # /tmp/build/install/lib/libvwCore.5.dylib
+            # base = libvwCore.5.dylib
+            # looks for @executable_path/../lib/libvwCore.5.dylib
+
+            # /opt/local/libexec/qt4-mac/lib/QtXml.framework/Versions/4/QtXml
+            # base = QtXml.framework/Versions/4/QtXml
+            # looks for @executable_path/../lib/QtXml.framework/Versions/4/QtXml
+            fidx = sopath.rfind('.framework')
+            if fidx >= 0:
+                soname = sopath[sopath.rfind('/', 0, fidx)+1:]
+            else:
+                soname = P.basename(sopath)
+
+            # OSX rpath points to one specific file, not anything that matches the
+            # library SONAME. We've already done a whitelist check earlier, so
+            # ignore it if we can't find the lib we want
+
+            # XXX: This code carries an implicit assumption that all
+            # executables are one level below the root (because
+            # @executable_path is always the exe path, not the path of the
+            # current binary like $ORIGIN in linux)
+            for rpath in searchpath:
+                if P.exists(P.join(toplevel, rpath, soname)):
+                    new_path = P.join('@executable_path', '..', rpath, soname)
+                    # If the entry is the "self" one, it has to be changed differently
+                    if info.sopath == sopath:
+                        run('install_name_tool', '-id', new_path, filename)
+                        break
+                    else:
+                        run('install_name_tool', '-change', sopath, new_path, filename)
+                        break
+
     locals()[get_platform().os]()
 
 def snap_symlinks(src):
