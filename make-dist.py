@@ -60,6 +60,10 @@ def tarball_name():
     else:
         return 'StereoPipeline-%s-%s-%s' % (arch.machine, arch.prettyos, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
 
+def sibling_to(dir, name):
+    ''' get a pathname for a directory 'name' which is a sibling of directory 'dir' '''
+    return P.join(P.dirname(dir), P.basename(name))
+
 # Keep this in sync with the function in libexec-funcs.sh
 def isis_version(isisroot):
     header = P.join(isisroot, 'src/base/objs/Constants/Constants.h')
@@ -82,7 +86,7 @@ if __name__ == '__main__':
 
     mgr = DistManager(tarball_name())
     INSTALLDIR = Prefix(opt.prefix)
-    ISISROOT   = P.join(P.dirname(INSTALLDIR.base()), 'isis') # sibling to INSTALLDIR
+    ISISROOT   = sibling_to(INSTALLDIR, 'isis')
     SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
     print('Adding requested files')
@@ -124,7 +128,7 @@ if __name__ == '__main__':
             mgr.add_directory(dir)
 
     print('Baking RPATH and stripping binaries')
-    mgr.bake(SEARCHPATH)
+    mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH))
 
     debuglist = mgr.find_filter('-name', '*.debug')
 

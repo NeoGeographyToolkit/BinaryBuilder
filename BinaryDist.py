@@ -111,7 +111,7 @@ class DistManager(object):
 
     def bake(self, searchpath, baker = default_baker):
         for filename in self.distlist:
-            baker(filename, searchpath, self.distdir)
+            baker(filename, self.distdir, searchpath)
 
         [remove(i) for i in run('find', self.distdir, '-name', '.*', '-print0').split('\0') if len(i) > 0 and i != '.' and i != '..']
         [chmod(file, 0755) for file in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*'))]
@@ -162,12 +162,13 @@ def run(*args, **kw):
     need_output = kw.pop('output', False)
     logger.debug('run: [%s] (wd=%s)' % (' '.join(args), kw.get('cwd', getcwd())))
     kw['stdout'] = PIPE
+    kw['stderr'] = PIPE
     p = Popen(args, **kw)
-    ret = p.communicate()[0]
+    ret, err = p.communicate()
     if p.returncode != 0:
-        raise Exception('%s: command returned %d' % (args, p.returncode))
+        raise Exception('%s: command returned %d (%s)' % (args, p.returncode, err))
     if need_output and len(ret) == 0:
-        raise Exception('%s: failed (no output)' % (args,))
+        raise Exception('%s: failed (no output). (%s)' % (args,err))
     return ret
 
 def readelf(filename):
@@ -212,13 +213,13 @@ def otool(filename):
 
 def required_libs(filename):
     ''' Returns a dict where the keys are required SONAMEs and the values are proposed full paths. '''
-    arch = get_platform()
     def linux():
         soname = set(readelf(filename).needed)
         return dict((k,v) for k,v in ldd(filename).iteritems() if k in soname)
-    tool = dict(osx   = lambda: otool(filename).libs,
-                linux = linux)
-    return tool[arch.os]()
+    def osx():
+        return otool(filename).libs
+
+    return locals()[get_platform().os]()
 
 def is_binary(filename):
     ret = run('file', filename, output=True)
@@ -293,7 +294,7 @@ def mergetree(src, dst, copyfunc):
 def strip(filename):
     flags = None
 
-    def linux(filename):
+    def linux():
         typ = run('file', filename, output=True)
         if typ.find('current ar archive') != -1:
             return ['-g']
@@ -303,11 +304,10 @@ def strip(filename):
         elif typ.find('SB relocatable') != -1:
             return ['--strip-unneeded']
         return None
-    def osx(filename):
+    def osx():
         return ['-S']
 
-    tool = dict(linux=linux, osx=osx)
-    flags = tool[get_platform().os](filename)
+    flags = locals()[get_platform().os]()
     flags.append(filename)
     run('strip', *flags)
 
@@ -323,21 +323,22 @@ def save_elf_debug(filename):
             remove(debug)
 
 def set_rpath(filename, toplevel, searchpath):
-    pass
-    # Relative path from the file to the top of the dist
-    #rel_to_top = P.relpath(toplevel, filename)
-    #search_from_top = map(lambda p: P.relpath(p, toplevel))
+    rel_to_top = P.relpath(toplevel, filename)
+    def linux():
+        rpath = []
+        for path in searchpath:
+            assert not P.isabs(path), 'set_rpath: searchpaths must be relative to distdir [didn\'t like %s]' % path
+            rpath.append(P.join('$ORIGIN', rel_to_top, path))
+        try:
+            run('chrpath', '-r', ':'.join(rpath), filename)
+        except Exception, e:
+            logger.warn('Failed to set_rpath on %s' % e)
+    def osx():
+        pass
+    locals()[get_platform().os]()
 
 def snap_symlinks(src):
     assert not P.isdir(src), 'Cannot chase symlinks on a directory'
     if not P.islink(src):
         return [src]
     return [src] + snap_symlinks(P.join(P.dirname(src), readlink(src)))
-
-#def copy_with_links(src, dst):
-#    assert P.isdir(dst), 'Destination must be a directory'
-#    for link in snap_symlinks(src):
-#        copy(link, dst)
-#
-#def flatten(lol):
-#    return itertools.chain(*lol)
