@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import os
 import os.path as P
-import tarfile
 import subprocess
 import sys
 from optparse import OptionParser
@@ -15,7 +14,7 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 zlib_headers, png_headers, isis_local, protobuf_headers, jpeg_headers
 
-from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path
+from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
@@ -42,7 +41,7 @@ if __name__ == '__main__':
     parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',    default=False,  help='Show the list of packages without actually doing anything')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
-    parser.add_option('--threads',                          dest='threads',    default=2*get_cores(), help='Build threads to use')
+    parser.add_option('--threads',                          dest='threads',    default=2*get_cores(), type='int', help='Build threads to use')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -74,10 +73,10 @@ if __name__ == '__main__':
         e.remove_build_dirs()
     e.create_dirs()
 
+    if opt.base:
+        print('Untarring base system')
     for base in opt.base:
-        tar = tarfile.open(base, 'r')
-        tar.extractall(path=e['INSTALL_DIR'])
-        tar.close()
+        run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
 
     arch = get_platform()
 

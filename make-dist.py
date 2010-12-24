@@ -8,7 +8,8 @@ import time
 import os.path as P
 import logging
 from optparse import OptionParser
-from BinaryBuilder import get_platform
+from BinaryBuilder import get_platform, run
+from sys import exit
 
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
@@ -56,9 +57,9 @@ LIB_SHIP_PREFIX = '''
 def tarball_name():
     arch = get_platform()
     if opt.version is not None:
-        return 'StereoPipeline-%s-%s-%s' % (opt.version, arch.machine, arch.prettyos)
+        return '%s-%s-%s-%s' % (opt.name, opt.version, arch.machine, arch.prettyos)
     else:
-        return 'StereoPipeline-%s-%s-%s' % (arch.machine, arch.prettyos, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
+        return '%s-%s-%s-%s' % (opt.name, arch.machine, arch.prettyos, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
 
 def sibling_to(dir, name):
     ''' get a pathname for a directory 'name' which is a sibling of directory 'dir' '''
@@ -74,10 +75,12 @@ def isis_version(isisroot):
 
 if __name__ == '__main__':
     parser = OptionParser()
-    parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
-    parser.add_option('--prefix',      dest='prefix',    default='/tmp/build/base/install', help='Root of the installed files')
-    parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
+    parser.add_option('--base',        dest='base',      default=[], action='append', help='Provide a tarball to use as a base system')
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
+    parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
+    parser.add_option('--prefix',      dest='prefix',    default='/tmp/build/base/install', help='Root of the installed files')
+    parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
+    parser.add_option('--set-name',    dest='name',      default='StereoPipeline', help='Tarball name for this dist')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -89,10 +92,22 @@ if __name__ == '__main__':
     ISISROOT   = sibling_to(INSTALLDIR, 'isis')
     SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
-    print('Adding requested files')
-    with file(opt.include, 'r') as f:
-        for line in f:
-            mgr.add_glob(line.strip(), INSTALLDIR)
+    if opt.base:
+        print('Untarring base system')
+
+    for base in opt.base:
+        run('tar', 'xf', base, '-C', mgr.distdir, '--strip-components', '1')
+    baselist = mgr.find_filter('-type', 'f')
+
+    if opt.include == 'all':
+        mgr.add_directory(INSTALLDIR, hardlink=True)
+        mgr.make_tarball(exclude = baselist.name)
+        exit(0)
+    else:
+        print('Adding requested files')
+        with file(opt.include, 'r') as f:
+            for line in f:
+                mgr.add_glob(line.strip(), INSTALLDIR)
 
     print('Adding ISIS version check')
     with mgr.create_file('libexec/constants.sh') as f:
@@ -132,6 +147,6 @@ if __name__ == '__main__':
 
     debuglist = mgr.find_filter('-name', '*.debug')
 
-    mgr.make_tarball(exclude = debuglist.name)
+    mgr.make_tarball(exclude = [debuglist.name, baselist.name])
     if P.getsize(debuglist.name) > 0:
-        mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.gz' % mgr.tarname)
+        mgr.make_tarball(include = debuglist.name, exclude = baselist.name, name = '%s-debug.tar.gz' % mgr.tarname)

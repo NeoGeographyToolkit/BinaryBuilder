@@ -6,12 +6,12 @@ import itertools
 import shutil
 import re
 import errno
-from os import makedirs, remove, listdir, chmod, symlink, readlink, getcwd
-from subprocess import Popen, PIPE
+from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
-from BinaryBuilder import get_platform
+from BinaryBuilder import get_platform, run
 from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
+from functools import partial
 
 global logger
 logger = logging.getLogger()
@@ -28,14 +28,18 @@ class DistManager(object):
         self.distdir = Prefix(P.join(mkdtemp(), self.tarname))
         self.distlist = set()
         self.deplist  = dict()
+        mkdir_f(self.distdir)
 
-    def add_executable(self, inpath, wrapper_file='libexec-helper.sh'):
+    def add_executable(self, inpath, wrapper_file='libexec-helper.sh', keep_symlink=True):
         ''' 'inpath' should be a file. This will add the executable to libexec/
             and the wrapper script to bin/ (with the basename of the exe) '''
-        assert not P.islink(inpath), 'Cannot deal with sylinks in the bindir'
+
         base = P.basename(inpath)
-        self._add_file(inpath, self.distdir.libexec(base))
-        self._add_file(wrapper_file, self.distdir.bin(base))
+        if P.islink(inpath):
+            self._add_file(inpath, self.distdir.bin(base))
+        else:
+            self._add_file(inpath, self.distdir.libexec(base))
+            self._add_file(wrapper_file, self.distdir.bin(base))
 
     def add_library(self, inpath, symlinks_too=True, add_deps=True):
         ''' 'symlinks_too' means follow all symlinks, and add what they point
@@ -65,23 +69,25 @@ class DistManager(object):
 
     def add_smart(self, inpath, prefix):
         ''' Looks at the relative path, and calls the correct add_* function '''
-        inpath = P.abspath(inpath)
+        if not P.isabs(inpath):
+            inpath = P.abspath(P.join(prefix, inpath))
         assert P.commonprefix([inpath, prefix]) == prefix, 'path[%s] must be within prefix[%s]' % (inpath, prefix)
 
         relpath = P.relpath(inpath, prefix)
         if P.isdir(inpath):
-            self.add_directory(inpath)
+            for d in listdir(P.join(prefix, inpath)):
+                self.add_smart(P.relpath(P.join(prefix, inpath, d), prefix), prefix)
         elif relpath.startswith('bin/'):
             self.add_executable(inpath)
         elif relpath.startswith('lib/'):
             self.add_library(inpath)
         else:
-            self._add_file(inpath, P.distdir(relpath))
+            self._add_file(inpath, self.distdir.base(relpath))
 
-    def add_directory(self, src, dst=None):
-        ''' Recursively add a directory. Will NOT do the right thing if called on a binary or library. '''
+    def add_directory(self, src, dst=None, hardlink=False):
+        ''' Recursively add a directory. Will do it dumbly! No magic here. '''
         if dst is None: dst = self.distdir
-        mergetree(src, dst, self._add_file)
+        mergetree(src, dst, partial(self._add_file, hardlink=hardlink, add_deps=False))
 
     def remove_deps(self, seq):
         ''' Filter deps out of the deplist '''
@@ -116,14 +122,22 @@ class DistManager(object):
         [remove(i) for i in run('find', self.distdir, '-name', '.*', '-print0').split('\0') if len(i) > 0 and i != '.' and i != '..']
         [chmod(file, 0755) for file in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*'))]
 
-    def make_tarball(self, include = None, exclude = None, name = None):
+    def make_tarball(self, include = (), exclude = (), name = None):
+        ''' exclude takes priority over include '''
+
         if name is None: name = '%s.tar.gz' % self.tarname
+        if isinstance(include, basestring):
+            include = [include]
+        if isinstance(exclude, basestring):
+            exclude = [exclude]
 
         cmd = ['tar', 'czf', name, '-C', P.dirname(self.distdir), self.tarname]
-        if include is not None:
-            cmd += ['-T', include, '--no-recursion']
-        if exclude is not None:
-            cmd += ['-X', exclude]
+        if include:
+            cmd += ['--no-recursion']
+        for i in include:
+            cmd += ['-T', i]
+        for e in exclude:
+            cmd += ['-X', e]
 
         logger.info('Creating tarball %s' % name)
         run(*cmd)
@@ -134,48 +148,41 @@ class DistManager(object):
         run(*cmd, cwd=P.dirname(self.distdir))
         return files
 
-    def _add_file(self, src, dst, keep_symlink=True, add_deps=True):
-        assert not P.isdir(src), 'Source path must not be a dir'
-        assert not P.exists(dst), 'Cannot overwrite %s' % dst
-
+    def _add_file(self, src, dst, hardlink=False, keep_symlink=True, add_deps=True):
         dst = P.abspath(dst)
 
         assert not P.relpath(dst, self.distdir).startswith('..'), \
                'destination %s must be within distdir[%s]' % (dst, self.distdir)
 
-        assert dst not in self.distlist, 'Added %s twice!' % dst
-
         mkdir_f(P.dirname(dst))
-
-        logger.debug('%s -> %s' % (src, dst))
-        if keep_symlink and P.islink(src):
-            symlink(readlink(src), dst)
-        else:
-            shutil.copy2(src, dst)
-
+        copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
         self.distlist.add(dst)
 
         if add_deps and is_binary(dst):
             self.deplist.update(required_libs(dst))
 
-def run(*args, **kw):
-    need_output = kw.pop('output', False)
-    raise_on_failure = kw.pop('raise_on_failure', True)
-    logger.debug('run: [%s] (wd=%s)' % (' '.join(args), kw.get('cwd', getcwd())))
-    kw['stdout'] = PIPE
-    kw['stderr'] = PIPE
-    p = Popen(args, **kw)
-    ret, err = p.communicate()
-    msg = None
-    if p.returncode != 0:
-        msg = '%s: command returned %d (%s)' % (args, p.returncode, err)
-    elif need_output and len(ret) == 0:
-        msg = '%s: failed (no output). (%s)' % (args,err)
-    if msg is not None:
-        if raise_on_failure: raise Exception(msg)
-        logger.warn(msg)
-        return None
-    return ret
+def copy(src, dst, hardlink=False, keep_symlink=True):
+    assert not P.isdir(src), 'Source path must not be a dir'
+    assert not P.isdir(dst), 'Destination path must not be a dir'
+    assert not P.exists(dst), 'Refusing to overwrite existing dst %s' % dst
+
+    if keep_symlink and P.islink(src):
+        assert not P.isabs(readlink(src)), 'Cannot copy symlink that points to an absolute path'
+        logger.debug('%8s %s -> %s' % ('symlink', src, dst))
+        symlink(readlink(src), dst)
+        return
+
+    if hardlink:
+        try:
+            link(src, dst)
+            logger.debug('%8s %s -> %s' % ('hardlink', src, dst))
+            return
+        except OSError, o:
+            if o.errno != errno.EXDEV: # Invalid cross-device link, not an error, fall back to copy
+                raise
+
+    logger.debug('%8s %s -> %s' % ('copy', src, dst))
+    shutil.copy2(src, dst)
 
 def readelf(filename):
     Ret = namedtuple('readelf', 'needed soname rpath')

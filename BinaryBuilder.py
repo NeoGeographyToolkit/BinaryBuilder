@@ -10,6 +10,7 @@ import platform
 import subprocess
 import sys
 import urllib2
+import logging
 
 from collections import namedtuple
 from functools import wraps, partial
@@ -17,6 +18,9 @@ from glob import glob
 from hashlib import sha1
 from shutil import rmtree
 from urlparse import urlparse
+
+global logger
+logger = logging.getLogger()
 
 def get_platform(pkg=None):
     system  = platform.system()
@@ -57,6 +61,30 @@ class HelperError(Exception):
 def hash_file(filename):
     with file(filename, 'rb') as f:
         return sha1(f.read()).hexdigest()
+
+def run(*args, **kw):
+    need_output      = kw.pop('output', False)
+    raise_on_failure = kw.pop('raise_on_failure', True)
+    want_stderr      = kw.pop('want_stderr', False)
+    kw['stdout']     = kw.get('stdout', subprocess.PIPE)
+    kw['stderr']     = kw.get('stderr', subprocess.PIPE)
+
+    logger.debug('run: [%s] (wd=%s)' % (' '.join(args), kw.get('cwd', os.getcwd())))
+
+    p = subprocess.Popen(args, **kw)
+    out, err = p.communicate()
+    msg = None
+    if p.returncode != 0:
+        msg = '%s: command returned %d (%s)' % (args, p.returncode, err)
+    elif need_output and len(out) == 0:
+        msg = '%s: failed (no output). (%s)' % (args,err)
+    if msg is not None:
+        if raise_on_failure: raise Exception(msg)
+        logger.warn(msg)
+        return False, msg
+    if want_stderr:
+        return out, err
+    return out
 
 try:
     from termcolor import colored
@@ -343,12 +371,15 @@ class Package(object):
             kw['cwd'] = self.workdir
         if kw.get('env', None) is None:
             kw['env'] = self.env
+        kw['raise_on_failure'] = False
+        kw['want_stderr'] = True
 
         try:
-            p = subprocess.Popen(args, **kw)
-            (out, err) = p.communicate()
-            if p.returncode != 0:
-                raise subprocess.CalledProcessError(p.returncode, args)
+            out, err = run(*args, **kw)
+            if out is None:
+                return out, err
+            if out is False:
+                raise HelperError(args[0], kw['env'], err)
             return out, err
         except (TypeError,), e:
             raise Exception('%s\n%s' % (e.message, '\t\n'.join(['\t%s=%s%s' % (name, type(value).__name__, value) for name,value in kw['env'].iteritems() if not isinstance(value, basestring)])))
