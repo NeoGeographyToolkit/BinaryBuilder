@@ -127,27 +127,18 @@ def stage(f):
 
 class Environment(dict):
     def __init__(self, **kw):
-        buildroot  = kw.get('BUILDROOT',  os.environ['HOME'])
-
         self.update(dict(
-            HOME           = buildroot,
-            DOWNLOAD_DIR   = P.join(buildroot, 'tarballs'),
-            BUILD_BASE     = P.join(buildroot, 'build'),
-            BUILD_DIR      = P.join(buildroot, 'build', 'object'),
-            INSTALL_DIR    = P.join(buildroot, 'build', 'base', 'install'),
-            NOINSTALL_DIR  = P.join(buildroot, 'build', 'base', 'noinstall'),
-            ISISROOT       = P.join(buildroot, 'build', 'base', 'isis')
+            HOME           = kw['BUILD_DIR'],
+            DOWNLOAD_DIR   = kw['DOWNLOAD_DIR'],
+            BUILD_DIR      = kw['BUILD_DIR'],
+            INSTALL_DIR    = kw['INSTALL_DIR'],
+            NOINSTALL_DIR  = P.join(kw['INSTALL_DIR'], 'noinstall'),
+            ISISROOT       = P.join(kw['INSTALL_DIR'], 'isis'),
         ))
         self.update(kw)
         self['ISIS3RDPARTY'] = P.join(self['ISISROOT'], '3rdParty', 'lib')
 
-    def remove_build_dirs(self):
-        try:
-            info('Removing build and install dirs: %s' % self['BUILD_BASE'])
-            rmtree(self['BUILD_BASE'])
-        except OSError, o:
-            if o.errno != errno.ENOENT: # Don't care if it wasn't there
-                raise
+        self.create_dirs()
 
     def create_dirs(self):
         for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR'):
@@ -156,6 +147,13 @@ class Environment(dict):
             except OSError, o:
                 if o.errno != errno.EEXIST: # Don't care if it already exists
                     raise
+
+    def copy_set_default(self, **kw):
+        e = Environment(**self)
+        for k,v in kw.iteritems():
+            if k not in e:
+                e[k] = v
+        return e
 
     def append(self, key, value):
         if key in self:
@@ -213,7 +211,7 @@ class Package(object):
         info(self.pkgdir)
         self.tarball = None
         self.workdir = None
-        self.env = dict(env)
+        self.env = env
         self.arch = get_platform(self)
 
         self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
@@ -307,17 +305,14 @@ class Package(object):
         if 'MAKEOPTS' in self.env:
             cmd += (self.env['MAKEOPTS'],)
 
-        e = Environment(prefix=self.env['INSTALL_DIR'])
-        e.update(self.env)
-
+        e = self.env.copy_set_default(prefix = self.env['INSTALL_DIR'])
         self.helper(*cmd, env=e, cwd=cwd)
 
     @stage
     def install(self, cwd=None):
         '''After install, the binaries should be on the live filesystem.'''
 
-        e = Environment(prefix=self.env['INSTALL_DIR'])
-        e.update(self.env)
+        e = self.env.copy_set_default(prefix = self.env['INSTALL_DIR'])
 
         cmd = ('make', 'install')
         self.helper(*cmd, env=e, cwd=cwd)

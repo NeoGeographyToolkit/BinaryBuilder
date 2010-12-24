@@ -6,7 +6,9 @@ import os
 import os.path as P
 import subprocess
 import sys
+import errno
 from optparse import OptionParser
+from tempfile import mkdtemp
 
 
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
@@ -27,21 +29,31 @@ def get_cores():
     except:
         return 2
 
+def rm_f(filename):
+    ''' An rm that doesn't care if the file isn't there '''
+    try:
+        os.remove(filename)
+    except OSError, o:
+        if o.errno != errno.ENOENT: # Don't care if it wasn't there
+            raise
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.set_defaults(mode='all')
-    parser.add_option('--base',       action='append',      dest='base',       default=[],     help='Provide a tarball to use as a base system')
-    parser.add_option('--build-root',                       dest='buildroot',  default='/tmp', help='Prefix of build dirs')
-    parser.add_option('--no-ccache',  action='store_false', dest='ccache',     default=True,   help='Disable ccache')
-    parser.add_option('--clean-build',action='store_true',  dest='clean_build',default=False,  help='Remove build files before starting run')
-    parser.add_option('--coreutils',                        dest='coreutils',  default=None,   help='Bin directory holding GNU coreutils')
-    parser.add_option('--dev-env',    action='store_true',  dest='dev',        default=False,  help='Build everything but VW and ASP')
-    parser.add_option('--fetch',      action='store_const', dest='mode',       const='fetch',  help='Fetch sources only, don\'t build')
-    parser.add_option('--no-fetch',   action='store_const', dest='mode',       const='nofetch',help='Build, but do not fetch (will fail if sources are missing)')
-    parser.add_option('--isisroot',                         dest='isisroot',   default=None,   help='Use a locally-installed isis at this root')
-    parser.add_option('--pretend',    action='store_true',  dest='pretend',    default=False,  help='Show the list of packages without actually doing anything')
-    parser.add_option('--save-temps', action='store_true',  dest='save_temps', default=False,  help='Save build files to check include paths')
-    parser.add_option('--threads',                          dest='threads',    default=2*get_cores(), type='int', help='Build threads to use')
+
+    parser.add_option('--base',       action='append',      dest='base',         default=[],              help='Provide a tarball to use as a base system')
+    parser.add_option('--no-ccache',  action='store_false', dest='ccache',       default=True,            help='Disable ccache')
+    parser.add_option('--coreutils',                        dest='coreutils',    default=None,            help='Bin directory holding GNU coreutils')
+    parser.add_option('--dev-env',    action='store_true',  dest='dev',          default=False,           help='Build everything but VW and ASP')
+    parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
+    parser.add_option('--no-fetch',   action='store_const', dest='mode',         const='nofetch',         help='Build, but do not fetch (will fail if sources are missing)')
+    parser.add_option('--isisroot',                         dest='isisroot',     default=None,            help='Use a locally-installed isis at this root')
+    parser.add_option('--pretend',    action='store_true',  dest='pretend',      default=False,           help='Show the list of packages without actually doing anything')
+    parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
+    parser.add_option('--threads',    type='int',           dest='threads',      default=2*get_cores(),   help='Build threads to use')
+    parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
+    parser.add_option('--build-dir',                        dest='build_dir',    default=None,            help='Root of the build')
+    parser.add_option('--install-dir',                      dest='install_dir',  default=None,            help='Root of the install')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -57,8 +69,13 @@ if __name__ == '__main__':
     if opt.ccache and opt.save_temps:
         die('--ccache and --save-temps conflict. Disabling ccache.')
 
+    if opt.build_dir is None:
+        opt.build_dir = mkdtemp()
+    if opt.install_dir is None:
+        opt.install_dir = mkdtemp()
+
     # -Wl,-z,now ?
-    e = Environment(BUILDROOT = opt.buildroot,
+    e = Environment(
                     CC       = 'gcc',
                     CXX      = 'g++',
                     F77      = 'gfortran',
@@ -66,12 +83,11 @@ if __name__ == '__main__':
                     CXXFLAGS = '-O3 -g',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j%s' % opt.threads,
+                    DOWNLOAD_DIR = opt.download_dir,
+                    BUILD_DIR    = opt.build_dir,
+                    INSTALL_DIR  = opt.install_dir,
                     PATH=os.environ['PATH'],
                     **({} if opt.isisroot is None else dict(ISISROOT=opt.isisroot)))
-
-    if opt.clean_build:
-        e.remove_build_dirs()
-    e.create_dirs()
 
     if opt.base:
         print('Untarring base system')
@@ -112,7 +128,7 @@ if __name__ == '__main__':
         e.append('LDFLAGS', '-include %s' % limit_symbols)
 
     if opt.ccache:
-        compiler_dir = P.join(opt.buildroot, 'mycompilers')
+        compiler_dir = P.join(opt.build_dir, 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
             CXX = P.join(compiler_dir, e['CXX']))
@@ -163,6 +179,12 @@ if __name__ == '__main__':
     try:
         for pkg in build:
             modes[opt.mode](pkg(e))
-
     except PackageError, e:
         die(e)
+
+    rm_f('last-build')
+    rm_f('last-install')
+    os.symlink(e['BUILD_DIR'], 'last-build')
+    os.symlink(e['INSTALL_DIR'], 'last-install')
+
+    print('Install finished.\n\tSOURCE: %(DOWNLOAD_DIR)s\n\tBUILD: %(BUILD_DIR)s\n\tINSTALL: %(INSTALL_DIR)s' % e)

@@ -9,7 +9,7 @@ import os.path as P
 import logging
 from optparse import OptionParser
 from BinaryBuilder import get_platform, run
-from sys import exit
+import sys
 
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
@@ -74,21 +74,25 @@ def isis_version(isisroot):
     return m[0].group(1)
 
 if __name__ == '__main__':
-    parser = OptionParser()
+    parser = OptionParser(usage='%s installdir' % sys.argv[0])
     parser.add_option('--base',        dest='base',      default=[], action='append', help='Provide a tarball to use as a base system')
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
     parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
-    parser.add_option('--prefix',      dest='prefix',    default='/tmp/build/base/install', help='Root of the installed files')
     parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
     parser.add_option('--set-name',    dest='name',      default='StereoPipeline', help='Tarball name for this dist')
 
     global opt
     (opt, args) = parser.parse_args()
 
+    if args is None or len(args) == 0:
+        parser.print_help()
+        print('\nMissing required argument: installdir')
+        sys.exit(-1)
+
     logging.basicConfig(level=opt.loglevel)
 
     mgr = DistManager(tarball_name())
-    INSTALLDIR = Prefix(opt.prefix)
+    INSTALLDIR = Prefix(args[0])
     ISISROOT   = sibling_to(INSTALLDIR, 'isis')
     SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
@@ -102,7 +106,7 @@ if __name__ == '__main__':
     if opt.include == 'all':
         mgr.add_directory(INSTALLDIR, hardlink=True)
         mgr.make_tarball(exclude = baselist.name)
-        exit(0)
+        sys.exit(0)
     else:
         print('Adding requested files')
         with file(opt.include, 'r') as f:
