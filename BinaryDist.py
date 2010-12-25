@@ -168,7 +168,7 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
     assert not P.isdir(dst), 'Destination path must not be a dir'
 
     if keep_symlink and P.islink(src):
-        assert not P.isabs(readlink(src)), 'Cannot copy symlink that points to an absolute path'
+        assert not P.isabs(readlink(src)), 'Cannot copy symlink that points to an absolute path (%s)' % src
         logger.debug('%8s %s -> %s' % ('symlink', src, dst))
         if P.exists(dst):
             assert readlink(dst) == readlink(src), 'Refusing to retarget already-exported symlink %s' % dst
