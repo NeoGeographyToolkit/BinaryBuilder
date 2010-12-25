@@ -8,7 +8,7 @@ import re
 import errno
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
-from BinaryBuilder import get_platform, run
+from BinaryBuilder import get_platform, run, hash_file
 from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
 from functools import partial
@@ -25,7 +25,7 @@ class DistManager(object):
 
     def __init__(self, tarname):
         self.tarname = tarname
-        self.distdir = Prefix(P.join(mkdtemp(), self.tarname))
+        self.distdir = Prefix(P.join(mkdtemp(prefix='dist'), self.tarname))
         self.distlist = set()
         self.deplist  = dict()
         mkdir_f(self.distdir)
@@ -142,10 +142,12 @@ class DistManager(object):
         logger.info('Creating tarball %s' % name)
         run(*cmd)
 
-    def find_filter(self, *filter):
+    def find_filter(self, *filter, **kw):
+        dir = kw.get('dir', self.tarname)
+        cwd = kw.get('cwd', P.dirname(self.distdir))
         files = NamedTemporaryFile()
-        cmd = ['find', self.tarname] + list(filter) + ['-fprint', files.name]
-        run(*cmd, cwd=P.dirname(self.distdir))
+        cmd = ['find', dir] + list(filter) + ['-fprint', files.name]
+        run(*cmd, cwd=cwd)
         return files
 
     def _add_file(self, src, dst, hardlink=False, keep_symlink=True, add_deps=True):
@@ -164,25 +166,30 @@ class DistManager(object):
 def copy(src, dst, hardlink=False, keep_symlink=True):
     assert not P.isdir(src), 'Source path must not be a dir'
     assert not P.isdir(dst), 'Destination path must not be a dir'
-    assert not P.exists(dst), 'Refusing to overwrite existing dst %s' % dst
 
     if keep_symlink and P.islink(src):
         assert not P.isabs(readlink(src)), 'Cannot copy symlink that points to an absolute path'
         logger.debug('%8s %s -> %s' % ('symlink', src, dst))
-        symlink(readlink(src), dst)
+        if P.exists(dst):
+            assert readlink(dst) == readlink(src), 'Refusing to retarget already-exported symlink %s' % dst
+        else:
+            symlink(readlink(src), dst)
         return
 
-    if hardlink:
-        try:
-            link(src, dst)
-            logger.debug('%8s %s -> %s' % ('hardlink', src, dst))
-            return
-        except OSError, o:
-            if o.errno != errno.EXDEV: # Invalid cross-device link, not an error, fall back to copy
-                raise
+    if P.exists(dst):
+        assert hash_file(src) == hash_file(dst), 'Refusing to overwrite already exported dst %s' % dst
+    else:
+        if hardlink:
+            try:
+                link(src, dst)
+                logger.debug('%8s %s -> %s' % ('hardlink', src, dst))
+                return
+            except OSError, o:
+                if o.errno != errno.EXDEV: # Invalid cross-device link, not an error, fall back to copy
+                    raise
 
-    logger.debug('%8s %s -> %s' % ('copy', src, dst))
-    shutil.copy2(src, dst)
+        logger.debug('%8s %s -> %s' % ('copy', src, dst))
+        shutil.copy2(src, dst)
 
 def readelf(filename):
     Ret = namedtuple('readelf', 'needed soname rpath')

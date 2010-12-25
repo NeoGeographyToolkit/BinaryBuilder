@@ -2,14 +2,17 @@
 
 from __future__ import print_function
 
-from BinaryDist import grep, DistManager, Prefix
+from BinaryDist import grep, DistManager, Prefix, mergetree, copy
 
 import time
 import os.path as P
 import logging
+import fileinput
 from optparse import OptionParser
 from BinaryBuilder import get_platform, run
+from tempfile import mkdtemp
 import sys
+from functools import partial
 
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
@@ -92,16 +95,23 @@ if __name__ == '__main__':
     logging.basicConfig(level=opt.loglevel)
 
     mgr = DistManager(tarball_name())
-    INSTALLDIR = Prefix(args[0])
-    ISISROOT   = sibling_to(INSTALLDIR, 'isis')
-    SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
     if opt.base:
+        INSTALLDIR = Prefix(mkdtemp(prefix='newinstall'))
         print('Untarring base system')
+        for base in opt.base:
+            run('tar', 'xf', base, '-C', INSTALLDIR, '--strip-components', '1')
+        baselist = mgr.find_filter('!', '-type', 'd', dir=INSTALLDIR)
+        for line in fileinput.input(baselist.name, inplace=True):
+            print(line.replace(INSTALLDIR, P.basename(mgr.distdir)), end='')
+        print('Merging in requested install dir')
+        mergetree(Prefix(args[0]), INSTALLDIR, partial(copy, hardlink=True))
+    else:
+        baselist = mgr.find_filter('-type', 'f')
+        INSTALLDIR = Prefix(args[0])
 
-    for base in opt.base:
-        run('tar', 'xf', base, '-C', mgr.distdir, '--strip-components', '1')
-    baselist = mgr.find_filter('-type', 'f')
+    ISISROOT   = P.join(INSTALLDIR, 'isis')
+    SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
     if opt.include == 'all':
         mgr.add_directory(INSTALLDIR, hardlink=True)

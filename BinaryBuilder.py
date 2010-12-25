@@ -502,7 +502,7 @@ class CMakePackage(Package):
         cmd.extend(files)
         self.helper(*cmd)
 
-        build_rules = P.join(self.env['BUILDROOT'], 'my_rules.cmake')
+        build_rules = P.join(self.env['BUILD_DIR'], 'my_rules.cmake')
         with file(build_rules, 'w') as f:
             print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (findfile(self.env['CC'], self.env['PATH'])), file=f)
             print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)

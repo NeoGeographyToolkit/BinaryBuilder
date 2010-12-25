@@ -29,13 +29,26 @@ def get_cores():
     except:
         return 2
 
-def rm_f(filename):
-    ''' An rm that doesn't care if the file isn't there '''
+def makelink(src, dst):
     try:
-        os.remove(filename)
+        os.remove(dst)
     except OSError, o:
         if o.errno != errno.ENOENT: # Don't care if it wasn't there
             raise
+    os.symlink(src, dst)
+
+def grablink(dst):
+    if not P.exists(dst):
+        raise Exception('Cannot resume, no link %s exists!' % dst)
+    ret = os.readlink(dst)
+    if not P.exists(ret):
+        raise Exception('Cannot resume, link target %s for link %s doesn\'t exist' % (ret, dst))
+    return ret
+
+
+def summary(env):
+    for i in 'DOWNLOAD BUILD INSTALL'.split():
+        print('\t%s: %s' % (i, env[i + '_DIR']))
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -54,6 +67,7 @@ if __name__ == '__main__':
     parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
     parser.add_option('--build-dir',                        dest='build_dir',    default=None,            help='Root of the build')
     parser.add_option('--install-dir',                      dest='install_dir',  default=None,            help='Root of the install')
+    parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -69,10 +83,14 @@ if __name__ == '__main__':
     if opt.ccache and opt.save_temps:
         die('--ccache and --save-temps conflict. Disabling ccache.')
 
-    if opt.build_dir is None:
-        opt.build_dir = mkdtemp()
-    if opt.install_dir is None:
-        opt.install_dir = mkdtemp()
+    if opt.resume:
+        opt.build_dir   = grablink('last-build')
+        opt.install_dir = grablink('last-install')
+
+    if opt.build_dir is None or not P.exists(opt.build_dir):
+        opt.build_dir = mkdtemp(prefix='build')
+    if opt.install_dir is None or not P.exists(opt.install_dir):
+        opt.install_dir = mkdtemp(prefix='install')
 
     # -Wl,-z,now ?
     e = Environment(
@@ -88,11 +106,6 @@ if __name__ == '__main__':
                     INSTALL_DIR  = opt.install_dir,
                     PATH=os.environ['PATH'],
                     **({} if opt.isisroot is None else dict(ISISROOT=opt.isisroot)))
-
-    if opt.base:
-        print('Untarring base system')
-    for base in opt.base:
-        run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
 
     arch = get_platform()
 
@@ -131,7 +144,8 @@ if __name__ == '__main__':
         compiler_dir = P.join(opt.build_dir, 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
-            CXX = P.join(compiler_dir, e['CXX']))
+            CXX = P.join(compiler_dir, e['CXX']),
+            CCACHE_DIR = P.join(opt.download_dir, 'ccache-dir'))
 
         if not P.exists(compiler_dir):
             os.mkdir(compiler_dir)
@@ -169,7 +183,16 @@ if __name__ == '__main__':
 
     if opt.pretend:
         info('I want to build:\n%s' % ' '.join(map(lambda x: x.__name__, build)))
+        summary(e)
         sys.exit(0)
+
+    makelink(e['BUILD_DIR'], 'last-build')
+    makelink(e['INSTALL_DIR'], 'last-install')
+
+    if opt.base:
+        print('Untarring base system')
+    for base in opt.base:
+        run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
 
     modes = dict(
         all     = lambda pkg : Package.build(pkg, skip_fetch=False),
@@ -182,9 +205,9 @@ if __name__ == '__main__':
     except PackageError, e:
         die(e)
 
-    rm_f('last-build')
-    rm_f('last-install')
-    os.symlink(e['BUILD_DIR'], 'last-build')
-    os.symlink(e['INSTALL_DIR'], 'last-install')
 
-    print('Install finished.\n\tSOURCE: %(DOWNLOAD_DIR)s\n\tBUILD: %(BUILD_DIR)s\n\tINSTALL: %(INSTALL_DIR)s' % e)
+    makelink(e['BUILD_DIR'], 'last-completed-build')
+    makelink(e['INSTALL_DIR'], 'last-completed-install')
+
+    info('\n\nAll done!')
+    summary(e)
