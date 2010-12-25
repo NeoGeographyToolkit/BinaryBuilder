@@ -381,10 +381,11 @@ class Package(object):
         except (OSError, subprocess.CalledProcessError), e:
             raise HelperError(args[0], kw['env'], e)
 
-    def copytree(self, src, dest, args=None):
-        call = ['rsync', '-a', '--delete']
-        if args is not None:
-            call += args
+    def copytree(self, src, dest, args=(), delete=True):
+        call = ['rsync', '-a']
+        if delete:
+            call.append('--delete')
+        call += args
         call += [src, dest]
         self.helper(*call)
 

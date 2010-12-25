@@ -4,7 +4,6 @@ from __future__ import print_function
 
 import os
 import os.path as P
-import textwrap
 
 from glob import glob
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError
@@ -284,34 +283,8 @@ class qt_headers(HeaderPackage):
         self.helper(*args)
 
     def install(self):
-        ext = ('.h', '.pro', '.pri')
-        def docopy(files, dirname, fnames):
-            accept = dirname.startswith('./include/')
-            for f in fnames:
-                if accept or P.splitext(f)[-1] in ext:
-                    full = P.join(dirname, f)
-                    if not P.isdir(full):
-                        files.append(full)
-
-        pwd = os.getcwd()
-        os.chdir(self.workdir)
-
-        files = []
-        # This is amazingly ugly. All because OSX has a broken find(1). Sigh.
-        try:
-            P.walk('./', docopy, files)
-            # account for the environment size, which also counts
-            env_size = 0
-            for key,val in os.environ.items():
-                env_size+= len(key) + len(val) + 3
-
-            max_length = (os.sysconf('SC_ARG_MAX') - len('cp -f --parent    ') - len(self.env['NOINSTALL_DIR']) - env_size) - 256
-            cmds = textwrap.wrap(' '.join(files), max_length, break_long_words=False)
-            for f in cmds:
-                run = ['cp', '-f', '--parent'] + f.split() + [self.env['NOINSTALL_DIR']]
-                self.helper(*run)
-        finally:
-            os.chdir(pwd)
+        include = ['--include=\'%s\'' % i for i in '***/include/*** *\.pro *\.pri *\.h */'.split()]
+        self.copytree(self.workdir + '/', self.env['NOINSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=\'*\''])
 
 class qwt_headers(HeaderPackage):
     src = 'http://downloads.sourceforge.net/qwt/qwt-5.2.0.tar.bz2',
