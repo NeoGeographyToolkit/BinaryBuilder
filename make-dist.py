@@ -59,9 +59,9 @@ def tarball_name():
     if opt.version is not None:
         return '%s-%s-%s-%s' % (opt.name, opt.version, arch.machine, arch.prettyos)
     else:
-        git = run('git', 'describe', '--always', need_output=False, raise_on_failure=False)
+        git = run('git', 'describe', '--always', '--dirty', output=False, raise_on_failure=False)
         if git is None: git = ''
-        if len(git): git = '%s-' % git
+        if len(git): git = '%s-' % git.strip()
         return '%s-%s-%s-%s%s' % (opt.name, arch.machine, arch.prettyos, git, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
 
 def sibling_to(dir, name):

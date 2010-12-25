@@ -8,7 +8,7 @@ import subprocess
 import sys
 import errno
 from optparse import OptionParser
-from tempfile import mkdtemp
+from tempfile import mkdtemp, gettempdir
 
 
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
@@ -47,8 +47,9 @@ def grablink(dst):
 
 
 def summary(env):
-    for i in 'DOWNLOAD BUILD INSTALL'.split():
-        print('\t%s: %s' % (i, env[i + '_DIR']))
+    print('===== Environment =====')
+    for k in sorted(env.keys()):
+        print('%15s: %s' % (k,env[k]))
 
 if __name__ == '__main__':
     parser = OptionParser()
@@ -65,8 +66,7 @@ if __name__ == '__main__':
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
     parser.add_option('--threads',    type='int',           dest='threads',      default=2*get_cores(),   help='Build threads to use')
     parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
-    parser.add_option('--build-dir',                        dest='build_dir',    default=None,            help='Root of the build')
-    parser.add_option('--install-dir',                      dest='install_dir',  default=None,            help='Root of the install')
+    parser.add_option('--build-root',                       dest='build_root',   default=None,            help='Root of the build and install')
     parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
 
     global opt
@@ -84,13 +84,10 @@ if __name__ == '__main__':
         die('--ccache and --save-temps conflict. Disabling ccache.')
 
     if opt.resume:
-        opt.build_dir   = grablink('last-build')
-        opt.install_dir = grablink('last-install')
+        opt.build_root = grablink('last-run')
 
-    if opt.build_dir is None or not P.exists(opt.build_dir):
-        opt.build_dir = mkdtemp(prefix='build')
-    if opt.install_dir is None or not P.exists(opt.install_dir):
-        opt.install_dir = mkdtemp(prefix='install')
+    if opt.build_root is None or not P.exists(opt.build_root):
+        opt.build_root = mkdtemp(prefix='BinaryBuilder')
 
     # -Wl,-z,now ?
     e = Environment(
@@ -102,8 +99,9 @@ if __name__ == '__main__':
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
                     MAKEOPTS='-j%s' % opt.threads,
                     DOWNLOAD_DIR = opt.download_dir,
-                    BUILD_DIR    = opt.build_dir,
-                    INSTALL_DIR  = opt.install_dir,
+                    BUILD_DIR    = P.join(opt.build_root, 'build'),
+                    INSTALL_DIR  = P.join(opt.build_root, 'install'),
+                    MISC_DIR = P.join(opt.build_root, 'misc'),
                     PATH=os.environ['PATH'],
                     **({} if opt.isisroot is None else dict(ISISROOT=opt.isisroot)))
 
@@ -141,14 +139,16 @@ if __name__ == '__main__':
         e.append('LDFLAGS', '-include %s' % limit_symbols)
 
     if opt.ccache:
-        compiler_dir = P.join(opt.build_dir, 'mycompilers')
+        compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
             CXX = P.join(compiler_dir, e['CXX']),
-            CCACHE_DIR = P.join(opt.download_dir, 'ccache-dir'))
+            CCACHE_DIR = P.join(opt.download_dir, 'ccache-dir'),
+            CCACHE_BASEDIR = gettempdir(),
+        )
 
         if not P.exists(compiler_dir):
-            os.mkdir(compiler_dir)
+            os.makedirs(compiler_dir)
         ccache_path = findfile('ccache', e['PATH'])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
@@ -186,8 +186,7 @@ if __name__ == '__main__':
         summary(e)
         sys.exit(0)
 
-    makelink(e['BUILD_DIR'], 'last-build')
-    makelink(e['INSTALL_DIR'], 'last-install')
+    makelink(opt.build_root, 'last-run')
 
     if opt.base:
         print('Untarring base system')
@@ -205,9 +204,7 @@ if __name__ == '__main__':
     except PackageError, e:
         die(e)
 
-
-    makelink(e['BUILD_DIR'], 'last-completed-build')
-    makelink(e['INSTALL_DIR'], 'last-completed-install')
+    makelink(opt.build_root, 'last-run')
 
     info('\n\nAll done!')
     summary(e)
