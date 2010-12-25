@@ -14,21 +14,21 @@ import sys
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
 LIB_SYSTEM_LIST = '''
-    AGL
-    Accelerate
-    AppKit
-    ApplicationServices
-    Carbon
-    Cocoa
-    CoreFoundation
-    CoreServices
-    GLUT
-    OpenGL
-    QuickTime
-    vecLib
+    AGL.framework/Versions/A/AGL
+    Accelerate.framework/Versions/A/Accelerate
+    ApplicationServices.framework/Versions/A/ApplicationServices
+    Carbon.framework/Versions/A/Carbon
+    Cocoa.framework/Versions/A/Cocoa
+    CoreFoundation.framework/Versions/A/CoreFoundation
+    CoreServices.framework/Versions/A/CoreServices
+    GLUT.framework/Versions/A/GLUT
+    OpenGL.framework/Versions/A/OpenGL
+    QuickTime.framework/Versions/A/QuickTime
+    vecLib.framework/Versions/A/vecLib
 
     libobjc.A.dylib
     libSystem.B.dylib
+    libmathCommon.A.dylib
 
     libGL.so.1
     libGLU.so.1

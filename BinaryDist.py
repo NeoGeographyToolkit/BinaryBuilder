@@ -228,7 +228,13 @@ def otool(filename):
                 sopath = m.group(1)
                 soname = P.basename(sopath)
             else:
-                libs[P.basename(m.group(1))] = m.group(1)
+                sopath = m.group(1)
+                fidx = sopath.rfind('.framework')
+                if fidx >= 0:
+                    soname = sopath[sopath.rfind('/', 0, fidx)+1:]
+                else:
+                    soname = P.basename(sopath)
+                libs[soname] = sopath
     return Ret(soname=soname, sopath=sopath, libs=libs)
 
 def required_libs(filename):
@@ -352,7 +358,7 @@ def set_rpath(filename, toplevel, searchpath):
     def osx():
         info = otool(filename)
         info.libs[info.soname] = info.sopath
-        for sopath in info.libs.values():
+        for soname, sopath in info.libs.iteritems():
             # /tmp/build/install/lib/libvwCore.5.dylib
             # base = libvwCore.5.dylib
             # looks for @executable_path/../lib/libvwCore.5.dylib
@@ -360,11 +366,6 @@ def set_rpath(filename, toplevel, searchpath):
             # /opt/local/libexec/qt4-mac/lib/QtXml.framework/Versions/4/QtXml
             # base = QtXml.framework/Versions/4/QtXml
             # looks for @executable_path/../lib/QtXml.framework/Versions/4/QtXml
-            fidx = sopath.rfind('.framework')
-            if fidx >= 0:
-                soname = sopath[sopath.rfind('/', 0, fidx)+1:]
-            else:
-                soname = P.basename(sopath)
 
             # OSX rpath points to one specific file, not anything that matches the
             # library SONAME. We've already done a whitelist check earlier, so
