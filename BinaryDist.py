@@ -131,13 +131,14 @@ class DistManager(object):
         if isinstance(exclude, basestring):
             exclude = [exclude]
 
-        cmd = ['tar', 'czf', name, '-C', P.dirname(self.distdir), self.tarname]
+        cmd = ['tar', 'czf', name, '-C', P.dirname(self.distdir)]
         if include:
             cmd += ['--no-recursion']
         for i in include:
             cmd += ['-T', i]
         for e in exclude:
             cmd += ['-X', e]
+        cmd.append(self.tarname)
 
         logger.info('Creating tarball %s' % name)
         run(*cmd)
@@ -145,9 +146,11 @@ class DistManager(object):
     def find_filter(self, *filter, **kw):
         dir = kw.get('dir', self.tarname)
         cwd = kw.get('cwd', P.dirname(self.distdir))
+        cmd = ['find', dir] + list(filter)
+        out = run(*cmd, cwd=cwd)
         files = NamedTemporaryFile()
-        cmd = ['find', dir] + list(filter) + ['-fprint', files.name]
-        run(*cmd, cwd=cwd)
+        files.write(out)
+        files.flush()
         return files
 
     def _add_file(self, src, dst, hardlink=False, keep_symlink=True, add_deps=True):
