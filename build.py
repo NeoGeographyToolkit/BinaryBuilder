@@ -89,6 +89,9 @@ if __name__ == '__main__':
     if opt.build_root is None or not P.exists(opt.build_root):
         opt.build_root = mkdtemp(prefix='BinaryBuilder')
 
+    # Things misbehave if the buildroot is symlinks in it
+    opt.build_root = P.realpath(opt.build_root)
+
     # -Wl,-z,now ?
     e = Environment(
                     CC       = 'gcc',
@@ -204,7 +207,7 @@ if __name__ == '__main__':
     except PackageError, e:
         die(e)
 
-    makelink(opt.build_root, 'last-run')
+    makelink(opt.build_root, 'last-completed-run')
 
     info('\n\nAll done!')
     summary(e)

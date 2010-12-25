@@ -86,16 +86,22 @@ if __name__ == '__main__':
     global opt
     (opt, args) = parser.parse_args()
 
-    if args is None or len(args) == 0:
+    def usage(msg, code=-1):
         parser.print_help()
-        print('\nMissing required argument: installdir')
-        sys.exit(-1)
+        print('\n%s' % msg)
+        sys.exit(code)
+
+    if not args:
+        usage('Missing required argument: installdir')
+    installdir = P.realpath(args[0])
+    if not (P.exists(installdir) and P.isdir(installdir)):
+        usage('Invalid installdir %s (not a directory)' % installdir)
 
     logging.basicConfig(level=opt.loglevel)
 
     mgr = DistManager(tarball_name())
 
-    INSTALLDIR = Prefix(args[0])
+    INSTALLDIR = Prefix(installdir)
     ISISROOT   = P.join(INSTALLDIR, 'isis')
     SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
