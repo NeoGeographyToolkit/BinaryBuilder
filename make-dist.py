@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-from BinaryDist import grep, DistManager, Prefix
+from BinaryDist import grep, DistManager, Prefix, run
 
 import time
 import os.path as P
@@ -59,7 +59,10 @@ def tarball_name():
     if opt.version is not None:
         return '%s-%s-%s-%s' % (opt.name, opt.version, arch.machine, arch.prettyos)
     else:
-        return '%s-%s-%s-%s' % (opt.name, arch.machine, arch.prettyos, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
+        git = run('git', 'describe', '--always', need_output=False, raise_on_failure=False)
+        if git is None: git = ''
+        if len(git): git = '%s-' % git
+        return '%s-%s-%s-%s%s' % (opt.name, arch.machine, arch.prettyos, git, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
 
 def sibling_to(dir, name):
     ''' get a pathname for a directory 'name' which is a sibling of directory 'dir' '''
