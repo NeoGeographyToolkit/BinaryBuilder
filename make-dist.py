@@ -2,17 +2,14 @@
 
 from __future__ import print_function
 
-from BinaryDist import grep, DistManager, Prefix, mergetree, copy
+from BinaryDist import grep, DistManager, Prefix
 
 import time
 import os.path as P
 import logging
-import fileinput
 from optparse import OptionParser
-from BinaryBuilder import get_platform, run
-from tempfile import mkdtemp
+from BinaryBuilder import get_platform
 import sys
-from functools import partial
 
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
@@ -78,7 +75,6 @@ def isis_version(isisroot):
 
 if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
-    parser.add_option('--base',        dest='base',      default=[], action='append', help='Provide a tarball to use as a base system')
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
     parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
     parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
@@ -96,26 +92,13 @@ if __name__ == '__main__':
 
     mgr = DistManager(tarball_name())
 
-    if opt.base:
-        INSTALLDIR = Prefix(mkdtemp(prefix='newinstall'))
-        print('Untarring base system')
-        for base in opt.base:
-            run('tar', 'xf', base, '-C', INSTALLDIR, '--strip-components', '1')
-        baselist = mgr.find_filter('!', '-type', 'd', dir=INSTALLDIR)
-        for line in fileinput.input(baselist.name, inplace=True):
-            print(line.replace(INSTALLDIR, P.basename(mgr.distdir)), end='')
-        print('Merging in requested install dir')
-        mergetree(Prefix(args[0]), INSTALLDIR, partial(copy, hardlink=True))
-    else:
-        baselist = mgr.find_filter('-type', 'f')
-        INSTALLDIR = Prefix(args[0])
-
+    INSTALLDIR = Prefix(args[0])
     ISISROOT   = P.join(INSTALLDIR, 'isis')
     SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
 
     if opt.include == 'all':
         mgr.add_directory(INSTALLDIR, hardlink=True)
-        mgr.make_tarball(exclude = baselist.name)
+        mgr.make_tarball()
         sys.exit(0)
     else:
         print('Adding requested files')
@@ -161,6 +144,6 @@ if __name__ == '__main__':
 
     debuglist = mgr.find_filter('-name', '*.debug')
 
-    mgr.make_tarball(exclude = [debuglist.name, baselist.name])
+    mgr.make_tarball(exclude = [debuglist.name])
     if P.getsize(debuglist.name) > 0:
-        mgr.make_tarball(include = debuglist.name, exclude = baselist.name, name = '%s-debug.tar.gz' % mgr.tarname)
+        mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.gz' % mgr.tarname)
