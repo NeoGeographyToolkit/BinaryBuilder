@@ -235,11 +235,11 @@ class boost(Package):
         self.helper(*cmd)
 
 class HeaderPackage(Package):
-    @stage
     def configure(self, *args, **kw):
         kw['other'] = kw.get('other', []) + ['--prefix=%(NOINSTALL_DIR)s' % self.env,]
         super(HeaderPackage, self).configure(*args, **kw)
 
+    @stage
     def compile(self): pass
 
     @stage
@@ -276,12 +276,14 @@ class qt_headers(HeaderPackage):
     def __init__(self, env):
         super(qt_headers, self).__init__(env)
 
+    @stage
     def configure(self):
         args = ['./configure', '-opensource', '-fast', '-confirm-license']
         if self.arch.os == 'osx':
             args.append('-no-framework')
         self.helper(*args)
 
+    @stage
     def install(self):
         include = ['--include=\'%s\'' % i for i in '***/include/*** *\.pro *\.pri *\.h */'.split()]
         self.copytree(self.workdir + '/', self.env['NOINSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=\'*\''])
@@ -467,7 +469,6 @@ class osg(CMakePackage):
     chksum = '90502e4cbd47aac1689cc39d25ab62bbe0bba9fc'
     patches = 'patches/osg'
 
-    @stage
     def configure(self):
         super(osg, self).configure(
                 with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
