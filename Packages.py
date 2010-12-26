@@ -278,15 +278,15 @@ class qt_headers(HeaderPackage):
 
     @stage
     def configure(self):
-        args = ['./configure', '-opensource', '-fast', '-confirm-license']
+        args = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake tools -nomake translations'.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
         self.helper(*args)
 
     @stage
     def install(self):
-        include = ['--include=\'%s\'' % i for i in '***/include/*** *\.pro *\.pri *\.h */'.split()]
-        self.copytree(self.workdir + '/', self.env['NOINSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=\'*\''])
+        include = ['--include=%s' % i for i in '**/include/** */'.split()]
+        self.copytree(self.workdir + '/', self.env['NOINSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=*'])
 
 class qwt_headers(HeaderPackage):
     src = 'http://downloads.sourceforge.net/qwt/qwt-5.2.0.tar.bz2',
