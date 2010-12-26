@@ -285,7 +285,7 @@ class qt_headers(HeaderPackage):
 
     @stage
     def install(self):
-        include = ['--include=%s' % i for i in '**/include/** */'.split()]
+        include = ['--include=%s' % i for i in '**/include/** *.h */'.split()]
         self.copytree(self.workdir + '/', self.env['NOINSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=*'])
 
 class qwt_headers(HeaderPackage):
