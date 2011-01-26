@@ -9,7 +9,7 @@ import sys
 import errno
 from optparse import OptionParser
 from tempfile import mkdtemp, gettempdir
-
+from distutils import version
 
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
@@ -131,8 +131,11 @@ if __name__ == '__main__':
         e.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (target, sysroot))
 
         # Resolve a bug with -mmacosx-version-min on 10.6 (see
-        # http://markmail.org/message/45nbrtxsxvsjedpn)
-        e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
+        # http://markmail.org/message/45nbrtxsxvsjedpn).
+        # Short version: 10.6 generates the new compact header (LD_DYLD_INFO)
+        # even when told to support 10.5 (which can't read it)
+        if version.StrictVersion(arch.dist_version) >= '10.6':
+            e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
 
     e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 

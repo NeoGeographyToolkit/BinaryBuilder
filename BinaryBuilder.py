@@ -25,14 +25,22 @@ logger = logging.getLogger()
 def get_platform(pkg=None):
     system  = platform.system()
     machine = platform.machine()
-    p = namedtuple('Platform', 'os bits osbits system machine prettyos')
+    p = namedtuple('Platform', 'os bits osbits system machine prettyos dist_name dist_version')
+
+    if system == 'Linux':
+        dist = platform.linux_distribution(full_distribution_name=0)
+        name = dist[0]
+        ver  = dist[1]
+    elif system == 'Darwin':
+        name = 'Darwin'
+        ver  = platform.mac_ver()[0]
 
     if system == 'Linux' and machine == 'x86_64':
-        return p('linux', 64, 'linux64', system, machine, 'Linux')
+        return p('linux', 64, 'linux64', system, machine, 'Linux', name, ver)
     elif system == 'Linux' and machine == 'i686':
-        return p('linux', 32, 'linux32', system, machine, 'Linux')
+        return p('linux', 32, 'linux32', system, machine, 'Linux', name, ver)
     elif system == 'Darwin' and machine == 'i386':
-        return p('osx', 32, 'osx32', system, machine, 'OSX')
+        return p('osx', 32, 'osx32', system, machine, 'OSX', name, ver)
     else:
         message = 'Cannot match system to known platform'
         if pkg is None:
