@@ -401,8 +401,7 @@ class Package(object):
         if P.isdir(output_dir):
             info("Removing old build dir")
             rmtree(output_dir, False)
-
-        os.mkdir(output_dir)
+        os.makedirs(output_dir)
 
 class GITPackage(Package):
     def __init__(self, env):
