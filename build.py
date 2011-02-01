@@ -139,10 +139,9 @@ if __name__ == '__main__':
 
     e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 
-    # XXX LDFLAGS? What?
     if arch.osbits == 'linux32':
         limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
-        e.append('LDFLAGS', '-include %s' % limit_symbols)
+        e.append('CPPFLAGS', '-include %s' % limit_symbols)
 
     if opt.ccache:
         compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
