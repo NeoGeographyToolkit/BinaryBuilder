@@ -9,8 +9,8 @@ from glob import glob
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/gdal-1.7.3.tar.gz'
-    chksum  = '58d4355fe792ad618bb74605dc1a084a0aeb7cb1'
+    src     = 'http://download.osgeo.org/gdal/gdal-1.8.0.tar.gz'
+    chksum  = 'e5a2802933054050c6fb0b0a0e1f46b5dd195b0a'
     patches = 'patches/gdal'
 
     def configure(self):
