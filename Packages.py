@@ -136,7 +136,7 @@ class visionworkbench(GITPackage):
 
         enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools bundleadjustment'.split()
         disable_modules = 'gpu plate python gui photometry'.split()
-        install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf'.split()
+        install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
 
         w  = [i + '=%(INSTALL_DIR)s' % self.env for i in install_pkgs]
         w.append('protobuf=%(INSTALL_DIR)s' % self.env)
@@ -474,5 +474,13 @@ class osg(CMakePackage):
                 with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
                 without='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
                 other=['-DBUILD_OSG_APPLICATIONS=ON'])
+
+class flann(CMakePackage):
+    src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.6.8-src.zip'
+    chksum = '35e8ca5dd76a1c36652e3c41fc3591a3d6f542c2'
+    patches = 'patches/flann'
+
+    def configure(self):
+        super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF -DBUILD_MATLAB_BINDINGS=OFF -DBUILD_PYTHON_BINDINGS=OFF'])
 
 # vim:foldmethod=indent

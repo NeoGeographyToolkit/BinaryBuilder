@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.6
 
 from __future__ import print_function
 
@@ -14,7 +14,8 @@ from distutils import version
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                zlib_headers, png_headers, isis_local, protobuf_headers, jpeg_headers
+                zlib_headers, png_headers, isis_local, protobuf_headers, jpeg_headers, \
+                flann
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run
 
@@ -176,7 +177,7 @@ if __name__ == '__main__':
         elif arch.os == 'osx':
             build.extend([zlib_headers, png_headers, jpeg_headers])
 
-        build.extend([proj, gdal, ilmbase, openexr, boost, osg])
+        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann])
 
         if arch.os == 'linux':
             build.append(lapack)

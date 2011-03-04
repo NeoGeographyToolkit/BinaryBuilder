@@ -1,0 +1,28 @@
+diff -urN flann-1.6.8-src-clean/cmake/flann_utils.cmake flann-1.6.8-src/cmake/flann_utils.cmake
+--- flann-1.6.8-src-clean/cmake/flann_utils.cmake	2011-02-26 00:36:53.000000000 -0800
++++ flann-1.6.8-src/cmake/flann_utils.cmake	2011-03-04 21:53:28.000000000 -0800
+@@ -1,11 +1,7 @@
+ macro(GET_OS_INFO)
+     string(REGEX MATCH "Linux" OS_IS_LINUX ${CMAKE_SYSTEM_NAME})
+     if(OS_IS_LINUX)
+-        if(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+-            set(FLANN_LIB_INSTALL_DIR "lib64")
+-        else(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+-            set(FLANN_LIB_INSTALL_DIR "lib")
+-        endif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
++        set(FLANN_LIB_INSTALL_DIR "lib")
+     else(OS_IS_LINUX)
+         set(FLANN_LIB_INSTALL_DIR "lib")
+     endif(OS_IS_LINUX)
+diff -urN flann-1.6.8-src-clean/doc/CMakeLists.txt flann-1.6.8-src/doc/CMakeLists.txt
+--- flann-1.6.8-src-clean/doc/CMakeLists.txt	2011-02-26 00:36:53.000000000 -0800
++++ flann-1.6.8-src/doc/CMakeLists.txt	2011-03-04 21:53:57.000000000 -0800
+@@ -1,6 +1,6 @@
+-find_package(LATEX)
++#find_package(LATEX)
+  
+-if (EXISTS ${PDFLATEX_COMPILER} AND EXISTS ${BIBTEX_COMPILER})
++if (EXISTS "${PDFLATEX_COMPILER}" AND EXISTS "${BIBTEX_COMPILER}")
+     include(${PROJECT_SOURCE_DIR}/cmake/UseLATEX.cmake)
+ 
+     add_latex_document(manual.tex BIBFILES references.bib DEFAULT_PDF)
