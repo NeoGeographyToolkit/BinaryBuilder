@@ -84,6 +84,7 @@ if __name__ == '__main__':
     parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
     parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
     parser.add_option('--set-name',    dest='name',      default='StereoPipeline', help='Tarball name for this dist')
+    parser.add_option('--isisroot',    dest='isisroot',  default=None, help='Use a locally-installed isis at this root')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -98,6 +99,9 @@ if __name__ == '__main__':
     installdir = P.realpath(args[0])
     if not (P.exists(installdir) and P.isdir(installdir)):
         usage('Invalid installdir %s (not a directory)' % installdir)
+    if opt.isisroot is not None and not P.isdir(opt.isisroot):
+        parser.print_help()
+        die('\nIllegal argument to --isisroot: path does not exist')
 
     logging.basicConfig(level=opt.loglevel)
 
@@ -106,6 +110,8 @@ if __name__ == '__main__':
     INSTALLDIR = Prefix(installdir)
     ISISROOT   = P.join(INSTALLDIR, 'isis')
     SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
+    if opt.isisroot is not None:
+        ISISROOT = opt.isisroot
 
     if opt.include == 'all':
         mgr.add_directory(INSTALLDIR, hardlink=True)
@@ -139,7 +145,7 @@ if __name__ == '__main__':
     mgr.remove_deps(LIB_SYSTEM_LIST)
 
     print('\tFinding deps in search path')
-    mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
+    mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'),'/usr/lib'],
                        copy = [INSTALLDIR.lib()])
     if mgr.deplist:
         raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
