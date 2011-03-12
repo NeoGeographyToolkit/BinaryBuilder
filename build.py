@@ -75,10 +75,6 @@ if __name__ == '__main__':
 
     tweak_path(opt.coreutils)
 
-    # GDAL 1.8.0 is mostly threads safe. However it hits a race
-    # condition if you are building with more than 16 threads.
-    if ( opt.threads > 16 ):
-        opt.threads = 16
     info('Using %d build processes' % opt.threads)
 
     if opt.isisroot is not None and not P.isdir(opt.isisroot):
