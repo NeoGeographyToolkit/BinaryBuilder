@@ -206,7 +206,7 @@ if __name__ == '__main__':
 
     try:
         for pkg in build:
-            modes[opt.mode](pkg(e))
+            modes[opt.mode](pkg(e.copy_set_default()))
     except PackageError, e:
         die(e)
 
