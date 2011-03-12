@@ -8,7 +8,7 @@ import time
 import os.path as P
 import logging
 from optparse import OptionParser
-from BinaryBuilder import get_platform
+from BinaryBuilder import get_platform, die
 import sys
 
 # These are the SONAMES for libs we're allowed to get from the base system
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     mgr.remove_deps(LIB_SYSTEM_LIST)
 
     print('\tFinding deps in search path')
-    mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'),'/usr/lib'],
+    mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
                        copy = [INSTALLDIR.lib()])
     if mgr.deplist:
         raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
