@@ -4,14 +4,40 @@ from __future__ import print_function
 
 import os
 import os.path as P
+import re
 
 from glob import glob
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError
+
+def strip_flag(flag, key, env):
+    ret = []
+    hit = None
+    if not key in env:
+        return
+    for test in env[key].split():
+        m = re.search(flag, test)
+        if m:
+            hit = m
+        else:
+            ret.append(test)
+    if ret:
+        env[key] = ' '.join(ret).strip()
+    else:
+        del env[key]
+    return hit, env
 
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/gdal-1.8.0.tar.gz'
     chksum  = 'e5a2802933054050c6fb0b0a0e1f46b5dd195b0a'
     patches = 'patches/gdal'
+
+    def __init__(self, env):
+        super(gdal, self).__init__(env)
+        j, self.env = strip_flag('-j(\d+)', 'MAKEOPTS', self.env)
+        if j:
+            j = int(j.group(1))
+            if j > 16: j = 16
+            self.env.append('MAKEOPTS', '-j%s' % j)
 
     def configure(self):
         w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib']
