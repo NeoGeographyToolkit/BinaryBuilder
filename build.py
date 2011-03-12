@@ -15,7 +15,7 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 zlib_headers, png_headers, isis_local, protobuf_headers, jpeg_headers, \
-                flann
+                flann, curl
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run
 
@@ -177,7 +177,7 @@ if __name__ == '__main__':
         elif arch.os == 'osx':
             build.extend([zlib_headers, png_headers, jpeg_headers])
 
-        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann])
+        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl])
 
         if arch.os == 'linux':
             build.append(lapack)

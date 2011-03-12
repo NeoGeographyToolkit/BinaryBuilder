@@ -83,19 +83,26 @@ class proj(Package):
     def configure(self):
         super(proj,self).configure(disable='static')
 
+class curl(Package):
+    src     = 'http://curl.haxx.se/download/curl-7.15.5.tar.gz'
+    chksum  = '32586c893e7d9246284af38d8d0f5082e83959af'
+
+    def configure(self):
+        super(curl,self).configure(disable='static', without=['ssl','libidn'])
+
 class stereopipeline(GITPackage):
     src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
         self.helper('./autogen')
 
-        disable_apps = 'aligndem bundleadjust demprofile geodiff isisadjustwrite plateorthoproject reconstruct results rmax2cahvor rmaxadjust'
+        disable_apps = 'aligndem bundleadjust demprofile geodiff isisadjustcameraerr isisadjustcnetclip plateorthoproject reconstruct results rmax2cahvor rmaxadjust stereogui'
         enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz orthoproject point2dem point2mesh stereo'
         disable_modules  = 'photometrytk controlnettk mpi'
         enable_modules   = 'core spiceio isisio sessions'
 
         noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
-                          vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt'.split()
+                          vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt curl'.split()
 
         if self.arch.os == 'linux':
             noinstall_pkgs += ['superlu']
