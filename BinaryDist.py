@@ -25,10 +25,14 @@ class DistManager(object):
 
     def __init__(self, tarname):
         self.tarname = tarname
-        self.distdir = Prefix(P.join(mkdtemp(prefix='dist'), self.tarname))
+        self.tempdir = mkdtemp(prefix='dist')
+        self.distdir = Prefix(P.join(self.tempdir, self.tarname))
         self.distlist = set()
         self.deplist  = dict()
         mkdir_f(self.distdir)
+
+    def remove_tempdir(self):
+        shutil.rmtree(self.tempdir, True)
 
     def add_executable(self, inpath, wrapper_file='libexec-helper.sh', keep_symlink=True):
         ''' 'inpath' should be a file. This will add the executable to libexec/

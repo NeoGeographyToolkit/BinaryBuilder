@@ -82,6 +82,7 @@ if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
     parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
+    parser.add_option('--keep-temp',   dest='keeptemp',  default=False, action='store_true', help='Keep tmp distdir around for debugging')
     parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
     parser.add_option('--set-name',    dest='name',      default='StereoPipeline', help='Tarball name for this dist')
     parser.add_option('--isisroot',    dest='isisroot',  default=None, help='Use a locally-installed isis at this root')
@@ -107,60 +108,64 @@ if __name__ == '__main__':
 
     mgr = DistManager(tarball_name())
 
-    INSTALLDIR = Prefix(installdir)
-    ISISROOT   = P.join(INSTALLDIR, 'isis')
-    SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
-    if opt.isisroot is not None:
-        ISISROOT = opt.isisroot
+    try:
+        INSTALLDIR = Prefix(installdir)
+        ISISROOT   = P.join(INSTALLDIR, 'isis')
+        SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
+        if opt.isisroot is not None:
+            ISISROOT = opt.isisroot
 
-    if opt.include == 'all':
-        mgr.add_directory(INSTALLDIR, hardlink=True)
-        mgr.make_tarball()
-        sys.exit(0)
-    else:
-        print('Adding requested files')
-        with file(opt.include, 'r') as f:
-            for line in f:
-                mgr.add_glob(line.strip(), INSTALLDIR)
+        if opt.include == 'all':
+            mgr.add_directory(INSTALLDIR, hardlink=True)
+            mgr.make_tarball()
+            sys.exit(0)
+        else:
+            print('Adding requested files')
+            with file(opt.include, 'r') as f:
+                for line in f:
+                    mgr.add_glob(line.strip(), INSTALLDIR)
 
-    print('Adding ISIS version check')
-    with mgr.create_file('libexec/constants.sh') as f:
-        print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
+        print('Adding ISIS version check')
+        with mgr.create_file('libexec/constants.sh') as f:
+            print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
 
-    print('Adding libraries')
+        print('Adding libraries')
 
-    print('\tAdding forced-ship libraries')
-    # Handle the shiplist separately
-    for copy_lib in LIB_SHIP_PREFIX:
-        found = None
-        for soname in mgr.deplist.keys():
-            if soname.startswith(copy_lib):
-                found = soname
-                break
-        if found:
-            mgr.add_library(mgr.deplist[found])
-            mgr.remove_deps([found])
+        print('\tAdding forced-ship libraries')
+        # Handle the shiplist separately
+        for copy_lib in LIB_SHIP_PREFIX:
+            found = None
+            for soname in mgr.deplist.keys():
+                if soname.startswith(copy_lib):
+                    found = soname
+                    break
+            if found:
+                mgr.add_library(mgr.deplist[found])
+                mgr.remove_deps([found])
 
-    print('\tRemoving system libs')
-    mgr.remove_deps(LIB_SYSTEM_LIST)
+        print('\tRemoving system libs')
+        mgr.remove_deps(LIB_SYSTEM_LIST)
 
-    print('\tFinding deps in search path')
-    mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
-                       copy = [INSTALLDIR.lib()])
-    if mgr.deplist:
-        raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
+        print('\tFinding deps in search path')
+        mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
+                           copy = [INSTALLDIR.lib()])
+        if mgr.deplist:
+            raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
 
-    print('Adding files in dist-add and docs')
-    #XXX Don't depend on cwd
-    for dir in 'dist-add', INSTALLDIR.doc():
-        if P.exists(dir):
-            mgr.add_directory(dir)
+        print('Adding files in dist-add and docs')
+        #XXX Don't depend on cwd
+        for dir in 'dist-add', INSTALLDIR.doc():
+            if P.exists(dir):
+                mgr.add_directory(dir)
 
-    print('Baking RPATH and stripping binaries')
-    mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH))
+        print('Baking RPATH and stripping binaries')
+        mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH))
 
-    debuglist = mgr.find_filter('-name', '*.debug')
+        debuglist = mgr.find_filter('-name', '*.debug')
 
-    mgr.make_tarball(exclude = [debuglist.name])
-    if P.getsize(debuglist.name) > 0:
-        mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.gz' % mgr.tarname)
+        mgr.make_tarball(exclude = [debuglist.name])
+        if P.getsize(debuglist.name) > 0:
+            mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.gz' % mgr.tarname)
+    finally:
+        if not opt.keeptemp:
+            mgr.remove_tempdir()
