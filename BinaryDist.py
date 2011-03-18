@@ -372,7 +372,11 @@ def set_rpath(filename, toplevel, searchpath):
             logger.warn('Failed to set_rpath on %s' % filename)
     def osx():
         info = otool(filename)
-        info.libs[info.soname] = info.sopath
+
+        # soname is None for an executable
+        if info.soname is not None:
+            info.libs[info.soname] = info.sopath
+
         for soname, sopath in info.libs.iteritems():
             # /tmp/build/install/lib/libvwCore.5.dylib
             # base = libvwCore.5.dylib
