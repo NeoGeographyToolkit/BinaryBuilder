@@ -227,13 +227,17 @@ def otool(filename):
     for i in range(1, len(lines)):
         m = r.search(lines[i])
         if m:
-            sopath = m.group(1)
-            fidx = sopath.rfind('.framework')
-            if fidx >= 0:
-                soname = sopath[sopath.rfind('/', 0, fidx)+1:]
-            else:
+            if i == 1:
+                sopath = m.group(1)
                 soname = P.basename(sopath)
-            libs[soname] = sopath
+            else:
+                sopath = m.group(1)
+                fidx = sopath.rfind('.framework')
+                if fidx >= 0:
+                    soname = sopath[sopath.rfind('/', 0, fidx)+1:]
+                else:
+                    soname = P.basename(sopath)
+                libs[soname] = sopath
     return Ret(soname=soname, sopath=sopath, libs=libs)
 
 def required_libs(filename):
