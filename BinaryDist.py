@@ -222,23 +222,31 @@ def otool(filename):
     r = re.compile('^\s*(\S+)')
     lines = run('otool', '-L', filename, output=True).split('\n')
     libs = {}
-    soname = None
-    sopath = None
+    out = filter(lambda x: len(x.strip()), run('otool', '-D', filename, output=True).split('\n'))
+    assert len(out) > 0, 'Empty output for otool -D %s' % filename
+    assert len(out) < 3, 'Unexpected otool output: %s' % out
+
+    this_soname = None
+    this_sopath = None
+
+    if len(out) == 2:
+        this_sopath = out[1]
+        this_soname = P.basename(this_sopath)
+
     for i in range(1, len(lines)):
         m = r.search(lines[i])
         if m:
-            if i == 1:
-                sopath = m.group(1)
-                soname = P.basename(sopath)
+            sopath = m.group(1)
+            if this_sopath is not None and this_sopath == sopath:
+                continue
+
+            fidx = sopath.rfind('.framework')
+            if fidx >= 0:
+                soname = sopath[sopath.rfind('/', 0, fidx)+1:]
             else:
-                sopath = m.group(1)
-                fidx = sopath.rfind('.framework')
-                if fidx >= 0:
-                    soname = sopath[sopath.rfind('/', 0, fidx)+1:]
-                else:
-                    soname = P.basename(sopath)
-                libs[soname] = sopath
-    return Ret(soname=soname, sopath=sopath, libs=libs)
+                soname = P.basename(sopath)
+            libs[soname] = sopath
+    return Ret(soname=this_soname, sopath=this_sopath, libs=libs)
 
 def required_libs(filename):
     ''' Returns a dict where the keys are required SONAMEs and the values are proposed full paths. '''
