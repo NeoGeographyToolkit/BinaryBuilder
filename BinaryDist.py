@@ -11,10 +11,19 @@ from collections import namedtuple
 from BinaryBuilder import get_platform, run, hash_file
 from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
-from functools import partial
+from functools import partial, wraps
 
 global logger
 logger = logging.getLogger()
+
+def doctest_on(os):
+    def outer(f):
+        @wraps(f)
+        def inner(*args, **kw): return f(*args, **kw)
+        if get_platform().os != os:
+            inner.__doc__ = '%s is only supported on %s' % (inner.__name__, os)
+        return inner
+    return outer
 
 def default_baker(filename, distdir, searchpath):
     if not is_binary(filename): return
@@ -198,7 +207,16 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
         logger.debug('%8s %s -> %s' % ('copy', src, dst))
         shutil.copy2(src, dst)
 
+@doctest_on('linux')
 def readelf(filename):
+    ''' Run readelf on a file
+
+    >>> readelf('/lib/libc.so.6') # doctest:+ELLIPSIS
+    readelf(needed=['ld-linux-...'], soname='libc.so.6', rpath=[])
+    >>> readelf('/bin/ls') # doctest:+ELLIPSIS
+    readelf(needed=[..., 'libc.so.6'], soname=None, rpath=[])
+    '''
+
     Ret = namedtuple('readelf', 'needed soname rpath')
     r = re.compile(' \((.*?)\).*\[(.*?)\]')
     needed = []
@@ -212,7 +230,17 @@ def readelf(filename):
             elif m.group(1) == 'RPATH' : rpath  = m.group(2).split(':')
     return Ret(needed, soname, rpath)
 
+@doctest_on('linux')
 def ldd(filename):
+    ''' Run ldd on a file
+
+    >>> ldd('/lib/libc.so.6')
+    {}
+    >>> ldd('/bin/ls') # doctest:+ELLIPSIS
+    {..., 'libc.so.6': '/lib/libc.so.6'}
+
+    '''
+
     libs = {}
     r = re.compile('^\s*(\S+) => (\S+)')
     for line in run('ldd', filename, output=True).split('\n'):
@@ -221,7 +249,15 @@ def ldd(filename):
             libs[m.group(1)] = (None if m.group(2) == 'not' else m.group(2))
     return libs
 
+@doctest_on('osx')
 def otool(filename):
+    ''' Run otool on a binary
+    >>> otool('/usr/lib/libSystem.B.dylib')
+    otool(soname='libSystem.B.dylib', sopath='/usr/lib/libSystem.B.dylib', libs={'libmathCommon.A.dylib': '/usr/lib/system/libmathCommon.A.dylib'})
+    >>> otool('/bin/ls')
+    otool(soname=None, sopath=None, libs={'libSystem.B.dylib': '/usr/lib/libSystem.B.dylib', 'libncurses.5.4.dylib': '/usr/lib/libncurses.5.4.dylib'})
+    '''
+
     Ret = namedtuple('otool', 'soname sopath libs')
     r = re.compile('^\s*(\S+)')
     lines = run('otool', '-L', filename, output=True).split('\n')
@@ -412,3 +448,7 @@ def snap_symlinks(src):
     if not P.islink(src):
         return [src]
     return [src] + snap_symlinks(P.join(P.dirname(src), readlink(src)))
+
+if __name__ == '__main__':
+    import doctest
+    doctest.testmod()
