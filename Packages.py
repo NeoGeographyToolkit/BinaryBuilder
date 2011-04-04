@@ -40,11 +40,11 @@ class gdal(Package):
             self.env.append('MAKEOPTS', '-j%s' % j)
 
     def configure(self):
-        w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib']
+        w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
         wo = \
           '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
-             macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pam pcidsk
+             macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
              pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
              static-proj4 xerces xerces-inc xerces-lib'''.split()
 
