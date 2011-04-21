@@ -20,4 +20,5 @@ bin/image2qtree
 bin/ipfind
 bin/ipmatch
 bin/osgviewer
+bin/mer2camera
 lib/osgPlugins-*/osgdb_*
