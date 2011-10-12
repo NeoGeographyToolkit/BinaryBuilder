@@ -280,8 +280,8 @@ class HeaderPackage(Package):
         self.helper('make', 'install-data')
 
 class gsl_headers(HeaderPackage):
-    src = 'http://mirrors.kernel.org/gnu/gsl/gsl-1.13.tar.gz',
-    chksum = '02db78b9583bc7b2a577da6f45f5dd9f23ef737e',
+    src = 'ftp://ftp.gnu.org/gnu/gsl/gsl-1.3.tar.gz',
+    chksum = 'ecde676adb997adbd507a7a7974bb7f6f69f9d87',
 
 class geos_headers(HeaderPackage):
     src = 'http://download.osgeo.org/geos/geos-3.2.0.tar.bz2',
