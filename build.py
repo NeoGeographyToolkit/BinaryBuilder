@@ -14,7 +14,7 @@ from distutils import version
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                zlib_headers, png_headers, isis_local, protobuf_headers, jpeg_headers, \
+                zlib_headers, png_headers, isis_local, protobuf, jpeg_headers, \
                 flann, curl
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run
@@ -170,7 +170,7 @@ if __name__ == '__main__':
         build = [isis_local if opt.isisroot is not None else isis]
 
         # Many things depend on isis 3rdparty, so do it before the rest
-        build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf_headers]
+        build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf]
 
         if arch.os == 'linux':
             build.extend([zlib, png, jpeg])

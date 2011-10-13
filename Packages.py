@@ -179,6 +179,8 @@ class visionworkbench(GITPackage):
                 print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
                                                                     P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+            # Specify executables we use
+            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')))
 
         super(visionworkbench, self).configure(with_   = w,
                                                without = ('tiff hdf cairomm zeromq rabbitmq_c tcmalloc x11 clapack slapack qt opencv cg'.split()),
@@ -407,22 +409,30 @@ class cspice_headers(HeaderPackage):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [d]
         self.helper(*cmd)
 
-class protobuf_headers(HeaderPackage):
+class protobuf(Package):
     src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz'
     chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf'
 
+    def __init__(self, env):
+        super(protobuf, self).__init__(env)
+        if self.arch.os == 'osx':
+            # This was the only way I could get it to linke 32 bit
+            # mode.
+            self.env.append('CC', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
+            self.env.append('CXX', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
+
 class isis(Package):
 
-    ### ISIS 3.2.1 Needs:
+    ### ISIS 3.3.0 Needs:
     # geos-3.2.0
-    # gsl-1.13
+    # gsl-1.13 (1.14 and 1.15 on other platforms, hopefully backwards compat)
     # kakadu-6.3.1?
     # protobuf-2.3.0
     # qt-4.6.2
     # qwt-5.2.0
-    # spice-0063
+    # spice-0064
     # superlu-3.0
-    # xerces-c-3.1.1?
+    # xerces-c-3.1.1
 
     PLATFORM = dict(
         linux64 = 'isisdist.wr.usgs.gov::x86-64_linux_RHEL/isis/',
