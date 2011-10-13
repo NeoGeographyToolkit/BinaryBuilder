@@ -29,7 +29,6 @@ def strip_flag(flag, key, env):
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/gdal-1.8.1.tar.gz'
     chksum  = 'b2f8b12ebdd00c05bc7f1ab7b761d9ac335c470c'
-    patches = 'patches/gdal'
 
     def __init__(self, env):
         super(gdal, self).__init__(env)
