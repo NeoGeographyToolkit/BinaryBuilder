@@ -65,7 +65,7 @@ if __name__ == '__main__':
     parser.add_option('--isisroot',                         dest='isisroot',     default=None,            help='Use a locally-installed isis at this root')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',      default=False,           help='Show the list of packages without actually doing anything')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
-    parser.add_option('--threads',    type='int',           dest='threads',      default=2*get_cores(),   help='Build threads to use')
+    parser.add_option('--threads',    type='int',           dest='threads',      default=get_cores(),   help='Build threads to use')
     parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
     parser.add_option('--build-root',                       dest='build_root',   default=None,            help='Root of the build and install')
     parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
