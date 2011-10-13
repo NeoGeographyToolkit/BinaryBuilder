@@ -179,7 +179,7 @@ class visionworkbench(GITPackage):
                                                                     P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
             # Specify executables we use
-            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')))
+            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
 
         super(visionworkbench, self).configure(with_   = w,
                                                without = ('tiff hdf cairomm zeromq rabbitmq_c tcmalloc x11 clapack slapack qt opencv cg'.split()),
