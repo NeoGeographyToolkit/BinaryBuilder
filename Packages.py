@@ -27,17 +27,16 @@ def strip_flag(flag, key, env):
     return hit, env
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/gdal-1.8.0.tar.gz'
-    chksum  = 'e5a2802933054050c6fb0b0a0e1f46b5dd195b0a'
+    src     = 'http://download.osgeo.org/gdal/gdal-1.8.1.tar.gz'
+    chksum  = 'b2f8b12ebdd00c05bc7f1ab7b761d9ac335c470c'
     patches = 'patches/gdal'
 
     def __init__(self, env):
         super(gdal, self).__init__(env)
-        j, self.env = strip_flag('-j(\d+)', 'MAKEOPTS', self.env)
-        if j:
-            j = int(j.group(1))
-            if j > 16: j = 16
-            self.env.append('MAKEOPTS', '-j%s' % j)
+        if self.arch.os == 'osx':
+            # Libtool 2.2.4+ doesn't pass the arch flags
+            self.env.append('CC', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
+            self.env.append('CXX', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
 
     def configure(self):
         w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
@@ -416,8 +415,7 @@ class protobuf(Package):
     def __init__(self, env):
         super(protobuf, self).__init__(env)
         if self.arch.os == 'osx':
-            # This was the only way I could get it to linke 32 bit
-            # mode.
+            # Libtool 2.2.4+ doesn't pass the arch flags
             self.env.append('CC', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
             self.env.append('CXX', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
 
