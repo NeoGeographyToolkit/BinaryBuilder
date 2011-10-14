@@ -162,6 +162,16 @@ class stereopipeline(GITPackage):
 class visionworkbench(GITPackage):
     src     = 'http://github.com/visionworkbench/visionworkbench.git'
 
+    def __init__(self,env):
+        super(visionworkbench,self).__init__(env)
+        if not P.isdir(env['ISIS3RDPARTY']):
+            # This variable is used in LDFLAGS and some other things
+            # by default. If this directory doesn't exist, libtool
+            # throws a warning. Unfortunately, some of libtools tests
+            # will read this warning as a failure. This will cause a
+            # compilation failure.
+            raise ValueError('The directory described ISIS3RDPARTY does not exist. Have you set ISISROOT correctly? This is required for compilation of VW and ASP. Please set them.')
+
     def configure(self):
         self.helper('./autogen')
 
