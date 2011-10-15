@@ -1,0 +1,32 @@
+So here's just some short notes on how to operate this software.
+
+Generally, if you would like Binary Builder to just create everything
+on every call you can use the follow commands:
+
+ ./build.py
+ ./make-dist.py last-completed-run/install
+
+This will produce a tarball with the completed Stereo Pipeline binaries.
+
+However generally we like to build the dependencies once and than
+build are release binaries with every stereo pipeline commit. Here's
+how to build the dependencies and an archive tarball.
+
+ ./build.py --dev-env
+ ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
+
+Then when you are ready to build VW and ASP:
+
+ ./build.py --base BaseSystem-*.tar.gz visionworkbench stereopipeline
+ ./make-dist.py last-completed-run/install
+
+It's pretty likely things will break. This is essentially a fragile
+package manager. When things break you'll probably want to keep
+calling the build command to see if you fixed the
+problem. Traditionally build.py will just build everything, here's how
+to rebuild one specific package (that presumibly failed).
+
+ ./build.py --resume gdal
+
+I strongly encourage you to read the output from ./build.py --help and
+./make-dist.py --help. There are more features not talked about here.
