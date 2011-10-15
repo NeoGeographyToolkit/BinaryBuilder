@@ -59,13 +59,14 @@ if __name__ == '__main__':
     parser.add_option('--base',       action='append',      dest='base',         default=[],              help='Provide a tarball to use as a base system')
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',       default=True,            help='Disable ccache')
     parser.add_option('--coreutils',                        dest='coreutils',    default=None,            help='Bin directory holding GNU coreutils')
+    parser.add_option('--libtoolize',                       dest='libtoolize',   default=None,            help='Value to set LIBTOOLIZE, use to override if system\'s default is bad.')
     parser.add_option('--dev-env',    action='store_true',  dest='dev',          default=False,           help='Build everything but VW and ASP')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
     parser.add_option('--no-fetch',   action='store_const', dest='mode',         const='nofetch',         help='Build, but do not fetch (will fail if sources are missing)')
     parser.add_option('--isisroot',                         dest='isisroot',     default=None,            help='Use a locally-installed isis at this root')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',      default=False,           help='Show the list of packages without actually doing anything')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
-    parser.add_option('--threads',    type='int',           dest='threads',      default=get_cores(),   help='Build threads to use')
+    parser.add_option('--threads',    type='int',           dest='threads',      default=get_cores(),     help='Build threads to use')
     parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
     parser.add_option('--build-root',                       dest='build_root',   default=None,            help='Root of the build and install')
     parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
@@ -164,6 +165,9 @@ if __name__ == '__main__':
         e.append_many(CC_FLAGS, '-save-temps')
     else:
         e.append_many(CC_FLAGS, '-pipe')
+
+    if opt.libtoolize is not None:
+        e['LIBTOOLIZE'] = opt.libtoolize
 
     if len(args) == 0:
         # Were we told what isis to use?

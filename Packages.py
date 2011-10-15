@@ -30,13 +30,6 @@ class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/gdal-1.8.1.tar.gz'
     chksum  = 'b2f8b12ebdd00c05bc7f1ab7b761d9ac335c470c'
 
-    def __init__(self, env):
-        super(gdal, self).__init__(env)
-        if self.arch.os == 'osx':
-            # Libtool 2.2.4+ doesn't pass the arch flags
-            self.env.append('CC', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
-            self.env.append('CXX', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
-
     def configure(self):
         w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
         wo = \
@@ -420,13 +413,6 @@ class cspice_headers(HeaderPackage):
 class protobuf(Package):
     src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz'
     chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf'
-
-    def __init__(self, env):
-        super(protobuf, self).__init__(env)
-        if self.arch.os == 'osx':
-            # Libtool 2.2.4+ doesn't pass the arch flags
-            self.env.append('CC', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
-            self.env.append('CXX', ' '.join(["-arch %s" % i for i in self.env['OSX_ARCH'].split(';')]))
 
 class isis(Package):
 
