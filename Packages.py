@@ -442,9 +442,9 @@ class isis(Package):
     # xerces-c-3.1.1
 
     PLATFORM = dict(
-        linux64 = 'isisdist.wr.usgs.gov::x86-64_linux_RHEL/isis/',
-        linux32 = 'isisdist.wr.usgs.gov::x86_linux_RHEL/isis/',
-        osx32   = 'isisdist.wr.usgs.gov::x86_darwin_OSX/isis/',
+        linux64 = 'isisdist.astrogeology.usgs.gov::x86-64_linux_RHEL/isis/',
+        linux32 = 'isisdist.astrogeology.usgs.gov::x86_linux_RHEL/isis/',
+        osx32   = 'isisdist.astrogeology.usgs.gov::x86_darwin_OSX/isis/'
     )
 
     def __init__(self, env):
