@@ -414,6 +414,10 @@ class protobuf(Package):
     src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz'
     chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf'
 
+    def configure(self):
+        self.helper('./autogen.sh')
+        super(protobuf, self).configure()
+
 class isis(Package):
 
     ### ISIS 3.3.0 Needs:

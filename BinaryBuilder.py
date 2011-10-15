@@ -225,7 +225,12 @@ class Package(object):
         self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
         self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
         self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
-        self.env['LDFLAGS']  = self.env.get('LDFLAGS', '')  + ' -L%(ISIS3RDPARTY)s -L%(INSTALL_DIR)s/lib'              % self.env
+        # If we include flags to directories that don't exist, we
+        # cause compiler tests to fail.
+        if P.isdir(self.env['ISIS3RDPARTY']):
+            self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(ISIS3RDPARTY)s' % self.env
+        if P.isdir(self.env['INSTALL_DIR']+'/lib'):
+            self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(INSTALL_DIR)s/lib' % self.env
 
     @stage
     def fetch(self, skip=False):
