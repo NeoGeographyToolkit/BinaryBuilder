@@ -212,7 +212,8 @@ class lapack(Package):
                     '-e', 's:.*LDFLAGS.*::',
                     P.join('SRC', 'Makefile.am'))
 
-        self.helper('autoreconf' , '--force' , '--verbose', '--install')
+        self.helper('mkdir', 'm4')
+        self.helper('autoreconf' , '--force' , '--verbose', '--install', '-I', 'm4')
 
 
     def configure(self):
