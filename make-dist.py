@@ -72,10 +72,14 @@ def sibling_to(dir, name):
 
 # Keep this in sync with the function in libexec-funcs.sh
 def isis_version(isisroot):
+    # Check if this is versioning the ISIS3.3.0 way
+    if P.isfile(P.join(isisroot,'version')):
+        f = open(P.join(isisroot,'version'),'r')
+        return  " ".join(f.read().splitlines())
     header = P.join(isisroot, 'src/base/objs/Constants/Constants.h')
     m = grep('version\("(.*?)"', header)
     if not m:
-        raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT ($s) is incorrect?' % (header, isisroot))
+        raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT (%s) is incorrect?' % (header, isisroot))
     return m[0].group(1)
 
 if __name__ == '__main__':

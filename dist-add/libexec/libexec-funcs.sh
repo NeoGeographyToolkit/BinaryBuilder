@@ -12,8 +12,13 @@ die() {
 # Keep this in sync with the function in funcs.sh
 isis_version() {
     local ROOT="${1:-$ISISROOT}"
-    local ISIS_HEADER="${ROOT}/src/base/objs/Constants/Constants.h"
-    local version="$(grep version $ISIS_HEADER 2>/dev/null | cut -d\" -f2)"
+    local ISIS_HEADER="${ROOT}/version"
+    if test -s ${ISIS_HEADER}; then
+        local version="$(tr '\n' ' ' < $ISIS_HEADER | sed 's/[ \t]*$//')"
+    else
+        local ISIS_HEADER="${ROOT}/src/base/objs/Constants/Constants.h"
+        local version="$(grep version $ISIS_HEADER 2>/dev/null | cut -d\" -f2)"
+    fi
     if test -z "${version}"; then
         msg "Unable to locate ISIS version header."
         msg "Expected it at $ISIS_HEADER"
