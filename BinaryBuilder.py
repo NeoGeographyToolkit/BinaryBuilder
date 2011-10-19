@@ -359,7 +359,7 @@ class Package(object):
                 raise PackageError(self, 'Unknown patch: %s' % full)
 
             if P.isdir(full):
-                patches = glob(P.join(full, '*'))
+                patches = sorted(glob(P.join(full, '*')))
             else:
                 patches = [full]
         else:
@@ -372,7 +372,7 @@ class Package(object):
                 self.helper('patch', self.patch_level, '-i', patch)
 
         # We have a list of patches now, but we can't trust they're all there
-        for p in sorted(patches):
+        for p in patches:
             if not P.isfile(p):
                 raise PackageError(self, 'Unknown patch: %s' % p)
             _apply(p)
