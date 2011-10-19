@@ -405,6 +405,7 @@ class cspice_headers(HeaderPackage):
         self.src    = self.PLATFORM[self.arch.osbits]['src']
         self.chksum = self.PLATFORM[self.arch.osbits]['chksum']
     def configure(self, *args, **kw): pass
+    @stage
     def install(self):
         d = P.join('%(NOINSTALL_DIR)s' % self.env, 'include', 'naif')
         self.helper('mkdir', '-p', d)
@@ -415,6 +416,7 @@ class protobuf(Package):
     src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz'
     chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf'
 
+    @stage
     def configure(self):
         self.helper('./autogen.sh')
         super(protobuf, self).configure()
@@ -426,15 +428,13 @@ class ufconfig(Package):
     def configure(self):
         pass
 
+    @stage
     def compile(self):
-        print("Current work dir: %s" % self.workdir)
-        compile_cmd = [self.env['CC']]
-        compile_cmd.extend(self.env['CFLAGS'].split(' '))
-        compile_cmd.extend(['-fPIC','-c', 'UFconfig.c', '-o', 'UFconfig.lo'])
+        compile_cmd = [self.env['CC']] + self.env['CFLAGS'].split(' ')
+        compile_cmd += ['-fPIC','-c', 'UFconfig.c', '-o', 'UFconfig.lo']
         self.helper(*compile_cmd)
-        link_cmd = [self.env['CC']]
-        link_cmd.extend(self.env['LDFLAGS'].split(' '))
-        link_cmd.extend(['-shared','UFconfig.lo'])
+        link_cmd = [self.env['CC']] + self.env['LDFLAGS'].split(' ')
+        link_cmd += ['-shared','UFconfig.lo']
         if self.arch.os == 'osx':
             link_cmd.extend(['-Wl,-install_name,libufconfig.3.6.1.dylib','-o','libufconfig.3.6.1.dylib'])
         else:
@@ -444,6 +444,7 @@ class ufconfig(Package):
     def build(self):
         pass
 
+    @stage
     def install(self):
         # This is all manual since UFconfig doesn't supply a viable
         # build system.
@@ -465,6 +466,21 @@ class ufconfig(Package):
             self.helper('libtool','--mode=install','install','-c','libufconfig.so.3.6.1',P.join(installdir,'lib'),env=e)
             self.helper('ln','-s','libufconfig.so.3.6.1',P.join(installdir,'lib','libufconfig.so'),env=e)
         self.helper('install','-m','644','-c','UFconfig.h',P.join(installdir,'include'),env=e)
+
+class amd(Package):
+    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/amd/files/amd-2.2.0-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/AMD-2.2.2.tar.gz']
+    chksum = ['1b452db185458c92b34634f0a88f643c4f851659','ae8a42da490a537889a46036545d867423ec7c73']
+    patch_level = '-p0'
+
+    def __init__(self, env):
+        super(amd, self).__init__(env)
+        self.patches = [P.join(env['DOWNLOAD_DIR'],'amd-2.2.0-autotools.patch'),
+                        P.join(self.pkgdir,'patches/amd/0001-disable-fortran.patch')]
+
+    @stage
+    def configure(self):
+        self.helper('autoreconf','--verbose','--install')
+        super(amd, self).configure()
 
 class isis(Package):
 

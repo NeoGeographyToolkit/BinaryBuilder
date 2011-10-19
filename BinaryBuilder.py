@@ -349,7 +349,12 @@ class Package(object):
             return
         elif isinstance(self.patches, basestring):
             full = P.join(self.pkgdir, self.patches)
-            if not P.exists(full):
+
+            if P.exists(full):
+                pass
+            elif P.exists(self.patches):
+                full = self.patches
+            else:
                 raise PackageError(self, 'Unknown patch: %s' % full)
 
             if P.isdir(full):
@@ -357,11 +362,13 @@ class Package(object):
             else:
                 patches = [full]
         else:
-            patches = (P.join(self.pkgdir, p) for p in self.patches)
+            patches = self.patches
 
         def _apply(patch):
-            cmd = ('patch',  '-p1',  '-i', patch)
-            self.helper(*cmd)
+            if self.patch_level is None:
+                self.helper('patch', '-p1', '-i', patch)
+            else:
+                self.helper('patch', self.patch_level, '-i', patch)
 
         # We have a list of patches now, but we can't trust they're all there
         for p in sorted(patches):

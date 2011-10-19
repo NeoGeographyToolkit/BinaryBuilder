@@ -1,0 +1,63 @@
+diff -r -u Demo/Makefile.am Demo/Makefile.am
+--- Demo/Makefile.am	2011-10-19 13:06:56.000000000 -0700
++++ Demo/Makefile.am	2011-10-19 13:08:58.000000000 -0700
+@@ -4,9 +4,7 @@
+ 	amd_simple \
+ 	amd_demo \
+ 	amd_demo2 \
+-	amd_l_demo \
+-	amd_f77demo \
+-	amd_f77simple
++	amd_l_demo
+ # buggy demo
+ #	amd_f77cross
+ 
+@@ -15,11 +13,11 @@
+ amd_demo2_SOURCES = amd_demo2.c
+ amd_simple_SOURCES = amd_simple.c
+ 
+-amd_f77demo_SOURCES = amd_f77demo.f
+-amd_f77demo_LDADD = $(LDADD) $(top_builddir)/Source/libamdf77.la
+-amd_f77simple_SOURCES = amd_f77simple.f
+-amd_f77simple_LDADD = $(LDADD) $(top_builddir)/Source/libamdf77.la
+-amd_f77wrapper_CPPFLAGS = -DDINT
++#amd_f77demo_SOURCES = amd_f77demo.f
++#amd_f77demo_LDADD = $(LDADD) $(top_builddir)/Source/libamdf77.la
++#amd_f77simple_SOURCES = amd_f77simple.f
++#amd_f77simple_LDADD = $(LDADD) $(top_builddir)/Source/libamdf77.la
++#amd_f77wrapper_CPPFLAGS = -DDINT
+ #amd_f77cross_SOURCES = amd_f77cross.f amd_f77wrapper.f
+ #amd_f77cross_LDADD = $(LDADD) $(top_builddir)/Source/libamdf77.la
+ 
+Only in Demo: Makefile.am~
+diff -r -u Source/Makefile.am Source/Makefile.am
+--- Source/Makefile.am	2011-10-19 13:06:56.000000000 -0700
++++ Source/Makefile.am	2011-10-19 13:09:39.000000000 -0700
+@@ -12,7 +12,7 @@
+ 	amd_preprocess.c \
+ 	amd_valid.c
+ 
+-lib_LTLIBRARIES = libamd.la libamdf77.la
++lib_LTLIBRARIES = libamd.la
+ noinst_LTLIBRARIES = libamdi.la libamdl.la
+ AM_CPPFLAGS = -I$(top_srcdir)/Include
+ 
+@@ -23,4 +23,4 @@
+ 
+ libamd_la_SOURCES = amd_global.c
+ libamd_la_LIBADD = libamdl.la libamdi.la
+-libamdf77_la_SOURCES = amd.f amdbar.f
++#libamdf77_la_SOURCES = amd.f amdbar.f
+Only in Source: Makefile.am~
+diff -r -u configure.ac configure.ac
+--- configure.ac	2011-10-19 13:06:56.000000000 -0700
++++ configure.ac	2011-10-19 13:07:32.000000000 -0700
+@@ -5,7 +5,7 @@
+ AC_CONFIG_HEADER([config.h])
+ AM_INIT_AUTOMAKE([foreign])
+ AC_PROG_INSTALL
+-AC_PROG_F77
++AC_PROG_CC
+ AC_PROG_LIBTOOL
+ AC_CHECK_LIB(m, sqrt)
+ AC_CONFIG_FILES([Source/Makefile
