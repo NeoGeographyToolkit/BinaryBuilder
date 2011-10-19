@@ -207,6 +207,7 @@ class Package(object):
     src     = None
     chksum  = None
     patches = []
+    patch_level = None
 
     def __init__(self, env):
         self.pkgname = self.__class__.__name__

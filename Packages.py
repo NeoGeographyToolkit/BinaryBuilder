@@ -480,7 +480,7 @@ class amd(Package):
     @stage
     def configure(self):
         self.helper('autoreconf','--verbose','--install')
-        super(amd, self).configure()
+        super(amd, self).configure(disable='static')
 
 class colamd(Package):
     src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/colamd/files/colamd-2.7.1-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/COLAMD-2.7.3.tar.gz']
@@ -494,7 +494,28 @@ class colamd(Package):
     @stage
     def configure(self):
         self.helper('autoreconf','--verbose','--install')
-        super(colamd, self).configure()
+        super(colamd, self).configure(disable='static')
+
+class cholmod(Package):
+    src = ['http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/cholmod-1.7.0-autotools.patch.bz2','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/CHOLMOD-1.7.3.tar.gz']
+    chksum = ['0c15bc824b590d096998417f07b1849cc6f645fb','c85ce011da25337f53c0a5b11e329d855698caa0']
+
+    def __init__(self, env):
+        super(cholmod,self).__init__(env)
+        self.patches = [P.join(env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch'),
+                        P.join(self.pkgdir,'patches/cholmod/0001-fix-cholmod-build.patch')]
+
+    @stage
+    def unpack(self):
+        if P.isfile(P.join(self.env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch')):
+            os.remove(P.join(self.env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch'))
+        self.helper('bzip2','-d','-k',P.join(self.env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch.bz2'))
+        super(cholmod, self).unpack()
+
+    @stage
+    def configure(self):
+        self.helper('autoreconf','--install','--force','--verbose')
+        super(cholmod, self).configure(disable=('static','mod-partition','mod-supernodal'))
 
 class isis(Package):
 

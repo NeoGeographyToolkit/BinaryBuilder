@@ -1,0 +1,56 @@
+diff -u -r CHOLMOD/acx_blas.m4 CHOLMOD.new/acx_blas.m4
+--- CHOLMOD/acx_blas.m4	2011-10-19 14:15:28.000000000 -0700
++++ CHOLMOD.new/acx_blas.m4	2011-10-19 14:45:45.000000000 -0700
+@@ -71,7 +71,6 @@
+ 
+ AC_DEFUN([ACX_BLAS], [
+ AC_PREREQ(2.50)
+-AC_REQUIRE([AC_F77_LIBRARY_LDFLAGS])
+ acx_blas_ok=no
+ 
+ AC_ARG_WITH(blas,
+@@ -84,8 +83,6 @@
+ esac
+ 
+ # Get fortran linker names of BLAS functions to check for.
+-AC_F77_FUNC(sgemm)
+-AC_F77_FUNC(dgemm)
+ 
+ acx_blas_save_LIBS="$LIBS"
+ LIBS="$LIBS $FLIBS"
+diff -u -r CHOLMOD/acx_lapack.m4 CHOLMOD.new/acx_lapack.m4
+--- CHOLMOD/acx_lapack.m4	2011-10-19 14:15:28.000000000 -0700
++++ CHOLMOD.new/acx_lapack.m4	2011-10-19 14:45:58.000000000 -0700
+@@ -82,7 +82,6 @@
+ esac
+ 
+ # Get fortran linker name of LAPACK function to check for.
+-AC_F77_FUNC(cheev)
+ 
+ # We cannot use LAPACK if BLAS is not found
+ if test "x$acx_blas_ok" != xyes; then
+diff -u -r CHOLMOD/configure.ac CHOLMOD.new/configure.ac
+--- CHOLMOD/configure.ac	2011-10-19 14:15:28.000000000 -0700
++++ CHOLMOD.new/configure.ac	2011-10-19 14:44:59.000000000 -0700
+@@ -4,6 +4,7 @@
+ AM_INIT_AUTOMAKE([foreign])
+ AC_PROG_INSTALL
+ AC_PROG_LIBTOOL
++AC_PROG_CC
+ 
+ AC_CHECK_LIB(m, sqrt)
+ AC_CHECK_HEADERS(UFconfig.h)
+@@ -67,13 +68,9 @@
+ else
+     MODULES="$MODULES Partition"
+     PKG_PROG_PKG_CONFIG
+-    if test -n "$PKG_CONFIG"; then
+-       PKG_CHECK_MODULES([metis], [metis])
+-    else
+ 	AC_CHECK_HEADERS(metis.h)
+     	AC_CHECK_LIB(metis, METIS_NodeND, [metis_LIBS=-lmetis], \
+ 		[AC_MSG_ERROR([Cannot find libmetis])])
+-    fi
+ 
+     AC_CHECK_HEADERS(ccolamd.h)
+     AC_CHECK_LIB(ccolamd, ccolamd_report, [], \
