@@ -475,10 +475,12 @@ class amd(Package):
     def __init__(self, env):
         super(amd, self).__init__(env)
         self.patches = [P.join(env['DOWNLOAD_DIR'],'amd-2.2.0-autotools.patch'),
-                        P.join(self.pkgdir,'patches/amd/0001-disable-fortran.patch')]
+                        P.join(self.pkgdir,'patches/amd/0001-disable-fortran.patch'),
+                        P.join(self.pkgdir,'patches/amd/0002-amd-libtool.patch')]
 
     @stage
     def configure(self):
+        self.helper('mkdir','m4')
         self.helper('autoreconf','--verbose','--install')
         super(amd, self).configure(disable='static')
 
@@ -489,10 +491,12 @@ class colamd(Package):
 
     def __init__(self, env):
         super(colamd, self).__init__(env)
-        self.patches = [P.join(env['DOWNLOAD_DIR'],'colamd-2.7.1-autotools.patch')]
+        self.patches = [P.join(env['DOWNLOAD_DIR'],'colamd-2.7.1-autotools.patch'),
+                        P.join(self.pkgdir, 'patches/colamd/0001_colamd_libtool.patch')]
 
     @stage
     def configure(self):
+        self.helper('mkdir','m4')
         self.helper('autoreconf','--verbose','--install')
         super(colamd, self).configure(disable='static')
 
@@ -503,7 +507,8 @@ class cholmod(Package):
     def __init__(self, env):
         super(cholmod,self).__init__(env)
         self.patches = [P.join(env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch'),
-                        P.join(self.pkgdir,'patches/cholmod/0001-fix-cholmod-build.patch')]
+                        P.join(self.pkgdir,'patches/cholmod/0001-fix-cholmod-build.patch'),
+                        P.join(self.pkgdir,'patches/cholmod/0002_cholamd_libtool.patch')]
 
     @stage
     def unpack(self):
@@ -514,6 +519,7 @@ class cholmod(Package):
 
     @stage
     def configure(self):
+        self.helper('mkdir','m4')
         self.helper('autoreconf','--install','--force','--verbose')
         super(cholmod, self).configure(disable=('static','mod-partition','mod-supernodal'))
 

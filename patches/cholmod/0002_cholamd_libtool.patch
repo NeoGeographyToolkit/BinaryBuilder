@@ -1,0 +1,24 @@
+diff -u -r CHOLMOD/Makefile.am CHOLMOD.new/Makefile.am
+--- CHOLMOD/Makefile.am	2011-10-19 15:50:01.000000000 -0700
++++ CHOLMOD.new/Makefile.am	2011-10-19 16:19:04.000000000 -0700
+@@ -1,6 +1,6 @@
+ SUBDIRS = Include Demo Core $(MODULES)
+ EXTRA_DIST = README.txt
+-
++ACLOCAL_AMFLAGS = -I m4
+ lib_LTLIBRARIES = libcholmod.la
+ 
+ if MOD_CHECK
+Only in CHOLMOD.new: Makefile.am~
+diff -u -r CHOLMOD/configure.ac CHOLMOD.new/configure.ac
+--- CHOLMOD/configure.ac	2011-10-19 15:50:27.000000000 -0700
++++ CHOLMOD.new/configure.ac	2011-10-19 16:19:28.000000000 -0700
+@@ -5,6 +5,7 @@
+ AC_PROG_INSTALL
+ AC_PROG_LIBTOOL
+ AC_PROG_CC
++AC_CONFIG_MACRO_DIR([m4])
+ 
+ AC_CHECK_LIB(m, sqrt)
+ AC_CHECK_HEADERS(UFconfig.h)
+Only in CHOLMOD.new: configure.ac~
