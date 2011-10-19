@@ -15,7 +15,7 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 zlib_headers, png_headers, isis_local, protobuf, jpeg_headers, \
-                flann, curl
+                flann, curl, ufconfig
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run
 

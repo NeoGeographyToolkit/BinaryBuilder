@@ -419,6 +419,53 @@ class protobuf(Package):
         self.helper('./autogen.sh')
         super(protobuf, self).configure()
 
+class ufconfig(Package):
+    src = 'http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/UFconfig-3.6.1.tar.gz'
+    chksum = '2cf8f557787b462de3427e979d1b0de82466326f'
+
+    def configure(self):
+        pass
+
+    def compile(self):
+        print("Current work dir: %s" % self.workdir)
+        compile_cmd = [self.env['CC']]
+        compile_cmd.extend(self.env['CFLAGS'].split(' '))
+        compile_cmd.extend(['-fPIC','-c', 'UFconfig.c', '-o', 'UFconfig.lo'])
+        self.helper(*compile_cmd)
+        link_cmd = [self.env['CC']]
+        link_cmd.extend(self.env['LDFLAGS'].split(' '))
+        link_cmd.extend(['-shared','UFconfig.lo'])
+        if self.arch.os == 'osx':
+            link_cmd.extend(['-Wl,-install_name,libufconfig.3.6.1.dylib','-o','libufconfig.3.6.1.dylib'])
+        else:
+            link_cmd.extend(['-Wl,-soname,libufconfig.so.3.6.1','-o','libufconfig.so.3.6.1'])
+        self.helper(*link_cmd)
+
+    def build(self):
+        pass
+
+    def install(self):
+        # This is all manual since UFconfig doesn't supply a viable
+        # build system.
+        e = self.env.copy_set_default(prefix = self.env['INSTALL_DIR'])
+        installdir = self.env['INSTALL_DIR']
+        if not P.isdir(P.join(installdir,'lib')):
+            os.mkdir(P.join(installdir,'lib'))
+        else:
+            for filename in glob(P.join(installdir,'lib','libufconfig*')):
+                os.remove(filename)
+        if not P.isdir(P.join(installdir,'include')):
+            os.mkdir(P.join(installdir,'include'))
+        else:
+            os.remove(P.join(installdir,'include','UFconfig.h'))
+        if self.arch.os == 'osx':
+            self.helper('glibtool','--mode=install','install','-c','libufconfig.3.6.1.dylib',P.join(installdir,'lib'),env=e)
+            self.helper('ln','-s','libufconfig.3.6.1.dylib',P.join(installdir,'lib','libufconfig.dylib'),env=e)
+        else:
+            self.helper('libtool','--mode=install','install','-c','libufconfig.so.3.6.1',P.join(installdir,'lib'),env=e)
+            self.helper('ln','-s','libufconfig.so.3.6.1',P.join(installdir,'lib','libufconfig.so'),env=e)
+        self.helper('install','-m','644','-c','UFconfig.h',P.join(installdir,'include'),env=e)
+
 class isis(Package):
 
     ### ISIS 3.3.0 Needs:
