@@ -482,6 +482,20 @@ class amd(Package):
         self.helper('autoreconf','--verbose','--install')
         super(amd, self).configure()
 
+class colamd(Package):
+    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/colamd/files/colamd-2.7.1-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/COLAMD-2.7.3.tar.gz']
+    chksum = ['2c48650ac67293990eb75224d063bc668871c328','75d490967b180c86cc33e04daeebf217ed179987']
+    patch_level = '-p0'
+
+    def __init__(self, env):
+        super(colamd, self).__init__(env)
+        self.patches = [P.join(env['DOWNLOAD_DIR'],'colamd-2.7.1-autotools.patch')]
+
+    @stage
+    def configure(self):
+        self.helper('autoreconf','--verbose','--install')
+        super(colamd, self).configure()
+
 class isis(Package):
 
     ### ISIS 3.3.0 Needs:
