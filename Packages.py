@@ -461,7 +461,8 @@ class ufconfig(Package):
         if not P.isdir(P.join(installdir,'include')):
             os.mkdir(P.join(installdir,'include'))
         else:
-            os.remove(P.join(installdir,'include','UFconfig.h'))
+            if P.isfile(P.join(installdir, 'include', 'UFconfig.h')):
+                os.remove(P.join(installdir,'include','UFconfig.h'))
         if self.arch.os == 'osx':
             self.helper('glibtool','--mode=install','install','-c','libufconfig.3.6.1.dylib',P.join(installdir,'lib'),env=e)
             self.helper('ln','-s','libufconfig.3.6.1.dylib',P.join(installdir,'lib','libufconfig.dylib'),env=e)
