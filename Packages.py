@@ -179,7 +179,10 @@ class visionworkbench(GITPackage):
             for pkg in install_pkgs:
                 print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
                                                                     P.join(self.env['INSTALL_DIR'], 'include')), file=config)
-                print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                if pkg == 'gdal' and self.arch.os == 'linux':
+                    print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                else:
+                    print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
             # Specify executables we use
             print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
 
