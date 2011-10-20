@@ -439,7 +439,7 @@ class ufconfig(Package):
         link_cmd = [self.env['CC']] + self.env['LDFLAGS'].split(' ')
         link_cmd += ['-shared','UFconfig.lo']
         if self.arch.os == 'osx':
-            link_cmd.extend(['-Wl,-install_name,libufconfig.3.6.1.dylib','-o','libufconfig.3.6.1.dylib'])
+            link_cmd.extend(['-dynamiclib','-Wl,-install_name,libufconfig.3.6.1.dylib','-o','libufconfig.3.6.1.dylib'])
         else:
             link_cmd.extend(['-Wl,-soname,libufconfig.so.3.6.1','-o','libufconfig.so.3.6.1'])
         self.helper(*link_cmd)
