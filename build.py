@@ -7,9 +7,11 @@ import os.path as P
 import subprocess
 import sys
 import errno
+import string
 from optparse import OptionParser
 from tempfile import mkdtemp, gettempdir
 from distutils import version
+from glob import glob
 
 from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
@@ -202,6 +204,18 @@ if __name__ == '__main__':
         print('Untarring base system')
     for base in opt.base:
         run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
+    if opt.base:
+        # Fix libtool files
+        new_libdir = e['INSTALL_DIR']
+        for file in glob(P.join(e['INSTALL_DIR'],'lib','*.la')):
+            lines = []
+            print("Fixing libtool: %s" % file )
+            with open(file,'r') as f:
+                lines = f.readlines()
+            old_libdir = P.normpath(P.join(lines[-1][lines[-1].find("'")+1:lines[-1].rfind("'")],'..'))
+            with open(file,'w') as f:
+                for line in lines:
+                    f.write( string.replace(line,old_libdir,new_libdir) )
 
     modes = dict(
         all     = lambda pkg : Package.build(pkg, skip_fetch=False),
