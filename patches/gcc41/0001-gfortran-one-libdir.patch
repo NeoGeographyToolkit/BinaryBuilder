@@ -1,0 +1,14 @@
+diff -ur gcc-4.1.2/gcc/config/i386/t-linux64 gcc-4.1.2.new/gcc/config/i386/t-linux64
+--- gcc-4.1.2/gcc/config/i386/t-linux64	2005-08-10 10:53:01.000000000 -0700
++++ gcc-4.1.2.new/gcc/config/i386/t-linux64	2011-10-23 16:55:15.015917499 -0700
+@@ -6,7 +6,7 @@
+ 
+ MULTILIB_OPTIONS = m64/m32
+ MULTILIB_DIRNAMES = 64 32 
+-MULTILIB_OSDIRNAMES = ../lib64 ../lib
++MULTILIB_OSDIRNAMES = ../lib ../lib
+ 
+ LIBGCC = stmp-multilib
+ INSTALL_LIBGCC = install-multilib
+Only in gcc-4.1.2.new/gcc/config/i386: t-linux64~
+Only in gcc-4.1.2.new/gcc: include

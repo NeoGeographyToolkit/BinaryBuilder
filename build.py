@@ -8,6 +8,7 @@ import subprocess
 import sys
 import errno
 import string
+import types
 from optparse import OptionParser
 from tempfile import mkdtemp, gettempdir
 from distutils import version
@@ -19,7 +20,7 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_h
                 zlib_headers, png_headers, isis_local, protobuf, jpeg_headers, \
                 flann, curl, ufconfig, amd, colamd, cholmod
 
-from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run
+from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run, get_gcc_version
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
@@ -147,8 +148,16 @@ if __name__ == '__main__':
         limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
         e.append('CPPFLAGS', '-include %s' % limit_symbols)
 
+    compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
+    if not P.exists(compiler_dir):
+        os.makedirs(compiler_dir)
+    try:
+        gfortran_path = findfile('gfortran', e['PATH'])
+        subprocess.check_call(['ln', '-sf', gfortran_path, P.join(compiler_dir, 'gfortran')])
+    except Exception:
+        pass
+    e['F77'] = P.join(compiler_dir, 'gfortran')
     if opt.ccache:
-        compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
             CXX = P.join(compiler_dir, e['CXX']),
@@ -156,12 +165,12 @@ if __name__ == '__main__':
             CCACHE_BASEDIR = gettempdir(),
         )
 
-        if not P.exists(compiler_dir):
-            os.makedirs(compiler_dir)
         ccache_path = findfile('ccache', e['PATH'])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
         e.update(new)
+
+    print("%s" % e['PATH'])
 
     if opt.save_temps:
         e.append_many(CC_FLAGS, '-save-temps')
@@ -188,10 +197,12 @@ if __name__ == '__main__':
         if arch.os == 'linux':
             build.append(lapack)
 
+        print("build type: %s" % type(build) )
+
         if not opt.dev:
             build.extend([visionworkbench, stereopipeline])
     else:
-        build = (globals()[pkg] for pkg in args)
+        build = [globals()[pkg] for pkg in args]
 
     if opt.pretend:
         info('I want to build:\n%s' % ' '.join(map(lambda x: x.__name__, build)))

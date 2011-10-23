@@ -30,6 +30,7 @@ class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/gdal-1.8.1.tar.gz'
     chksum  = 'b2f8b12ebdd00c05bc7f1ab7b761d9ac335c470c'
 
+    @stage
     def configure(self):
         w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
         wo = \
@@ -47,6 +48,7 @@ class ilmbase(Package):
     chksum  = 'fe6a910a90cde80137153e25e175e2b211beda36'
     patches = 'patches/ilmbase'
 
+    @stage
     def configure(self):
         self.env['AUTOHEADER'] = 'true'
         # XCode in snow leopard removed this flag entirely (way to go, guys)
@@ -59,6 +61,7 @@ class openexr(Package):
     chksum  = 'b3650e6542f0e09daadb2d467425530bc8eec333'
     patches = 'patches/openexr'
 
+    @stage
     def configure(self):
         self.env['AUTOHEADER'] = 'true'
         # XCode in snow leopard removed this flag entirely (way to go, guys)
@@ -71,6 +74,7 @@ class proj(Package):
     src     = 'http://download.osgeo.org/proj/proj-4.7.0.tar.gz'
     chksum  = 'bfe59b8dc1ea0c57e1426c37ff2b238fea66acd7'
 
+    @stage
     def configure(self):
         super(proj,self).configure(disable='static')
 
@@ -78,6 +82,7 @@ class curl(Package):
     src     = 'http://curl.haxx.se/download/curl-7.15.5.tar.gz'
     chksum  = '32586c893e7d9246284af38d8d0f5082e83959af'
 
+    @stage
     def configure(self):
         super(curl,self).configure(disable='static', without=['ssl','libidn'])
 
@@ -165,6 +170,7 @@ class visionworkbench(GITPackage):
             # compilation failure.
             raise ValueError('The directory described ISIS3RDPARTY does not exist. Have you set ISISROOT correctly? This is required for compilation of VW and ASP. Please set them.')
 
+    @stage
     def configure(self):
         self.helper('./autogen')
 
@@ -218,8 +224,9 @@ class lapack(Package):
         self.helper('mkdir', 'm4')
         self.helper('autoreconf' , '--force' , '--verbose', '--install', '-I', 'm4')
 
-
+    @stage
     def configure(self):
+        self.env['LD_LIBRARY_PATH'] = P.join(self.env['INSTALL_DIR'],'lib')
         super(lapack, self).configure(disable='static', with_='blas=-L%s -lblas' % self.env['ISIS3RDPARTY'])
 
 class boost(Package):
@@ -543,13 +550,16 @@ class isis(Package):
     PLATFORM = dict(
         linux64 = 'isisdist.astrogeology.usgs.gov::x86-64_linux_RHEL/isis/',
         linux32 = 'isisdist.astrogeology.usgs.gov::x86_linux_RHEL/isis/',
-        osx32   = 'isisdist.astrogeology.usgs.gov::x86_darwin_OSX/isis/'
+        osx32   = 'isisdist.astrogeology.usgs.gov::x86_darwin_OSX/isis/',
+        Ubuntu  = 'isisdist.astrogeology.usgs.gov::x86-64_linux_UBUNTU/isis/'
     )
 
     def __init__(self, env):
         super(isis, self).__init__(env)
         self.pkgname  += '_' + self.arch.osbits
         self.src       = self.PLATFORM[self.arch.osbits]
+        if self.arch.dist_name == 'Ubuntu':
+            self.src   = self.PLATFORM[self.arch.dist_name]
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
 

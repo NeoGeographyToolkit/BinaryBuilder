@@ -59,12 +59,12 @@ else:
 def tarball_name():
     arch = get_platform()
     if opt.version is not None:
-        return '%s-%s-%s-%s' % (opt.name, opt.version, arch.machine, arch.prettyos)
+        return '%s-%s-%s-%s%s' % (opt.name, opt.version, arch.machine, arch.dist_name, arch.dist_version)
     else:
         git = run('git', 'describe', '--always', '--dirty', output=False, raise_on_failure=False)
         if git is None: git = ''
         if len(git): git = '%s-' % git.strip()
-        return '%s-%s-%s-%s%s' % (opt.name, arch.machine, arch.prettyos, git, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
+        return '%s-%s-%s%s-%s%s' % (opt.name, arch.machine, arch.dist_name, arch.dist_version, git, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()))
 
 def sibling_to(dir, name):
     ''' get a pathname for a directory 'name' which is a sibling of directory 'dir' '''

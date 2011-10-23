@@ -48,6 +48,14 @@ def get_platform(pkg=None):
         else:
             raise PackageError(pkg, message)
 
+def get_gcc_version():
+    p = subprocess.Popen(["gcc","--version"], stdout=subprocess.PIPE)
+    out, err = p.communicate()
+    if p.returncode != 0:
+        raise Exception("Checking GCC version caused errors")
+    out = out.split('\n')[0]
+    return float(out[out.find(')')+2:out.rfind('.')])
+
 def tweak_path(coreutils=None):
     if coreutils is not None:
         if not P.isdir(coreutils):

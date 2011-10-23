@@ -46,7 +46,7 @@ class DistManager(object):
     def add_executable(self, inpath, wrapper_file='libexec-helper.sh', keep_symlink=True):
         ''' 'inpath' should be a file. This will add the executable to libexec/
             and the wrapper script to bin/ (with the basename of the exe) '''
-
+        logger.debug('attempting to add %s' % inpath)
         base = P.basename(inpath)
         if P.islink(inpath):
             self._add_file(inpath, self.distdir.bin(base))
@@ -58,7 +58,7 @@ class DistManager(object):
         ''' 'symlinks_too' means follow all symlinks, and add what they point
             to. 'add_deps' means scan the library and add its required dependencies
             to deplist.'''
-
+        logger.debug('attempting to add %s' % inpath)
         for p in snap_symlinks(inpath) if symlinks_too else [inpath]:
             # This relpath weirdness is because libdirs can have subdirs
             ps = P.normpath(p).split('/')
@@ -112,6 +112,9 @@ class DistManager(object):
         if search is None:
             search = list(itertools.chain(nocopy, copy))
         logger.debug('Searching: %s' % (search,))
+        logger.debug('Dependency list--------------------------------------')
+        for lib in self.deplist:
+            logger.debug('  %s' % lib)
 
         found = set()
         for lib in self.deplist:

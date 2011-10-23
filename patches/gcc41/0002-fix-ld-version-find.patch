@@ -1,0 +1,118 @@
+diff -ur gcc-4.1.2.new/libstdc++-v3/acinclude.m4 gcc-4.1.2/libstdc++-v3/acinclude.m4
+--- gcc-4.1.2.new/libstdc++-v3/acinclude.m4	2011-10-25 11:28:41.218848752 -0700
++++ gcc-4.1.2/libstdc++-v3/acinclude.m4	2011-10-25 11:31:18.180498829 -0700
+@@ -225,7 +225,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+     changequote(,)
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++    	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`    
+     changequote([,])
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) [$]3=0; print ([$]1*100+[$]2)*100+[$]3 }'`
+Only in gcc-4.1.2/libstdc++-v3: acinclude.m4~
+diff -ur gcc-4.1.2.new/libstdc++-v3/configure gcc-4.1.2/libstdc++-v3/configure
+--- gcc-4.1.2.new/libstdc++-v3/configure	2011-10-25 11:28:41.378859538 -0700
++++ gcc-4.1.2/libstdc++-v3/configure	2011-10-25 11:34:46.929439427 -0700
+@@ -8281,7 +8281,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -53122,7 +53122,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -74456,7 +74456,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -75953,7 +75953,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -77324,9 +77324,8 @@
+   # Start by getting the version number.  I think the libtool test already
+   # does some of this, but throws away the result.
+   if test x"$with_gnu_ld" = x"yes"; then
+-
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++           sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -79486,7 +79485,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -80305,7 +80304,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -81680,7 +81679,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -83447,7 +83446,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -84664,7 +84663,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+@@ -85665,7 +85664,7 @@
+   if test x"$with_gnu_ld" = x"yes"; then
+ 
+     ldver=`$LD --version 2>/dev/null | head -1 | \
+-           sed -e 's/GNU ld version \([0-9.][0-9.]*\).*/\1/'`
++	   sed -e 's/GNU ld \(version \)\{0,1\}\(([^)]*) \)\{0,1\}\([0-9.][0-9.]*\).*/\3/'`
+ 
+     glibcxx_gnu_ld_version=`echo $ldver | \
+            $AWK -F. '{ if (NF<3) $3=0; print ($1*100+$2)*100+$3 }'`
+Only in gcc-4.1.2/libstdc++-v3: configure~
