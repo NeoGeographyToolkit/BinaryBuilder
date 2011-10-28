@@ -1,6 +1,7 @@
 bin/bundlevis
 bin/cam2map4stereo.py
 bin/disparitydebug
+bin/geoblend
 bin/hiedr2mosaic.py
 bin/hsv_merge
 bin/isis_adjust
