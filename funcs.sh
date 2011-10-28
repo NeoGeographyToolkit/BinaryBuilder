@@ -249,7 +249,7 @@ isis_version() {
     local ROOT="${1:-$ISISROOT}"
     local ISIS_HEADER="${ROOT}/version"
     if test -s ${ISIS_HEADER}; then
-        local version="$(tr '\n' ' ' < $ISIS_HEADER | sed 's/[ \t]*$//')"
+        local version="$(head -1 < $ISIS_HEADER | sed 's/\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')"
     else
         local ISIS_HEADER="${ROOT}/src/base/objs/Constants/Constants.h"
         local version="$(grep version $ISIS_HEADER 2>/dev/null | cut -d\" -f2)"

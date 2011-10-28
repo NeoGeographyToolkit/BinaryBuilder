@@ -75,7 +75,8 @@ def isis_version(isisroot):
     # Check if this is versioning the ISIS3.3.0 way
     if P.isfile(P.join(isisroot,'version')):
         f = open(P.join(isisroot,'version'),'r')
-        return  " ".join(f.read().splitlines())
+        version = f.readline().strip().split('.')
+        return ".".join(version[0:3])
     header = P.join(isisroot, 'src/base/objs/Constants/Constants.h')
     m = grep('version\("(.*?)"', header)
     if not m:
