@@ -98,7 +98,8 @@ class stereopipeline(GITPackage):
 
         noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
-                          vw_stereo vw_cartography vw_interest_point openscenegraph flapack arbitrary_qt curl ufconfig amd colamd cholmod'.split()
+                          vw_stereo vw_cartography vw_interest_point openscenegraph \
+                          flapack arbitrary_qt curl ufconfig amd colamd cholmod flann'.split()
 
         if self.arch.os == 'linux':
             noinstall_pkgs += ['superlu']
