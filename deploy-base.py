@@ -8,9 +8,53 @@ import logging
 import string
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die, run
-from BinaryDist import set_rpath, is_binary, strip
+from BinaryDist import is_binary, strip, otool
 import sys
 from glob import glob
+
+def set_rpath_library(filename, toplevel, searchpath):
+    assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
+    def linux():
+        rel_to_top = P.relpath(toplevel, P.dirname(filename))
+        rpath = [P.join('$ORIGIN', rel_to_top, path) for path in searchpath]
+        if run('chrpath', '-r', ':'.join(rpath), filename, raise_on_failure = False) is None:
+            logger.warn('Failed to set_rpath on %s' % filename)
+    def osx():
+        info = otool(filename)
+
+        # soname is None for an executable
+        if info.soname is not None:
+            info.libs[info.soname] = info.sopath
+
+        for soname, sopath in info.libs.iteritems():
+            # /tmp/build/install/lib/libvwCore.5.dylib
+            # base = libvwCore.5.dylib
+            # looks for @executable_path/../lib/libvwCore.5.dylib
+
+            # /opt/local/libexec/qt4-mac/lib/QtXml.framework/Versions/4/QtXml
+            # base = QtXml.framework/Versions/4/QtXml
+            # looks for @executable_path/../lib/QtXml.framework/Versions/4/QtXml
+
+            # OSX rpath points to one specific file, not anything that matches the
+            # library SONAME. We've already done a whitelist check earlier, so
+            # ignore it if we can't find the lib we want
+
+            # XXX: This code carries an implicit assumption that all
+            # executables are one level below the root (because
+            # @executable_path is always the exe path, not the path of the
+            # current binary like $ORIGIN in linux)
+            for rpath in searchpath:
+                if P.exists(P.join(toplevel, rpath, soname)):
+                    new_path = P.join('@loader_path', '..', rpath, soname)
+                    # If the entry is the "self" one, it has to be changed differently
+                    if info.sopath == sopath:
+                        run('install_name_tool', '-id', filename, filename)
+                        break
+                    else:
+                        run('install_name_tool', '-change', sopath, new_path, filename)
+                        break
+
+    locals()[get_platform().os]()
 
 if __name__ == '__main__':
     parser = OptionParser(usage='%s tarball installdir' % sys.argv[0])
@@ -51,8 +95,11 @@ if __name__ == '__main__':
             if not is_binary(library):
                 continue
             print('  %s' % P.basename(library))
-            set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
-            #strip(filename) # Use this if you want to remove the debug symbols
+            try:
+                set_rpath_library(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
+                #strip(filename) # Use this if you want to remove the debug symbols
+            except:
+                print('  Failed %s' % P.basename(library))
 
     print('Fixing Paths in libtool control files')
     for control in glob(P.join(installdir,'lib','*.la')):
@@ -73,6 +120,9 @@ if __name__ == '__main__':
         print('ENABLE_RPATH=yes', file=config)
         print('ENABLE_STATIC=no', file=config)
         print('ENABLE_PKG_PATH_DEFAULT=no', file=config)
+        if arch.os == 'osx':
+            print('CCFLAGS="-arch i386 -Wl,-rpath -Wl,%s"' % installdir, file=config)
+            print('CXXFLAGS="-arch i386 -Wl,-rpath -Wl,%s"' % installdir, file=config)
         print('\n# You should enable modules that you want yourself', file=config)
         print('# Here are some simple modules to get you started', file=config)
         print('ENABLE_MODULE_MOSAIC=yes', file=config)
@@ -106,6 +156,8 @@ if __name__ == '__main__':
         print('ENABLE_RPATH=yes', file=config)
         print('ENABLE_STATIC=no', file=config)
         print('ENABLE_PKG_PATH_DEFAULT=no', file=config)
+        if arch.os == 'osx':
+            print('CCFLAGS="-arch i386"\nCXXFLAGS="-arch i386"', file=config)
         print('\n# You should enable modules that you want yourself', file=config)
         print('# Here are some simple modules to get you started', file=config)
         print('ENABLE_MODULE_CORE=yes', file=config)
