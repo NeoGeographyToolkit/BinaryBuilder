@@ -1,4 +1,77 @@
-So here's just some short notes on how to operate this software.
+*************************************************************************
+1. INTRODUCTION
+
+A. Neo-Geography Toolkit
+
+The Neo-Geography Toolkit (NGT) is a collection of tools for automated
+processing of geospatial data, including images and maps. It is capable
+of processing raw raster data from remote sensing instruments and
+transforming it into useful cartographic products, such as visible image
+base maps, topographic models, etc. Additionally, components of the NGT
+can perform data processing on extremely large geospatial data sets (up
+to several tens of terabytes) via parallel processing pipelines.
+Finally, it can also transform raw metadata (i.e.  SPICE kernels and PDS
+image labels), vector data (e.g., 2D/3D shape files), and geo-tagged
+data sets into standard NeoGeography data formats, such as KML.  NGT is
+an evolving collection of loosely connected open-source modules designed
+by the NASA Ames Intelligent Robotics Group. Modules of the NGT will be
+released one at a time, as they reach maturity. To date, we have
+completed only one module: the NASA Ames Stereo Pipeline, but more will
+soon follow. Check this website for the latest updates.
+
+B. Binary Builder
+
+The Binary Builder is a collection of scripts for building the release
+binaries for the NASA Ames Stereo Pipeline (ASP). Binary Builder
+downloads and builds all dependencies of ASP including the
+dependencies of Vision Workbench and USGS's Integrated Software for
+Imagers and Spectrometers (ISIS).
+
+Building release binaries is a very difficult and fragile
+process. Never can we guarantee that this code works as it will break
+on changes made by our dependencies. This code will break on server
+URL changes, build system changes, and just generally unsupported
+environments. You use this software at your own risk.
+
+************************************************************************
+2. LICENSE (see COPYING for the full text)
+
+A. Copyright and License Summary
+
+Copyright (C) 2006-2011 United States Government as represented by the
+Administrator of the National Aeronautics and Space Administration
+(NASA).  All Rights Reserved.
+
+This software is distributed under the NASA Open Source Agreement
+(NOSA), version 1.3.  The NOSA has been approved by the Open Source
+Initiative.  See the file "COPYING" at the top of the distribution
+directory tree for the complete NOSA document.
+
+THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
+KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
+LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
+SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
+A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
+THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
+DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
+
+B. Third-Party Libraries
+
+This distribution may include some bundled third-party software as a
+convenience to the user.  This software, located in the "thirdparty/"
+directory of the source code release, is not covered by the
+above-mentioned distribution agreement or copyright. Binary releases
+distribute third party software in both the "bin" and "lib"
+directories. See the included documentation for detailed copyright
+and license information for any third-party software or check the
+THIRDPARTYLICENSES file.  In addition, various pieces of the NGT
+depend on additional third-party libraries that the user is expected
+to have installed.
+
+************************************************************************
+3. DOCUMENTATION
+
+A. Complete Binary Build
 
 Generally, if you would like Binary Builder to just create everything
 on every call you can use the follow commands:
@@ -8,25 +81,55 @@ on every call you can use the follow commands:
 
 This will produce a tarball with the completed Stereo Pipeline binaries.
 
-However generally we like to build the dependencies once and than
-build are release binaries with every stereo pipeline commit. Here's
-how to build the dependencies and an archive tarball.
-
- ./build.py --dev-env
- ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
-
-Then when you are ready to build VW and ASP:
-
- ./build.py --base BaseSystem-*.tar.gz visionworkbench stereopipeline
- ./make-dist.py last-completed-run/install
-
 It's pretty likely things will break. This is essentially a fragile
 package manager. When things break you'll probably want to keep
 calling the build command to see if you fixed the
 problem. Traditionally build.py will just build everything, here's how
-to rebuild one specific package (that presumibly failed).
+to rebuild one specific package (that presumably failed).
 
  ./build.py --resume gdal
 
 I strongly encourage you to read the output from ./build.py --help and
 ./make-dist.py --help. There are more features not talked about here.
+
+B. Produce Partial Build or Dev Environment
+
+We usually like to build the dependencies once and than build are
+release binaries with every stereo pipeline commit. Here's how to
+build the dependencies and an archive tarball.
+
+ ./build.py --dev-env
+ ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
+
+Then when you are ready to build the ASP release tarballs:
+
+ ./build.py --base BaseSystem-*.tar.gz visionworkbench stereopipeline
+ ./make-dist.py last-completed-run/install
+
+However, if you just want to call and build VW and ASP yourself so
+that you can modify the code you should follow the next set of
+instructions.
+
+ ./deploy BaseSystem-*.tar.gz <INSTALL DIR for 3rd Party software>
+
+Inside the <INSTALL DIR> that you specified you'll find the
+appropriate 'bin' and 'lib' directories for all of the used third
+party libraries. You will also find example config.option files for VW
+and ASP. Copy those files into your respective directories for VW and
+ASP. Then you can build VW. Modify the config.options for ASP so that
+it points to where VW is.
+
+************************************************************************
+4. CREDITS
+
+The NGT was developed within the Autonomous Systems and
+Robotics area of the Intelligent Systems Division at NASA's Ames
+Research Center.  It leverages the Intelligent Robotics Group's (IRG)
+extensive experience developing surface reconstruction and tools for
+planetary exploration---e.g. the Mars Pathfinder and Mars Exploration
+Rover missions---and rover autonomy.  It has also been developed in
+collaboration with the Adaptive Control and Evolvable Systems (ACES)
+group, and draws on their experience developing computer vision
+techniques for autonomous vehicle control systems.
+
+See the AUTHORS file for a complete list of developers.
