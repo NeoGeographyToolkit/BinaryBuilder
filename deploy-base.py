@@ -101,6 +101,17 @@ if __name__ == '__main__':
             except:
                 print('  Failed %s' % P.basename(library))
 
+    print('Fixing Binaries')
+    for binary in glob(P.join(installdir,'bin','*')):
+        if not is_binary(binary):
+            continue
+        print('  %s' % P.basename(binary))
+        try:
+            set_rpath_library(binary, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
+            #strip(filename) # Use this if you want to remove the debug symbols
+        except:
+            print('  Failed %s' % P.basename(binary))
+
     print('Fixing Paths in libtool control files')
     for control in glob(P.join(installdir,'lib','*.la')):
         lines = []
@@ -132,7 +143,7 @@ if __name__ == '__main__':
         print('BASE=%s' % installdir, file=config)
 
         install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
-        noinstall_pkgs = 'tiff hdr cairomm x11 clapack opencv cg'.split()
+        off_pkgs = 'tiff hdr cairomm x11 clapack slapack opencv cg zeromq rabbitmq_c'.split()
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=$BASE' % pkg.upper(), file=config)
@@ -145,7 +156,7 @@ if __name__ == '__main__':
             if pkg == 'protobuf':
                 print('PROTOC=$BASE/bin/protoc', file=config)
 
-        for pkg in noinstall_pkgs:
+        for pkg in off_pkgs:
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
     print('Writing config.options.asp')
@@ -180,6 +191,7 @@ if __name__ == '__main__':
         noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl \
                           ufconfig amd colamd cholmod flann'.split()
+        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack'
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point'.split()
         if arch.os == 'linux':
@@ -206,6 +218,8 @@ if __name__ == '__main__':
             print('HAVE_PKG_%s=$BASE/noinstall' % pkg.upper(), file=config)
         for pkg in vw_pkgs:
             print('HAVE_PKG_%s=$VW' % pkg.upper(), file=config)
+        for pkg in off_pkgs:
+            print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
         qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
 
