@@ -149,7 +149,7 @@ if __name__ == '__main__':
             print('HAVE_PKG_%s=$BASE' % pkg.upper(), file=config)
             print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join('$BASE','noinstall','include'),
                                                    P.join('$BASE','include')), file=config)
-            if pkg == 'gdal' and arch.os == 'linux':
+            if pkg == 'gdal' and arch.os == 'osx':
                 print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
             else:
                 print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
