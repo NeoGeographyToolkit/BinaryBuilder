@@ -143,7 +143,7 @@ if __name__ == '__main__':
         print('BASE=%s' % installdir, file=config)
 
         install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
-        off_pkgs = 'tiff hdr cairomm x11 clapack slapack opencv cg zeromq rabbitmq_c'.split()
+        off_pkgs = 'tiff hdr cairomm x11 clapack slapack opencv cg zeromq rabbitmq_c qt_qmake arbitrary_qt'.split()
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=$BASE' % pkg.upper(), file=config)
