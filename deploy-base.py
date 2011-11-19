@@ -174,8 +174,8 @@ if __name__ == '__main__':
         print('ENABLE_MODULE_CORE=yes', file=config)
         print('ENABLE_MODULE_SPICEIO=yes', file=config)
         print('ENABLE_MODULE_ISISIO=yes', file=config)
-        print('ENABLE_MODULE_SESSIONS=yes\n', file=config)
-        print('ENABLE_MODULE_CONTROLNETTK=no\n', file=config)
+        print('ENABLE_MODULE_SESSIONS=yes', file=config)
+        print('ENABLE_MODULE_CONTROLNETTK=no', file=config)
         print('ENABLE_MODULE_MPI=no\n', file=config)
 
         print('\n# You need to modify VW to point to the location of your VW install dir', file=config)
@@ -191,7 +191,7 @@ if __name__ == '__main__':
         noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl \
                           ufconfig amd colamd cholmod flann'.split()
-        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack'
+        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate'.split()
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point'.split()
         if arch.os == 'linux':
