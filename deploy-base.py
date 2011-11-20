@@ -12,7 +12,11 @@ from BinaryDist import is_binary, strip, otool
 import sys
 from glob import glob
 
+global logger
+logger = logging.getLogger()
+
 def set_rpath_library(filename, toplevel, searchpath):
+    logger.debug('set_rpath_library %s %s' % (filename, toplevel))
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     def linux():
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
@@ -25,34 +29,25 @@ def set_rpath_library(filename, toplevel, searchpath):
         # soname is None for an executable
         if info.soname is not None:
             info.libs[info.soname] = info.sopath
+        logger.debug('Soname: %s' % info.soname)
 
         for soname, sopath in info.libs.iteritems():
-            # /tmp/build/install/lib/libvwCore.5.dylib
-            # base = libvwCore.5.dylib
-            # looks for @executable_path/../lib/libvwCore.5.dylib
-
-            # /opt/local/libexec/qt4-mac/lib/QtXml.framework/Versions/4/QtXml
-            # base = QtXml.framework/Versions/4/QtXml
-            # looks for @executable_path/../lib/QtXml.framework/Versions/4/QtXml
+            logger.debug('  Processing soname: %s' % soname)
 
             # OSX rpath points to one specific file, not anything that matches the
             # library SONAME. We've already done a whitelist check earlier, so
             # ignore it if we can't find the lib we want
+            if info.sopath == sopath:
+                run('install_name_tool', '-id', filename, filename)
+                continue
 
-            # XXX: This code carries an implicit assumption that all
-            # executables are one level below the root (because
-            # @executable_path is always the exe path, not the path of the
-            # current binary like $ORIGIN in linux)
             for rpath in searchpath:
                 if P.exists(P.join(toplevel, rpath, soname)):
-                    new_path = P.join('@loader_path', '..', rpath, soname)
+                    new_path = P.join('@loader_path', P.relpath(P.join(toplevel,rpath,soname),P.dirname(filename)))
+                    # new_path = P.join('@loader_path', '..', rpath, soname)
                     # If the entry is the "self" one, it has to be changed differently
-                    if info.sopath == sopath:
-                        run('install_name_tool', '-id', filename, filename)
-                        break
-                    else:
-                        run('install_name_tool', '-change', sopath, new_path, filename)
-                        break
+                    run('install_name_tool', '-change', sopath, new_path, filename)
+                    break
 
     locals()[get_platform().os]()
 
@@ -97,6 +92,17 @@ if __name__ == '__main__':
             print('  %s' % P.basename(library))
             try:
                 set_rpath_library(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
+                #strip(filename) # Use this if you want to remove the debug symbols
+            except:
+                print('  Failed %s' % P.basename(library))
+    if arch.os == 'osx':
+        for library in glob(P.join(ISISROOT,'3rdParty','lib','*.framework','*')):
+            if not is_binary(library):
+                continue
+            print('  %s' % P.basename(library))
+            set_rpath_library(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
+            try:
+                pass
                 #strip(filename) # Use this if you want to remove the debug symbols
             except:
                 print('  Failed %s' % P.basename(library))
