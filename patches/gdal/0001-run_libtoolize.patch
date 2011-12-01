@@ -1,0 +1,18 @@
+diff -ur gdal-1.8.1/autogen.sh gdal-1.8.1.new/autogen.sh
+--- gdal-1.8.1/autogen.sh	2011-07-09 09:33:34.000000000 -0700
++++ gdal-1.8.1.new/autogen.sh	2011-12-01 09:13:55.000000000 -0800
+@@ -1,8 +1,13 @@
+ #!/bin/sh
+ set -x
+-#libtoolize --force --copy
++if test -z "$LIBTOOLIZE"; then
++    LIBTOOLIZE=libtoolize
++fi
++
++$LIBTOOLIZE --force --copy
+ aclocal -I ./m4
+ # We deliberately do not use autoheader, since it introduces PACKAGE junk
+ # that conflicts with other packages in cpl_config.h.in (FrankW)
+ #autoheader
+ autoconf
++
