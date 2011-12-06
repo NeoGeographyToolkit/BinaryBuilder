@@ -97,7 +97,7 @@ if __name__ == '__main__':
                 print('  Failed %s' % P.basename(library))
     if arch.os == 'osx':
         for library in glob(P.join(ISISROOT,'3rdParty','lib','*.framework','*')):
-            if not is_binary(library):
+            if not P.isfile(library):
                 continue
             print('  %s' % P.basename(library))
             set_rpath_library(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
