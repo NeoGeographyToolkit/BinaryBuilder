@@ -500,7 +500,7 @@ class amd(Package):
 
 class colamd(Package):
     src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/colamd/files/colamd-2.7.1-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/COLAMD-2.7.3.tar.gz']
-    chksum = ['2c48650ac67293990eb75224d063bc668871c328','75d490967b180c86cc33e04daeebf217ed179987']
+    chksum = ['0c1a3c429f929b77998aec88dd5c4f5169547f9a','75d490967b180c86cc33e04daeebf217ed179987']
     patch_level = '-p0'
 
     def __init__(self, env):
