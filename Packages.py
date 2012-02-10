@@ -27,8 +27,8 @@ def strip_flag(flag, key, env):
     return hit, env
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/gdal-1.8.1.tar.gz'
-    chksum  = 'b2f8b12ebdd00c05bc7f1ab7b761d9ac335c470c'
+    src     = 'http://download.osgeo.org/gdal/gdal-1.9.0.tar.gz'
+    chksum  = 'e2eaaf0fba39137b40c0d3069ac41dfb6f3c76db'
     patches = 'patches/gdal'
 
     @stage
@@ -58,8 +58,8 @@ class ilmbase(Package):
         super(ilmbase, self).configure(disable='static')
 
 class openexr(Package):
-    src     = 'http://download.savannah.nongnu.org/releases/openexr/openexr-1.6.1.tar.gz'
-    chksum  = 'b3650e6542f0e09daadb2d467425530bc8eec333'
+    src     = 'http://download.savannah.nongnu.org/releases/openexr/openexr-1.7.0.tar.gz'
+    chksum  = '91d0d4e69f06de956ec7e0710fc58ec0d4c4dc2b'
     patches = 'patches/openexr'
 
     @stage
@@ -80,8 +80,8 @@ class proj(Package):
         super(proj,self).configure(disable='static')
 
 class curl(Package):
-    src     = 'http://curl.haxx.se/download/curl-7.15.5.tar.gz'
-    chksum  = '32586c893e7d9246284af38d8d0f5082e83959af'
+    src     = 'http://curl.haxx.se/download/curl-7.24.0.tar.gz'
+    chksum  = '3f0d212ea3238ff3430bf8f3659f745b2c1f730a'
 
     @stage
     def configure(self):
