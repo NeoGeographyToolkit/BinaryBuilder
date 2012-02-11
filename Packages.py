@@ -199,37 +199,19 @@ class visionworkbench(GITPackage):
                                                disable = ['pkg_paths_default','static', 'qt-qmake'] + ['module-' + a for a in disable_modules],
                                                enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 
-class lapack(Package):
-    src     = 'http://www.netlib.org/lapack/lapack-3.2.1.tgz'
-    chksum  = 'c75223fdef3258c461370af5d2b889d580d7f38a'
-    patches = 'patches/lapack'
+class lapack(CMakePackage):
+    src     = 'http://www.netlib.org/lapack/lapack-3.4.0.tgz'
+    chksum  = '910109a931524f8dcc2734ce23fe927b00ca199f'
 
-    def __init__(self, env):
-        super(lapack, self).__init__(env)
-        self.env['NOOPT_FFLAGS'] = '-O'
-
-    def unpack(self):
-        super(lapack, self).unpack()
-        self.helper('cp', 'make.inc.example', 'make.inc')
-        self.helper('sed', '-i',
-            '-e', 's:g77:gfortran:',
-            '-e', r's:LOADOPTS =:LOADOPTS = ${LDFLAGS}:',
-            '-e', 's:../../blas\$(PLAT).a:-L%(ISIS3RDPARTY)s -lblas:' % self.env,
-            '-e', 's:lapack\$(PLAT).a:SRC/.libs/liblapack.a:',
-            'make.inc')
-
-        self.helper('sed', '-i',
-                    '-e', 's:LIBADD.*:& -L%(ISIS3RDPARTY)s -lblas:' % self.env,
-                    '-e', 's:.*LDFLAGS.*::',
-                    P.join('SRC', 'Makefile.am'))
-
-        self.helper('mkdir', 'm4')
-        self.helper('autoreconf' , '--force' , '--verbose', '--install', '-I', 'm4')
-
-    @stage
     def configure(self):
-        self.env['LD_LIBRARY_PATH'] = P.join(self.env['INSTALL_DIR'],'lib')
-        super(lapack, self).configure(disable='static', with_='blas=-L%s -lblas' % self.env['ISIS3RDPARTY'])
+        LDFLAGS__ = self.env['LDFLAGS']
+        LDFLAGS_ = []
+        for i in self.env['LDFLAGS'].split(' '):
+            if not i.startswith('-L'):
+                LDFLAGS_.append(i);
+        self.env['LDFLAGS'] = ' '.join(LDFLAGS_)
+        super(lapack, self).configure( other=['-DCMAKE_Fortran_COMPILER=gfortran','-DBUILD_SHARED_LIBS=ON','-DBUILD_STATIC_LIBS=OFF','-DBLAS_LIBRARIES=%(ISIS3RDPARTY)s/libblas.so' % self.env] )
+        self.env['LDFLAGS'] = LDFLAGS__
 
 class boost(Package):
     src    = 'http://downloads.sourceforge.net/boost/boost_1_39_0.tar.gz'
