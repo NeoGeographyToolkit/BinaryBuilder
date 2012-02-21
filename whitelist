@@ -22,6 +22,6 @@ bin/ipfind
 bin/ipmatch
 bin/osgviewer
 bin/mer2camera
-lib/libvw*.so*
-lib/libasp*.so*
+lib/libvw*.[so,dylib]*
+lib/libasp*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
