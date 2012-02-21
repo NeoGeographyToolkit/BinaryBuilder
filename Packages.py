@@ -85,7 +85,7 @@ class curl(Package):
 
     @stage
     def configure(self):
-        super(curl,self).configure(disable='static', without=['ssl','libidn'])
+        super(curl,self).configure(disable=['static','ldap','ldaps'], without=['ssl','libidn'])
 
 class stereopipeline(GITPackage):
     src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
