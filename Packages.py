@@ -147,6 +147,7 @@ class stereopipeline(GITPackage):
                 print('HAVE_PKG_SUPERLU=no', file=config)
 
             print('PKG_GEOS_LIBS=-lgeos-3.2.0', file=config)
+            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
 
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],

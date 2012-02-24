@@ -218,6 +218,9 @@ if __name__ == '__main__':
             print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
             print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join('$BASE','noinstall','include'),
                                                    P.join('$BASE','include')), file=config)
+            if pkg == 'protobuf':
+                print('PROTOC=$BASE/bin/protoc', file=config)
+
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=$BASE' % pkg.upper(), file=config)
         for pkg in noinstall_pkgs:
