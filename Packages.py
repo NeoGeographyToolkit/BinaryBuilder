@@ -533,17 +533,18 @@ class isis(Package):
     # xerces-c-3.1.1
 
     PLATFORM = dict(
-        linux64 = 'isisdist.astrogeology.usgs.gov::x86-64_linux_RHEL/isis/',
-        linux32 = 'isisdist.astrogeology.usgs.gov::x86_linux_RHEL/isis/',
-        osx32   = 'isisdist.astrogeology.usgs.gov::x86_darwin_OSX/isis/',
-        Ubuntu  = 'isisdist.astrogeology.usgs.gov::x86-64_linux_UBUNTU/isis/'
+        linux64  = 'isisdist.astrogeology.usgs.gov::x86-64_linux_RHEL/isis/',
+        linux32  = 'isisdist.astrogeology.usgs.gov::x86_linux_RHEL/isis/',
+        osx32    = 'isisdist.astrogeology.usgs.gov::x86_darwin_OSX/isis/',
+        Ubuntu   = 'isisdist.astrogeology.usgs.gov::x86-64_linux_UBUNTU/isis/',
+        openSUSE = 'isisdist.astrogeology.usgs.gov::x86-64_linux_SUSE11/isis/'
     )
 
     def __init__(self, env):
         super(isis, self).__init__(env)
         self.pkgname  += '_' + self.arch.osbits
         self.src       = self.PLATFORM[self.arch.osbits]
-        if self.arch.dist_name == 'Ubuntu':
+        if self.arch.dist_name == 'Ubuntu' or self.arch.dist_name == "openSUSE":
             self.src   = self.PLATFORM[self.arch.dist_name]
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
