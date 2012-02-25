@@ -215,8 +215,8 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS__
 
 class boost(Package):
-    src    = 'http://downloads.sourceforge.net/boost/boost_1_44_0.tar.gz'
-    chksum = '281088b4917b6cf01247cf99a8d0fb1001eecfe1'
+    src    = 'http://downloads.sourceforge.net/boost/boost_1_49_0.tar.bz2'
+    chksum = '26a52840e9d12f829e3008589abf0a925ce88524'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -232,10 +232,11 @@ class boost(Package):
             elif self.arch.os == 'osx':
                 toolkit = 'darwin'
 
-            print('variant myrelease : release : <optimization>none <debug-symbols>none ;', file=f)
-            print('variant mydebug : debug : <optimization>none ;', file=f)
+            # print('variant myrelease : release : <optimization>none <debug-symbols>none ;', file=f)
+            # print('variant mydebug : debug : <optimization>none ;', file=f)
             args = [toolkit] + list(self.env.get(i, ' ') for i in ('CXX', 'CXXFLAGS', 'LDFLAGS'))
             print('using %s : : %s : <cxxflags>"%s" <linkflags>"%s -ldl" ;' % tuple(args), file=f)
+            print('option.set keep-going : false ;', file=f)
 
     # TODO: WRONG. There can be other things besides -j4 in MAKEOPTS
     @stage
@@ -245,15 +246,15 @@ class boost(Package):
         self.helper('./bootstrap.sh')
         os.unlink(P.join(self.workdir, 'project-config.jam'))
 
-        cmd = ['./bjam']
+        cmd = ['./b2']
         if 'MAKEOPTS' in self.env:
             cmd += (self.env['MAKEOPTS'],)
 
         self.args = [
-            '-q', 'variant=myrelease', '--user-config=%s/user-config.jam' % self.workdir,
+            '-q', '--user-config=%s/user-config.jam' % self.workdir,
             '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
-            'threading=multi', 'link=shared', 'runtime-link=shared',
-            '--without-mpi', '--without-python', '--without-wave',
+            'threading=multi', 'variant=release', 'link=shared', 'runtime-link=shared',
+            '--without-mpi', '--without-python', '--without-wave', 'stage'
         ]
 
         cmd += self.args
@@ -263,7 +264,7 @@ class boost(Package):
     @stage
     def install(self):
         self.env['BOOST_ROOT'] = self.workdir
-        cmd = ['./bjam'] + self.args + ['install']
+        cmd = ['./b2'] + self.args + ['install']
         self.helper(*cmd)
 
 class HeaderPackage(Package):
