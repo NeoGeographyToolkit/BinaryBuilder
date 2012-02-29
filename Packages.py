@@ -80,8 +80,8 @@ class proj(Package):
         super(proj,self).configure(disable='static')
 
 class curl(Package):
-    src     = 'http://curl.haxx.se/download/curl-7.24.0.tar.gz'
-    chksum  = '3f0d212ea3238ff3430bf8f3659f745b2c1f730a'
+    src     = 'http://curl.haxx.se/download/curl-7.15.5.tar.gz'
+    chksum  = '32586c893e7d9246284af38d8d0f5082e83959af'
 
     @stage
     def configure(self):
