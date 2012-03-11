@@ -623,11 +623,11 @@ class osg(CMakePackage):
                 other=['-DBUILD_OSG_APPLICATIONS=ON'])
 
 class flann(CMakePackage):
-    src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.6.8-src.zip'
-    chksum = '35e8ca5dd76a1c36652e3c41fc3591a3d6f542c2'
+    src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.7.1-src.zip'
+    chksum = '61b9858620528919ea60a2a4b085ccc2b3c2d138'
     patches = 'patches/flann'
 
     def configure(self):
-        super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF -DBUILD_MATLAB_BINDINGS=OFF -DBUILD_PYTHON_BINDINGS=OFF'])
+        super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF','-DBUILD_MATLAB_BINDINGS=OFF','-DBUILD_PYTHON_BINDINGS=OFF'])
 
 # vim:foldmethod=indent
