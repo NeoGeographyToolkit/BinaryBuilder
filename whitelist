@@ -4,7 +4,6 @@ bin/disparitydebug
 bin/geoblend
 bin/hiedr2mosaic.py
 bin/hsv_merge
-bin/isis_adjust
 bin/orbitviz
 bin/orthoproject
 bin/point2dem
