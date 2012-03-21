@@ -499,7 +499,7 @@ class colamd(Package):
         super(colamd, self).configure(disable='static')
 
 class cholmod(Package):
-    src = ['http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/cholmod-1.7.0-autotools.patch.bz2','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/CHOLMOD-1.7.3.tar.gz']
+    src = ['http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/cholmod-1.7.0-autotools.patch.bz2','http://www.cise.ufl.edu/research/sparse/cholmod/CHOLMOD-1.7.3.tar.gz']
     chksum = ['0c15bc824b590d096998417f07b1849cc6f645fb','c85ce011da25337f53c0a5b11e329d855698caa0']
 
     def __init__(self, env):
