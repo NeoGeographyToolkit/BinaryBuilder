@@ -24,3 +24,4 @@ bin/mer2camera
 lib/libvw*.[so,dylib]*
 lib/libasp*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
+share/gdal/*
