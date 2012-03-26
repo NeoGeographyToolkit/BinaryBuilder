@@ -539,15 +539,20 @@ class isis(Package):
         linux32  = 'isisdist.astrogeology.usgs.gov::x86_linux_RHEL/isis/',
         osx32    = 'isisdist.astrogeology.usgs.gov::x86_darwin_OSX/isis/',
         Ubuntu   = 'isisdist.astrogeology.usgs.gov::x86-64_linux_UBUNTU/isis/',
-        openSUSE = 'isisdist.astrogeology.usgs.gov::x86-64_linux_SUSE11/isis/'
+        openSUSE = 'isisdist.astrogeology.usgs.gov::x86-64_linux_SUSE11/isis/',
+        SuSE     = 'isisdist.astrogeology.usgs.gov::x86-64_linux_SUSE11/isis/',
+        fedora   = 'isisdist.astrogeology.usgs.gov::x86-64_linux_FEDORA/isis/',
+        debian   = 'isisdist.astrogeology.usgs.gov::x86-64_linux_DEBIAN/isis/',
     )
 
     def __init__(self, env):
         super(isis, self).__init__(env)
-        self.pkgname  += '_' + self.arch.osbits
         self.src       = self.PLATFORM[self.arch.osbits]
-        if self.arch.dist_name == 'Ubuntu' or self.arch.dist_name == "openSUSE":
+        if self.arch.dist_name == 'Ubuntu' or self.arch.dist_name == "openSUSE" or self.arch.dist_name == 'debian' or self.arch.dist_name == 'fedora' or self.arch.dist_name == "SuSE":
             self.src   = self.PLATFORM[self.arch.dist_name]
+            self.pkgname += '_' + self.arch.dist_name 
+        else:
+            self.pkgname += '_' + self.arch.osbits
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
 
