@@ -330,7 +330,7 @@ class qwt_headers(HeaderPackage):
         self.helper(*cmd)
 
 class zlib(Package):
-    src     = 'http://zlib.net/zlib-1.2.6.tar.gz'
+    src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.6.tar.gz'
     chksum  = '38690375d8d42398ce33b2df726e25cacf096496'
 
     def unpack(self):
@@ -342,7 +342,7 @@ class zlib(Package):
         super(zlib,self).configure(other=('--shared',))
 
 class zlib_headers(HeaderPackage):
-    src     = 'http://zlib.net/zlib-1.2.6.tar.gz'
+    src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.6.tar.gz'
     chksum  = '38690375d8d42398ce33b2df726e25cacf096496'
 
     def configure(self):
@@ -598,7 +598,10 @@ class isis(Package):
             if skip: raise PackageError(self, 'Fetch is skipped and no src available')
             os.makedirs(self.localcopy)
         if skip: return
-        self.copytree(self.src, self.localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*'])
+        try:
+            self.copytree(self.src, self.localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*'])
+        except HelperError, e:
+            print("Had error, but USGS server is probably at fault (052212): %s" % e)
 
     @stage
     def unpack(self):
