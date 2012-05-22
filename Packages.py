@@ -7,7 +7,7 @@ import os.path as P
 import re
 
 from glob import glob
-from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError
+from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError
 
 def strip_flag(flag, key, env):
     ret = []
@@ -146,7 +146,7 @@ class stereopipeline(GITPackage):
             elif self.arch.os == 'osx':
                 print('HAVE_PKG_SUPERLU=no', file=config)
 
-            print('PKG_GEOS_LIBS=-lgeos-3.2.0', file=config)
+            print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
             print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
 
         super(stereopipeline, self).configure(
@@ -189,7 +189,7 @@ class visionworkbench(GITPackage):
                 print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
                                                                     P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 if pkg == 'gdal' and self.arch.os == 'linux':
-                    print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                    print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng14 -lz"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
                 else:
                     print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
             # Specify executables we use
@@ -280,18 +280,18 @@ class HeaderPackage(Package):
         self.helper('make', 'install-data')
 
 class gsl_headers(HeaderPackage):
-    src = 'ftp://ftp.gnu.org/gnu/gsl/gsl-1.3.tar.gz',
-    chksum = 'ecde676adb997adbd507a7a7974bb7f6f69f9d87',
+    src = 'ftp://ftp.gnu.org/gnu/gsl/gsl-1.15.tar.gz',
+    chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
 
 class geos_headers(HeaderPackage):
-    src = 'http://download.osgeo.org/geos/geos-3.2.0.tar.bz2',
-    chksum = 'e6925763fb06fa6a7f358ede49bb89f96535b3ef',
+    src = 'http://download.osgeo.org/geos/geos-3.3.1.tar.bz2',
+    chksum = '4f89e62c636dbf3e5d7e1bfcd6d9a7bff1bcfa60',
     def configure(self):
         super(geos_headers, self).configure(disable=('python', 'ruby'))
 
 class superlu_headers(HeaderPackage):
-    src = 'http://crd.lbl.gov/~xiaoye/SuperLU/superlu_3.0.tar.gz',
-    chksum = '65a35df64b01ae1e454dd793c668970a2cf41604',
+    src = 'http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz',
+    chksum = 'd2863610d8c545d250ffd020b8e74dc667d7cbdd',
     def configure(self): pass
     def install(self):
         d = P.join('%(NOINSTALL_DIR)s' % self.env, 'include', 'SRC')
@@ -304,8 +304,8 @@ class xercesc_headers(HeaderPackage):
     chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
 
 class qt_headers(HeaderPackage):
-    src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.6.2.tar.gz'
-    chksum = '977c10b88a2230e96868edc78a9e3789c0fcbf70'
+    src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
+    chksum = 'af9016aa924a577f7b06ffd28c9773b56d74c939'
     def __init__(self, env):
         super(qt_headers, self).__init__(env)
 
@@ -322,8 +322,8 @@ class qt_headers(HeaderPackage):
         self.copytree(self.workdir + '/', self.env['NOINSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=*'])
 
 class qwt_headers(HeaderPackage):
-    src = 'http://downloads.sourceforge.net/qwt/qwt-5.2.0.tar.bz2',
-    chksum = '8830498b87d99d4b7e95ee643f1f7ff178204ba9',
+    src = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
+    chksum = '301cca0c49c7efc14363b42e082b09056178973e',
     def configure(self): pass
     def install(self):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', '*.h')) + [P.join('%(NOINSTALL_DIR)s' % self.env, 'include')]
@@ -369,15 +369,15 @@ class jpeg_headers(HeaderPackage):
         super(jpeg_headers, self).configure(enable=('shared',), disable=('static',))
 
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
-    chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
+    chksum = '85525715cdaa8c542316436659cada13561663c4'
 
     def configure(self):
         super(png,self).configure(disable='static')
 
 class png_headers(HeaderPackage):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
-    chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
+    chksum = '85525715cdaa8c542316436659cada13561663c4'
 
 class cspice_headers(HeaderPackage):
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
@@ -410,8 +410,8 @@ class cspice_headers(HeaderPackage):
         self.helper(*cmd)
 
 class protobuf(Package):
-    src = 'http://protobuf.googlecode.com/files/protobuf-2.3.0.tar.gz'
-    chksum = 'd0e7472552e5c352ed0afbb07b30dcb343c96aaf'
+    src = 'http://protobuf.googlecode.com/files/protobuf-2.4.1.tar.bz2'
+    chksum = 'df5867e37a4b51fb69f53a8baf5b994938691d6d'
 
     @stage
     def configure(self):
@@ -523,21 +523,32 @@ class cholmod(Package):
 
 class isis(Package):
 
-    ### ISIS 3.3.0 Needs:
-    # geos-3.2.0
+    ### ISIS 3.4.0 Needs:
+    # geos-3.3.1 - X
+    # qt 4.7.4 - X
+    # gsl-1.15 - X
+    # protobuf7
+    # superlu-4.3 -X
+    # libz 1.2.6 -X
+    # xerces-c 3.1 - X
+    # libtiff 3 something
+    # libjpeg 8 - X
+    # png-14.11 - X
+    # qwt 6.0.1 - X
+
+    ### OLD # ISIS 3.3.0 Needs
     # gsl-1.13 (1.14 and 1.15 on other platforms, hopefully backwards compat)
     # kakadu-6.3.1?
     # protobuf-2.3.0
-    # qt-4.6.2
     # qwt-5.2.0
     # spice-0064
     # superlu-3.0
     # xerces-c-3.1.1
 
     PLATFORM = dict(
-        linux64  = 'isisdist.astrogeology.usgs.gov::x86-64_linux_RHEL/isis/',
-        linux32  = 'isisdist.astrogeology.usgs.gov::x86_linux_RHEL/isis/',
-        osx32    = 'isisdist.astrogeology.usgs.gov::x86_darwin_OSX/isis/',
+        linux64  = 'isisdist.astrogeology.usgs.gov::x86-64_linux_RHEL6/isis/',
+        osx64    = 'isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX/isis/',
+        osx32    = 'isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX/isis/',
         Ubuntu   = 'isisdist.astrogeology.usgs.gov::x86-64_linux_UBUNTU/isis/',
         openSUSE = 'isisdist.astrogeology.usgs.gov::x86-64_linux_SUSE11/isis/',
         SuSE     = 'isisdist.astrogeology.usgs.gov::x86-64_linux_SUSE11/isis/',
@@ -569,6 +580,18 @@ class isis(Package):
                 warn('Creating isis dev symlink %s for %s' % (P.basename(dev), P.basename(lib)))
                 self.helper('ln', '-sf', P.basename(lib), dev)
 
+    def _fix_install_name(self, Dir):
+        if self.arch.os != 'osx':
+            return
+
+        for lib in glob(P.join(Dir, '*.dylib')):
+            if P.islink(lib):
+                continue
+            try:
+                self.helper('install_name_tool', '-id', lib, lib)
+            except HelperError, e:
+                print("Unable to process file: %s" % e)
+
     @stage
     def fetch(self, skip=False):
         if not os.path.exists(self.localcopy):
@@ -596,7 +619,7 @@ class isis(Package):
     def install(self):
         self.copytree(self.workdir + '/', self.env['ISISROOT'], ['--link-dest=%s' % self.localcopy])
         self._fix_dev_symlinks(self.env['ISIS3RDPARTY'])
-
+        self._fix_install_name(self.env['ISIS3RDPARTY'])
 
 class isis_local(isis):
     ''' This isis package just uses the isis in ISISROOT (it's your job to make sure the deps are correct) '''
@@ -614,7 +637,9 @@ class isis_local(isis):
     @stage
     def compile(self): pass
     @stage
-    def install(self): pass
+    def install(self):
+        self._fix_dev_symlinks(self.env['ISIS3RDPARTY'])
+        self._fix_install_name(self.env['ISIS3RDPARTY'])
 
 class osg(CMakePackage):
     src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.3/source/OpenSceneGraph-2.8.3.zip'

@@ -284,6 +284,8 @@ class Package(object):
 
         if ext == '.zip':
             self.helper('unzip', '-d', output_dir, self.tarball)
+        elif ext.endswith('xz'):
+            self.helper('xz','-kcd', self.tarball, '|', 'tar', 'x', '-C', output_dir)
         else:
             flags = 'xf'
             if ext == '.Z' or ext.endswith('gz'):

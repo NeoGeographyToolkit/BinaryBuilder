@@ -136,10 +136,11 @@ if __name__ == '__main__':
         print('PREFIX=$PWD/build', file=config)
         print('ENABLE_RPATH=yes', file=config)
         print('ENABLE_STATIC=no', file=config)
-        print('ENABLE_PKG_PATH_DEFAULT=no', file=config)
+        print('ENABLE_PKG_PATHS_DEFAULT=no', file=config)
         if arch.os == 'osx':
-            print('CCFLAGS="-arch i386 -Wl,-rpath -Wl,%s"' % installdir, file=config)
-            print('CXXFLAGS="-arch i386 -Wl,-rpath -Wl,%s"' % installdir, file=config)
+            print('CCFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % installdir, file=config)
+            print('CXXFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % installdir, file=config)
+            print('LDFLAGS="-Wl,-rpath -Wl,%s -Wl,-rpath -Wl,%s"' % (installdir,P.join(ISISROOT,'3rdParty','lib')), file=config)
         print('\n# You should enable modules that you want yourself', file=config)
         print('# Here are some simple modules to get you started', file=config)
         print('ENABLE_MODULE_MOSAIC=yes', file=config)
@@ -149,14 +150,14 @@ if __name__ == '__main__':
         print('BASE=%s' % installdir, file=config)
 
         install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
-        off_pkgs = 'tiff hdr cairomm x11 clapack slapack opencv cg zeromq rabbitmq_c qt_qmake arbitrary_qt'.split()
+        off_pkgs = 'tiff hdr cairomm x11 clapack slapack opencv cg zeromq rabbitmq_c qt_qmake arbitrary_qt apple_qmake_qt linux_qmake_qt guess_qt qt'.split()
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=$BASE' % pkg.upper(), file=config)
             print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join('$BASE','noinstall','include'),
                                                    P.join('$BASE','include')), file=config)
             if pkg == 'gdal':
-                print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
+                print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng14 -lz"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
             else:
                 print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
             if pkg == 'protobuf':
@@ -172,9 +173,10 @@ if __name__ == '__main__':
         print('PREFIX=$PWD/build', file=config)
         print('ENABLE_RPATH=yes', file=config)
         print('ENABLE_STATIC=no', file=config)
-        print('ENABLE_PKG_PATH_DEFAULT=no', file=config)
+        print('ENABLE_PKG_PATHS_DEFAULT=no', file=config)
         if arch.os == 'osx':
-            print('CCFLAGS="-arch i386"\nCXXFLAGS="-arch i386"', file=config)
+            print('CCFLAGS="-arch x86_64"\nCXXFLAGS="-arch x86_64"', file=config)
+            print('LDFLAGS="-Wl,-rpath -Wl,%s -Wl,-rpath -Wl,%s"' % (installdir,P.join(ISISROOT,'3rdParty','lib')), file=config)
         print('\n# You should enable modules that you want yourself', file=config)
         print('# Here are some simple modules to get you started', file=config)
         print('ENABLE_MODULE_CORE=yes', file=config)
@@ -249,13 +251,13 @@ if __name__ == '__main__':
 
         print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
         print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
-        print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
+        print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng14 -lz"', file=config)
 
         if arch.os == 'linux':
             print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(ISISROOT, '3rdParty', 'lib', 'libsuperlu*.a'))[0], file=config)
         elif arch.os == 'osx':
             print('HAVE_PKG_SUPERLU=no', file=config)
 
-        print('PKG_GEOS_LIBS=-lgeos-3.2.0', file=config)
+        print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('HAVE_PKG_ISIS=%s' % ISISROOT, file=config)

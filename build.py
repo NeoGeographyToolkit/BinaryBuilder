@@ -117,13 +117,16 @@ if __name__ == '__main__':
 
     if arch.os == 'linux':
         e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
+        if arch.bits == 32:
+            die('\nISIS 3.4+ only supports 64bit platforms')
+        e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
+
     elif arch.os == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
-        # ISIS only supports 32-bit
-        osx_arch = 'i386' #SEMICOLON-DELIMITED
-        # We're targeting 10.5
-        target = '10.5'
+        # ISIS only supports 64bit
+        osx_arch = 'x86_64' #SEMICOLON-DELIMITED
+        target = '10.6'
         # And also using the matching sdk for good measure
         sysroot = '/Developer/SDKs/MacOSX%s.sdk' % target
 
@@ -134,19 +137,18 @@ if __name__ == '__main__':
 
         e.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
         e.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (target, sysroot))
+        e.append_many(ALL_FLAGS, '-m64')
 
-        # Resolve a bug with -mmacosx-version-min on 10.6 (see
-        # http://markmail.org/message/45nbrtxsxvsjedpn).
-        # Short version: 10.6 generates the new compact header (LD_DYLD_INFO)
-        # even when told to support 10.5 (which can't read it)
-        if version.StrictVersion(arch.dist_version) >= '10.6':
-            e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
+        # # Resolve a bug with -mmacosx-version-min on 10.6 (see
+        # # http://markmail.org/message/45nbrtxsxvsjedpn).
+        # # Short version: 10.6 generates the new compact header (LD_DYLD_INFO)
+        # # even when told to support 10.5 (which can't read it)
+        # if version.StrictVersion(arch.dist_version) >= '10.6':
+        #     e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
 
-    e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
-
-    if arch.osbits == 'linux32':
-        limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
-        e.append('CPPFLAGS', '-include %s' % limit_symbols)
+    # if arch.osbits == 'linux32':
+    #     limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
+    #     e.append('CPPFLAGS', '-include %s' % limit_symbols)
 
     compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
     if not P.exists(compiler_dir):
