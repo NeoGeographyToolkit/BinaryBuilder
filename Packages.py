@@ -598,10 +598,8 @@ class isis(Package):
             if skip: raise PackageError(self, 'Fetch is skipped and no src available')
             os.makedirs(self.localcopy)
         if skip: return
-        try:
-            self.copytree(self.src, self.localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*'])
-        except HelperError, e:
-            print("Had error, but USGS server is probably at fault (052212): %s" % e)
+
+        self.copytree(self.src, self.localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*'])
 
     @stage
     def unpack(self):

@@ -194,7 +194,7 @@ if __name__ == '__main__':
         elif arch.os == 'osx':
             build.extend([zlib_headers, png_headers, jpeg_headers])
 
-        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl, ufconfig, amd, colamd, cholmod])
+        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl])
 
         if arch.os == 'linux':
             build.append(lapack)
