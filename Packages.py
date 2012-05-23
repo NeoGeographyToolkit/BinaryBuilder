@@ -143,10 +143,11 @@ class stereopipeline(GITPackage):
 
             if self.arch.os == 'linux':
                 print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
+                print('PKG_GEOS_LIBS=-lgeos-3.3.2', file=config)
             elif self.arch.os == 'osx':
                 print('HAVE_PKG_SUPERLU=no', file=config)
+                print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
 
-            print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
             print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
 
         super(stereopipeline, self).configure(
@@ -284,8 +285,15 @@ class gsl_headers(HeaderPackage):
     chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
 
 class geos_headers(HeaderPackage):
-    src = 'http://download.osgeo.org/geos/geos-3.3.1.tar.bz2',
-    chksum = '4f89e62c636dbf3e5d7e1bfcd6d9a7bff1bcfa60',
+    def __init__(self,env):
+        super(geos_headers,self).__init__(env)
+        if self.arch.os == "osx":
+            self.src = 'http://download.osgeo.org/geos/geos-3.3.1.tar.bz2'
+            self.chksum = '4f89e62c636dbf3e5d7e1bfcd6d9a7bff1bcfa60'
+        else:
+            self.src = 'http://download.osgeo.org/geos/geos-3.3.2.tar.bz2'
+            self.chksum = '942b0bbc61a059bd5269fddd4c0b44a508670cb3'
+
     def configure(self):
         super(geos_headers, self).configure(disable=('python', 'ruby'))
 
@@ -304,10 +312,14 @@ class xercesc_headers(HeaderPackage):
     chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
 
 class qt_headers(HeaderPackage):
-    src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
-    chksum = 'af9016aa924a577f7b06ffd28c9773b56d74c939'
     def __init__(self, env):
         super(qt_headers, self).__init__(env)
+        if self.arch.os == "osx":
+            self.src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
+            self.chksum = 'af9016aa924a577f7b06ffd28c9773b56d74c939'
+        else:
+            self.src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
+            self.chksum = '2ba35adca8fb9c66a58eca61a15b21df6213f22e'
 
     @stage
     def configure(self):
@@ -535,15 +547,6 @@ class isis(Package):
     # libjpeg 8 - X
     # png-14.11 - X
     # qwt 6.0.1 - X
-
-    ### OLD # ISIS 3.3.0 Needs
-    # gsl-1.13 (1.14 and 1.15 on other platforms, hopefully backwards compat)
-    # kakadu-6.3.1?
-    # protobuf-2.3.0
-    # qwt-5.2.0
-    # spice-0064
-    # superlu-3.0
-    # xerces-c-3.1.1
 
     PLATFORM = dict(
         linux64  = 'isisdist.astrogeology.usgs.gov::x86-64_linux_RHEL6/isis/',

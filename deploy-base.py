@@ -255,9 +255,10 @@ if __name__ == '__main__':
 
         if arch.os == 'linux':
             print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(ISISROOT, '3rdParty', 'lib', 'libsuperlu*.a'))[0], file=config)
+            print('PKG_GEOS_LIBS=-lgeos-3.3.2', file=config)
         elif arch.os == 'osx':
             print('HAVE_PKG_SUPERLU=no', file=config)
+            print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
 
-        print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('HAVE_PKG_ISIS=%s' % ISISROOT, file=config)
