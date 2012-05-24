@@ -103,7 +103,7 @@ class stereopipeline(GITPackage):
                           flapack arbitrary_qt curl ufconfig amd colamd cholmod flann'.split()
 
         if self.arch.os == 'linux':
-            noinstall_pkgs += ['superlu']
+            install_pkgs += ['superlu']
 
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] \
           + [i + '=%(NOINSTALL_DIR)s' % self.env for i in noinstall_pkgs] \
@@ -121,12 +121,7 @@ class stereopipeline(GITPackage):
 
                 print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
 
-            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
-
-            if self.arch.os == 'osx':
-                libload = '-framework '
-            else:
-                libload = '-l'
+            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns QtWebKit'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 
@@ -135,14 +130,17 @@ class stereopipeline(GITPackage):
 
             for module in qt_pkgs.split():
                 qt_cppflags.append('-I%s/%s' % (includedir, module))
-                qt_libs.append('%s%s' % (libload, module))
+                if self.arch.os == 'osx':
+                    qt_libs.append('-framework %s' % module)
+                else:
+                    qt_libs.append('%s/lib%s/.so.4' % (self.env['ISIS3RDPARTY'],module))
 
             print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
             print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
             print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
 
             if self.arch.os == 'linux':
-                print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(self.env['ISIS3RDPARTY'], 'libsuperlu*.a'))[0], file=config)
+                print('PKG_SUPERLU_PLAIN_LIBS=%s' % glob(P.join(self.env['INSTALL_DIR'],'lib','libsuperlu*.so'))[0], file=config)
                 print('PKG_GEOS_LIBS=-lgeos-3.3.2', file=config)
             elif self.arch.os == 'osx':
                 print('HAVE_PKG_SUPERLU=no', file=config)
@@ -296,6 +294,20 @@ class geos_headers(HeaderPackage):
 
     def configure(self):
         super(geos_headers, self).configure(disable=('python', 'ruby'))
+
+class superlu(Package):
+    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/superlu/files/superlu-4.3-autotools.patch','http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz']
+    chksum = ['c9cc1c9a7aceef81530c73eab7f599d652c1fddd','d2863610d8c545d250ffd020b8e74dc667d7cbdd']
+
+    def __init__(self,env):
+        super(superlu,self).__init__(env)
+        self.patches = [P.join(env['DOWNLOAD_DIR'], 'superlu-4.3-autotools.patch')]
+
+    @stage
+    def configure(self):
+        print("Directory is %s" % self.env['ISIS3RDPARTY'])
+        self.helper('autoreconf', '-fvi')
+        super(superlu,self).configure(with_=('blas=%s') % glob(P.join(self.env['ISIS3RDPARTY'],'libblas.so*'))[0])
 
 class superlu_headers(HeaderPackage):
     src = 'http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz',

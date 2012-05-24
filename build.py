@@ -14,11 +14,11 @@ from tempfile import mkdtemp, gettempdir
 from distutils import version
 from glob import glob
 
-from Packages import isis, gsl_headers, geos_headers, superlu_headers, xercesc_headers,\
+from Packages import isis, gsl_headers, geos_headers, superlu_headers, superlu, xercesc_headers,\
                 qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
                 ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
                 zlib_headers, png_headers, isis_local, protobuf, jpeg_headers, \
-                flann, curl, ufconfig, amd, colamd, cholmod
+                flann, curl
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run, get_gcc_version
 
@@ -187,12 +187,12 @@ if __name__ == '__main__':
         build = [isis_local if opt.isisroot is not None else isis]
 
         # Many things depend on isis 3rdparty, so do it before the rest
-        build += [gsl_headers, geos_headers, superlu_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf]
+        build += [gsl_headers, geos_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf]
 
         if arch.os == 'linux':
-            build.extend([zlib, png, jpeg])
+            build.extend([zlib, png, jpeg, superlu])
         elif arch.os == 'osx':
-            build.extend([zlib_headers, png_headers, jpeg_headers])
+            build.extend([zlib_headers, png_headers, jpeg_headers, superlu_headers])
 
         build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl])
 

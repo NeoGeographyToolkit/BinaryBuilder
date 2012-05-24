@@ -203,7 +203,7 @@ if __name__ == '__main__':
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point'.split()
         if arch.os == 'linux':
-            noinstall_pkgs += ['superlu']
+            install_pkgs += ['superlu']
 
         print('\n# Applications', file=config)
         for app in disable_apps:
@@ -232,12 +232,7 @@ if __name__ == '__main__':
         for pkg in off_pkgs:
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
-        qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
-
-        if arch.os == 'osx':
-            libload = '-framework '
-        else:
-            libload = '-l'
+        qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns QtWebKit'
 
         print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 
@@ -247,14 +242,18 @@ if __name__ == '__main__':
 
         for module in qt_pkgs.split():
             qt_cppflags.append('-I%s/%s' % (includedir, module))
-            qt_libs.append('%s%s' % (libload, module))
+            if arch.os == 'osx':
+                qt_libs.append('-framework %s' % module)
+            else:
+                qt_libs.append('%s/lib%s.so.4' % (P.join(ISISROOT, '3rdParty', 'lib'),module))
+
 
         print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
         print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
         print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng14 -lz"', file=config)
 
         if arch.os == 'linux':
-            print('PKG_SUPERLU_STATIC_LIBS=%s' % glob(P.join(ISISROOT, '3rdParty', 'lib', 'libsuperlu*.a'))[0], file=config)
+            print('PKG_SUPERLU_PLAIN_LIBS=%s' % glob(P.join(installdir, 'lib', 'libsuperlu*.so'))[0], file=config)
             print('PKG_GEOS_LIBS=-lgeos-3.3.2', file=config)
         elif arch.os == 'osx':
             print('HAVE_PKG_SUPERLU=no', file=config)
