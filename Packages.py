@@ -133,7 +133,7 @@ class stereopipeline(GITPackage):
                 if self.arch.os == 'osx':
                     qt_libs.append('-framework %s' % module)
                 else:
-                    qt_libs.append('%s/lib%s/.so.4' % (self.env['ISIS3RDPARTY'],module))
+                    qt_libs.append('%s/lib%s.so.4' % (self.env['ISIS3RDPARTY'],module))
 
             print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
             print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
@@ -214,8 +214,10 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS__
 
 class boost(Package):
-    src    = 'http://downloads.sourceforge.net/boost/boost_1_49_0.tar.bz2'
-    chksum = '26a52840e9d12f829e3008589abf0a925ce88524'
+    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
+    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'
+#    src    = 'http://downloads.sourceforge.net/boost/boost_1_49_0.tar.bz2'
+#    chksum = '26a52840e9d12f829e3008589abf0a925ce88524'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -245,7 +247,7 @@ class boost(Package):
         self.helper('./bootstrap.sh')
         os.unlink(P.join(self.workdir, 'project-config.jam'))
 
-        cmd = ['./b2']
+        cmd = ['./bjam']
         if 'MAKEOPTS' in self.env:
             cmd += (self.env['MAKEOPTS'],)
 
@@ -263,7 +265,7 @@ class boost(Package):
     @stage
     def install(self):
         self.env['BOOST_ROOT'] = self.workdir
-        cmd = ['./b2'] + self.args + ['install']
+        cmd = ['./bjam'] + self.args + ['install']
         self.helper(*cmd)
 
 class HeaderPackage(Package):
