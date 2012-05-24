@@ -188,7 +188,7 @@ class visionworkbench(GITPackage):
                 print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
                                                                     P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 if pkg == 'gdal' and self.arch.os == 'linux':
-                    print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng14 -lz"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                    print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
                 else:
                     print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
             # Specify executables we use
@@ -394,13 +394,15 @@ class jpeg_headers(HeaderPackage):
     def configure(self):
         super(jpeg_headers, self).configure(enable=('shared',), disable=('static',))
 
+# Linux ISIS3.4 uses png12
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
-    chksum = '85525715cdaa8c542316436659cada13561663c4'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
+    chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
 
     def configure(self):
         super(png,self).configure(disable='static')
 
+# OSX ISIS3.4 uses png14
 class png_headers(HeaderPackage):
     src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
     chksum = '85525715cdaa8c542316436659cada13561663c4'

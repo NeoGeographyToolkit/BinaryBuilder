@@ -156,8 +156,8 @@ if __name__ == '__main__':
             print('HAVE_PKG_%s=$BASE' % pkg.upper(), file=config)
             print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join('$BASE','noinstall','include'),
                                                    P.join('$BASE','include')), file=config)
-            if pkg == 'gdal':
-                print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng14 -lz"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
+            if pkg == 'gdal' and arch.os == 'linux':
+                print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
             else:
                 print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
             if pkg == 'protobuf':
@@ -250,7 +250,7 @@ if __name__ == '__main__':
 
         print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
         print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
-        print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng14 -lz"', file=config)
+        print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
 
         if arch.os == 'linux':
             print('PKG_SUPERLU_PLAIN_LIBS=%s' % glob(P.join(installdir, 'lib', 'libsuperlu*.so'))[0], file=config)
