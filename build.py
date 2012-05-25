@@ -20,7 +20,8 @@ from Packages import isis, gsl_headers, geos_headers, superlu_headers, superlu, 
                 zlib_headers, png_headers, isis_local, protobuf, jpeg_headers, \
                 flann, curl
 
-from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run, get_gcc_version
+from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run, get_gcc_version, logger, warn
+from BinaryDist import is_binary, set_rpath
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
@@ -218,23 +219,46 @@ if __name__ == '__main__':
     for base in opt.base:
         run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
     if opt.base:
-        # Fix libtool files
+        info("Fixing Paths in Libtool files.")
         new_libdir = e['INSTALL_DIR']
         for file in glob(P.join(e['INSTALL_DIR'],'lib','*.la')):
             lines = []
-            print("Fixing libtool: %s" % file )
+            logger.debug("Fixing libtool: %s" % file )
             with open(file,'r') as f:
                 lines = f.readlines()
             old_libdir = P.normpath(P.join(lines[-1][lines[-1].find("'")+1:lines[-1].rfind("'")],'..'))
             with open(file,'w') as f:
                 for line in lines:
                     f.write( string.replace(line,old_libdir,new_libdir) )
-        # Fix binaries so that they will run during compile (protoc)
-        if arch.os == 'linux':
-            for bin in glob(P.join(e['INSTALL_DIR'],'bin','*')):
-                if P.islink(bin):
+
+        info("Fixing binary paths and libraries")
+        library_ext = "so"
+        if arch.os == 'osx':
+            library_ext = "dylib"
+        SEARCHPATH = [P.join(e['ISISROOT'],'lib'), P.join(e['ISISROOT'],'3rdParty','lib'), P.join(e['INSTALL_DIR'],'lib')]
+        for curr_path in SEARCHPATH:
+            for library in glob(P.join(curr_path,'*.'+library_ext+'*')):
+                if not is_binary(library):
                     continue
-                run("chrpath", "-r", "$ORIGIN/../lib:$ORIGIN/../isis/3rdParty/lib", bin, raise_on_failure=False)
+                logger.debug('  %s' % P.basename(library))
+                try:
+                    set_rpath(library, e['INSTALL_DIR'], map(lambda path: P.relpath(path, e['INSTALL_DIR']), SEARCHPATH))
+                except:
+                    warn('  Failed rpath on %s' % P.basename(library))
+        if arch.os == 'osx':
+            for library in glob(P.join(e['ISISROOT'],'3rdParty','lib','*.framework','*')):
+                if not P.isfile(library):
+                    continue
+                logger.debug('  %s' % P.basename(library))
+                set_rpath(library, e['INSTALL_DIR'], map(lambda path: P.relpath(path, e['INSTALL_DIR']), SEARCHPATH))
+        for binary in glob(P.join(e['INSTALL_DIR'],'bin','*')):
+            if not is_binary(binary):
+                continue
+            logger.debug('  %s' % P.basename(binary))
+            try:
+                set_rpath(binary, e['INSTALL_DIR'], map(lambda path: P.relpath(path, e['INSTALL_DIR']), SEARCHPATH))
+            except:
+                    warn('  Failed rpath on %s' % P.basename(binary))
 
     modes = dict(
         all     = lambda pkg : Package.build(pkg, skip_fetch=False),

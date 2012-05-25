@@ -8,48 +8,12 @@ import logging
 import string
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die, run
-from BinaryDist import is_binary, strip, otool
+from BinaryDist import is_binary, set_rpath
 import sys
 from glob import glob
 
 global logger
 logger = logging.getLogger()
-
-def set_rpath_library(filename, toplevel, searchpath):
-    logger.debug('set_rpath_library %s %s' % (filename, toplevel))
-    assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
-    def linux():
-        rel_to_top = P.relpath(toplevel, P.dirname(filename))
-        rpath = [P.join('$ORIGIN', rel_to_top, path) for path in searchpath]
-        if run('chrpath', '-r', ':'.join(rpath), filename, raise_on_failure = False) is None:
-            logger.warn('Failed to set_rpath on %s' % filename)
-    def osx():
-        info = otool(filename)
-
-        # soname is None for an executable
-        if info.soname is not None:
-            info.libs[info.soname] = info.sopath
-        logger.debug('Soname: %s' % info.soname)
-
-        for soname, sopath in info.libs.iteritems():
-            logger.debug('  Processing soname: %s' % soname)
-
-            # OSX rpath points to one specific file, not anything that matches the
-            # library SONAME. We've already done a whitelist check earlier, so
-            # ignore it if we can't find the lib we want
-            if info.sopath == sopath:
-                run('install_name_tool', '-id', filename, filename)
-                continue
-
-            for rpath in searchpath:
-                if P.exists(P.join(toplevel, rpath, soname)):
-                    new_path = P.join('@loader_path', P.relpath(P.join(toplevel,rpath,soname),P.dirname(filename)))
-                    # new_path = P.join('@loader_path', '..', rpath, soname)
-                    # If the entry is the "self" one, it has to be changed differently
-                    run('install_name_tool', '-change', sopath, new_path, filename)
-                    break
-
-    locals()[get_platform().os]()
 
 if __name__ == '__main__':
     parser = OptionParser(usage='%s tarball installdir' % sys.argv[0])
@@ -91,8 +55,7 @@ if __name__ == '__main__':
                 continue
             print('  %s' % P.basename(library))
             try:
-                set_rpath_library(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
-                #strip(filename) # Use this if you want to remove the debug symbols
+                set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
             except:
                 print('  Failed %s' % P.basename(library))
     if arch.os == 'osx':
@@ -100,12 +63,7 @@ if __name__ == '__main__':
             if not P.isfile(library):
                 continue
             print('  %s' % P.basename(library))
-            set_rpath_library(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
-            try:
-                pass
-                #strip(filename) # Use this if you want to remove the debug symbols
-            except:
-                print('  Failed %s' % P.basename(library))
+            set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
 
     print('Fixing Binaries')
     for binary in glob(P.join(installdir,'bin','*')):
@@ -113,8 +71,7 @@ if __name__ == '__main__':
             continue
         print('  %s' % P.basename(binary))
         try:
-            set_rpath_library(binary, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
-            #strip(filename) # Use this if you want to remove the debug symbols
+            set_rpath(binary, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
         except:
             print('  Failed %s' % P.basename(binary))
 
