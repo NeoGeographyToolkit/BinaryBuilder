@@ -229,6 +229,12 @@ if __name__ == '__main__':
             with open(file,'w') as f:
                 for line in lines:
                     f.write( string.replace(line,old_libdir,new_libdir) )
+        # Fix binaries so that they will run during compile (protoc)
+        if arch.os == 'linux':
+            for bin in glob(P.join(e['INSTALL_DIR'],'bin','*')):
+                if P.islink(bin):
+                    continue
+                run("chrpath", "-r", "$ORIGIN/../lib:$ORIGIN/../isis/3rdParty/lib", bin, raise_on_failure=False)
 
     modes = dict(
         all     = lambda pkg : Package.build(pkg, skip_fetch=False),
