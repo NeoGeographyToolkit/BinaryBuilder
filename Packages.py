@@ -2,7 +2,7 @@
 
 from __future__ import print_function
 
-import os
+import os, shutil
 import os.path as P
 import re
 
@@ -482,6 +482,14 @@ class isis(Package):
             self.pkgname += '_' + self.arch.osbits
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
 
+    def _remove_absolute_symlinks(self, Dir):
+        for f in glob(P.join(Dir, '*')):
+            if not P.islink(f):
+                continue
+            path = os.readlink(f)
+            if P.isabs(path):
+                os.remove(f)
+                shutil.copy(path,f)
 
     def _fix_dev_symlinks(self, Dir):
         if self.arch.os != 'linux':
@@ -535,6 +543,7 @@ class isis(Package):
     @stage
     def install(self):
         self.copytree(self.workdir + '/', self.env['ISISROOT'], ['--link-dest=%s' % self.localcopy])
+        self._remove_absolute_symlinks(self.env['ISIS3RDPARTY'])
         self._fix_dev_symlinks(self.env['ISIS3RDPARTY'])
         self._fix_install_name(self.env['ISIS3RDPARTY'])
 
@@ -555,6 +564,7 @@ class isis_local(isis):
     def compile(self): pass
     @stage
     def install(self):
+        self._remove_absolute_symlinks(self.env['ISIS3RDPARTY'])
         self._fix_dev_symlinks(self.env['ISIS3RDPARTY'])
         self._fix_install_name(self.env['ISIS3RDPARTY'])
 
