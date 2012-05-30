@@ -59,7 +59,7 @@ if __name__ == '__main__':
             except:
                 print('  Failed %s' % P.basename(library))
     if arch.os == 'osx':
-        for library in glob(P.join(ISISROOT,'3rdParty','lib','*.framework','*')):
+        for library in glob(P.join(ISISROOT,'3rdParty','lib','*.framework','Versions','Current','*')):
             if not P.isfile(library):
                 continue
             print('  %s' % P.basename(library))

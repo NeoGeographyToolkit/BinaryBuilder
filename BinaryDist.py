@@ -415,6 +415,10 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         # soname is None for an executable
         if info.soname is not None:
             info.libs[info.soname] = info.sopath
+            # If we are not using relative paths .. always fix the install name.
+            if not relative_name:
+                run('install_name_tool', '-id',
+                    filename, filename)
 
         for soname, sopath in info.libs.iteritems():
             # /tmp/build/install/lib/libvwCore.5.dylib
@@ -437,12 +441,10 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
                 if P.exists(P.join(toplevel, rpath, soname)):
                     new_path = P.join('@rpath', soname)
                     # If the entry is the "self" one, it has to be changed differently
+                    print("Sopath %s ISopath %s" % (info.sopath,sopath))
                     if info.sopath == sopath:
                         if relative_name:
                             run('install_name_tool', '-id', new_path, filename)
-                        else:
-                            run('install_name_tool', '-id',
-                                P.join(toplevel,rpath,soname), filename)
                         break
                     else:
                         run('install_name_tool', '-change', sopath, new_path, filename)
