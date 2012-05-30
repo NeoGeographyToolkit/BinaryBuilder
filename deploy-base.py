@@ -55,7 +55,7 @@ if __name__ == '__main__':
                 continue
             print('  %s' % P.basename(library))
             try:
-                set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
+                set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
             except:
                 print('  Failed %s' % P.basename(library))
     if arch.os == 'osx':
@@ -63,7 +63,7 @@ if __name__ == '__main__':
             if not P.isfile(library):
                 continue
             print('  %s' % P.basename(library))
-            set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
+            set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
 
     print('Fixing Binaries')
     for binary in glob(P.join(installdir,'bin','*')):
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             continue
         print('  %s' % P.basename(binary))
         try:
-            set_rpath(binary, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH))
+            set_rpath(binary, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
         except:
             print('  Failed %s' % P.basename(binary))
 

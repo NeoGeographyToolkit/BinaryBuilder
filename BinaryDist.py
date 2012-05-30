@@ -402,7 +402,7 @@ def save_elf_debug(filename):
         if P.exists(debug):
             remove(debug)
 
-def set_rpath(filename, toplevel, searchpath):
+def set_rpath(filename, toplevel, searchpath, relative_name=True):
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     def linux():
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
@@ -435,14 +435,22 @@ def set_rpath(filename, toplevel, searchpath):
             # current binary like $ORIGIN in linux)
             for rpath in searchpath:
                 if P.exists(P.join(toplevel, rpath, soname)):
-                    new_path = P.join('@executable_path', '..', rpath, soname)
+                    new_path = P.join('@rpath', soname)
                     # If the entry is the "self" one, it has to be changed differently
                     if info.sopath == sopath:
-                        run('install_name_tool', '-id', new_path, filename)
+                        if relative_name:
+                            run('install_name_tool', '-id', new_path, filename)
+                        else:
+                            run('install_name_tool', '-id',
+                                P.join(toplevel,rpath,soname), filename)
                         break
                     else:
                         run('install_name_tool', '-change', sopath, new_path, filename)
                         break
+        if len(info.libs):
+            for rpath in searchpath:
+                run('install_name_tool','-add_rpath',P.join('@executable_path','..',rpath), filename)
+                run('install_name_tool','-add_rpath',P.join('@loader_path','..',rpath), filename)
 
     locals()[get_platform().os]()
 
