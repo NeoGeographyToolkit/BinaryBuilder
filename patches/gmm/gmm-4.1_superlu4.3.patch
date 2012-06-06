@@ -1,0 +1,42 @@
+diff -crB gmm-4.1/configure.in gmm-4.1-mod/configure.in
+*** gmm-4.1/configure.in	2010-07-19 08:15:09.000000000 -0700
+--- gmm-4.1-mod/configure.in	2012-06-06 08:58:03.000000000 -0700
+***************
+*** 31,37 ****
+  dnl -----------------------------------------------
+  
+  USER_CXXFLAGS="$CXXFLAGS"
+! AC_PROG_CXX(cxx KCC CC cc++ xlC aCC g++ c++ icc)
+  AC_PROG_CXXCPP
+  CXXFLAGS="${USER_CXXFLAGS}"
+  SUPLDFLAGS=""
+--- 31,38 ----
+  dnl -----------------------------------------------
+  
+  USER_CXXFLAGS="$CXXFLAGS"
+! AC_PROG_CC
+! AC_PROG_CXX
+  AC_PROG_CXXCPP
+  CXXFLAGS="${USER_CXXFLAGS}"
+  SUPLDFLAGS=""
+diff -crB gmm-4.1/include/gmm/gmm_superlu_interface.h gmm-4.1-mod/include/gmm/gmm_superlu_interface.h
+*** gmm-4.1/include/gmm/gmm_superlu_interface.h	2010-07-19 08:15:09.000000000 -0700
+--- gmm-4.1-mod/include/gmm/gmm_superlu_interface.h	2012-06-06 09:04:51.000000000 -0700
+***************
+*** 140,146 ****
+  		     FLOATTYPE *recip_pivot_growth,                      \
+  		     FLOATTYPE *rcond, FLOATTYPE *ferr, FLOATTYPE *berr, \
+  		     SuperLUStat_t *stats, int *info, KEYTYPE) {         \
+!     NAMESPACE::mem_usage_t mem_usage;                                    \
+      NAMESPACE::FNAME(options, A, perm_c, perm_r, etree, equed, R, C, L,  \
+  		     U, work, lwork, B, X, recip_pivot_growth, rcond,    \
+  		     ferr, berr, &mem_usage, stats, info);               \
+--- 140,146 ----
+  		     FLOATTYPE *recip_pivot_growth,                      \
+  		     FLOATTYPE *rcond, FLOATTYPE *ferr, FLOATTYPE *berr, \
+  		     SuperLUStat_t *stats, int *info, KEYTYPE) {         \
+!     mem_usage_t mem_usage;                                               \
+      NAMESPACE::FNAME(options, A, perm_c, perm_r, etree, equed, R, C, L,  \
+  		     U, work, lwork, B, X, recip_pivot_growth, rcond,    \
+  		     ferr, berr, &mem_usage, stats, info);               \
+Only in gmm-4.1-mod/include/gmm: gmm_superlu_interface.h~
