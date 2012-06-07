@@ -189,7 +189,7 @@ if __name__ == '__main__':
         for pkg in off_pkgs:
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
-        qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns QtWebKit'
+        qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
 
         print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 

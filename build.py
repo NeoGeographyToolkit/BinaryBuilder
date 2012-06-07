@@ -14,11 +14,10 @@ from tempfile import mkdtemp, gettempdir
 from distutils import version
 from glob import glob
 
-from Packages import isis, gsl_headers, geos_headers, superlu_headers, superlu, xercesc_headers,\
-                qt_headers, qwt_headers, cspice_headers, zlib, png, jpeg, proj, gdal,\
-                ilmbase, openexr, boost, osg, lapack, visionworkbench, stereopipeline,\
-                zlib_headers, png_headers, isis_local, protobuf, jpeg_headers, \
-                flann, curl
+from Packages import isis, gsl_headers, gsl, geos_headers, geos, superlu_headers, superlu, gmm,  \
+     xercesc_headers, xercesc, cspice_headers, cspice, qt_headers, qt, qwt_headers, qwt,     \
+     zlib_headers, zlib, png_headers, png, jpeg_headers, jpeg, proj, gdal, ilmbase, openexr, \
+     boost, osg, lapack, visionworkbench, stereopipeline, isis_local, protobuf, flann, curl
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run, get_gcc_version, logger, warn
 from BinaryDist import is_binary, set_rpath
@@ -188,14 +187,16 @@ if __name__ == '__main__':
         build = [isis_local if opt.isisroot is not None else isis]
 
         # Many things depend on isis 3rdparty, so do it before the rest
-        build += [gsl_headers, geos_headers, xercesc_headers, qt_headers, qwt_headers, cspice_headers, protobuf]
+        build += [gsl_headers, gsl, geos_headers, geos, xercesc_headers, xercesc, \
+                  qt_headers, qwt_headers, cspice_headers, cspice,                \
+                  protobuf, zlib, png, jpeg, superlu, gmm]
 
         if arch.os == 'linux':
             build.extend([zlib, png, jpeg, superlu])
         elif arch.os == 'osx':
             build.extend([zlib_headers, png_headers, jpeg_headers, superlu_headers])
 
-        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl])
+        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl, qt, qwt])
 
         if arch.os == 'linux':
             build.append(lapack)
@@ -268,6 +269,7 @@ if __name__ == '__main__':
     try:
         for pkg in build:
             modes[opt.mode](pkg(e.copy_set_default()))
+
     except PackageError, e:
         die(e)
 
