@@ -14,12 +14,13 @@ from tempfile import mkdtemp, gettempdir
 from distutils import version
 from glob import glob
 
-from Packages import isis, gsl_headers, gsl, geos_headers, geos, superlu_headers, superlu, gmm,  \
-     xercesc_headers, xercesc, cspice_headers, cspice, qt_headers, qt, qwt_headers, qwt,     \
-     zlib_headers, zlib, png_headers, png, jpeg_headers, jpeg, proj, gdal, ilmbase, openexr, \
+from Packages import isis, gsl_headers, gsl, geos_headers, geos, superlu_headers, superlu,     \
+     gmm,  xercesc_headers, xercesc, cspice_headers, cspice, qt_headers, qt, qwt_headers, qwt, \
+     zlib_headers, zlib, png_headers, png, jpeg_headers, jpeg, proj, gdal, ilmbase, openexr,   \
      boost, osg, lapack, visionworkbench, stereopipeline, isis_local, protobuf, flann, curl
 
-from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, findfile, tweak_path, run, get_gcc_version, logger, warn
+from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
+     findfile, tweak_path, run, get_gcc_version, logger, warn
 from BinaryDist import is_binary, set_rpath
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
@@ -188,13 +189,9 @@ if __name__ == '__main__':
 
         # Many things depend on isis 3rdparty, so do it before the rest
         build += [gsl_headers, gsl, geos_headers, geos, xercesc_headers, xercesc, \
-                  qt_headers, qwt_headers, cspice_headers, cspice,                \
-                  protobuf, zlib, png, jpeg, superlu, gmm]
-
-        if arch.os == 'linux':
-            build.extend([zlib, png, jpeg, superlu])
-        elif arch.os == 'osx':
-            build.extend([zlib_headers, png_headers, jpeg_headers, superlu_headers])
+                  qt_headers, qwt_headers, cspice_headers, cspice, protobuf,      \
+                  zlib_headers, zlib, png_headers, png, jpeg_headers, jpeg,       \
+                  superlu_headers, superlu, gmm]
 
         build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl, qt, qwt])
 

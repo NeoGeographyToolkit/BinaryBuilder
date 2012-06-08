@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-
 import os, shutil
 import os.path as P
 import re
-
 from glob import glob
+import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError
 
 def strip_flag(flag, key, env):
@@ -325,7 +324,7 @@ class superlu_headers(HeaderPackage):
         self.helper(*cmd)
 
 class superlu(Package):
-    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/superlu/files/superlu-4.3-autotools.patch','http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz']
+    src    = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/superlu/files/superlu-4.3-autotools.patch','http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz']
     chksum = ['c9cc1c9a7aceef81530c73eab7f599d652c1fddd','d2863610d8c545d250ffd020b8e74dc667d7cbdd']
 
     def __init__(self,env):
@@ -339,12 +338,12 @@ class superlu(Package):
         super(superlu,self).configure(with_=('blas=%s') % glob(P.join(self.env['ISIS3RDPARTY'],'libblas.so*'))[0])
 
 class gmm(Package):
-    src = ['http://download.gna.org/getfem/stable/gmm-4.1.tar.gz']
-    chksum = ['c9cc1c9a7aceef81530c73eab7f599d652c1fddd','d2863610d8c545d250ffd020b8e74dc667d7cbdd']
+    src     = ['http://download.gna.org/getfem/stable/gmm-4.1.tar.gz']
+    chksum  = ['eea7f8e77f7e468cf93d044a992fcad3ce3f180f']
+    patches = 'patches/gmm'
 
     def __init__(self,env):
         super(gmm,self).__init__(env)
-        self.patches = [P.join(env['DOWNLOAD_DIR'], 'gmm-4.3-autotools.patch')]
 
     @stage
     def configure(self):
@@ -391,7 +390,6 @@ class qt(Package):
         else:
             self.src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
             self.chksum = '2ba35adca8fb9c66a58eca61a15b21df6213f22e'
-
     @stage
     def configure(self):
         args = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake tools -nomake translations -no-webkit'.split()
@@ -409,13 +407,19 @@ class qt(Package):
         # Install libs
         d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
         self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
+        cmd = ['cp', '-rfv'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
         self.helper(*cmd)
         
         # Install executables
         d = P.join('%(INSTALL_DIR)s' % self.env, 'bin')
         self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'bin', '*')) + [d]
+        cmd = ['cp', '-rfv'] + glob(P.join(self.workdir, 'bin', '*')) + [d]
+        self.helper(*cmd)
+
+        # Install mkspecs
+        d = P.join('%(INSTALL_DIR)s' % self.env, 'mkspecs')
+        self.helper('mkdir', '-p', d)
+        cmd = ['cp', '-rfv'] + glob(P.join(self.workdir, 'mkspecs', '*')) + [d]
         self.helper(*cmd)
 
 class qwt_headers(HeaderPackage):
@@ -430,17 +434,54 @@ class qwt_headers(HeaderPackage):
 class qwt(Package):
     src = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
     chksum = '301cca0c49c7efc14363b42e082b09056178973e',
-    def configure(self): pass
-    #def compile(self):
-        #self.helper('./bootstrap.sh')
-        #cmd = ['./bjam']
-        #cmd += ""
-        #self.args = []
-        #cmd += self.args
-        #self.helper(*cmd)
+
+    def configure(self):
+        installDir = '%(INSTALL_DIR)s' % self.env
+        qmakespec = installDir + '/mkspecs'
+        if self.arch.os == 'osx':
+            qmakespec += '/macx-g++'
+        else:
+            qmakespec += '/linux-g++'
+        cmd = [installDir + '/bin/qmake' , 'qwt.pro', '-spec', qmakespec]
+        self.helper(*cmd)
+        
+    def compile(self):
+
+        # This is a dirty hack, but countless hours of strugging with this did
+        # not yield a good solution. The qmake tool stubbornly refuses to use
+        # the paths set in the spec when generating makefiles. We are forced
+        # to do several compilation passes, and at each of them modify the
+        # makefiles and setting the correct paths.
+        for iter in range(10):
+
+            # Find qmake's incorrect path which we will fix
+            installDir = '%(INSTALL_DIR)s' % self.env
+            cmd = [installDir + '/bin/qmake', '-query', 'QT_INSTALL_DATA']
+            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+            badPath, err = p.communicate()
+            badPath = badPath.rstrip('\n')
+            if p.returncode != 0:
+                raise Exception("Failed to query qmake with command: " + " ".join(cmd))
+
+            makefiles = glob('Makefile') + glob('*/Makefile') + glob('*/*/Makefile')
+            files = glob(self.workdir + '/Makefile')   \
+                +   glob(self.workdir + '/*/Makefile') \
+                +   glob(self.workdir + '/*/*/Makefile')
+            filesList = " ".join(files)
+            cmd = 'perl -pi -e "s#' + badPath + '/#' + installDir + '/#g" ' + filesList 
+            print(cmd)
+            os.system(cmd)
+            try:
+                # Having made a fix to the makefiles, try to compile again
+                super(qwt, self).compile()
+            except:
+                print("Exception thrown! Will fix the makefiles and try again.")
+                
     def install(self):
+        # Header files
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', '*.h')) + [P.join('%(INSTALL_DIR)s' % self.env, 'include')]
         self.helper(*cmd)
+        # Libraries
         d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
         self.helper('mkdir', '-p', d)
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
