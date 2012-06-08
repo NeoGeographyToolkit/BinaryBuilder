@@ -463,7 +463,6 @@ class qwt(Package):
             if p.returncode != 0:
                 raise Exception("Failed to query qmake with command: " + " ".join(cmd))
 
-            makefiles = glob('Makefile') + glob('*/Makefile') + glob('*/*/Makefile')
             files = glob(self.workdir + '/Makefile')   \
                 +   glob(self.workdir + '/*/Makefile') \
                 +   glob(self.workdir + '/*/*/Makefile')
