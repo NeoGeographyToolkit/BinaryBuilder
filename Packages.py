@@ -352,7 +352,7 @@ class gmm(Package):
         super(gmm,self).configure(with_=('blas=%s') % glob(P.join(self.env['ISIS3RDPARTY'],'libblas.so*'))[0])
 
 class xercesc_headers(HeaderPackage):
-    src = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
+    src    = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
     chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
 
 class xercesc(Package):
@@ -363,10 +363,10 @@ class qt_headers(HeaderPackage):
     def __init__(self, env):
         super(qt_headers, self).__init__(env)
         if self.arch.os == "osx":
-            self.src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
+            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
             self.chksum = 'af9016aa924a577f7b06ffd28c9773b56d74c939'
         else:
-            self.src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
+            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
             self.chksum = '2ba35adca8fb9c66a58eca61a15b21df6213f22e'
 
     @stage
@@ -385,45 +385,32 @@ class qt(Package):
     def __init__(self, env):
         super(qt, self).__init__(env)
         if self.arch.os == "osx":
-            self.src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
+            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
             self.chksum = 'af9016aa924a577f7b06ffd28c9773b56d74c939'
         else:
-            self.src = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
+            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
             self.chksum = '2ba35adca8fb9c66a58eca61a15b21df6213f22e'
     @stage
     def configure(self):
-        args = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake tools -nomake translations -no-webkit'.split()
+        installDir = '%(INSTALL_DIR)s' % self.env
+        cmd = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake tools -nomake translations -no-webkit -prefix ' + installDir 
+        args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
         self.helper(*args)
 
     @stage
     def install(self):
-
-        # Install headers
-        include = ['--include=%s' % i for i in '**/include/** *.h */'.split()]
-        self.copytree(self.workdir + '/', self.env['INSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=*'])
-
-        # Install libs
-        d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
-        self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-rfv'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
+        # The standard Qt install does not install all files for some reason
+        # Perform a brute force copy.
+        cmd = ['cp', '-vrf'] + glob(P.join(self.workdir, '*')) + ['%(INSTALL_DIR)s' % self.env]
         self.helper(*cmd)
+        # Call the install itself afterward
+        super(qt, self).install()
         
-        # Install executables
-        d = P.join('%(INSTALL_DIR)s' % self.env, 'bin')
-        self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-rfv'] + glob(P.join(self.workdir, 'bin', '*')) + [d]
-        self.helper(*cmd)
-
-        # Install mkspecs
-        d = P.join('%(INSTALL_DIR)s' % self.env, 'mkspecs')
-        self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-rfv'] + glob(P.join(self.workdir, 'mkspecs', '*')) + [d]
-        self.helper(*cmd)
-
+        
 class qwt_headers(HeaderPackage):
-    src = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
+    src    = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
     chksum = '301cca0c49c7efc14363b42e082b09056178973e',
     def configure(self): pass
 
@@ -432,58 +419,13 @@ class qwt_headers(HeaderPackage):
         self.helper(*cmd)
 
 class qwt(Package):
-    src = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
-    chksum = '301cca0c49c7efc14363b42e082b09056178973e',
+    src     = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
+    chksum  = '301cca0c49c7efc14363b42e082b09056178973e',
+    patches = 'patches/qwt'
 
     def configure(self):
         installDir = '%(INSTALL_DIR)s' % self.env
-        qmakespec = installDir + '/mkspecs'
-        if self.arch.os == 'osx':
-            qmakespec += '/macx-g++'
-        else:
-            qmakespec += '/linux-g++'
-        cmd = [installDir + '/bin/qmake' , 'qwt.pro', '-spec', qmakespec]
-        self.helper(*cmd)
-        
-    def compile(self):
-
-        # This is a dirty hack, but countless hours of strugging with this did
-        # not yield a good solution. The qmake tool stubbornly refuses to use
-        # the paths set in the spec when generating makefiles. We are forced
-        # to do several compilation passes, and at each of them modify the
-        # makefiles and setting the correct paths.
-        for iter in range(10):
-
-            # Find qmake's incorrect path which we will fix
-            installDir = '%(INSTALL_DIR)s' % self.env
-            cmd = [installDir + '/bin/qmake', '-query', 'QT_INSTALL_DATA']
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE)
-            badPath, err = p.communicate()
-            badPath = badPath.rstrip('\n')
-            if p.returncode != 0:
-                raise Exception("Failed to query qmake with command: " + " ".join(cmd))
-
-            files = glob(self.workdir + '/Makefile')   \
-                +   glob(self.workdir + '/*/Makefile') \
-                +   glob(self.workdir + '/*/*/Makefile')
-            filesList = " ".join(files)
-            cmd = 'perl -pi -e "s#' + badPath + '/#' + installDir + '/#g" ' + filesList 
-            print(cmd)
-            os.system(cmd)
-            try:
-                # Having made a fix to the makefiles, try to compile again
-                super(qwt, self).compile()
-            except:
-                print("Exception thrown! Will fix the makefiles and try again.")
-                
-    def install(self):
-        # Header files
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', '*.h')) + [P.join('%(INSTALL_DIR)s' % self.env, 'include')]
-        self.helper(*cmd)
-        # Libraries
-        d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
-        self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
+        cmd = [installDir + '/bin/qmake']
         self.helper(*cmd)
 
 class zlib(Package):
