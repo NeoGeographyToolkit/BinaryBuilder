@@ -416,6 +416,10 @@ class cspice(Package):
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/cspice.tar.Z',
             chksum = '3a1174d0b5ca183168115d8259901e923b97eec0', # N0064
         ),
+        osx64   = dict(
+            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit//C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
+            chksum = 'e5546a72a2d0c7e337850a10d208014efb57d78d', # N0064
+        ),
     )
 
     def __init__(self, env):
