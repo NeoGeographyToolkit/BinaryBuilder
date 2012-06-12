@@ -14,10 +14,10 @@ from tempfile import mkdtemp, gettempdir
 from distutils import version
 from glob import glob
 
-from Packages import isis, gsl_headers, gsl, geos_headers, geos, superlu_headers, superlu,     \
+from Packages import gsl_headers, gsl, geos_headers, geos, superlu_headers, superlu,     \
      gmm,  xercesc_headers, xercesc, cspice_headers, cspice, qt_headers, qt, qwt_headers, qwt, \
      zlib_headers, zlib, png_headers, png, jpeg_headers, jpeg, proj, gdal, ilmbase, openexr,   \
-     boost, osg, lapack, visionworkbench, stereopipeline, isis_local, protobuf, flann, curl
+     boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
      findfile, tweak_path, run, get_gcc_version, logger, warn
@@ -67,7 +67,6 @@ if __name__ == '__main__':
     parser.add_option('--dev-env',    action='store_true',  dest='dev',          default=False,           help='Build everything but VW and ASP')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
     parser.add_option('--no-fetch',   action='store_const', dest='mode',         const='nofetch',         help='Build, but do not fetch (will fail if sources are missing)')
-    parser.add_option('--isisroot',                         dest='isisroot',     default=None,            help='Use a locally-installed isis at this root')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',      default=False,           help='Show the list of packages without actually doing anything')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
     parser.add_option('--threads',    type='int',           dest='threads',      default=get_cores(),     help='Build threads to use')
@@ -81,10 +80,6 @@ if __name__ == '__main__':
     tweak_path(opt.coreutils)
 
     info('Using %d build processes' % opt.threads)
-
-    if opt.isisroot is not None and not P.isdir(opt.isisroot):
-        parser.print_help()
-        die('\nIllegal argument to --isisroot: path does not exist')
 
     if opt.ccache and opt.save_temps:
         die('--ccache and --save-temps conflict. Disabling ccache.')
@@ -111,15 +106,12 @@ if __name__ == '__main__':
                     BUILD_DIR    = P.join(opt.build_root, 'build'),
                     INSTALL_DIR  = P.join(opt.build_root, 'install'),
                     MISC_DIR = P.join(opt.build_root, 'misc'),
-                    PATH=os.environ['PATH'],
-                    **({} if opt.isisroot is None else dict(ISISROOT=opt.isisroot)))
+                    PATH=os.environ['PATH'] )
 
     arch = get_platform()
 
     if arch.os == 'linux':
         e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
-        if arch.bits == 32:
-            die('\nISIS 3.4+ only supports 64bit platforms')
         e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 
     elif arch.os == 'osx':
@@ -184,9 +176,6 @@ if __name__ == '__main__':
         e['LIBTOOLIZE'] = opt.libtoolize
 
     if len(args) == 0:
-        # Were we told what isis to use?
-        build = [isis_local if opt.isisroot is not None else isis]
-
         # Many things depend on isis 3rdparty, so do it before the rest
         build += [gsl_headers, gsl, geos_headers, geos, xercesc_headers, xercesc, \
                   qt_headers, qwt_headers, cspice_headers, cspice, protobuf,      \
@@ -233,7 +222,6 @@ if __name__ == '__main__':
         library_ext = "so"
         if arch.os == 'osx':
             library_ext = "dylib"
-        SEARCHPATH = [P.join(e['ISISROOT'],'lib'), P.join(e['ISISROOT'],'3rdParty','lib'), P.join(e['INSTALL_DIR'],'lib')]
         for curr_path in SEARCHPATH:
             for library in glob(P.join(curr_path,'*.'+library_ext+'*')):
                 if not is_binary(library):
@@ -243,12 +231,6 @@ if __name__ == '__main__':
                     set_rpath(library, e['INSTALL_DIR'], map(lambda path: P.relpath(path, e['INSTALL_DIR']), SEARCHPATH))
                 except:
                     warn('  Failed rpath on %s' % P.basename(library))
-        if arch.os == 'osx':
-            for library in glob(P.join(e['ISISROOT'],'3rdParty','lib','*.framework','*')):
-                if not P.isfile(library):
-                    continue
-                logger.debug('  %s' % P.basename(library))
-                set_rpath(library, e['INSTALL_DIR'], map(lambda path: P.relpath(path, e['INSTALL_DIR']), SEARCHPATH))
         for binary in glob(P.join(e['INSTALL_DIR'],'bin','*')):
             if not is_binary(binary):
                 continue
