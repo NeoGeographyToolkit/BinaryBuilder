@@ -49,6 +49,15 @@ def grablink(dst):
         raise Exception('Cannot resume, link target %s for link %s doesn\'t exist' % (ret, dst))
     return ret
 
+def verify(program):
+    def is_exec(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    for path in os.environ["PATH"].split(os.pathsep):
+        exec_file = os.path.join( path, program )
+        if is_exec( exec_file ):
+            return
+    raise Exception('Cannot find executable "%s" in path' % program)
 
 def summary(env):
     print('===== Environment =====')
@@ -173,6 +182,15 @@ if __name__ == '__main__':
 
     if opt.libtoolize is not None:
         e['LIBTOOLIZE'] = opt.libtoolize
+
+    # Verify that the user has some common executables that we use
+    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gfortran", "gcc"]
+    if arch.os == 'linux':
+        common_exec.extend( ["libtool", "chrpath"] )
+    else:
+        common_exec.extend( ["glibtool", "install_name_tool"] )
+    for program in common_exec:
+        verify( program )
 
     if len(args) == 0:
         build = [lapack, gsl, geos, xercesc, cspice, protobuf, zlib, png, jpeg, \
