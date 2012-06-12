@@ -308,7 +308,7 @@ class superlu(Package):
     def configure(self):
         print("Directory is %s" % self.env['ISIS3RDPARTY'])
         self.helper('autoreconf', '-fvi')
-        super(superlu,self).configure(with_=('blas=%s') % glob(P.join(self.env['ISIS3RDPARTY'],'libblas.so*'))[0])
+        super(superlu,self).configure(with_=('blas=%s') % glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0])
 
 class gmm(Package):
     src     = ['http://download.gna.org/getfem/stable/gmm-4.1.tar.gz']
@@ -322,7 +322,7 @@ class gmm(Package):
     def configure(self):
         print("Directory is %s" % self.env['ISIS3RDPARTY'])
         self.helper('autoreconf', '-fvi')
-        super(gmm,self).configure(with_=('blas=%s') % glob(P.join(self.env['ISIS3RDPARTY'],'libblas.so*'))[0])
+        super(gmm,self).configure(with_=('blas=%s') % glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0])
 
 class xercesc(Package):
     src    = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
