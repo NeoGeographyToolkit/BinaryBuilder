@@ -279,26 +279,9 @@ class HeaderPackage(Package):
     def install(self):
         self.helper('make', 'install-data')
 
-class gsl_headers(HeaderPackage):
-    src = 'ftp://ftp.gnu.org/gnu/gsl/gsl-1.15.tar.gz',
-    chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
-
 class gsl(Package):
     src = 'ftp://ftp.gnu.org/gnu/gsl/gsl-1.15.tar.gz',
     chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
-
-class geos_headers(HeaderPackage):
-    def __init__(self,env):
-        super(geos_headers,self).__init__(env)
-        if self.arch.os == "osx":
-            self.src = 'http://download.osgeo.org/geos/geos-3.3.1.tar.bz2'
-            self.chksum = '4f89e62c636dbf3e5d7e1bfcd6d9a7bff1bcfa60'
-        else:
-            self.src = 'http://download.osgeo.org/geos/geos-3.3.2.tar.bz2'
-            self.chksum = '942b0bbc61a059bd5269fddd4c0b44a508670cb3'
-
-    def configure(self):
-        super(geos_headers, self).configure(disable=('python', 'ruby'))
 
 class geos(Package):
     def __init__(self,env):
@@ -312,16 +295,6 @@ class geos(Package):
 
     def configure(self):
         super(geos, self).configure(disable=('python', 'ruby'))
-
-class superlu_headers(HeaderPackage):
-    src = 'http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz',
-    chksum = 'd2863610d8c545d250ffd020b8e74dc667d7cbdd',
-    def configure(self): pass
-    def install(self):
-        d = P.join('%(NOINSTALL_DIR)s' % self.env, 'include', 'SRC')
-        self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'SRC', '*.h')) + [d]
-        self.helper(*cmd)
 
 class superlu(Package):
     src    = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/superlu/files/superlu-4.3-autotools.patch','http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz']
@@ -351,35 +324,9 @@ class gmm(Package):
         self.helper('autoreconf', '-fvi')
         super(gmm,self).configure(with_=('blas=%s') % glob(P.join(self.env['ISIS3RDPARTY'],'libblas.so*'))[0])
 
-class xercesc_headers(HeaderPackage):
-    src    = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
-    chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
-
 class xercesc(Package):
     src    = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
     chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
-
-class qt_headers(HeaderPackage):
-    def __init__(self, env):
-        super(qt_headers, self).__init__(env)
-        if self.arch.os == "osx":
-            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
-            self.chksum = 'af9016aa924a577f7b06ffd28c9773b56d74c939'
-        else:
-            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
-            self.chksum = '2ba35adca8fb9c66a58eca61a15b21df6213f22e'
-
-    @stage
-    def configure(self):
-        args = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake tools -nomake translations'.split()
-        if self.arch.os == 'osx':
-            args.append('-no-framework')
-        self.helper(*args)
-
-    @stage
-    def install(self):
-        include = ['--include=%s' % i for i in '**/include/** *.h */'.split()]
-        self.copytree(self.workdir + '/', self.env['NOINSTALL_DIR'] + '/', delete=False, args=['-m', '--copy-unsafe-links'] + include + ['--exclude=*'])
 
 class qt(Package):
     def __init__(self, env):
@@ -408,16 +355,6 @@ class qt(Package):
         # Call the install itself afterward
         super(qt, self).install()
         
-        
-class qwt_headers(HeaderPackage):
-    src    = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
-    chksum = '301cca0c49c7efc14363b42e082b09056178973e',
-    def configure(self): pass
-
-    def install(self):
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', '*.h')) + [P.join('%(NOINSTALL_DIR)s' % self.env, 'include')]
-        self.helper(*cmd)
-
 class qwt(Package):
     src     = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
     chksum  = '301cca0c49c7efc14363b42e082b09056178973e',
@@ -440,17 +377,6 @@ class zlib(Package):
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
 
-class zlib_headers(HeaderPackage):
-    src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.6.tar.gz'
-    chksum  = '38690375d8d42398ce33b2df726e25cacf096496'
-
-    def configure(self):
-        super(zlib_headers,self).configure(other=['--shared'])
-    def install(self):
-        include_dir = P.join(self.env['NOINSTALL_DIR'], 'include')
-        self.helper('mkdir', '-p', include_dir)
-        self.helper('cp', '-vf', 'zlib.h', 'zconf.h', include_dir)
-
 class jpeg(Package):
     src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
     chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
@@ -459,29 +385,7 @@ class jpeg(Package):
     def configure(self):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
-class jpeg_headers(HeaderPackage):
-    src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
-    chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
-    patches = 'patches/jpeg8'
-
-    def configure(self):
-        super(jpeg_headers, self).configure(enable=('shared',), disable=('static',))
-
-class png_headers(HeaderPackage):
-    def __init__(self, env):
-        super(png_headers, self).__init__(env)
-        
-        if self.arch.os == 'osx':
-            # OSX ISIS3.4 uses png14
-            self.src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
-            self.chksum = '85525715cdaa8c542316436659cada13561663c4'
-        else:
-            # Linux ISIS3.4 uses png12
-            self.src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
-            self.chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
-            
 class png(Package):
-    
     def __init__(self, env):
         super(png, self).__init__(env)
         
@@ -496,37 +400,6 @@ class png(Package):
             
     def configure(self):
         super(png,self).configure(disable='static')
-
-
-class cspice_headers(HeaderPackage):
-    # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
-    PLATFORM = dict(
-        linux64 = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_64bit/packages/cspice.tar.Z',
-            chksum = '29e3bdea10fd4005a4db8934b8d953c116a2cec7', # N0064
-        ),
-        linux32 = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_32bit/packages/cspice.tar.Z',
-            chksum = 'df8ad284db3efef912a0a3090acedd2c4561a25f', # N0064
-        ),
-        osx32   = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/cspice.tar.Z',
-            chksum = '3a1174d0b5ca183168115d8259901e923b97eec0', # N0064
-        ),
-    )
-
-    def __init__(self, env):
-        super(cspice_headers, self).__init__(env)
-        self.pkgname += '_' + self.arch.osbits
-        self.src    = self.PLATFORM[self.arch.osbits]['src']
-        self.chksum = self.PLATFORM[self.arch.osbits]['chksum']
-    def configure(self, *args, **kw): pass
-    @stage
-    def install(self):
-        d = P.join('%(NOINSTALL_DIR)s' % self.env, 'include', 'naif')
-        self.helper('mkdir', '-p', d)
-        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [d]
-        self.helper(*cmd)
 
 class cspice(Package):
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.

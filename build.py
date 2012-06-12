@@ -14,9 +14,8 @@ from tempfile import mkdtemp, gettempdir
 from distutils import version
 from glob import glob
 
-from Packages import gsl_headers, gsl, geos_headers, geos, superlu_headers, superlu,     \
-     gmm,  xercesc_headers, xercesc, cspice_headers, cspice, qt_headers, qt, qwt_headers, qwt, \
-     zlib_headers, zlib, png_headers, png, jpeg_headers, jpeg, proj, gdal, ilmbase, openexr,   \
+from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
+     zlib, png, jpeg, proj, gdal, ilmbase, openexr,   \
      boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
@@ -176,16 +175,9 @@ if __name__ == '__main__':
         e['LIBTOOLIZE'] = opt.libtoolize
 
     if len(args) == 0:
-        # Many things depend on isis 3rdparty, so do it before the rest
-        build += [gsl_headers, gsl, geos_headers, geos, xercesc_headers, xercesc, \
-                  qt_headers, qwt_headers, cspice_headers, cspice, protobuf,      \
-                  zlib_headers, zlib, png_headers, png, jpeg_headers, jpeg,       \
-                  superlu_headers, superlu, gmm]
-
-        build.extend([proj, gdal, ilmbase, openexr, boost, osg, flann, curl, qt, qwt])
-
-        if arch.os == 'linux':
-            build.append(lapack)
+        build = [lapack, gsl, geos, xercesc, cspice, protobuf, zlib, png, jpeg, \
+                 superlu, gmm, proj, gdal, ilmbase, openexr, boost, osg, flann,
+                 curl, qt, qwt]
 
         print("build type: %s" % type(build) )
 
