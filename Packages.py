@@ -334,7 +334,7 @@ class lapack(CMakePackage):
             if not i.startswith('-L'):
                 LDFLAGS_.append(i);
         self.env['LDFLAGS'] = ' '.join(LDFLAGS_)
-        super(lapack, self).configure( other=['-DCMAKE_Fortran_COMPILER=gfortran','-DBUILD_SHARED_LIBS=ON','-DBUILD_STATIC_LIBS=OFF','-DBLAS_LIBRARIES=%(ISIS3RDPARTY)s/libblas.so' % self.env] )
+        super(lapack, self).configure( other=['-DCMAKE_Fortran_COMPILER=gfortran','-DBUILD_SHARED_LIBS=ON','-DBUILD_STATIC_LIBS=OFF'] )
         self.env['LDFLAGS'] = LDFLAGS__
 
 class boost(Package):
@@ -433,7 +433,12 @@ class superlu(Package):
     def configure(self):
         print("Directory is %s" % self.env['ISIS3RDPARTY'])
         self.helper('autoreconf', '-fvi')
-        super(superlu,self).configure(with_=('blas=%s') % glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0])
+        blas = ''
+        if self.arch.os == "osx":
+            blas = '"-framework vecLib"'
+        else:
+            blas = glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0]
+        super(superlu,self).configure(with_=('blas=%s') % blas)
 
 class gmm(Package):
     src     = ['http://download.gna.org/getfem/stable/gmm-4.1.tar.gz']
@@ -447,7 +452,12 @@ class gmm(Package):
     def configure(self):
         print("Directory is %s" % self.env['ISIS3RDPARTY'])
         self.helper('autoreconf', '-fvi')
-        super(gmm,self).configure(with_=('blas=%s') % glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0])
+        blas = ''
+        if self.arch.os == "osx":
+            blas = '"-framework vecLib"'
+        else:
+            blas = glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0]
+        super(gmm,self).configure(with_=('blas=%s') % blas)
 
 class xercesc(Package):
     src    = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
