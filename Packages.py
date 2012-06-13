@@ -68,7 +68,7 @@ class gdal(Package):
 
     @stage
     def configure(self):
-        w = ['threads', 'libtiff=internal', 'libgeotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
+        w = ['threads', 'libtiff', 'libgeotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
         wo = \
           '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
@@ -494,6 +494,17 @@ class zlib(Package):
 
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
+
+class tiff(Package):
+    src     = 'http://download.osgeo.org/libtiff/tiff-4.0.1.tar.gz'
+    chksum  = '8baf382231c9051a1b3eb294581289aa21447171'
+
+    def configure(self):
+        super(tiff, self).configure(
+            with_ = ['jpeg', 'png', 'zlib'],
+            without = ['x'],
+            enable=('shared',),
+            disable = ['static', 'lzma', 'cxx', 'logluv'])
 
 class jpeg(Package):
     src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'

@@ -15,7 +15,7 @@ from distutils import version
 from glob import glob
 
 from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
-     zlib, png, jpeg, proj, gdal, ilmbase, openexr,   \
+     zlib, tiff, png, jpeg, proj, gdal, ilmbase, openexr,   \
      boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
      ufconfig, amd, colamd, cholmod, tnt, jama, isis
 
@@ -197,7 +197,7 @@ if __name__ == '__main__':
         build = []
         if arch.os == 'linux':
             build.append(lapack)
-        build.extend([gsl, geos, xercesc, cspice, protobuf, zlib, png, jpeg, \
+        build.extend([gsl, geos, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
                       superlu, gmm, proj, gdal, ilmbase, openexr, boost, osg, flann,
                       curl, qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, isis])
 
