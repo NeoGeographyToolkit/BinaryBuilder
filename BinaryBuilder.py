@@ -295,12 +295,15 @@ class Package(object):
 
             self.helper('tar', flags, self.tarball, '-C',  output_dir)
 
-        self.workdir = glob(P.join(output_dir, "*"))
-        if len(self.workdir) != 1:
-            raise PackageError(self, 'Badly-formed tarball[%s]: there should be 1 file in the output dir [%s], but there are %i' %
-                               (self.tarball, output_dir, len(self.workdir)))
+        # If the user didn't provide a work directory define it as the
+        # single directory output from tarball.
+        if self.workdir is None:
+            self.workdir = glob(P.join(output_dir, "*"))
+            if len(self.workdir) != 1:
+                raise PackageError(self, 'Badly-formed tarball[%s]: there should be 1 file in the output dir [%s], but there are %i' %
+                                   (self.tarball, output_dir, len(self.workdir)))
 
-        self.workdir = self.workdir[0]
+            self.workdir = self.workdir[0]
 
         self._apply_patches()
 

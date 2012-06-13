@@ -25,6 +25,42 @@ def strip_flag(flag, key, env):
         del env[key]
     return hit, env
 
+class tnt(Package):
+    src     = 'http://math.nist.gov/tnt/tnt_126.zip'
+    chksum  = '32f628d7e28a6e373ec2ff66c70c1cb25783b946'
+
+    def __init__(self, env):
+        super(tnt, self).__init__(env)
+        # Our source doesn't unpack into a directory. So our work
+        # directory is just the outer containing folder.
+        self.workdir = P.join(self.env['BUILD_DIR'], self.pkgname)
+    def configure(self): pass
+    def compile(self): pass
+
+    @stage
+    def install(self):
+        d = P.join('%(INSTALL_DIR)s' % self.env, 'include', 'tnt')
+        self.helper('mkdir', '-p', d)
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, '*.h')) + [d]
+        self.helper(*cmd)
+
+class jama(Package):
+    src     = 'http://math.nist.gov/tnt/jama125.zip'
+    chksum  = '5ca8b154d0a0c30e2c50700ffe70567315ebcf2c'
+
+    def __init__(self, env):
+        super(jama, self).__init__(env)
+        self.workdir = P.join(self.env['BUILD_DIR'], self.pkgname)
+    def configure(self): pass
+    def compile(self): pass
+
+    @stage
+    def install(self):
+        d = P.join('%(INSTALL_DIR)s' % self.env, 'include', 'jama')
+        self.helper('mkdir', '-p', d)
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, '*.h')) + [d]
+        self.helper(*cmd)
+
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/gdal-1.9.0.tar.gz'
     chksum  = 'e2eaaf0fba39137b40c0d3069ac41dfb6f3c76db'
@@ -390,7 +426,7 @@ class png(Package):
             # Linux ISIS3.4 uses png12
             self.src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
             self.chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
-            
+
     def configure(self):
         super(png,self).configure(disable='static')
 
@@ -420,7 +456,7 @@ class cspice(Package):
         self.pkgname += '_' + self.arch.osbits
         self.src    = self.PLATFORM[self.arch.osbits]['src']
         self.chksum = self.PLATFORM[self.arch.osbits]['chksum']
-        
+
     @stage
     def configure(self): pass
     def compile(self):

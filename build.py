@@ -17,7 +17,7 @@ from glob import glob
 from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
      zlib, png, jpeg, proj, gdal, ilmbase, openexr,   \
      boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
-     ufconfig, amd, colamd, cholmod
+     ufconfig, amd, colamd, cholmod, tnt, jama
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
      findfile, tweak_path, run, get_gcc_version, logger, warn
@@ -236,6 +236,7 @@ if __name__ == '__main__':
         library_ext = "so"
         if arch.os == 'osx':
             library_ext = "dylib"
+        SEARCHPATH = [P.join(e['INSTALL_DIR'],'lib')]
         for curr_path in SEARCHPATH:
             for library in glob(P.join(curr_path,'*.'+library_ext+'*')):
                 if not is_binary(library):
