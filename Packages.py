@@ -329,18 +329,15 @@ class xercesc(Package):
     chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
 
 class qt(Package):
+    src     = ['http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz']
+    chksum  = ['2ba35adca8fb9c66a58eca61a15b21df6213f22e']
+
     def __init__(self, env):
         super(qt, self).__init__(env)
-        if self.arch.os == "osx":
-            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz'
-            self.chksum = 'af9016aa924a577f7b06ffd28c9773b56d74c939'
-        else:
-            self.src    = 'http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.8.0.tar.gz'
-            self.chksum = '2ba35adca8fb9c66a58eca61a15b21df6213f22e'
+
     @stage
     def configure(self):
-        installDir = '%(INSTALL_DIR)s' % self.env
-        cmd = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake tools -nomake translations -no-webkit -prefix ' + installDir 
+        cmd = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s' % self.env
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
@@ -348,13 +345,9 @@ class qt(Package):
 
     @stage
     def install(self):
-        # The standard Qt install does not install all files for some reason
-        # Perform a brute force copy.
-        cmd = ['cp', '-vrf'] + glob(P.join(self.workdir, '*')) + ['%(INSTALL_DIR)s' % self.env]
-        self.helper(*cmd)
         # Call the install itself afterward
         super(qt, self).install()
-        
+
 class qwt(Package):
     src     = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
     chksum  = '301cca0c49c7efc14363b42e082b09056178973e',

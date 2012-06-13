@@ -194,9 +194,12 @@ if __name__ == '__main__':
         verify( program )
 
     if len(args) == 0:
-        build = [lapack, gsl, geos, xercesc, cspice, protobuf, zlib, png, jpeg, \
-                 superlu, gmm, proj, gdal, ilmbase, openexr, boost, osg, flann,
-                 curl, qt, qwt, ufconfig, amd, colamd, cholmod]
+        build = []
+        if arch.os == 'linux':
+            build.append(lapack)
+        build.extend([gsl, geos, xercesc, cspice, protobuf, zlib, png, jpeg, \
+                      superlu, gmm, proj, gdal, ilmbase, openexr, boost, osg, flann,
+                      curl, qt, qwt, ufconfig, amd, colamd, cholmod])
 
         print("build type: %s" % type(build) )
 
