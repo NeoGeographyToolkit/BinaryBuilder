@@ -417,7 +417,7 @@ class jpeg(Package):
 class png(Package):
     def __init__(self, env):
         super(png, self).__init__(env)
-        
+
         if self.arch.os == 'osx':
             # OSX ISIS3.4 uses png14
             self.src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
@@ -457,13 +457,21 @@ class cspice(Package):
         self.src    = self.PLATFORM[self.arch.osbits]['src']
         self.chksum = self.PLATFORM[self.arch.osbits]['chksum']
 
-    @stage
     def configure(self): pass
+
+    @stage
     def compile(self):
         cmd = ['csh']
         self.args = ['./makeall.csh']
         cmd += self.args
         self.helper(*cmd)
+
+        # Fix the names of files inside the lib folder
+        libraries = glob(P.join(self.workdir, 'lib', '*'))
+        for library in libraries:
+            self.helper('mv', library, P.join(P.dirname(library),'lib'+P.basename(library)))
+
+    @stage
     def install(self):
         d = P.join('%(INSTALL_DIR)s' % self.env, 'include', 'naif')
         self.helper('mkdir', '-p', d)
