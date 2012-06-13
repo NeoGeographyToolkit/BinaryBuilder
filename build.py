@@ -155,11 +155,17 @@ if __name__ == '__main__':
     compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
     if not P.exists(compiler_dir):
         os.makedirs(compiler_dir)
-    try:
-        gfortran_path = findfile('gfortran', e['PATH'])
-        subprocess.check_call(['ln', '-sf', gfortran_path, P.join(compiler_dir, 'gfortran')])
-    except Exception:
-        pass
+    acceptable_fortran_compilers = ['gfortan','g77']
+    for i in range(0,10):
+        acceptable_fortran_compilers.append("gfortran-mp-4.%s" % i)
+    for compiler in acceptable_fortran_compilers:
+        try:
+            gfortran_path = findfile(compiler, e['PATH'])
+            print("Found fortran at: %s" % gfortran_path)
+            subprocess.check_call(['ln', '-sf', gfortran_path, P.join(compiler_dir, 'gfortran')])
+            break
+        except Exception:
+            pass
     e['F77'] = P.join(compiler_dir, 'gfortran')
     if opt.ccache:
         new = dict(
