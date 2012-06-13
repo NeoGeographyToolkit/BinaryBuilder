@@ -122,6 +122,95 @@ class curl(Package):
     def configure(self):
         super(curl,self).configure(disable=['static','ldap','ldaps'], without=['ssl','libidn'])
 
+# Due to legal reasons ... we are not going to download a modified
+# version of ISIS from some NASA Ames server. Instead, we will
+# download ISIS and then download the repo for editing ISIS. We apply
+# the patch locally and then build away.
+class isis(Package):
+    def __init__(self, env):
+        super(isis, self).__init__(env)
+        self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
+        self.isisautotools_localcopy = P.join(env['DOWNLOAD_DIR'], 'git', 'AutotoolsForISIS')
+        self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX/isis/"
+        self.isisautotools_src = "http://github.com/NeoGeographyToolkit/AutotoolsForISIS.git"
+
+    @stage
+    def fetch(self, skip=False):
+        if not P.exists(self.isis_localcopy) or \
+                not P.exists(self.isisautotools_localcopy):
+            if skip: raise PackageError(self, 'Fetch is skipped and no src available')
+            os.makedirs(self.isis_localcopy)
+        if skip: return
+
+        self.copytree(self.isis_src, self.isis_localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*', '--exclude', 'bin/*', '--exclude', '3rdParty/*', '--exclude', 'lib/*'])
+        if not P.exists(self.isisautotools_localcopy):
+            self.helper('git', 'clone', '--mirror', self.isisautotools_src, self.isisautotools_localcopy)
+        else:
+            self.helper('git', '--git-dir', self.isisautotools_localcopy, 'fetch', 'origin')
+            #self.helper('git', '--git-dir', self.isisautotools_localcopy, 'reset', '--hard', 'origin/master')
+
+    @stage
+    def unpack(self):
+        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
+        self.remove_build(output_dir)
+        self.workdir = output_dir
+        if P.exists(P.join(self.workdir, self.pkgname)):
+            self.helper('rm','-rf',self.pkgname);
+        if not P.exists(P.join(output_dir, 'isis_original')):
+            os.makedirs(P.join(output_dir, 'isis_original'))
+        self.copytree(self.isis_localcopy + '/', P.join(output_dir, 'isis_original'),
+                      ['--link-dest=%s' % self.isis_localcopy])
+        os.mkdir( P.join(output_dir, 'AutotoolsForISIS-git') )
+        self.helper('git', 'clone', self.isisautotools_localcopy,
+                    P.join(output_dir, 'AutotoolsForISIS-git'))
+
+        # Now we actually run commands that patch ISIS with a build system
+        self.helper("AutotoolsForISIS-git/reformat_isis.py","--destination",
+                    self.pkgname,"--isisroot","isis_original")
+        self.workdir = P.join(output_dir,self.pkgname)
+
+    @stage
+    def configure(self):
+        self.helper('./autogen')
+
+        pkgs = 'arbitrary_qt qwt boost protobuf tnt jama xercesc spice geos gsl \
+                superlu gmm tiff z jpeg ufconfig amd colamd cholmod'.split()
+
+        w = [i + '=%(INSTALL_DIR)s' % self.env for i in pkgs]
+        includedir = P.join(self.env['INSTALL_DIR'], 'include')
+
+
+        with file(P.join(self.workdir, 'config.options'), 'w') as config:
+            for pkg in pkgs:
+                ldflags = []
+                ldflags.append('-L%s' % P.join(self.env['INSTALL_DIR'], 'lib'))
+                if self.arch.os == 'osx':
+                    ldflags.append('-F%s' % P.join(self.env['INSTALL_DIR'], 'lib'))
+                print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
+
+            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+            print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
+
+            qt_cppflags=['-I%s' % includedir]
+            qt_libs=[]
+
+            for module in qt_pkgs.split():
+                qt_cppflags.append('-I%s/%s' % (includedir, module))
+                qt_libs.append('%s/lib/lib%s.so.4' % (self.env['INSTALL_DIR'],module))
+
+            print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' % ' '.join(qt_cppflags), file=config)
+            print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
+            print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
+
+            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')), file=config)
+            print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')), file=config)
+
+        super(isis, self).configure(
+            with_ = w,
+            without = ['clapack', 'slapack'],
+            disable = ['pkg_paths_default', 'static', 'qt-qmake'] )
+
+
 class stereopipeline(GITPackage):
     src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
