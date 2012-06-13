@@ -587,6 +587,25 @@ class cholmod(Package):
         self.helper('autoreconf','--install','--force','--verbose')
         super(cholmod, self).configure(disable=('static','mod-partition','mod-supernodal'))
 
+    @stage
+    def install(self):
+        super(cholmod, self).install()
+
+        # ISIS also demands that the CHOLMOD and family headers be
+        # available in a CHOLMOD directory. Instead of editing their
+        # build system .. we'll just softlink the headers into place.
+        d = P.join(self.env['INSTALL_DIR'],'include')
+        if P.exists( P.join(d,'CHOLMOD') ):
+            self.helper('rm', '-rf', P.join(d,'CHOLMOD'))
+        os.mkdir(P.join(d,'CHOLMOD'))
+        headers = []
+        headers.extend( glob( P.join(d,'UFconfig.h') ) )
+        headers.extend( glob( P.join(d,'cholmod*.h') ) )
+        for header in headers:
+            os.symlink( P.relpath( header,
+                                   P.join(d,'CHOLMOD') ),
+                        P.join(d,'CHOLMOD',P.basename(header)) )
+
 class osg(CMakePackage):
     src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.3/source/OpenSceneGraph-2.8.3.zip'
     chksum = '90502e4cbd47aac1689cc39d25ab62bbe0bba9fc'
