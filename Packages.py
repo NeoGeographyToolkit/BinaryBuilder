@@ -196,7 +196,10 @@ class isis(Package):
 
             for module in qt_pkgs.split():
                 qt_cppflags.append('-I%s/%s' % (includedir, module))
-                qt_libs.append('%s/lib/lib%s.so.4' % (self.env['INSTALL_DIR'],module))
+                if self.arch.os == 'osx':
+                    qt_libs.append('%s/lib/lib%s.4.dylib' % (self.env['INSTALL_DIR'],module))
+                else:
+                    qt_libs.append('%s/lib/lib%s.so.4' % (self.env['INSTALL_DIR'],module))
 
             print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' % ' '.join(qt_cppflags), file=config)
             print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
@@ -204,6 +207,8 @@ class isis(Package):
 
             print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')), file=config)
             print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')), file=config)
+            print('HAVE_PKG_APPLE_QWT=no', file=config)
+            print('HAVE_PKG_KAKADU=no', file=config)
 
         super(isis, self).configure(
             with_ = w,
