@@ -155,7 +155,7 @@ if __name__ == '__main__':
     compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
     if not P.exists(compiler_dir):
         os.makedirs(compiler_dir)
-    acceptable_fortran_compilers = ['gfortan','g77']
+    acceptable_fortran_compilers = ['gfortran','g77']
     for i in range(0,10):
         acceptable_fortran_compilers.append("gfortran-mp-4.%s" % i)
     for compiler in acceptable_fortran_compilers:
