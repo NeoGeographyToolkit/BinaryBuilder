@@ -1,0 +1,54 @@
+Only in ../qt-everywhere-opensource-src-4.8.2_mod/: configure.orig
+Only in ../qt-everywhere-opensource-src-4.8.2_mod/: configure~
+diff -crB ./mkspecs/common/g++-macx.conf ../qt-everywhere-opensource-src-4.8.2_mod/mkspecs/common/g++-macx.conf
+*** ./mkspecs/common/g++-macx.conf	2012-04-26 12:45:52.000000000 -0700
+--- ../qt-everywhere-opensource-src-4.8.2_mod/mkspecs/common/g++-macx.conf	2012-06-14 10:28:15.000000000 -0700
+***************
+*** 16,23 ****
+  
+  QMAKE_LFLAGS_STATIC_LIB += -all_load
+  
+! QMAKE_CFLAGS_X86_64 += -Xarch_x86_64 -mmacosx-version-min=10.5
+! QMAKE_CFLAGS_PPC_64 += -Xarch_ppc64 -mmacosx-version-min=10.5
+  
+  QMAKE_CXXFLAGS_X86_64         = $$QMAKE_CFLAGS_X86_64
+  QMAKE_CXXFLAGS_PPC_64         = $$QMAKE_CFLAGS_PPC_64
+--- 16,23 ----
+  
+  QMAKE_LFLAGS_STATIC_LIB += -all_load
+  
+! #QMAKE_CFLAGS_X86_64 += -Xarch_x86_64 -mmacosx-version-min=10.5
+! #QMAKE_CFLAGS_PPC_64 += -Xarch_ppc64 -mmacosx-version-min=10.5
+  
+  QMAKE_CXXFLAGS_X86_64         = $$QMAKE_CFLAGS_X86_64
+  QMAKE_CXXFLAGS_PPC_64         = $$QMAKE_CFLAGS_PPC_64
+Only in ../qt-everywhere-opensource-src-4.8.2_mod/mkspecs/common: g++-macx.conf~
+diff -crB ./mkspecs/common/gcc-base-macx.conf ../qt-everywhere-opensource-src-4.8.2_mod/mkspecs/common/gcc-base-macx.conf
+*** ./mkspecs/common/gcc-base-macx.conf	2012-04-26 12:45:52.000000000 -0700
+--- ../qt-everywhere-opensource-src-4.8.2_mod/mkspecs/common/gcc-base-macx.conf	2012-06-14 10:28:36.000000000 -0700
+***************
+*** 12,22 ****
+  
+  QMAKE_COMPILER_DEFINES += __APPLE__ __GNUC__
+  
+! QMAKE_CFLAGS_X86    += -arch i386
+! QMAKE_CFLAGS_X86_64 += -arch x86_64
+! QMAKE_CFLAGS_PPC    += -arch ppc
+! QMAKE_CFLAGS_PPC_64 += -arch ppc64
+! QMAKE_CFLAGS_DWARF2 += -gdwarf-2
+  
+  QMAKE_CXXFLAGS_X86    += $$QMAKE_CFLAGS_X86
+  QMAKE_CXXFLAGS_X86_64 += $$QMAKE_CFLAGS_X86_64
+--- 12,22 ----
+  
+  QMAKE_COMPILER_DEFINES += __APPLE__ __GNUC__
+  
+! #QMAKE_CFLAGS_X86    += -arch i386
+! #QMAKE_CFLAGS_X86_64 += -arch x86_64
+! #QMAKE_CFLAGS_PPC    += -arch ppc
+! #QMAKE_CFLAGS_PPC_64 += -arch ppc64
+! #QMAKE_CFLAGS_DWARF2 += -gdwarf-2
+  
+  QMAKE_CXXFLAGS_X86    += $$QMAKE_CFLAGS_X86
+  QMAKE_CXXFLAGS_X86_64 += $$QMAKE_CFLAGS_X86_64
+Only in ../qt-everywhere-opensource-src-4.8.2_mod/mkspecs/common: gcc-base-macx.conf~
