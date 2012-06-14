@@ -474,7 +474,7 @@ class qt(Package):
 
     @stage
     def configure(self):
-        cmd = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools' % self.env
+        cmd = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools -no-openssl -no-libjpeg -no-libmng -no-libpng -no-libtiff' % self.env
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
