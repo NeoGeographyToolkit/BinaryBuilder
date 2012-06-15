@@ -437,9 +437,6 @@ class gmm(Package):
     chksum  = ['eea7f8e77f7e468cf93d044a992fcad3ce3f180f']
     patches = 'patches/gmm'
 
-    def __init__(self,env):
-        super(gmm,self).__init__(env)
-
     @stage
     def configure(self):
         self.helper('autoreconf', '-fvi')
@@ -453,6 +450,12 @@ class gmm(Package):
 class xercesc(Package):
     src    = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
     chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
+
+    @stage
+    def configure(self):
+        super(xercesc,self).configure(with_=['curl=%s' % glob(P.join(self.env['INSTALL_DIR'],'lib','libcurl.*'))[0],
+                                             'icu=no'],
+                                      disable = ['static', 'msgloader-iconv', 'msgloader-icu'])
 
 class qt(Package):
     src     = 'http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-4.8.2.tar.gz'

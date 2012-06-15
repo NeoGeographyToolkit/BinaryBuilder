@@ -203,9 +203,9 @@ if __name__ == '__main__':
         build = []
         if arch.os == 'linux':
             build.append(lapack)
-        build.extend([gsl, geos, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
+        build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
                       superlu, gmm, proj, gdal, ilmbase, openexr, boost, osg, flann,
-                      curl, qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, isis])
+                      qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, isis])
 
         print("build type: %s" % type(build) )
 
