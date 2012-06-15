@@ -229,7 +229,7 @@ class stereopipeline(GITPackage):
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph \
                           flapack arbitrary_qt curl ufconfig amd colamd cholmod flann \
-                          spice qwt gsl geos xercesc kakadu protobuf superlu isis'.split()
+                          spice qwt gsl geos xercesc kakadu protobuf superlu tiff isis'.split()
 
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] 
 
@@ -239,6 +239,9 @@ class stereopipeline(GITPackage):
             for pkg in install_pkgs:
                 ldflags=[]
                 ldflags.append('-L%s' % (P.join(self.env['INSTALL_DIR'], 'lib')))
+
+                if pkg == 'tiff':
+                    ldflags.extend(['-ltiff','-ljpeg'])
 
                 if self.arch.os == 'osx':
                     ldflags.append('-F%s' % (P.join(self.env['INSTALL_DIR'], 'lib')))
