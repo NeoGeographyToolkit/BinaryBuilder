@@ -40,12 +40,10 @@ def get_platform(pkg=None):
     elif system == 'Linux' and machine == 'i686':
         return p('linux', 32, 'linux32', system, machine, 'Linux', name, ver)
     elif system == 'Darwin' and machine == 'i386':
-        return p('osx', 32, 'osx32', system, machine, 'OSX', name, ver)
+        # Force 64 bit no matter what
+        return p('osx', 64, 'osx64', system, 'x86_64', 'OSX', name, ver)
     elif system == 'Darwin' and machine == 'x86_64':
-        # For the time being, we only support 32bit OSX. Though this
-        # is not a problem because we can still build 32bit
-        # binaries. So .. let's just lie and say we are 32bit.
-        return p('osx', 32, 'osx32', system, machine, 'OSX', name, ver)
+        return p('osx', 64, 'osx64', system, machine, 'OSX', name, ver)
     else:
         message = 'Cannot match system to known platform'
         if pkg is None:

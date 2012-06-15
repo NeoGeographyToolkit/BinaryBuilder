@@ -126,7 +126,7 @@ if __name__ == '__main__':
     elif arch.os == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
-        # ISIS only supports 64bit
+        # Force 64bit builds for 10.6. Someday we'll need to jam things into 10.7
         osx_arch = 'x86_64' #SEMICOLON-DELIMITED
         target = '10.6'
         # And also using the matching sdk for good measure
