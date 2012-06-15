@@ -51,9 +51,9 @@ LIB_SYSTEM_LIST = '''
 
 # prefixes of libs that we always ship (on linux, anyway)
 if get_platform().os == 'linux':
-    LIB_SHIP_PREFIX = ''' libstdc++.  libgcc_s.  '''.split()
+    LIB_SHIP_PREFIX = ''' libstdc++.  libgcc_s. libgfortran. '''.split()
 else:
-    LIB_SHIP_PREFIX = ''
+    LIB_SHIP_PREFIX = ''' libgfortran. '''.split()
     LIB_SYSTEM_LIST.extend(['libgcc_s.1.dylib', 'libstdc++.6.dylib'])
 
 
