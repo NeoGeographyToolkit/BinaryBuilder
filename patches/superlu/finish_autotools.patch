@@ -1,0 +1,27 @@
+diff -crb SuperLU_4.3/configure.ac SuperLU_4.3_mod/configure.ac
+*** SuperLU_4.3/configure.ac	2012-06-15 15:16:22.000000000 -0700
+--- SuperLU_4.3_mod/configure.ac	2012-06-15 15:18:30.000000000 -0700
+***************
+*** 1,6 ****
+--- 1,7 ----
+  # -*- Autoconf -*-
+  AC_PREREQ(2.59)
+  AC_INIT(superlu, 4.3, xsli@lbl.gov)
++ AC_CONFIG_MACRO_DIR([m4])
+  AM_INIT_AUTOMAKE([foreign])
+  AC_CONFIG_HEADER([config.h])
+  AC_PROG_INSTALL
+Only in SuperLU_4.3_mod: configure.ac~
+diff -crb SuperLU_4.3/Makefile.am SuperLU_4.3_mod/Makefile.am
+*** SuperLU_4.3/Makefile.am	2012-06-15 15:16:22.000000000 -0700
+--- SuperLU_4.3_mod/Makefile.am	2012-06-15 15:19:18.000000000 -0700
+***************
+*** 2,4 ****
+--- 2,6 ----
+  
+  pkgconfigdir = $(libdir)/pkgconfig
+  pkgconfig_DATA = superlu.pc
++ 
++ ACLOCAL_AMFLAGS = -I m4
+\ No newline at end of file
+Only in SuperLU_4.3_mod: Makefile.am~

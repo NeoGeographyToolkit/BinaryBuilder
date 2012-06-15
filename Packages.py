@@ -420,10 +420,12 @@ class superlu(Package):
 
     def __init__(self,env):
         super(superlu,self).__init__(env)
-        self.patches = [P.join(env['DOWNLOAD_DIR'], 'superlu-4.3-autotools.patch')]
+        self.patches = [P.join(env['DOWNLOAD_DIR'], 'superlu-4.3-autotools.patch'),
+                        P.join(self.pkgdir,'patches','superlu','finish_autotools.patch')]
 
     @stage
     def configure(self):
+        self.helper('mkdir', 'm4')
         self.helper('autoreconf', '-fvi')
         blas = ''
         if self.arch.os == "osx":
