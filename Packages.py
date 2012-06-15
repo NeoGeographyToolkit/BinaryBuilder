@@ -226,27 +226,22 @@ class stereopipeline(GITPackage):
         disable_modules  = 'photometrytk controlnettk mpi'
         enable_modules   = 'core spiceio isisio sessions'
 
-        noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph \
-                          flapack arbitrary_qt curl ufconfig amd colamd cholmod flann'.split()
+                          flapack arbitrary_qt curl ufconfig amd colamd cholmod flann \
+                          spice qwt gsl geos xercesc kakadu protobuf superlu isis'.split()
 
-        if self.arch.os == 'linux':
-            install_pkgs += ['superlu']
+        w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] 
 
-        w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] \
-          + [i + '=%(NOINSTALL_DIR)s' % self.env for i in noinstall_pkgs] \
-          + ['isis=%s' % self.env['ISISROOT']]
-
-        includedir = P.join(self.env['NOINSTALL_DIR'], 'include')
+        includedir = P.join(self.env['INSTALL_DIR'], 'include')
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
-            for pkg in install_pkgs + noinstall_pkgs:
+            for pkg in install_pkgs:
                 ldflags=[]
-                ldflags.append('-L%s -L%s' % (self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')))
+                ldflags.append('-L%s' % (P.join(self.env['INSTALL_DIR'], 'lib')))
 
                 if self.arch.os == 'osx':
-                    ldflags.append('-F%s -F%s' % (self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')))
+                    ldflags.append('-F%s' % (P.join(self.env['INSTALL_DIR'], 'lib')))
 
                 print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
 
@@ -260,22 +255,18 @@ class stereopipeline(GITPackage):
             for module in qt_pkgs.split():
                 qt_cppflags.append('-I%s/%s' % (includedir, module))
                 if self.arch.os == 'osx':
-                    qt_libs.append('-framework %s' % module)
+                    qt_libs.append('%s/lib/lib%s.4.dylib' % (self.env['INSTALL_DIR'],module))
                 else:
-                    qt_libs.append('%s/lib%s.so.4' % (self.env['ISIS3RDPARTY'],module))
+                    qt_libs.append('%s/lib/lib%s.so.4' % (self.env['INSTALL_DIR'],module))
 
             print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
             print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
             print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
 
-            if self.arch.os == 'linux':
-                print('PKG_SUPERLU_PLAIN_LIBS=%s' % glob(P.join(self.env['INSTALL_DIR'],'lib','libsuperlu*.so'))[0], file=config)
-                print('PKG_GEOS_LIBS=-lgeos-3.3.2', file=config)
-            elif self.arch.os == 'osx':
-                print('HAVE_PKG_SUPERLU=no', file=config)
-                print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
-
             print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
+            print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')),file=config)
+            print('HAVE_PKG_APPLE_QWT=no', file=config)
+            print('HAVE_PKG_KAKADU=no', file=config)
 
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],
@@ -293,13 +284,6 @@ class visionworkbench(GITPackage):
 
     def __init__(self,env):
         super(visionworkbench,self).__init__(env)
-        if not P.isdir(env['ISIS3RDPARTY']):
-            # This variable is used in LDFLAGS and some other things
-            # by default. If this directory doesn't exist, libtool
-            # throws a warning. Unfortunately, some of libtools tests
-            # will read this warning as a failure. This will cause a
-            # compilation failure.
-            raise ValueError('The directory described ISIS3RDPARTY does not exist. Have you set ISISROOT correctly? This is required for compilation of VW and ASP. Please set them.')
 
     @stage
     def configure(self):
@@ -317,11 +301,12 @@ class visionworkbench(GITPackage):
                 print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
                                                                     P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 if pkg == 'gdal' and self.arch.os == 'linux':
-                    print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                    print('PKG_%s_LDFLAGS="-L%s -ljpeg -lpng -lz"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
                 else:
-                    print('PKG_%s_LDFLAGS="-L%s -L%s"'  % (pkg.upper(), self.env['ISIS3RDPARTY'], P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                    print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
             # Specify executables we use
             print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
+            print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')),file=config)
 
         super(visionworkbench, self).configure(with_   = w,
                                                without = ('tiff hdf cairomm zeromq rabbitmq_c tcmalloc x11 clapack slapack qt opencv cg'.split()),
@@ -436,7 +421,6 @@ class superlu(Package):
 
     @stage
     def configure(self):
-        print("Directory is %s" % self.env['ISIS3RDPARTY'])
         self.helper('autoreconf', '-fvi')
         blas = ''
         if self.arch.os == "osx":
@@ -455,7 +439,6 @@ class gmm(Package):
 
     @stage
     def configure(self):
-        print("Directory is %s" % self.env['ISIS3RDPARTY'])
         self.helper('autoreconf', '-fvi')
         blas = ''
         if self.arch.os == "osx":
@@ -538,17 +521,8 @@ class jpeg(Package):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class png(Package):
-    def __init__(self, env):
-        super(png, self).__init__(env)
-
-        if self.arch.os == 'osx':
-            # OSX ISIS3.4 uses png14
-            self.src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
-            self.chksum = '85525715cdaa8c542316436659cada13561663c4'
-        else:
-            # Linux ISIS3.4 uses png12
-            self.src    = 'http://downloads.sourceforge.net/libpng/libpng-1.2.43.tar.gz'
-            self.chksum = '44c1231c74f13b4f3e5870e039abeb35c7860a3f'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
+    chksum = '85525715cdaa8c542316436659cada13561663c4'
 
     def configure(self):
         super(png,self).configure(disable='static')

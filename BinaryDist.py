@@ -441,7 +441,6 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
                 if P.exists(P.join(toplevel, rpath, soname)):
                     new_path = P.join('@rpath', soname)
                     # If the entry is the "self" one, it has to be changed differently
-                    print("Sopath %s ISopath %s" % (info.sopath,sopath))
                     if info.sopath == sopath:
                         if relative_name:
                             run('install_name_tool', '-id', new_path, filename)
