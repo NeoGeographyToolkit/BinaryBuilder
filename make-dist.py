@@ -115,8 +115,8 @@ if __name__ == '__main__':
 
     try:
         INSTALLDIR = Prefix(installdir)
-        ISISROOT   = P.join(INSTALLDIR, 'isis')
-        SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib'), INSTALLDIR.lib()]
+        ISISROOT   = P.join(INSTALLDIR)
+        SEARCHPATH = [INSTALLDIR.lib()]
         if opt.isisroot is not None:
             ISISROOT = opt.isisroot
 
