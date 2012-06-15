@@ -480,13 +480,17 @@ class qwt(Package):
     patches = 'patches/qwt'
 
     def configure(self):
-        installDir = '%(INSTALL_DIR)s' % self.env
+        installDir = self.env['INSTALL_DIR']
 
         # Wipe old installation, otherwise qwt refuses to install
         cmd = ['rm', '-vf'] + glob(P.join(installDir, 'lib/', 'libqwt.*'))
         self.helper(*cmd)
 
-        cmd = [installDir + '/bin/qmake']
+        cmd = [installDir + '/bin/qmake','-spec']
+        if self.arch.os == 'osx':
+            cmd.append(P.join(installDir,'mkspecs','macx-g++'))
+        else:
+            cmd.append(P.join(installDir,'mkspecs','linux-g++'))
         self.helper(*cmd)
 
 class zlib(Package):
