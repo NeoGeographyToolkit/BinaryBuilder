@@ -191,7 +191,7 @@ if __name__ == '__main__':
         e['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify that the user has some common executables that we use
-    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gcc", "csh"]
+    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gcc", "csh", "git"]
     if arch.os == 'linux':
         common_exec.extend( ["libtool", "chrpath", "gfortran"] )
     else:

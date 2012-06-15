@@ -498,6 +498,11 @@ class qwt(Package):
 
     def configure(self):
         installDir = '%(INSTALL_DIR)s' % self.env
+
+        # Wipe old installation, otherwise qwt refuses to install
+        cmd = ['rm', '-vf'] + glob(P.join(installDir, 'lib/', 'libqwt.*'))
+        self.helper(*cmd)
+
         cmd = [installDir + '/bin/qmake']
         self.helper(*cmd)
 
