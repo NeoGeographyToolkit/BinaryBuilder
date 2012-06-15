@@ -25,3 +25,5 @@ lib/libvw*.[so,dylib]*
 lib/libasp*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
 share/gdal/*
+lib/*.plugin
+IsisPreferences

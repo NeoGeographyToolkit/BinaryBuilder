@@ -10,6 +10,7 @@ import logging
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die
 import sys
+from glob import glob
 
 # These are the SONAMES for libs we're allowed to get from the base system
 # (most of these are frameworks, and therefore lack a dylib/so)
@@ -129,6 +130,19 @@ if __name__ == '__main__':
             with file(opt.include, 'r') as f:
                 for line in f:
                     mgr.add_glob(line.strip(), INSTALLDIR)
+
+        print('Adding Libraries referred to by ISIS Plugins')
+        isis_secondary_set = set()
+        for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
+            with open(plugin,'r') as f:
+                for line in f:
+                    line = line.split()
+                    if not len( line ):
+                        continue
+                    if line[0] == 'Library':
+                        isis_secondary_set.add("lib/lib"+line[2]+"*")
+        for library in isis_secondary_set:
+            mgr.add_glob(library, INSTALLDIR)
 
         print('Adding ISIS version check')
         with mgr.create_file('libexec/constants.sh') as f:
