@@ -57,6 +57,8 @@ else:
     LIB_SYSTEM_LIST.extend(['libgcc_s.1.dylib', 'libstdc++.6.dylib'])
 
 
+print("a")
+
 def tarball_name():
     arch = get_platform()
     if opt.version is not None:
@@ -127,11 +129,13 @@ if __name__ == '__main__':
             sys.exit(0)
         else:
             print('Adding requested files')
+            sys.stdout.flush()
             with file(opt.include, 'r') as f:
                 for line in f:
                     mgr.add_glob(line.strip(), INSTALLDIR)
 
         print('Adding Libraries referred to by ISIS Plugins')
+        sys.stdout.flush()
         isis_secondary_set = set()
         for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
             with open(plugin,'r') as f:
@@ -142,9 +146,10 @@ if __name__ == '__main__':
                     if line[0] == 'Library':
                         isis_secondary_set.add("lib/lib"+line[2]+"*")
         for library in isis_secondary_set:
-            mgr.add_glob(library, INSTALLDIR)
+            mgr.add_glob( library, INSTALLDIR )
 
         print('Adding ISIS version check')
+        sys.stdout.flush()
         with mgr.create_file('libexec/constants.sh') as f:
             print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
 

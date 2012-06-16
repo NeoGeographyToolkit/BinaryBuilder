@@ -2,10 +2,7 @@
 
 import os.path as P
 import logging
-import itertools
-import shutil
-import re
-import errno
+import itertools, shutil, re, errno, sys
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
 from BinaryBuilder import get_platform, run, hash_file
@@ -450,8 +447,12 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
                         break
         if len(info.libs):
             for rpath in searchpath:
-                run('install_name_tool','-add_rpath',P.join('@executable_path','..',rpath), filename)
-                run('install_name_tool','-add_rpath',P.join('@loader_path','..',rpath), filename)
+                if run('install_name_tool','-add_rpath',P.join('@executable_path','..',rpath), filename,
+                       raise_on_failure = False) is None:
+                    logger.warn('Failed to add rpath on %s' % filename)
+                if run('install_name_tool','-add_rpath',P.join('@loader_path','..',rpath), filename,
+                       raise_on_failure = False) is None:
+                    logger.warn('Failed to add rpath on %s' % filename)
 
     locals()[get_platform().os]()
 

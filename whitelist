@@ -27,3 +27,4 @@ lib/osgPlugins-*/osgdb_*
 share/gdal/*
 lib/*.plugin
 IsisPreferences
+version
