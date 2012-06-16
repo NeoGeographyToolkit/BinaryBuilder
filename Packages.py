@@ -457,7 +457,7 @@ class xercesc(Package):
     def configure(self):
         super(xercesc,self).configure(with_=['curl=%s' % glob(P.join(self.env['INSTALL_DIR'],'lib','libcurl.*'))[0],
                                              'icu=no'],
-                                      disable = ['static', 'msgloader-iconv', 'msgloader-icu'])
+                                      disable = ['static', 'msgloader-iconv', 'msgloader-icu', 'network'])
 
 class qt(Package):
     src     = 'http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-4.8.2.tar.gz'
