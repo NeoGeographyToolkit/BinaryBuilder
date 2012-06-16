@@ -68,13 +68,13 @@ class gdal(Package):
 
     @stage
     def configure(self):
-        w = ['threads', 'libtiff', 'libgeotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
+        w = ['threads', 'libtiff', 'geotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
         wo = \
           '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
              macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
              pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
-             static-proj4 xerces xerces-inc xerces-lib'''.split()
+             static-proj4 xerces xerces-inc xerces-lib libiconv-prefix libiconv'''.split()
 
         self.helper('./autogen.sh')
         super(gdal,self).configure(with_=w, without=wo, disable='static', enable='shared')

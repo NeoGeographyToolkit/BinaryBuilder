@@ -1,0 +1,26 @@
+diff -crB gdal-1.9.0/configure.in gdal-1.9.0_mod/configure.in
+*** gdal-1.9.0/configure.in	2012-01-03 23:03:42.000000000 -0800
+--- gdal-1.9.0_mod/configure.in	2012-06-15 17:04:28.000000000 -0700
+***************
+*** 421,427 ****
+  dnl manual at
+  dnl http://www.gnu.org/software/gettext/manual/html_node/AM_005fICONV.html
+  dnl ---------------------------------------------------------------------------
+! AM_ICONV
+  
+  dnl Extra test needed for GCC 4.5 on Solaris 11, where there is
+  dnl a different behaviour if the tests are compiled with gcc or g++.
+--- 421,432 ----
+  dnl manual at
+  dnl http://www.gnu.org/software/gettext/manual/html_node/AM_005fICONV.html
+  dnl ---------------------------------------------------------------------------
+! dnl AM_ICONV
+! am_func_iconv=no
+! LIBICONV=''
+! LTLIBICONV=''
+! AC_SUBST([LIBICONV])
+! AC_SUBST([LTLIBICONV])
+  
+  dnl Extra test needed for GCC 4.5 on Solaris 11, where there is
+  dnl a different behaviour if the tests are compiled with gcc or g++.
+Only in gdal-1.9.0_mod: configure.in~
