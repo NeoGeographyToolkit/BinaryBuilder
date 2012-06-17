@@ -501,6 +501,13 @@ class qwt(Package):
             cmd.append(P.join(installDir,'mkspecs','linux-g++'))
         self.helper(*cmd)
 
+    # Qwt pollutes the doc folder
+    @stage
+    def install(self):
+        super(qwt, self).install()
+        cmd = ['rm', '-vrf', P.join( self.env['INSTALL_DIR'], 'doc', 'html' ) ]
+        self.helper(*cmd)
+
 class zlib(Package):
     src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.6.tar.gz'
     chksum  = '38690375d8d42398ce33b2df726e25cacf096496'
