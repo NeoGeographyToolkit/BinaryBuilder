@@ -1,0 +1,26 @@
+diff -crB cspice/src/cspice/mkprodct.csh cspice_mod/src/cspice/mkprodct.csh
+*** cspice/src/cspice/mkprodct.csh	2010-06-10 11:58:04.000000000 -0700
+--- cspice_mod/src/cspice/mkprodct.csh	2012-06-17 04:59:36.000000000 -0700
+***************
+*** 229,236 ****
+     echo "      Inserting objects in the library $LIBRARY ..."
+     ar  crv $LIBRARY.a *.o
+     ranlib  $LIBRARY.a
+-    \rm                *.o    
+     echo " "
+  
+  endif
+  
+--- 229,239 ----
+     echo "      Inserting objects in the library $LIBRARY ..."
+     ar  crv $LIBRARY.a *.o
+     ranlib  $LIBRARY.a
+     echo " "
++    echo " Creating dynamic library "
++    set SOFLAGS = `echo $TKCOMPILEOPTIONS | sed 's/-c / /g'`
++    $TKCOMPILER $LDFLAGS $SOFLAGS -shared -Wl,-soname,libcspice.so -o ../../lib/libcspice.so *.o
++    \rm                *.o    
+  
+  endif
+  
+Only in cspice_mod/src/cspice: mkprodct.csh~

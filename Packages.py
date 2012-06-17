@@ -567,6 +567,8 @@ class cspice(Package):
         self.chksum = self.PLATFORM[self.arch.osbits]['chksum']
         if self.arch.os == "osx":
             self.patches = 'patches/cspice_osx'
+        else:
+            self.patches = 'patches/cspice_linux'
     def configure(self): pass
 
     @stage
