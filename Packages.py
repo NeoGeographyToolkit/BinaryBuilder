@@ -565,7 +565,8 @@ class cspice(Package):
         self.pkgname += '_' + self.arch.osbits
         self.src    = self.PLATFORM[self.arch.osbits]['src']
         self.chksum = self.PLATFORM[self.arch.osbits]['chksum']
-
+        if self.arch.os == "osx":
+            self.patches = 'patches/cspice_osx'
     def configure(self): pass
 
     @stage
@@ -574,11 +575,6 @@ class cspice(Package):
         self.args = ['./makeall.csh']
         cmd += self.args
         self.helper(*cmd)
-
-        # Fix the names of files inside the lib folder
-        libraries = glob(P.join(self.workdir, 'lib', '*'))
-        for library in libraries:
-            self.helper('mv', library, P.join(P.dirname(library),'lib'+P.basename(library)))
 
     @stage
     def install(self):
@@ -589,6 +585,8 @@ class cspice(Package):
 
         d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
         self.helper('mkdir', '-p', d)
+        cmd = ['rm' ] + glob(P.join(self.workdir,'lib', '*.a'))
+        self.helper(*cmd)
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
         self.helper(*cmd)
 
