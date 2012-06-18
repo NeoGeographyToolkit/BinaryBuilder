@@ -1,4 +1,3 @@
-bin/bundlevis
 bin/cam2map4stereo.py
 bin/colormap
 bin/disparitydebug
