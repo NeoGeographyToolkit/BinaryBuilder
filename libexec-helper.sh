@@ -18,4 +18,4 @@ if ! test -f "${PROGRAM}"; then
     msg "Could not find ${PROGRAM}"
     die "Is your stereo pipeline install incomplete?"
 fi
-exec "${PROGRAM}" $*
+exec "${PROGRAM}" "$@"
