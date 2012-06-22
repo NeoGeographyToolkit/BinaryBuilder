@@ -47,6 +47,8 @@ class DistManager(object):
         base = P.basename(inpath)
         if P.islink(inpath):
             self._add_file(inpath, self.distdir.bin(base))
+        elif base.endswith(".py"):
+            self._add_file(inpath, self.distdir.bin(base))
         else:
             self._add_file(inpath, self.distdir.libexec(base))
             self._add_file(wrapper_file, self.distdir.bin(base))
