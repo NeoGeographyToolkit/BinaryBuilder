@@ -53,11 +53,8 @@ LIB_SYSTEM_LIST = '''
 if get_platform().os == 'linux':
     LIB_SHIP_PREFIX = ''' libstdc++.  libgcc_s. libgfortran. '''.split()
 else:
-    LIB_SHIP_PREFIX = ''' libgfortran. '''.split()
-    LIB_SYSTEM_LIST.extend(['libgcc_s.1.dylib', 'libstdc++.6.dylib'])
-
-
-print("a")
+    LIB_SHIP_PREFIX = ''' libgfortran. libgcc_s. '''.split()
+    LIB_SYSTEM_LIST.extend(['libstdc++.6.dylib'])
 
 def tarball_name():
     arch = get_platform()
@@ -156,6 +153,7 @@ if __name__ == '__main__':
         print('Adding libraries')
 
         print('\tAdding forced-ship libraries')
+        print('Dependencies %s' % mgr.deplist.keys())
         # Handle the shiplist separately
         for copy_lib in LIB_SHIP_PREFIX:
             found = None

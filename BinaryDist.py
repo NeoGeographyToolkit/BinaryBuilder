@@ -419,7 +419,24 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
                 run('install_name_tool', '-id',
                     filename, filename)
 
+        logger.debug("Trying to Bake %s" % filename)
+        logger.debug("Info sopath %s" % info.sopath)
+        logger.debug("Toplevel var %s" % toplevel)
+        logger.debug("Possible search path %s" % searchpath)
+        # Add libraries back in with their directory if they have a
+        # dir after the lib folder.
+        additional_libs = {}
         for soname, sopath in info.libs.iteritems():
+            split_apart = sopath.split("/")
+            if "lib" in split_apart and \
+                    split_apart.index('lib') != len(split_apart) - 2:
+                new_soname = P.join('/'.join(split_apart[split_apart.index('lib')+1:-1]), soname)
+                logger.debug("XXX Adding new Soname %s" % new_soname)
+                additional_libs[new_soname] = sopath
+        info.libs.update( additional_libs )
+
+        for soname, sopath in info.libs.iteritems():
+            logger.debug("Soname %s Sopath %s" % (soname, sopath))
             # /tmp/build/install/lib/libvwCore.5.dylib
             # base = libvwCore.5.dylib
             # looks for @executable_path/../lib/libvwCore.5.dylib
@@ -439,7 +456,8 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
             for rpath in searchpath:
                 if P.exists(P.join(toplevel, rpath, soname)):
                     new_path = P.join('@rpath', soname)
-                    # If the entry is the "self" one, it has to be changed differently
+                    # If the entry is the "self" one, it has to be
+                    # changed differently
                     if info.sopath == sopath:
                         if relative_name:
                             run('install_name_tool', '-id', new_path, filename)
