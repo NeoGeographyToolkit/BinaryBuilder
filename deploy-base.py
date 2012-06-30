@@ -94,10 +94,12 @@ if __name__ == '__main__':
         print('ENABLE_RPATH=yes', file=config)
         print('ENABLE_STATIC=no', file=config)
         print('ENABLE_PKG_PATHS_DEFAULT=no', file=config)
+        print('ENABLE_AS_NEEDED=yes', file=config)
+        print('ENABLE_NO_UNDEFINED=yes', file=config)
         if arch.os == 'osx':
             print('CCFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % installdir, file=config)
             print('CXXFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % installdir, file=config)
-            print('LDFLAGS="-Wl,-rpath -Wl,%s -Wl,-rpath -Wl,%s"' % (installdir,P.join(ISISROOT,'3rdParty','lib')), file=config)
+            print('LDFLAGS="-Wl,-rpath -Wl,%s"' % (installdir), file=config)
         print('\n# You should enable modules that you want yourself', file=config)
         print('# Here are some simple modules to get you started', file=config)
         print('ENABLE_MODULE_MOSAIC=yes', file=config)
@@ -114,9 +116,9 @@ if __name__ == '__main__':
             print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join('$BASE','noinstall','include'),
                                                    P.join('$BASE','include')), file=config)
             if pkg == 'gdal' and arch.os == 'linux':
-                print('PKG_%s_LDFLAGS="-L%s -L%s -ljpeg -lpng12 -lz"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
+                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz"' % (pkg.upper(),P.join('$BASE','lib')), file=config)
             else:
-                print('PKG_%s_LDFLAGS="-L%s -L%s"' % (pkg.upper(),P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')), file=config)
+                print('PKG_%s_LDFLAGS="-L%s"' % (pkg.upper(),P.join('$BASE','lib')), file=config)
             if pkg == 'protobuf':
                 print('PROTOC=$BASE/bin/protoc', file=config)
 
@@ -133,7 +135,7 @@ if __name__ == '__main__':
         print('ENABLE_PKG_PATHS_DEFAULT=no', file=config)
         if arch.os == 'osx':
             print('CCFLAGS="-arch x86_64"\nCXXFLAGS="-arch x86_64"', file=config)
-            print('LDFLAGS="-Wl,-rpath -Wl,%s -Wl,-rpath -Wl,%s"' % (installdir,P.join(ISISROOT,'3rdParty','lib')), file=config)
+            print('LDFLAGS="-Wl,-rpath -Wl,%s"' % installdir, file=config)
         print('\n# You should enable modules that you want yourself', file=config)
         print('# Here are some simple modules to get you started', file=config)
         print('ENABLE_MODULE_CORE=yes', file=config)
@@ -153,14 +155,11 @@ if __name__ == '__main__':
                         rmax2cahvor rmaxadjust stereogui'.split()
         enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz \
                         orthoproject point2dem point2mesh stereo mer2camera'.split()
-        noinstall_pkgs = 'spice qwt gsl geos xercesc kakadu protobuf'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl \
-                          ufconfig amd colamd cholmod flann'.split()
-        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate'.split()
+                          ufconfig amd colamd cholmod flann spice qwt gsl geos xercesc protobuf superlu tiff isis superlu'.split()
+        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu apple_qwt'.split()
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point'.split()
-        if arch.os == 'linux':
-            install_pkgs += ['superlu']
 
         print('\n# Applications', file=config)
         for app in disable_apps:
@@ -169,21 +168,19 @@ if __name__ == '__main__':
             print('ENABLE_APP_%s=yes' % app.upper(), file=config)
 
         print('\n# Dependencies', file=config)
-        for pkg in install_pkgs + noinstall_pkgs:
+        for pkg in install_pkgs:
             ldflags=[]
-            ldflags.append('-L%s -L%s' % (P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')))
+            ldflags.append('-L%s' % (P.join('$BASE','lib')))
             if arch.os == 'osx':
-                ldflags.append('-F%s -F%s' % (P.join(ISISROOT,'3rdParty','lib'),P.join('$BASE','lib')))
+                ldflags.append('-F%s' % (P.join('$BASE','lib')))
             print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
-            print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join('$BASE','noinstall','include'),
-                                                   P.join('$BASE','include')), file=config)
+            print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(),
+                                              P.join('$BASE','include')), file=config)
             if pkg == 'protobuf':
                 print('PROTOC=$BASE/bin/protoc', file=config)
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=$BASE' % pkg.upper(), file=config)
-        for pkg in noinstall_pkgs:
-            print('HAVE_PKG_%s=$BASE/noinstall' % pkg.upper(), file=config)
         for pkg in vw_pkgs:
             print('HAVE_PKG_%s=$VW' % pkg.upper(), file=config)
         for pkg in off_pkgs:
@@ -193,16 +190,16 @@ if __name__ == '__main__':
 
         print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 
-        includedir = P.join('$BASE','noinstall','include')
+        includedir = P.join('$BASE','include')
         qt_cppflags=['-I%s' % includedir]
         qt_libs=[]
 
         for module in qt_pkgs.split():
             qt_cppflags.append('-I%s/%s' % (includedir, module))
             if arch.os == 'osx':
-                qt_libs.append('-framework %s' % module)
+                qt_libs.append('$BASE/lib/lib%s.4.dylib' % module)
             else:
-                qt_libs.append('%s/lib%s.so.4' % (P.join(ISISROOT, '3rdParty', 'lib'),module))
+                qt_libs.append('$BASE/lib/lib%s.so.4' % module)
 
 
         print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
@@ -211,10 +208,8 @@ if __name__ == '__main__':
 
         if arch.os == 'linux':
             print('PKG_SUPERLU_PLAIN_LIBS=%s' % glob(P.join(installdir, 'lib', 'libsuperlu*.so'))[0], file=config)
-            print('PKG_GEOS_LIBS=-lgeos-3.3.2', file=config)
-        elif arch.os == 'osx':
-            print('HAVE_PKG_SUPERLU=no', file=config)
-            print('PKG_GEOS_LIBS=-lgeos-3.3.1', file=config)
+
 
         print('PROTOC=$BASE/bin/protoc', file=config)
+        print('MOC=$BASE/bin/moc',file=config)
         print('HAVE_PKG_ISIS=%s' % ISISROOT, file=config)
