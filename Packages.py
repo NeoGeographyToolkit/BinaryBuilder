@@ -331,8 +331,10 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS__
 
 class boost(Package):
-    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
-    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'
+    src     = 'http://downloads.sourceforge.net/boost/boost_1_50_0.tar.bz2'
+    chksum  = 'ee06f89ed472cf369573f8acf9819fbc7173344e'
+#    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
+#    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'
 #    src    = 'http://downloads.sourceforge.net/boost/boost_1_49_0.tar.bz2'
 #    chksum = '26a52840e9d12f829e3008589abf0a925ce88524'
     patches = 'patches/boost'
