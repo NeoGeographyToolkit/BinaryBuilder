@@ -3,7 +3,7 @@
 from __future__ import print_function
 import os, shutil
 import os.path as P
-import re
+import re, sys
 from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError
@@ -165,7 +165,7 @@ class isis(Package):
                     P.join(output_dir, 'AutotoolsForISIS-git'))
 
         # Now we actually run commands that patch ISIS with a build system
-        self.helper("AutotoolsForISIS-git/reformat_isis.py","--destination",
+        self.helper(sys.executable,"AutotoolsForISIS-git/reformat_isis.py","--destination",
                     self.pkgname,"--isisroot","isis_original")
         self.workdir = P.join(output_dir,self.pkgname)
 
