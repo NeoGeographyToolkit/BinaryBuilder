@@ -190,8 +190,10 @@ if __name__ == '__main__':
     if opt.libtoolize is not None:
         e['LIBTOOLIZE'] = opt.libtoolize
 
-    # Verify that the user has some common executables that we use
-    if not len(args) == 0:
+    if len(args) == 0:
+        # Verify that the user has some common executables that we
+        # use. We don't apply this all the time for the sake of our
+        # CI.
         common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gcc", "csh", "git"]
         if arch.os == 'linux':
             common_exec.extend( ["libtool", "chrpath", "gfortran"] )
@@ -200,7 +202,6 @@ if __name__ == '__main__':
         for program in common_exec:
             verify( program )
 
-    if len(args) == 0:
         build = []
         if arch.os == 'linux':
             build.append(lapack)
