@@ -107,8 +107,8 @@ class openexr(Package):
                                       disable=('ilmbasetest', 'imfexamples', 'static'))
 
 class proj(Package):
-    src     = 'http://download.osgeo.org/proj/proj-4.7.0.tar.gz'
-    chksum  = 'bfe59b8dc1ea0c57e1426c37ff2b238fea66acd7'
+    src     = 'http://download.osgeo.org/proj/proj-4.8.0.tar.gz'
+    chksum  = '5c8d6769a791c390c873fef92134bf20bb20e82a'
 
     @stage
     def configure(self):
