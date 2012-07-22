@@ -112,7 +112,7 @@ class proj(Package):
 
     @stage
     def configure(self):
-        super(proj,self).configure(disable='static')
+        super(proj,self).configure(disable='static', without='jni')
 
 class curl(Package):
     src     = 'http://curl.haxx.se/download/curl-7.15.5.tar.gz'
