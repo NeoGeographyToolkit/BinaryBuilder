@@ -265,9 +265,10 @@ class Package(object):
                 if skip: raise PackageError(self, 'Fetch is skipped and no src available')
                 get(src, self.tarball)
 
-            if hash_file(self.tarball) != chksum:
+            curr_chksum = hash_file(self.tarball) 
+            if curr_chksum != chksum:
                 os.remove(self.tarball)
-                raise PackageError(self, 'Checksum on file[%s] failed. Removed!' % self.tarball)
+                raise PackageError(self, 'Checksum on file[%s] failed. Expected %s but got %s. Removed!' % (self.tarball, chksum, curr_chksum) )
 
     @stage
     def unpack(self):
