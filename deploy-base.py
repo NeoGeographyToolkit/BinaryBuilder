@@ -45,8 +45,7 @@ if __name__ == '__main__':
     print('Extracting tarball')
     run('tar', 'xf', tarball, '-C', installdir, '--strip-components', '1')
 
-    ISISROOT = P.join(installdir,'isis')
-    SEARCHPATH = [P.join(ISISROOT, 'lib'), P.join(ISISROOT,'3rdParty','lib'), P.join(installdir,'lib')]
+    SEARCHPATH = [P.join(installdir,'lib')]
 
     print('Fixing RPATHs')
     for curr_path in SEARCHPATH:
@@ -58,12 +57,6 @@ if __name__ == '__main__':
                 set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
             except:
                 print('  Failed %s' % P.basename(library))
-    if arch.os == 'osx':
-        for library in glob(P.join(ISISROOT,'3rdParty','lib','*.framework','Versions','Current','*')):
-            if not P.isfile(library):
-                continue
-            print('  %s' % P.basename(library))
-            set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
 
     print('Fixing Binaries')
     for binary in glob(P.join(installdir,'bin','*')):
@@ -212,4 +205,3 @@ if __name__ == '__main__':
 
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('MOC=$BASE/bin/moc',file=config)
-        print('HAVE_PKG_ISIS=%s' % ISISROOT, file=config)
