@@ -122,6 +122,42 @@ class curl(Package):
     def configure(self):
         super(curl,self).configure(disable=['static','ldap','ldaps'], without=['ssl','libidn'])
 
+class laszip(Package):
+    src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
+    chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
+
+    @stage
+    def configure(self):
+        super(laszip,self).configure()
+
+class liblas(CMakePackage):
+    src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
+    chksum  = 'f31070efdf7bb7d6675c23c6c6c84584e3a10869'
+
+    @stage
+    def configure(self):
+        installDir = self.env['INSTALL_DIR']
+
+        # This is a temporary workaround. laszip does not install itself
+        # where liblas expects it.
+        try:
+            os.symlink( installDir + '/include',
+                        installDir + '/laszip'
+                        )
+        except:
+            warn('  Symbolic link %s exists' % installDir + '/laszip')
+
+        # There should be a better way of doing this    
+        self.env['LD_LIBRARY_PATH'] = installDir + '/lib'
+        
+        super(liblas, self).configure( other=[
+            '-DWITH_LASZIP=true',
+            '-DCMAKE_INSTALL_PREFIX=' + installDir,
+            '-DBoost_INCLUDE_DIR='    + installDir + '/include/boost-' + boost.version,
+            '-DBoost_LIBRARY_DIRS='   + installDir + '/lib',
+            '-DLASZIP_INCLUDE_DIR='   + installDir
+            ] )
+
 # Due to legal reasons ... we are not going to download a modified
 # version of ISIS from some NASA Ames server. Instead, we will
 # download ISIS and then download the repo for editing ISIS. We apply
@@ -221,7 +257,7 @@ class stereopipeline(GITPackage):
     def configure(self):
         self.helper('./autogen')
 
-        disable_apps = 'aligndem bundleadjust demprofile geodiff isisadjustcameraerr isisadjustcnetclip plateorthoproject reconstruct results rmax2cahvor rmaxadjust stereogui'
+        disable_apps = 'aligndem bundleadjust demprofile geodiff point2las isisadjustcameraerr isisadjustcnetclip plateorthoproject reconstruct results rmax2cahvor rmaxadjust stereogui'
         enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz orthoproject point2dem point2mesh stereo mer2camera rpcmapproject'
         disable_modules  = 'photometrytk controlnettk mpi'
         enable_modules   = 'core spiceio isisio sessions'
@@ -229,7 +265,7 @@ class stereopipeline(GITPackage):
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point openscenegraph \
                           flapack arbitrary_qt curl ufconfig amd colamd cholmod flann \
-                          spice qwt gsl geos xercesc kakadu protobuf superlu tiff isis'.split()
+                          spice qwt gsl geos xercesc kakadu protobuf superlu tiff laszip liblas isis'.split()
 
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] 
 
@@ -321,17 +357,18 @@ class lapack(CMakePackage):
     chksum  = '910109a931524f8dcc2734ce23fe927b00ca199f'
 
     def configure(self):
-        LDFLAGS__ = self.env['LDFLAGS']
-        LDFLAGS_ = []
+        LDFLAGS_ORIG = self.env['LDFLAGS']
+        LDFLAGS_CURR = []
         for i in self.env['LDFLAGS'].split(' '):
             if not i.startswith('-L'):
-                LDFLAGS_.append(i);
-        self.env['LDFLAGS'] = ' '.join(LDFLAGS_)
+                LDFLAGS_CURR.append(i);
+        self.env['LDFLAGS'] = ' '.join(LDFLAGS_CURR)
         super(lapack, self).configure( other=['-DCMAKE_Fortran_COMPILER=gfortran','-DBUILD_SHARED_LIBS=ON','-DBUILD_STATIC_LIBS=OFF'] )
-        self.env['LDFLAGS'] = LDFLAGS__
+        self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    src     = 'http://downloads.sourceforge.net/boost/boost_1_50_0.tar.bz2'
+    version = '1_50' # this is used in class liblas
+    src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
     chksum  = 'ee06f89ed472cf369573f8acf9819fbc7173344e'
 #    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
 #    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'

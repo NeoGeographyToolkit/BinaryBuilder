@@ -17,7 +17,7 @@ from glob import glob
 from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
      zlib, tiff, png, jpeg, proj, gdal, ilmbase, openexr,   \
      boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
-     ufconfig, amd, colamd, cholmod, tnt, jama, isis
+     ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
      findfile, tweak_path, run, get_gcc_version, logger, warn
@@ -207,7 +207,7 @@ if __name__ == '__main__':
             build.append(lapack)
         build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
                       superlu, gmm, proj, gdal, ilmbase, openexr, boost, osg, flann,
-                      qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, isis])
+                      qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis])
 
         print("build type: %s" % type(build) )
 
