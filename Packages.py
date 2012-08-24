@@ -126,6 +126,13 @@ class laszip(CMakePackage):
     src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
     
+    @stage
+    def configure(self):
+        installDir = self.env['INSTALL_DIR']
+        super(laszip, self).configure( other=[
+            '-DCMAKE_INSTALL_PREFIX=' + installDir
+            ] )
+        
 class liblas(CMakePackage):
     src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
     chksum  = 'f31070efdf7bb7d6675c23c6c6c84584e3a10869'
@@ -133,11 +140,21 @@ class liblas(CMakePackage):
     @stage
     def configure(self):
         installDir = self.env['INSTALL_DIR']
+
+        # Temporarily append the path to libs to LDFLAGS so that we
+        # can link properly.
+        LDFLAGS_ORIG = self.env['LDFLAGS']
+        self.env['LDFLAGS'] = self.env['LDFLAGS'] + ' -Wl,-rpath -Wl,' + installDir + '/lib'
+
         super(liblas, self).configure( other=[
+            '-DCMAKE_INSTALL_PREFIX=' + installDir,
+            '-DBoost_INCLUDE_DIR='    + installDir + '/include/boost-' + boost.version,
+            '-DBoost_LIBRARY_DIRS='   + installDir + '/lib',
             '-DWITH_LASZIP=true',
             '-DLASZIP_INCLUDE_DIR=' + installDir + '/include'
             ] )
-
+        self.env['LDFLAGS'] = LDFLAGS_ORIG
+        
 # Due to legal reasons ... we are not going to download a modified
 # version of ISIS from some NASA Ames server. Instead, we will
 # download ISIS and then download the repo for editing ISIS. We apply
@@ -347,7 +364,8 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    src     = 'http://downloads.sourceforge.net/boost/boost_1_50_0.tar.bz2'
+    version = '1_50' # this is used in class liblas
+    src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
     chksum  = 'ee06f89ed472cf369573f8acf9819fbc7173344e'
 #    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
 #    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'
