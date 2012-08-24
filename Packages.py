@@ -122,40 +122,20 @@ class curl(Package):
     def configure(self):
         super(curl,self).configure(disable=['static','ldap','ldaps'], without=['ssl','libidn'])
 
-class laszip(Package):
+class laszip(CMakePackage):
     src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
-
-    @stage
-    def configure(self):
-        super(laszip,self).configure()
-
+    
 class liblas(CMakePackage):
     src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
     chksum  = 'f31070efdf7bb7d6675c23c6c6c84584e3a10869'
-
+    
     @stage
     def configure(self):
         installDir = self.env['INSTALL_DIR']
-
-        # This is a temporary workaround. laszip does not install itself
-        # where liblas expects it.
-        try:
-            os.symlink( installDir + '/include',
-                        installDir + '/laszip'
-                        )
-        except:
-            warn('  Symbolic link %s exists' % installDir + '/laszip')
-
-        # There should be a better way of doing this    
-        self.env['LD_LIBRARY_PATH'] = installDir + '/lib'
-        
         super(liblas, self).configure( other=[
             '-DWITH_LASZIP=true',
-            '-DCMAKE_INSTALL_PREFIX=' + installDir,
-            '-DBoost_INCLUDE_DIR='    + installDir + '/include/boost-' + boost.version,
-            '-DBoost_LIBRARY_DIRS='   + installDir + '/lib',
-            '-DLASZIP_INCLUDE_DIR='   + installDir
+            '-DLASZIP_INCLUDE_DIR=' + installDir + '/include'
             ] )
 
 # Due to legal reasons ... we are not going to download a modified
@@ -367,8 +347,7 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_50' # this is used in class liblas
-    src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
+    src     = 'http://downloads.sourceforge.net/boost/boost_1_50_0.tar.bz2'
     chksum  = 'ee06f89ed472cf369573f8acf9819fbc7173344e'
 #    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
 #    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'
