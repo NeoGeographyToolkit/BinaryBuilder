@@ -334,7 +334,7 @@ def rm_f(filename):
             raise
 
 def mkdir_f(dirname):
-    ''' A mkdir -p that doesn't care if the dir is there '''
+    ''' A mkdir -p that does not care if the dir is there '''
     try:
         makedirs(dirname)
     except OSError, o:
