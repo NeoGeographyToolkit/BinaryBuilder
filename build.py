@@ -20,7 +20,7 @@ from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
      ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
-     findfile, tweak_path, run, get_gcc_version, logger, warn
+     findfile, run, get_gcc_version, logger, warn
 from BinaryDist import is_binary, set_rpath
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
@@ -71,7 +71,6 @@ if __name__ == '__main__':
 
     parser.add_option('--base',       action='append',      dest='base',         default=[],              help='Provide a tarball to use as a base system')
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',       default=True,            help='Disable ccache')
-    parser.add_option('--coreutils',                        dest='coreutils',    default=None,            help='Bin directory holding GNU coreutils')
     parser.add_option('--libtoolize',                       dest='libtoolize',   default=None,            help='Value to set LIBTOOLIZE, use to override if system\'s default is bad.')
     parser.add_option('--dev-env',    action='store_true',  dest='dev',          default=False,           help='Build everything but VW and ASP')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
@@ -85,8 +84,6 @@ if __name__ == '__main__':
 
     global opt
     (opt, args) = parser.parse_args()
-
-    tweak_path(opt.coreutils)
 
     info('Using %d build processes' % opt.threads)
 
