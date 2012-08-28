@@ -70,7 +70,7 @@ class gdal(Package):
     def configure(self):
         w = ['threads', 'libtiff', 'geotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
         wo = \
-          '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
+            '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
              macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
              pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
@@ -125,18 +125,18 @@ class curl(Package):
 class laszip(CMakePackage):
     src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
-    
+
     @stage
     def configure(self):
         installDir = self.env['INSTALL_DIR']
         super(laszip, self).configure( other=[
-            '-DCMAKE_INSTALL_PREFIX=' + installDir
-            ] )
-        
+                '-DCMAKE_INSTALL_PREFIX=' + installDir
+                ] )
+
 class liblas(CMakePackage):
     src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
     chksum  = 'f31070efdf7bb7d6675c23c6c6c84584e3a10869'
-    
+
     @stage
     def configure(self):
         installDir = self.env['INSTALL_DIR']
@@ -147,14 +147,14 @@ class liblas(CMakePackage):
         self.env['LDFLAGS'] = self.env['LDFLAGS'] + ' -Wl,-rpath -Wl,' + installDir + '/lib'
 
         super(liblas, self).configure( other=[
-            '-DCMAKE_INSTALL_PREFIX=' + installDir,
-            '-DBoost_INCLUDE_DIR='    + installDir + '/include/boost-' + boost.version,
-            '-DBoost_LIBRARY_DIRS='   + installDir + '/lib',
-            '-DWITH_LASZIP=true',
-            '-DLASZIP_INCLUDE_DIR=' + installDir + '/include'
-            ] )
+                '-DCMAKE_INSTALL_PREFIX=' + installDir,
+                '-DBoost_INCLUDE_DIR='    + installDir + '/include/boost-' + boost.version,
+                '-DBoost_LIBRARY_DIRS='   + installDir + '/lib',
+                '-DWITH_LASZIP=true',
+                '-DLASZIP_INCLUDE_DIR=' + installDir + '/include'
+                ] )
         self.env['LDFLAGS'] = LDFLAGS_ORIG
-        
+
 # Due to legal reasons ... we are not going to download a modified
 # version of ISIS from some NASA Ames server. Instead, we will
 # download ISIS and then download the repo for editing ISIS. We apply
@@ -264,7 +264,7 @@ class stereopipeline(GITPackage):
                           flapack arbitrary_qt curl ufconfig amd colamd cholmod flann \
                           spice qwt gsl geos xercesc kakadu protobuf superlu tiff laszip liblas isis'.split()
 
-        w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs] 
+        w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs]
 
         includedir = P.join(self.env['INSTALL_DIR'], 'include')
 
@@ -309,11 +309,11 @@ class stereopipeline(GITPackage):
             with_   = w,
             without = ['clapack', 'slapack'],
             disable = ['pkg_paths_default', 'static', 'qt-qmake']
-                      + ['app-' + a for a in disable_apps.split()]
-                      + ['module-' + a for a in disable_modules.split()],
+            + ['app-' + a for a in disable_apps.split()]
+            + ['module-' + a for a in disable_modules.split()],
             enable  = ['debug=ignore', 'optimize=ignore']
-                      + ['app-' + a for a in enable_apps.split()]
-                      + ['module-' + a for a in enable_modules.split()])
+            + ['app-' + a for a in enable_apps.split()]
+            + ['module-' + a for a in enable_modules.split()])
 
 class visionworkbench(GITPackage):
     src     = 'http://github.com/visionworkbench/visionworkbench.git'
@@ -335,7 +335,7 @@ class visionworkbench(GITPackage):
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in install_pkgs:
                 print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
-                                                                    P.join(self.env['INSTALL_DIR'], 'include')), file=config)
+                                                       P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 if pkg == 'gdal' and self.arch.os == 'linux':
                     print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
                 else:
@@ -364,9 +364,9 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_50' # this is used in class liblas
+    version = '1_51' # this is used in class liblas
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = 'ee06f89ed472cf369573f8acf9819fbc7173344e'
+    chksum  = '52ef06895b97cc9981b8abf1997c375ca79f30c5'
 #    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
 #    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'
 #    src    = 'http://downloads.sourceforge.net/boost/boost_1_49_0.tar.bz2'
@@ -409,7 +409,7 @@ class boost(Package):
             '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
             'threading=multi', 'variant=release', 'link=shared', 'runtime-link=shared',
             '--without-mpi', '--without-python', '--without-wave', 'stage'
-        ]
+            ]
 
         cmd += self.args
         self.helper(*cmd)
@@ -588,20 +588,20 @@ class cspice(Package):
         linux64 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_64bit/packages/cspice.tar.Z',
             chksum = '29e3bdea10fd4005a4db8934b8d953c116a2cec7', # N0064
-        ),
+            ),
         linux32 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_32bit/packages/cspice.tar.Z',
             chksum = 'df8ad284db3efef912a0a3090acedd2c4561a25f', # N0064
-        ),
+            ),
         osx32   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/cspice.tar.Z',
             chksum = '3a1174d0b5ca183168115d8259901e923b97eec0', # N0064
-        ),
+            ),
         osx64   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit//C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
             chksum = 'e5546a72a2d0c7e337850a10d208014efb57d78d', # N0064
-        ),
-    )
+            ),
+        )
 
     def __init__(self, env):
         super(cspice, self).__init__(env)
@@ -773,9 +773,9 @@ class osg(CMakePackage):
 
     def configure(self):
         super(osg, self).configure(
-                with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
-                without='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
-                other=['-DBUILD_OSG_APPLICATIONS=ON'])
+            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
+            without='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
+            other=['-DBUILD_OSG_APPLICATIONS=ON'])
 
 class flann(CMakePackage):
     src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.7.1-src.zip'
