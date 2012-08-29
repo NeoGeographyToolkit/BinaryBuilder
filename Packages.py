@@ -62,8 +62,8 @@ class jama(Package):
         self.helper(*cmd)
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/gdal-1.9.0.tar.gz'
-    chksum  = 'e2eaaf0fba39137b40c0d3069ac41dfb6f3c76db'
+    src     = 'http://download.osgeo.org/gdal/gdal-1.9.1.tar.gz'
+    chksum  = 'c1eae556398ff7b9332afe9d3022dcd931130808'
     patches = 'patches/gdal'
 
     @stage
@@ -115,8 +115,8 @@ class proj(Package):
         super(proj,self).configure(disable='static', without='jni')
 
 class curl(Package):
-    src     = 'http://curl.haxx.se/download/curl-7.15.5.tar.gz'
-    chksum  = '32586c893e7d9246284af38d8d0f5082e83959af'
+    src     = 'http://curl.haxx.se/download/curl-7.27.0.tar.bz2'
+    chksum  = '51f563587720b71047b6e307412d49ce24ad7bfb'
 
     @stage
     def configure(self):
@@ -353,8 +353,8 @@ class visionworkbench(GITPackage):
                                                enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 
 class lapack(CMakePackage):
-    src     = 'http://www.netlib.org/lapack/lapack-3.4.0.tgz'
-    chksum  = '910109a931524f8dcc2734ce23fe927b00ca199f'
+    src     = 'http://www.netlib.org/lapack/lapack-3.4.1.tgz'
+    chksum  = 'c115223ac1bac9ab971aae865d3e95442bc979bc'
 
     def configure(self):
         LDFLAGS_ORIG = self.env['LDFLAGS']
@@ -370,10 +370,6 @@ class boost(Package):
     version = '1_51' # this is used in class liblas
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
     chksum  = '52ef06895b97cc9981b8abf1997c375ca79f30c5'
-#    src    = 'http://downloads.sourceforge.net/boost/boost_1_46_1.tar.bz2'
-#    chksum = '3ca6e173ec805e5126868d8a03618e587aa26aef'
-#    src    = 'http://downloads.sourceforge.net/boost/boost_1_49_0.tar.bz2'
-#    chksum = '26a52840e9d12f829e3008589abf0a925ce88524'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -441,14 +437,8 @@ class gsl(Package):
     chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
 
 class geos(Package):
-    def __init__(self,env):
-        super(geos,self).__init__(env)
-        if self.arch.os == "osx":
-            self.src = 'http://download.osgeo.org/geos/geos-3.3.1.tar.bz2'
-            self.chksum = '4f89e62c636dbf3e5d7e1bfcd6d9a7bff1bcfa60'
-        else:
-            self.src = 'http://download.osgeo.org/geos/geos-3.3.2.tar.bz2'
-            self.chksum = '942b0bbc61a059bd5269fddd4c0b44a508670cb3'
+    src = 'http://download.osgeo.org/geos/geos-3.3.5.tar.bz2'
+    chksum = '791e2b36a9a6114c7f213fae3fc995960c35a428'
 
     def configure(self):
         super(geos, self).configure(disable=('python', 'ruby'))
@@ -474,8 +464,8 @@ class superlu(Package):
         super(superlu,self).configure(with_=('blas=%s') % blas)
 
 class gmm(Package):
-    src     = ['http://download.gna.org/getfem/stable/gmm-4.1.tar.gz']
-    chksum  = ['eea7f8e77f7e468cf93d044a992fcad3ce3f180f']
+    src     = 'http://download.gna.org/getfem/stable/gmm-4.2.tar.gz'
+    chksum  = '3555d5a5abdd525fe6b86db33428604d74f6747c'
     patches = 'patches/gmm'
 
     @stage
@@ -548,8 +538,8 @@ class qwt(Package):
         self.helper(*cmd)
 
 class zlib(Package):
-    src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.6.tar.gz'
-    chksum  = '38690375d8d42398ce33b2df726e25cacf096496'
+    src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.7.tar.gz'
+    chksum  = '4aa358a95d1e5774603e6fa149c926a80df43559'
 
     def unpack(self):
         super(zlib, self).unpack()
@@ -571,16 +561,16 @@ class tiff(Package):
             disable = ['static', 'lzma', 'cxx', 'logluv'])
 
 class jpeg(Package):
-    src     = 'http://www.ijg.org/files/jpegsrc.v8a.tar.gz'
-    chksum  = '78077fb22f0b526a506c21199fbca941d5c671a9'
+    src     = 'http://www.ijg.org/files/jpegsrc.v8d.tar.gz'
+    chksum  = 'f080b2fffc7581f7d19b968092ba9ebc234556ff'
     patches = 'patches/jpeg8'
 
     def configure(self):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.4.11.tar.bz2'
-    chksum = '85525715cdaa8c542316436659cada13561663c4'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.5.12.tar.bz2'
+    chksum = 'e45110a5e6787819be50f31092f1a1d43b717de0'
 
     def configure(self):
         super(png,self).configure(disable='static')
