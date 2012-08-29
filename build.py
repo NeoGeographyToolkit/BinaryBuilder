@@ -103,6 +103,7 @@ if __name__ == '__main__':
     e = Environment(
                     CC       = 'gcc',
                     CXX      = 'g++',
+                    CPP      = 'cpp',
                     F77      = 'gfortran',
                     CFLAGS   = '-O3 -g',
                     CXXFLAGS = '-O3 -g',
@@ -123,9 +124,18 @@ if __name__ == '__main__':
     elif arch.os == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
 
-        # Force 64bit builds for 10.6. Someday we'll need to jam things into 10.7
+        # Force 64bit builds. Use 10.6 SDK for 10.6 and 10.7 for
+        # everything else. Not really sure if this works for 10.8.
         osx_arch = 'x86_64' #SEMICOLON-DELIMITED
         target = '10.6'
+
+        if version.StrictVersion(arch.dist_version) >= "10.7":
+            print("Forcing use of non-LLVM compiler for Darwin 10.7+ systems\n")
+            e['CC'] = "gcc-4.2"
+            e['CXX'] = "g++-4.2"
+            e['CPP'] = "cpp-4.2"
+            target = '10.7'
+
         # And also using the matching sdk for good measure
         sysroot = '/Developer/SDKs/MacOSX%s.sdk' % target
 
