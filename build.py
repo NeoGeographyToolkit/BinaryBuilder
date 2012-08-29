@@ -103,7 +103,6 @@ if __name__ == '__main__':
     e = Environment(
                     CC       = 'gcc',
                     CXX      = 'g++',
-                    CPP      = 'cpp',
                     F77      = 'gfortran',
                     CFLAGS   = '-O3 -g',
                     CXXFLAGS = '-O3 -g',
