@@ -141,6 +141,9 @@ class liblas(CMakePackage):
     def configure(self):
         installDir = self.env['INSTALL_DIR']
 
+        # Remove the pedantic flag. Latest boost is not compliant.
+        self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
+
         # Temporarily append the path to libs to LDFLAGS so that we
         # can link properly.
         LDFLAGS_ORIG = self.env['LDFLAGS']
