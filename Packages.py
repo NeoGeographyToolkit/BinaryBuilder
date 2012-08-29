@@ -760,8 +760,8 @@ class cholmod(Package):
                         P.join(d,'CHOLMOD',P.basename(header)) )
 
 class osg(CMakePackage):
-    src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.3/source/OpenSceneGraph-2.8.3.zip'
-    chksum = '90502e4cbd47aac1689cc39d25ab62bbe0bba9fc'
+    src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-2.8.5/source/OpenSceneGraph-2.8.5.zip'
+    chksum = '7325504070a262aa6eb952bc36d98843a4ed4cf7'
     patches = 'patches/osg'
 
     def configure(self):
