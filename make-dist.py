@@ -4,12 +4,10 @@ from __future__ import print_function
 
 from BinaryDist import grep, DistManager, Prefix, run
 
-import time
+import time, logging, copy, sys
 import os.path as P
-import logging
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die
-import sys
 from glob import glob
 
 # These are the SONAMES for libs we're allowed to get from the base system
@@ -17,14 +15,18 @@ from glob import glob
 LIB_SYSTEM_LIST = '''
     AGL.framework/Versions/A/AGL
     Accelerate.framework/Versions/A/Accelerate
+    AppKit.framework/Versions/C/AppKit
     ApplicationServices.framework/Versions/A/ApplicationServices
     Carbon.framework/Versions/A/Carbon
     Cocoa.framework/Versions/A/Cocoa
     CoreFoundation.framework/Versions/A/CoreFoundation
     CoreServices.framework/Versions/A/CoreServices
+    Foundation.framework/Versions/C/Foundation
     GLUT.framework/Versions/A/GLUT
     OpenGL.framework/Versions/A/OpenGL
     QuickTime.framework/Versions/A/QuickTime
+    Security.framework/Versions/A/Security
+    SystemConfiguration.framework/Versions/A/SystemConfiguration
     vecLib.framework/Versions/A/vecLib
 
     libobjc.A.dylib
@@ -40,10 +42,16 @@ LIB_SYSTEM_LIST = '''
     libXi.so.6
     libXmu.so.6
     libXrandr.so.2
+    libXrender.so.1
     libXt.so.6
     libc.so.6
     libdl.so.2
+    libfontconfig.so.1
+    libfreetype.so.6
+    libglib-2.0.so.0
     libglut.so.3
+    libgobject-2.0.so.0
+    libgthread-2.0.so.0
     libm.so.6
     libpthread.so.0
     librt.so.1
@@ -152,8 +160,16 @@ if __name__ == '__main__':
 
         print('Adding libraries')
 
+        print('\tSecondary pass to get dependencies of libraries')
+        deplist_copy = copy.deepcopy(mgr.deplist)
+        for lib in deplist_copy:
+            if ( P.exists( P.join(INSTALLDIR, 'lib', lib) ) ):
+                mgr.add_library( P.join(INSTALLDIR, 'lib', lib) );
+
         print('\tAdding forced-ship libraries')
-        print('Dependencies %s' % mgr.deplist.keys())
+        dependencies = copy.deepcopy( mgr.deplist.keys() );
+        dependencies.sort()
+        print("Dependencies %s" % dependencies )
         # Handle the shiplist separately
         for copy_lib in LIB_SHIP_PREFIX:
             found = None
