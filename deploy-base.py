@@ -146,11 +146,11 @@ if __name__ == '__main__':
 
         print('BASE=%s' % installdir, file=config)
 
-        disable_apps = 'aligndem bundleadjust demprofile geodiff point2las isisadjustcameraerr \
+        disable_apps = 'aligndem bundleadjust demprofile geodiff isisadjustcameraerr \
                         isisadjustcnetclip plateorthoproject reconstruct results \
                         rmax2cahvor rmaxadjust stereogui'.split()
         enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz \
-                        orthoproject point2dem point2mesh stereo mer2camera'.split()
+                        orthoproject point2dem point2las point2mesh stereo mer2camera'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
                           ufconfig amd colamd cholmod flann spice qwt gsl \
                           geos xercesc protobuf superlu tiff              \

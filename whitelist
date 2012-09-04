@@ -13,6 +13,7 @@ bin/orbitviz
 bin/orthoproject
 bin/osgviewer
 bin/point2dem
+bin/point2las
 bin/point2mesh
 bin/rpc_mapproject
 bin/stereo
