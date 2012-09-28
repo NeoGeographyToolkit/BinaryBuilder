@@ -200,7 +200,7 @@ if __name__ == '__main__':
         # Verify that the user has some common executables that we
         # use. We don't apply this all the time for the sake of our
         # CI.
-        common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gcc", "csh", "git"]
+        common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gcc", "csh", "git", "svn"]
         if arch.os == 'linux':
             common_exec.extend( ["libtool", "chrpath", "gfortran"] )
         else:
