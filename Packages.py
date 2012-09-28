@@ -6,7 +6,7 @@ import os.path as P
 import re, sys
 from glob import glob
 import subprocess
-from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError
+from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError, SVNPackage
 
 def strip_flag(flag, key, env):
     ret = []
@@ -61,6 +61,13 @@ class jama(Package):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, '*.h')) + [d]
         self.helper(*cmd)
 
+class openjpeg2(CMakePackage, SVNPackage):
+    src     = 'http://openjpeg.googlecode.com/svn/branches/v2/'
+
+    @stage
+    def configure(self):
+        super(openjpeg2, self).configure(other=['-DBUILD_SHARED_LIBS=ON'])
+
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/gdal-1.9.1.tar.gz'
     chksum  = 'c1eae556398ff7b9332afe9d3022dcd931130808'
@@ -68,7 +75,7 @@ class gdal(Package):
 
     @stage
     def configure(self):
-        w = ['threads', 'libtiff', 'geotiff=internal', 'jpeg', 'png', 'zlib', 'pam']
+        w = ['threads', 'libtiff', 'geotiff=internal', 'jpeg', 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
         wo = \
             '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
