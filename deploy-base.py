@@ -112,7 +112,7 @@ if __name__ == '__main__':
             print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join('$BASE','noinstall','include'),
                                                    P.join('$BASE','include')), file=config)
             if pkg == 'gdal' and arch.os == 'linux':
-                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz"' % (pkg.upper(),P.join('$BASE','lib')), file=config)
+                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjpeg"' % (pkg.upper(),P.join('$BASE','lib')), file=config)
             else:
                 print('PKG_%s_LDFLAGS="-L%s"' % (pkg.upper(),P.join('$BASE','lib')), file=config)
             if pkg == 'protobuf':
