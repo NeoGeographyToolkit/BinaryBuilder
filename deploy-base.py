@@ -154,7 +154,7 @@ if __name__ == '__main__':
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
                           ufconfig amd colamd cholmod flann spice qwt gsl \
                           geos xercesc protobuf superlu tiff              \
-                          laszip liblas isis superlu'.split()
+                          laszip liblas isis superlu gdal'.split()
         off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu gsl_hasblas apple_qwt'.split()
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point'.split()
@@ -171,7 +171,10 @@ if __name__ == '__main__':
             ldflags.append('-L%s' % (P.join('$BASE','lib')))
             if arch.os == 'osx':
                 ldflags.append('-F%s' % (P.join('$BASE','lib')))
-            print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
+            if pkg == 'gdal' and arch.os == 'linux':
+                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjpeg"' % (pkg.upper(),P.join('$BASE','lib')), file=config)
+            else:
+                print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
             print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(),
                                               P.join('$BASE','include')), file=config)
             if pkg == 'protobuf':
