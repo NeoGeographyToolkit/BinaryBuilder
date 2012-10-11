@@ -297,14 +297,11 @@ class stereopipeline(GITPackage):
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 
             qt_cppflags=['-I%s' % includedir]
-            qt_libs=[]
+            qt_libs=['-L%s' % P.join(self.env['INSTALL_DIR'], 'lib')]
 
             for module in qt_pkgs.split():
                 qt_cppflags.append('-I%s/%s' % (includedir, module))
-                if self.arch.os == 'osx':
-                    qt_libs.append('%s/lib/lib%s.4.dylib' % (self.env['INSTALL_DIR'],module))
-                else:
-                    qt_libs.append('%s/lib/lib%s.so.4' % (self.env['INSTALL_DIR'],module))
+                qt_libs.append('-l%s' % module)
 
             print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
             print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)

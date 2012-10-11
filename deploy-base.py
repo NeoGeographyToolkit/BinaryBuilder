@@ -193,15 +193,11 @@ if __name__ == '__main__':
 
         includedir = P.join('$BASE','include')
         qt_cppflags=['-I%s' % includedir]
-        qt_libs=[]
+        qt_libs=['-L%s' % P.join('$BASE','lib')]
 
         for module in qt_pkgs.split():
             qt_cppflags.append('-I%s/%s' % (includedir, module))
-            if arch.os == 'osx':
-                qt_libs.append('$BASE/lib/lib%s.4.dylib' % module)
-            else:
-                qt_libs.append('$BASE/lib/lib%s.so.4' % module)
-
+            qt_libs.append('-l%s' % module)
 
         print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
         print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
