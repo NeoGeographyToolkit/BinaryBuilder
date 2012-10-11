@@ -155,7 +155,7 @@ if __name__ == '__main__':
                           ufconfig amd colamd cholmod flann spice qwt gsl \
                           geos xercesc protobuf superlu tiff              \
                           laszip liblas isis superlu'.split()
-        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu apple_qwt'.split()
+        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu gsl_hasblas apple_qwt'.split()
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point'.split()
 

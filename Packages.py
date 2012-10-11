@@ -249,6 +249,7 @@ class isis(Package):
             print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')), file=config)
             print('HAVE_PKG_APPLE_QWT=no', file=config)
             print('HAVE_PKG_KAKADU=no', file=config)
+            print('HAVE_PKG_GSL_HASBLAS=no', file=config)
 
         super(isis, self).configure(
             with_ = w,
@@ -310,6 +311,7 @@ class stereopipeline(GITPackage):
             print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')),file=config)
             print('HAVE_PKG_APPLE_QWT=no', file=config)
             print('HAVE_PKG_KAKADU=no', file=config)
+            print('HAVE_PKG_GSL_HASBLAS=no', file=config)
 
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],
