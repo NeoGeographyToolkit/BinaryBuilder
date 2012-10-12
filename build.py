@@ -196,10 +196,10 @@ if __name__ == '__main__':
     if opt.libtoolize is not None:
         e['LIBTOOLIZE'] = opt.libtoolize
 
+    build = []
+
     if len(args) == 0:
-        # Verify that the user has some common executables that we
-        # use. We don't apply this all the time for the sake of our
-        # CI.
+        # Verify we have the executables we need
         common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gcc", "csh", "git", "svn"]
         if arch.os == 'linux':
             common_exec.extend( ["libtool", "chrpath", "gfortran"] )
@@ -208,19 +208,30 @@ if __name__ == '__main__':
         for program in common_exec:
             verify( program )
 
-        build = []
         if arch.os == 'linux':
             build.append(lapack)
         build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
                       superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg, flann,
                       qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis])
-
-        print("build type: %s" % type(build) )
-
         if not opt.dev:
             build.extend([visionworkbench, stereopipeline])
     else:
-        build = [globals()[pkg] for pkg in args]
+        if opt.dev:
+            if arch.os == 'linux':
+                build.append(lapack)
+            build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
+                          superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg, flann,
+                          qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis])
+
+    # Now handle the arguments the user supplied to us! This might be
+    # additional packages or minus packages.
+    if len(args) != 0:
+        # Seperate the packages out that have a minus
+        remove_build = [globals()[pkg[1:]] for pkg in args if pkg.startswith('_')]
+        # Add the stuff without a minus in front of them
+        build.extend( [globals()[pkg] for pkg in args if not pkg.startswith('_')] )
+        for pkg in remove_build:
+            build.remove( pkg )
 
     if opt.pretend:
         info('I want to build:\n%s' % ' '.join(map(lambda x: x.__name__, build)))
