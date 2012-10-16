@@ -629,8 +629,10 @@ class cspice(Package):
 
         d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
         self.helper('mkdir', '-p', d)
+        # Wipe the static libraries
         cmd = ['rm' ] + glob(P.join(self.workdir,'lib', '*.a'))
         self.helper(*cmd)
+        # Copy everything else, including the dynamic libraries
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
         self.helper(*cmd)
 
