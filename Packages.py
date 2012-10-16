@@ -629,6 +629,8 @@ class cspice(Package):
 
         d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
         self.helper('mkdir', '-p', d)
+        cmd = ['rm' ] + glob(P.join(self.workdir,'lib', '*.a'))
+        self.helper(*cmd)
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
         self.helper(*cmd)
 
