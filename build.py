@@ -17,7 +17,8 @@ from glob import glob
 from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
      zlib, tiff, png, jpeg, proj, gdal, ilmbase, openexr,   \
      boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
-     ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis, openjpeg2
+     ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, geographiclib, geoid,\
+     isis, openjpeg2
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
      findfile, run, get_gcc_version, logger, warn
@@ -212,7 +213,8 @@ if __name__ == '__main__':
             build.append(lapack)
         build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
                       superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg, flann,
-                      qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis])
+                      qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
+                      geographiclib, geoid, isis])
         if not opt.dev:
             build.extend([visionworkbench, stereopipeline])
     else:
@@ -221,7 +223,8 @@ if __name__ == '__main__':
                 build.append(lapack)
             build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
                           superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg, flann,
-                          qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, isis])
+                          qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
+                          geographiclib, geoid, isis])
 
     # Now handle the arguments the user supplied to us! This might be
     # additional packages or minus packages.

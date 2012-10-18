@@ -165,6 +165,38 @@ class liblas(CMakePackage):
                 ] )
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
+class geographiclib(CMakePackage):
+    
+    src     = 'http://downloads.sourceforge.net/project/geographiclib/distrib/GeographicLib-1.25.tar.gz?r=http%3A%2F%2Fgeographiclib.sourceforge.net%2Fhtml%2Finstall.html&ts=1350517763'
+    chksum  = '74c500adb3cddf97572e0ee4a138c0e46cf3745f'
+    
+    @stage
+    def configure(self):
+        installDir = self.env['INSTALL_DIR']
+        super(geographiclib, self).configure( other=[
+                '-DCMAKE_INSTALL_PREFIX=' + installDir
+                ] )
+
+class geoid(CMakePackage):
+    # This is a dataset being used by geographiclib.
+    src     = 'https://downloads.sourceforge.net/project/geographiclib/geoids-distrib/egm96-5.tar.bz2?r=http%3A%2F%2Fgeographiclib.sourceforge.net%2F1.18%2Fgeoid.html&ts=1350519542'
+    chksum  = 'a693c72ba9a927a4f65cea2a7db28fc8703253a8'
+    
+    @stage
+    def configure(self): pass
+    
+    @stage
+    def compile(self): pass
+
+    @stage
+    def install(self):
+        # Copy the dataset
+        d = P.join('%(INSTALL_DIR)s' % self.env, 'share')
+        print('Dir is ' + d)
+        cmd = ['cp', '-rvf'] + [self.workdir] + [d]
+        print(cmd)
+        self.helper(*cmd)
+
 # Due to legal reasons ... we are not going to download a modified
 # version of ISIS from some NASA Ames server. Instead, we will
 # download ISIS and then download the repo for editing ISIS. We apply
