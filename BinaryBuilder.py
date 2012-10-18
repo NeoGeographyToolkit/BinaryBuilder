@@ -258,7 +258,7 @@ class Package(object):
             if curr_chksum != chksum:
                 os.remove(self.tarball)
                 raise PackageError(self, 'Checksum on file[%s] failed. Expected %s but got %s. Removed!'
-                                   % (self.tarball, curr_chksum, chksum) )
+                                   % (self.tarball, chksum, curr_chksum) )
 
     @stage
     def unpack(self):
