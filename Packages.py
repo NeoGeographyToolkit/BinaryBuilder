@@ -192,9 +192,7 @@ class geoid(CMakePackage):
     def install(self):
         # Copy the dataset
         d = P.join('%(INSTALL_DIR)s' % self.env, 'share')
-        print('Dir is ' + d)
         cmd = ['cp', '-rvf'] + [self.workdir] + [d]
-        print(cmd)
         self.helper(*cmd)
 
 # Due to legal reasons ... we are not going to download a modified
