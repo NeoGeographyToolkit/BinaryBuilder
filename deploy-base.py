@@ -150,7 +150,7 @@ if __name__ == '__main__':
                         isisadjustcnetclip plateorthoproject reconstruct results \
                         rmax2cahvor rmaxadjust stereogui'.split()
         enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz \
-                        orthoproject point2dem point2las point2mesh stereo mer2camera'.split()
+                        orthoproject point2dem point2las dem_adjust point2mesh stereo mer2camera'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
                           ufconfig amd colamd cholmod flann spice qwt gsl \
                           geos xercesc protobuf superlu tiff              \
