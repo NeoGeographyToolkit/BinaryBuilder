@@ -19,7 +19,10 @@ logger = logging.getLogger()
 if __name__ == '__main__':
     parser = OptionParser(usage='%s tarball installdir' % sys.argv[0])
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
-
+    parser.add_option("--skip-extracting-tarball",
+                      action="store_true", dest="skip_extraction", default=False,
+                      help="Skip the time-consuming tarball extraction (for debugging purposes)")
+    
     global opt
     (opt, args) = parser.parse_args()
 
@@ -45,9 +48,10 @@ if __name__ == '__main__':
     if arch.os == 'osx':
         library_ext = "dylib"
 
-    print('Extracting tarball')
-    run('tar', 'xf', tarball, '-C', installdir, '--strip-components', '1')
-
+    if not opt.skip_extraction:
+        print('Extracting tarball')
+        run('tar', 'xf', tarball, '-C', installdir, '--strip-components', '1')
+        
     SEARCHPATH = [P.join(installdir,'lib')]
 
     print('Fixing RPATHs')
@@ -154,7 +158,7 @@ if __name__ == '__main__':
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
                           ufconfig amd colamd cholmod flann spice qwt gsl \
                           geos xercesc protobuf superlu tiff              \
-                          laszip liblas geographiclib geoid isis superlu gdal'.split()
+                          laszip liblas geoid isis superlu gdal'.split()
         off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu gsl_hasblas apple_qwt'.split()
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
                           vw_stereo vw_cartography vw_interest_point'.split()
@@ -206,6 +210,8 @@ if __name__ == '__main__':
         if arch.os == 'linux':
             print('PKG_SUPERLU_PLAIN_LIBS=%s' % glob(P.join(installdir, 'lib', 'libsuperlu*.so'))[0], file=config)
 
-
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('MOC=$BASE/bin/moc',file=config)
+        
+        print('PKG_GEOID_CPPFLAGS="-I$BASE/include -DDEM_ADJUST_GEOID_PATH=$BASE/share/geoids"', file=config)
+        
