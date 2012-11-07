@@ -8,18 +8,18 @@ diff -crB ./tools/assistant/tools/assistant/assistant.pro ../qt-everywhere-opens
   CONFIG += qt \
       warn_on \
 !     help
-  QT += network
-  PROJECTNAME = Assistant
-  DESTDIR = ../../../../bin
+  build_all:!build_pass {
+      CONFIG -= build_all
+      CONFIG += release
 --- 5,12 ----
   contains(QT_CONFIG, webkit):QT += webkit
   CONFIG += qt \
       warn_on \
 !     help clucene
 ! LIBS += -lQtCLucene
-  QT += network
-  PROJECTNAME = Assistant
-  DESTDIR = ../../../../bin
+  build_all:!build_pass {
+      CONFIG -= build_all
+      CONFIG += release
 diff -crB ./tools/assistant/tools/qcollectiongenerator/qcollectiongenerator.pro ../qt-everywhere-opensource-src-4.8.2_mod/tools/assistant/tools/qcollectiongenerator/qcollectiongenerator.pro
 *** ./tools/assistant/tools/qcollectiongenerator/qcollectiongenerator.pro	2012-04-26 12:45:51.000000000 -0700
 --- ../qt-everywhere-opensource-src-4.8.2_mod/tools/assistant/tools/qcollectiongenerator/qcollectiongenerator.pro	2012-06-20 16:59:52.735337453 -0700
@@ -44,9 +44,9 @@ diff -crB ./tools/assistant/tools/qhelpconverter/qhelpconverter.pro ../qt-everyw
   DESTDIR = ../../../../bin
   CONFIG += qt warn_on help
 + LIBS += -lQtCLucene
-  
-  target.path=$$[QT_INSTALL_BINS]
-  INSTALLS += target
+  build_all:!build_pass {
+      CONFIG -= build_all
+      CONFIG += release
 Only in ../qt-everywhere-opensource-src-4.8.2_mod/tools/assistant/tools/qhelpconverter: qhelpconverter.pro~
 diff -crB ./tools/assistant/tools/qhelpgenerator/qhelpgenerator.pro ../qt-everywhere-opensource-src-4.8.2_mod/tools/assistant/tools/qhelpgenerator/qhelpgenerator.pro
 *** ./tools/assistant/tools/qhelpgenerator/qhelpgenerator.pro	2012-04-26 12:45:51.000000000 -0700
@@ -59,8 +59,8 @@ diff -crB ./tools/assistant/tools/qhelpgenerator/qhelpgenerator.pro ../qt-everyw
   QT += network
 + LIBS += -lQtCLucene
   
-  target.path=$$[QT_INSTALL_BINS]
-  INSTALLS += target
+  build_all:!build_pass {
+      CONFIG -= build_all
 Only in ../qt-everywhere-opensource-src-4.8.2_mod/tools/assistant/tools/qhelpgenerator: qhelpgenerator.pro~
 diff -crB ./tools/tools.pro ../qt-everywhere-opensource-src-4.8.2_mod/tools/tools.pro
 *** ./tools/tools.pro	2012-04-26 12:45:51.000000000 -0700
