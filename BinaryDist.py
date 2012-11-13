@@ -482,6 +482,9 @@ def snap_symlinks(src):
         return [src]
     return [src] + snap_symlinks(P.join(P.dirname(src), readlink(src)))
 
+def binary_builder_prefix():
+    return 'BinaryBuilder'
+
 if __name__ == '__main__':
     import doctest
     doctest.testmod()

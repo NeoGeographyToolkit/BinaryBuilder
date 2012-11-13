@@ -22,7 +22,7 @@ from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
      findfile, run, get_gcc_version, logger, warn
-from BinaryDist import is_binary, set_rpath
+from BinaryDist import is_binary, set_rpath, binary_builder_prefix
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
@@ -95,7 +95,7 @@ if __name__ == '__main__':
         opt.build_root = grablink('last-run')
 
     if opt.build_root is None or not P.exists(opt.build_root):
-        opt.build_root = mkdtemp(prefix='BinaryBuilder')
+        opt.build_root = mkdtemp(prefix=binary_builder_prefix())
 
     # Things misbehave if the buildroot is symlinks in it
     opt.build_root = P.realpath(opt.build_root)

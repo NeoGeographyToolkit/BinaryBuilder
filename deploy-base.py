@@ -4,12 +4,14 @@ from __future__ import print_function
 
 import time
 import os.path as P
-from os import makedirs
+import os
+import re
+import stat
 import logging
 import string
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die, run
-from BinaryDist import is_binary, set_rpath
+from BinaryDist import is_binary, set_rpath, binary_builder_prefix
 import sys
 from glob import glob
 
@@ -38,7 +40,7 @@ if __name__ == '__main__':
     if not P.exists(tarball):
         usage('Invalid tarball %s (does not exist)' % tarball)
     if not (P.exists(installdir)):
-        makedirs(installdir)
+        os.makedirs(installdir)
     if not (P.isdir(installdir)):
         usage('Invalid installdir %s (not a directory)' % installdir)
     logging.basicConfig(level=opt.loglevel)
@@ -75,17 +77,31 @@ if __name__ == '__main__':
         except:
             print('  Failed %s' % P.basename(binary))
 
-    print('Fixing Paths in libtool control files')
-    for control in glob(P.join(installdir,'lib','*.la')):
-        lines = []
+    print('Fixing paths in libtool control files, etc.')
+    control_files = glob(P.join(installdir,'include','*config.h')) + \
+                    glob(P.join(installdir,'lib','*.la'))          + \
+                    glob(P.join(installdir,'lib','*.prl'))         + \
+                    glob(P.join(installdir,'lib','*', '*.pc'))     + \
+                    glob(P.join(installdir,'bin','*-config'))      + \
+                    glob(P.join(installdir,'mkspecs','*.pri'))
+
+    for control in control_files:
+
         print('  %s' % P.basename(control))
+        
+        # ensure we can read and write (some files have odd permissions)
+        st = os.stat(control)
+        os.chmod(control, st.st_mode | stat.S_IREAD | stat.S_IWRITE)
+
+        # replace with the new install dir
+        lines = []
         with open(control,'r') as f:
             lines = f.readlines()
-        old_libdir = P.normpath(P.join(lines[-1][lines[-1].find("'")+1:lines[-1].rfind("'")],'..'))
         with open(control,'w') as f:
             for line in lines:
-                f.write( string.replace(line,old_libdir,installdir) )
-
+                line = re.sub('/tmp/' + binary_builder_prefix() + '\w+/install', installdir, line)
+                f.write( line )
+                
     print('Writing config.options.vw')
     with file(P.join(installdir,'config.options.vw'), 'w') as config:
         print('ENABLE_DEBUG=yes',file=config)
