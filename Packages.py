@@ -122,8 +122,8 @@ class proj(Package):
         super(proj,self).configure(disable='static', without='jni')
 
 class curl(Package):
-    src     = 'http://curl.haxx.se/download/curl-7.27.0.tar.bz2'
-    chksum  = '51f563587720b71047b6e307412d49ce24ad7bfb'
+    src     = 'http://curl.haxx.se/download/curl-7.28.0.tar.bz2'
+    chksum  = 'dbb69e510438495aa22dfc438d69477c4b2a49b6'
 
     @stage
     def configure(self):
@@ -377,8 +377,8 @@ class visionworkbench(GITPackage):
                                                enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 
 class lapack(CMakePackage):
-    src     = 'http://www.netlib.org/lapack/lapack-3.4.1.tgz'
-    chksum  = 'c115223ac1bac9ab971aae865d3e95442bc979bc'
+    src     = 'http://www.netlib.org/lapack/lapack-3.4.2.tgz'
+    chksum  = '93a6e4e6639aaf00571d53a580ddc415416e868b'
 
     def configure(self):
         LDFLAGS_ORIG = self.env['LDFLAGS']
@@ -461,8 +461,8 @@ class gsl(Package):
     chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
 
 class geos(Package):
-    src = 'http://download.osgeo.org/geos/geos-3.3.5.tar.bz2'
-    chksum = '791e2b36a9a6114c7f213fae3fc995960c35a428'
+    src = 'http://download.osgeo.org/geos/geos-3.3.6.tar.bz2'
+    chksum = '454c9b61f158de509db60a69512414a0a1b0743b'
 
     def configure(self):
         super(geos, self).configure(disable=('python', 'ruby'))
@@ -574,8 +574,8 @@ class zlib(Package):
         super(zlib,self).configure(other=('--shared',))
 
 class tiff(Package):
-    src     = 'http://download.osgeo.org/libtiff/tiff-4.0.1.tar.gz'
-    chksum  = '8baf382231c9051a1b3eb294581289aa21447171'
+    src     = 'http://download.osgeo.org/libtiff/tiff-4.0.3.tar.gz'
+    chksum  = '652e97b78f1444237a82cbcfe014310e776eb6f0'
 
     def configure(self):
         super(tiff, self).configure(
@@ -593,8 +593,8 @@ class jpeg(Package):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.5.12.tar.bz2'
-    chksum = 'e45110a5e6787819be50f31092f1a1d43b717de0'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.5.13.tar.bz2'
+    chksum = 'dfca34fa8281299a13cad87099f613ba639626e1'
 
     def configure(self):
         super(png,self).configure(disable='static')
