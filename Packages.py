@@ -391,9 +391,9 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_51' # this is used in class liblas
+    version = '1_52' # this is used in class liblas
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = '52ef06895b97cc9981b8abf1997c375ca79f30c5'
+    chksum  = 'cddd6b4526a09152ddc5db856463eaa1dc29c5d9'
     patches = 'patches/boost'
 
     def __init__(self, env):
