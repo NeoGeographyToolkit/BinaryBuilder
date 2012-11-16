@@ -140,13 +140,13 @@ class DistManager(object):
     def make_tarball(self, include = (), exclude = (), name = None):
         ''' exclude takes priority over include '''
 
-        if name is None: name = '%s.tar.gz' % self.tarname
+        if name is None: name = '%s.tar.bz2' % self.tarname
         if isinstance(include, basestring):
             include = [include]
         if isinstance(exclude, basestring):
             exclude = [exclude]
 
-        cmd = ['tar', 'czf', name, '-C', P.dirname(self.distdir)]
+        cmd = ['tar', 'cjf', name, '-C', P.dirname(self.distdir)]
         if include:
             cmd += ['--no-recursion']
         for i in include:

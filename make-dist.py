@@ -203,7 +203,7 @@ if __name__ == '__main__':
 
         mgr.make_tarball(exclude = [debuglist.name])
         if P.getsize(debuglist.name) > 0:
-            mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.gz' % mgr.tarname)
+            mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.bz2' % mgr.tarname)
     finally:
         if not opt.keeptemp:
             mgr.remove_tempdir()
