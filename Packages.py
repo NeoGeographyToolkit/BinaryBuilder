@@ -62,7 +62,7 @@ class jama(Package):
         self.helper(*cmd)
 
 class openjpeg2(CMakePackage, SVNPackage):
-    src     = 'http://openjpeg.googlecode.com/svn/branches/v2/'
+    src     = 'http://openjpeg.googlecode.com/svn/branches/v2/@2223'
 
     @stage
     def configure(self):
