@@ -69,8 +69,8 @@ class openjpeg2(CMakePackage, SVNPackage):
         super(openjpeg2, self).configure(other=['-DBUILD_SHARED_LIBS=ON'])
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/gdal-1.9.1.tar.gz'
-    chksum  = 'c1eae556398ff7b9332afe9d3022dcd931130808'
+    src     = 'http://download.osgeo.org/gdal/gdal-1.9.2.tar.gz'
+    chksum  = '7eda6a4d735b8d6903740e0acdd702b43515e351'
     patches = 'patches/gdal'
 
     @stage
