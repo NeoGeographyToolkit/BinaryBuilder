@@ -24,7 +24,7 @@ if __name__ == '__main__':
     parser.add_option("--skip-extracting-tarball",
                       action="store_true", dest="skip_extraction", default=False,
                       help="Skip the time-consuming tarball extraction (for debugging purposes)")
-    
+
     global opt
     (opt, args) = parser.parse_args()
 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
     if not opt.skip_extraction:
         print('Extracting tarball')
         run('tar', 'xf', tarball, '-C', installdir, '--strip-components', '1')
-        
+
     SEARCHPATH = [P.join(installdir,'lib')]
 
     print('Fixing RPATHs')
@@ -88,20 +88,21 @@ if __name__ == '__main__':
     for control in control_files:
 
         print('  %s' % P.basename(control))
-        
+
         # ensure we can read and write (some files have odd permissions)
         st = os.stat(control)
         os.chmod(control, st.st_mode | stat.S_IREAD | stat.S_IWRITE)
 
-        # replace with the new install dir
-        lines = []
-        with open(control,'r') as f:
-            lines = f.readlines()
-        with open(control,'w') as f:
-            for line in lines:
-                line = re.sub('/tmp/' + binary_builder_prefix() + '\w+/install', installdir, line)
-                f.write( line )
-                
+        # replace with the new install dir inside libtool files only
+        if control.endswith(".la"):
+            lines = []
+            with open(control,'r') as f:
+                lines = f.readlines()
+            old_libdir = P.normpath(P.join(lines[-1][lines[-1].find("'")+1:lines[-1].rfind("'")],'..'))
+            with open(control,'w') as f:
+                for line in lines:
+                    f.write( string.replace(line,old_libdir,installdir) )
+
     print('Writing config.options.vw')
     with file(P.join(installdir,'config.options.vw'), 'w') as config:
         print('ENABLE_DEBUG=yes',file=config)
@@ -228,6 +229,4 @@ if __name__ == '__main__':
 
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('MOC=$BASE/bin/moc',file=config)
-        
         print('PKG_GEOID_CPPFLAGS="-I$BASE/include -DDEM_ADJUST_GEOID_PATH=$BASE/share/geoids"', file=config)
-        
