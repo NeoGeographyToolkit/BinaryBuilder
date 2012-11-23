@@ -93,16 +93,15 @@ if __name__ == '__main__':
         st = os.stat(control)
         os.chmod(control, st.st_mode | stat.S_IREAD | stat.S_IWRITE)
 
-        # replace with the new install dir inside libtool files only
-        if control.endswith(".la"):
-            lines = []
-            with open(control,'r') as f:
-                lines = f.readlines()
-            old_libdir = P.normpath(P.join(lines[-1][lines[-1].find("'")+1:lines[-1].rfind("'")],'..'))
-            with open(control,'w') as f:
-                for line in lines:
-                    f.write( string.replace(line,old_libdir,installdir) )
-
+        # replace the temporary install directory with the one we're deploying to.
+        lines = []
+        with open(control,'r') as f:
+            lines = f.readlines()
+        with open(control,'w') as f:
+            for line in lines:
+                line = re.sub('[\/\.]+[\w\/\.]*?' + binary_builder_prefix() + '\w+/install', installdir, line)
+                f.write( line )
+                
     print('Writing config.options.vw')
     with file(P.join(installdir,'config.options.vw'), 'w') as config:
         print('ENABLE_DEBUG=yes',file=config)
