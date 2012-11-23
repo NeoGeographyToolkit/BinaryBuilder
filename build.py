@@ -146,6 +146,8 @@ if __name__ == '__main__':
         sysroot = '/Developer/SDKs/MacOSX%s.sdk' % opt.osx_sdk
         if version.StrictVersion(arch.dist_version) >= "10.8":
             sysroot = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX%s.sdk' % opt.osx_sdk
+        if not os.path.isdir( sysroot ):
+            die("Unable to open '%s'. Double check that you actually have the SDK for OSX %s." % (sysroot,opt.osx_sdk))
 
         # CMake needs these vars to not screw things up.
         e.append('OSX_SYSROOT', sysroot)
