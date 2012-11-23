@@ -380,6 +380,8 @@ class Package(object):
 
         # We have a list of patches now, but we can't trust they're all there
         for p in patches:
+            if p.endswith('~') or p.endswith('#'):
+                continue
             if not P.isfile(p):
                 raise PackageError(self, 'Unknown patch: %s' % p)
             _apply(p)
