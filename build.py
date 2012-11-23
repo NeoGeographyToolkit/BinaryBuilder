@@ -58,8 +58,8 @@ def verify(program):
     for path in os.environ["PATH"].split(os.pathsep):
         exec_file = os.path.join( path, program )
         if is_exec( exec_file ):
-            return
-    raise Exception('Cannot find executable "%s" in path' % program)
+            return True
+    return False;
 
 def summary(env):
     print('===== Environment =====')
@@ -71,17 +71,21 @@ if __name__ == '__main__':
     parser.set_defaults(mode='all')
 
     parser.add_option('--base',       action='append',      dest='base',         default=[],              help='Provide a tarball to use as a base system')
-    parser.add_option('--no-ccache',  action='store_false', dest='ccache',       default=True,            help='Disable ccache')
-    parser.add_option('--libtoolize',                       dest='libtoolize',   default=None,            help='Value to set LIBTOOLIZE, use to override if system\'s default is bad.')
+    parser.add_option('--build-root',                       dest='build_root',   default=None,            help='Root of the build and install')
+    parser.add_option('--cc',                               dest='cc',           default='gcc',           help='Explicitly state which C compiler to use. [gcc (default), clang, gcc-mp-4.7]')
+    parser.add_option('--cxx',                              dest='cxx',          default='g++',           help='Explicitly state which C++ compiler to use. [g++ (default), clang++, g++-mp-4.7]')
     parser.add_option('--dev-env',    action='store_true',  dest='dev',          default=False,           help='Build everything but VW and ASP')
+    parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
+    parser.add_option('--f77',                              dest='f77',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
+    parser.add_option('--libtoolize',                       dest='libtoolize',   default=None,            help='Value to set LIBTOOLIZE, use to override if system\'s default is bad.')
+    parser.add_option('--no-ccache',  action='store_false', dest='ccache',       default=True,            help='Disable ccache')
     parser.add_option('--no-fetch',   action='store_const', dest='mode',         const='nofetch',         help='Build, but do not fetch (will fail if sources are missing)')
+    parser.add_option('--osx-sdk-version',                  dest='osx_sdk',      default='10.6',          help='SDK version to use. Make sure you have the SDK version before requesting it.')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',      default=False,           help='Show the list of packages without actually doing anything')
+    parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
     parser.add_option('--threads',    type='int',           dest='threads',      default=get_cores(),     help='Build threads to use')
-    parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
-    parser.add_option('--build-root',                       dest='build_root',   default=None,            help='Root of the build and install')
-    parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -102,9 +106,9 @@ if __name__ == '__main__':
 
     # -Wl,-z,now ?
     e = Environment(
-                    CC       = 'gcc',
-                    CXX      = 'g++',
-                    F77      = 'gfortran',
+                    CC       = opt.cc,
+                    CXX      = opt.cxx,
+                    F77      = opt.f77,
                     CFLAGS   = '-O3 -g',
                     CXXFLAGS = '-O3 -g',
                     LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
@@ -117,43 +121,47 @@ if __name__ == '__main__':
 
     arch = get_platform()
 
+    # Check compiler version for compilers we hate
+    output = run(e['CC'],'--version')
+    if 'gcc' in e['CC']:
+        output = output.lower()
+        if "llvm-gcc" in output:
+            die('Your compiler is an LLVM-GCC hybrid. It is our experience that these tools can not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
+    elif 'clang' in e['CC']:
+        output = output.lower()
+        keywords = output.split()
+        version_string = keywords[keywords.index('version')+1]
+        if version.StrictVersion(version_string) < "3.1":
+            die('Your Clang compiler is older than 3.1. It is our experience that older versions of clang could not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
+
     if arch.os == 'linux':
         e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
         e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 
     elif arch.os == 'osx':
         e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
-
-        # Force 64bit builds. Use 10.6 SDK for 10.6 and 10.7 for
-        # everything else. Not really sure if this works for 10.8.
         osx_arch = 'x86_64' #SEMICOLON-DELIMITED
-        target = '10.6'
 
-        if version.StrictVersion(arch.dist_version) >= "10.7":
-            print("Forcing use of non-LLVM compiler for Darwin 10.7+ systems\n")
-            e['CC'] = "gcc-4.2"
-            e['CXX'] = "g++-4.2"
-            e['CPP'] = "cpp-4.2"
-            target = '10.7'
-
-        # And also using the matching sdk for good measure
-        sysroot = '/Developer/SDKs/MacOSX%s.sdk' % target
+        # Define SDK location. This moved in OSX 10.8
+        sysroot = '/Developer/SDKs/MacOSX%s.sdk' % opt.osx_sdk
+        if version.StrictVersion(arch.dist_version) >= "10.8":
+            sysroot = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX%s.sdk' % opt.osx_sdk
 
         # CMake needs these vars to not screw things up.
         e.append('OSX_SYSROOT', sysroot)
         e.append('OSX_ARCH', osx_arch)
-        e.append('OSX_TARGET', target)
+        e.append('OSX_TARGET', opt.osx_sdk)
 
         e.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
-        e.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (target, sysroot))
+        e.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
         e.append_many(ALL_FLAGS, '-m64')
 
         # # Resolve a bug with -mmacosx-version-min on 10.6 (see
         # # http://markmail.org/message/45nbrtxsxvsjedpn).
         # # Short version: 10.6 generates the new compact header (LD_DYLD_INFO)
         # # even when told to support 10.5 (which can't read it)
-        # if version.StrictVersion(arch.dist_version) >= '10.6':
-        #     e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
+        if version.StrictVersion(arch.dist_version) >= '10.6' and opt.osx_sdk == '10.5':
+            e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
 
     # if arch.osbits == 'linux32':
     #     limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
@@ -162,7 +170,7 @@ if __name__ == '__main__':
     compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
     if not P.exists(compiler_dir):
         os.makedirs(compiler_dir)
-    acceptable_fortran_compilers = ['gfortran','g77']
+    acceptable_fortran_compilers = [e['F77'],'g77']
     for i in range(0,10):
         acceptable_fortran_compilers.append("gfortran-mp-4.%s" % i)
     for compiler in acceptable_fortran_compilers:
@@ -201,13 +209,18 @@ if __name__ == '__main__':
 
     if len(args) == 0:
         # Verify we have the executables we need
-        common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "gcc", "csh", "git", "svn"]
+        common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", e['CC'],e['CXX'],e['F77'],"ccache"]
         if arch.os == 'linux':
-            common_exec.extend( ["libtool", "chrpath", "gfortran"] )
+            common_exec.extend( ["libtool", "chrpath"] )
         else:
             common_exec.extend( ["glibtool", "install_name_tool"] )
+
+        missing_exec = []
         for program in common_exec:
-            verify( program )
+            if not verify( program ):
+                missing_exec.append(program)
+        if missing_exec:
+            die('Missing required executables for building. You need to install %s.' % missing_exec)
 
         if arch.os == 'linux':
             build.append(lapack)
