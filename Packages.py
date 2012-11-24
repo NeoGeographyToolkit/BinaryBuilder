@@ -521,6 +521,14 @@ class qt(Package):
     def __init__(self, env):
         super(qt, self).__init__(env)
 
+        # Qt can only be built on OSX with an Apple Compiler. If the
+        # user overwrote the compiler choice, we must revert here. The
+        # problem is -fconstant-cfstrings. Macports also gives up in
+        # this situation and blacks lists all Macport built compilers.
+        if self.arch.os == 'osx':
+            self.env['CXX']='g++'
+            self.env['CC']='gcc'
+
     @stage
     def configure(self):
         cmd = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools -no-openssl -no-libjpeg -no-libmng -no-libpng -no-libtiff -no-cups -no-nis -no-opengl -no-openvg -no-phonon -no-phonon-backend' % self.env
