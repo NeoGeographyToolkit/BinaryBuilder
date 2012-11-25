@@ -1,0 +1,71 @@
+diff -ruN OpenSceneGraph-3.0.1/CMakeLists.txt OpenSceneGraph-3.0.1_prior/CMakeLists.txt
+--- OpenSceneGraph-3.0.1/CMakeLists.txt	2012-11-25 07:37:25.000000000 -0800
++++ OpenSceneGraph-3.0.1_prior/CMakeLists.txt	2012-11-25 07:29:04.000000000 -0800
+@@ -486,17 +486,17 @@
+     IF  (DESIRED_QT_VERSION)
+ 
+         IF  (DESIRED_QT_VERSION MATCHES 4)
+-              FIND_PACKAGE(Qt4)
++              MACRO_OPTIONAL_FIND_PACKAGE(Qt4)
+         ELSE()
+-              FIND_PACKAGE(Qt3)
++              MACRO_OPTIONAL_FIND_PACKAGE(Qt3)
+         ENDIF()
+ 
+     ELSE()
+ 
+-        FIND_PACKAGE(Qt4)
++        MACRO_OPTIONAL_FIND_PACKAGE(Qt4)
+ 
+         IF  (NOT QT4_FOUND)
+-            FIND_PACKAGE(Qt3)
++            MACRO_OPTIONAL_FIND_PACKAGE(Qt3)
+         ENDIF()
+ 
+     ENDIF()
+@@ -505,12 +505,12 @@
+ IF   (BUILD_OSG_EXAMPLES AND NOT ANDROID)
+ 
+ 
+-    FIND_PACKAGE(FLTK)
+-    FIND_PACKAGE(GLUT)
+-    FIND_PACKAGE(FOX)
++    MACRO_OPTIONAL_FIND_PACKAGE(FLTK)
++    MACRO_OPTIONAL_FIND_PACKAGE(GLUT)
++    MACRO_OPTIONAL_FIND_PACKAGE(FOX)
+ 
+     SET(wxWidgets_USE_LIBS base core gl net)
+-    FIND_PACKAGE(wxWidgets)
++    MACRO_OPTIONAL_FIND_PACKAGE(wxWidgets)
+ 
+ ENDIF(BUILD_OSG_EXAMPLES AND NOT ANDROID)
+ 
+@@ -531,20 +531,20 @@
+ # can use Quicktime.
+ IF(NOT ANDROID)
+     IF(NOT APPLE)
+-        FIND_PACKAGE(GIFLIB)
+-        FIND_PACKAGE(JPEG)
+-        FIND_PACKAGE(PNG)
+-        FIND_PACKAGE(TIFF)
++        MACRO_OPTIONAL_FIND_PACKAGE(GIFLIB)
++        MACRO_OPTIONAL_FIND_PACKAGE(JPEG)
++        MACRO_OPTIONAL_FIND_PACKAGE(PNG)
++        MACRO_OPTIONAL_FIND_PACKAGE(TIFF)
+ 
+         # QuickTime is required for OS X, but optional for Windows.
+         IF(WIN32)
+-            FIND_PACKAGE(QuickTime)
++            MACRO_OPTIONAL_FIND_PACKAGE(QuickTime)
+         ENDIF()
+ 
+     ELSE()
+-        FIND_PACKAGE(QuickTime)
+-        FIND_PACKAGE(QTKit)
+-        FIND_PACKAGE(CoreVideo)
++        MACRO_OPTIONAL_FIND_PACKAGE(QuickTime)
++        MACRO_OPTIONAL_FIND_PACKAGE(QTKit)
++        MACRO_OPTIONAL_FIND_PACKAGE(CoreVideo)
+     ENDIF()
+ ENDIF()
+ 

@@ -804,6 +804,17 @@ class osg(CMakePackage):
             without='COLLADA CURL FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL'.split(),
             other=['-DBUILD_OSG_APPLICATIONS=ON'])
 
+class osg3(CMakePackage):
+    src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-3.0.1/source/OpenSceneGraph-3.0.1.zip'
+    chksum = '13c7e39f6d62047ad944d8d28a0f0eb60384ce33'
+    patches = 'patches/osg3'
+
+    def configure(self):
+        super(osg3, self).configure(
+            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit'.split(),
+            without='COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib '.split(),
+            other=['-DBUILD_OSG_APPLICATIONS=ON'])
+
 class flann(CMakePackage):
     src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.7.1-src.zip'
     chksum = '61b9858620528919ea60a2a4b085ccc2b3c2d138'

@@ -18,7 +18,7 @@ from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
      zlib, tiff, png, jpeg, proj, gdal, ilmbase, openexr,   \
      boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
      ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, geoid, \
-     isis, openjpeg2
+     isis, openjpeg2, osg3
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
      findfile, run, get_gcc_version, logger, warn

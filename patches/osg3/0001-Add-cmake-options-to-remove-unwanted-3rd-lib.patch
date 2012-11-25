@@ -1,0 +1,83 @@
+diff -ruN OpenSceneGraph-3.0.1_orig/CMakeLists.txt OpenSceneGraph-3.0.1/CMakeLists.txt
+--- OpenSceneGraph-3.0.1_orig/CMakeLists.txt	2012-11-24 21:27:13.000000000 -0800
++++ OpenSceneGraph-3.0.1/CMakeLists.txt	2012-11-24 21:36:05.000000000 -0800
+@@ -62,6 +62,7 @@
+ # We have some custom .cmake scripts not in the official distribution.
+ # Maybe this can be used override existing behavior if needed?
+ SET(CMAKE_MODULE_PATH "${OpenSceneGraph_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
++INCLUDE(MacroOptionalFindPackage)
+ 
+ ## Option to enable Android build using AndroidNDK
+ OPTION(OSG_BUILD_PLATFORM_ANDROID OFF)
+@@ -450,30 +451,30 @@
+     ANDROID_3RD_PARTY()
+ ELSE()
+ # Common to all platforms except android:
+-    FIND_PACKAGE(FreeType)
+-    FIND_PACKAGE(Inventor)
+-    FIND_PACKAGE(Jasper)
+-    FIND_PACKAGE(OpenEXR)
+-    FIND_PACKAGE(COLLADA)
+-    FIND_PACKAGE(FBX)
+-    FIND_PACKAGE(ZLIB)
+-    FIND_PACKAGE(Xine)
+-    FIND_PACKAGE(OpenVRML)
+-    FIND_PACKAGE(Performer)
+-    FIND_PACKAGE(GDAL)
+-    FIND_PACKAGE(CURL)
+-    FIND_PACKAGE(ITK)
+-    FIND_PACKAGE(LibVNCServer)
+-    FIND_PACKAGE(OurDCMTK)
+-    FIND_PACKAGE(OpenAL)
+-    FIND_PACKAGE(FFmpeg)
+-    FIND_PACKAGE(DirectShow)
+-    FIND_PACKAGE(SDL)
+-    FIND_PACKAGE(Poppler-glib)
+-    FIND_PACKAGE(RSVG)
+-    FIND_PACKAGE(GtkGl)
+-    FIND_PACKAGE(DirectInput)
+-    FIND_PACKAGE(NVTT)
++    MACRO_OPTIONAL_FIND_PACKAGE(FreeType)
++    MACRO_OPTIONAL_FIND_PACKAGE(Inventor)
++    MACRO_OPTIONAL_FIND_PACKAGE(Jasper)
++    MACRO_OPTIONAL_FIND_PACKAGE(OpenEXR)
++    MACRO_OPTIONAL_FIND_PACKAGE(COLLADA)
++    MACRO_OPTIONAL_FIND_PACKAGE(FBX)
++    MACRO_OPTIONAL_FIND_PACKAGE(ZLIB)
++    MACRO_OPTIONAL_FIND_PACKAGE(Xine)
++    MACRO_OPTIONAL_FIND_PACKAGE(OpenVRML)
++    MACRO_OPTIONAL_FIND_PACKAGE(Performer)
++    MACRO_OPTIONAL_FIND_PACKAGE(GDAL)
++    MACRO_OPTIONAL_FIND_PACKAGE(CURL)
++    MACRO_OPTIONAL_FIND_PACKAGE(ITK)
++    MACRO_OPTIONAL_FIND_PACKAGE(LibVNCServer)
++    MACRO_OPTIONAL_FIND_PACKAGE(OurDCMTK)
++    MACRO_OPTIONAL_FIND_PACKAGE(OpenAL)
++    MACRO_OPTIONAL_FIND_PACKAGE(FFmpeg)
++    MACRO_OPTIONAL_FIND_PACKAGE(DirectShow)
++    MACRO_OPTIONAL_FIND_PACKAGE(SDL)
++    MACRO_OPTIONAL_FIND_PACKAGE(Poppler-glib)
++    MACRO_OPTIONAL_FIND_PACKAGE(RSVG)
++    MACRO_OPTIONAL_FIND_PACKAGE(GtkGl)
++    MACRO_OPTIONAL_FIND_PACKAGE(DirectInput)
++    MACRO_OPTIONAL_FIND_PACKAGE(NVTT)
+ ENDIF()
+ 
+ # Include macro utilities here
+diff -ruN OpenSceneGraph-3.0.1_orig/CMakeModules/MacroOptionalFindPackage.cmake OpenSceneGraph-3.0.1/CMakeModules/MacroOptionalFindPackage.cmake
+--- OpenSceneGraph-3.0.1_orig/CMakeModules/MacroOptionalFindPackage.cmake	1969-12-31 16:00:00.000000000 -0800
++++ OpenSceneGraph-3.0.1/CMakeModules/MacroOptionalFindPackage.cmake	2012-11-24 21:30:22.000000000 -0800
+@@ -0,0 +1,12 @@
++macro (MACRO_OPTIONAL_FIND_PACKAGE _name )
++  option(WITH_${_name} "Search for ${_name} package" ON)
++  if (WITH_${_name})
++    find_package(${_name} ${ARGN})
++  else(WITH_${_name})
++    set(${_name}_FOUND)
++    set(${_name}_INCLUDE_DIR)
++    set(${_name}_INCLUDES)
++    set(${_name}_LIBRARY)
++    set(${_name}_LIBRARIES)
++  endif(WITH_${_name})
++endmacro (MACRO_OPTIONAL_FIND_PACKAGE)
+\ No newline at end of file
