@@ -46,26 +46,27 @@ if __name__ == '__main__':
     logging.basicConfig(level=opt.loglevel)
 
     arch = get_platform()
-    library_ext = "so"
+    library_ext = ["so"]
     if arch.os == 'osx':
-        library_ext = "dylib"
+        library_ext.append("dylib")
 
     if not opt.skip_extraction:
         print('Extracting tarball')
         run('tar', 'xf', tarball, '-C', installdir, '--strip-components', '1')
 
-    SEARCHPATH = [P.join(installdir,'lib')]
+    SEARCHPATH = [P.join(installdir,'lib'),P.join(installdir,'lib','osgPlugins*')]
 
     print('Fixing RPATHs')
     for curr_path in SEARCHPATH:
-        for library in glob(P.join(curr_path,'*.'+library_ext+'*')):
-            if not is_binary(library):
-                continue
-            print('  %s' % P.basename(library))
-            try:
-                set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
-            except:
-                print('  Failed %s' % P.basename(library))
+        for extension in library_ext:
+            for library in glob(P.join(curr_path,'*.'+extension+'*')):
+                if not is_binary(library):
+                    continue
+                print('  %s' % P.basename(library))
+                try:
+                    set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
+                except:
+                    print('  Failed %s' % P.basename(library))
 
     print('Fixing Binaries')
     for binary in glob(P.join(installdir,'bin','*')):
@@ -101,7 +102,7 @@ if __name__ == '__main__':
             for line in lines:
                 line = re.sub('[\/\.]+[\w\/\.]*?' + binary_builder_prefix() + '\w+/install', installdir, line)
                 f.write( line )
-                
+
     print('Writing config.options.vw')
     with file(P.join(installdir,'config.options.vw'), 'w') as config:
         print('ENABLE_DEBUG=yes',file=config)
