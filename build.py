@@ -16,7 +16,7 @@ from glob import glob
 
 from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
      zlib, tiff, png, jpeg, proj, gdal, ilmbase, openexr,   \
-     boost, osg, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
+     boost, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
      ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, geoid, \
      isis, openjpeg2, osg3
 
@@ -229,7 +229,7 @@ if __name__ == '__main__':
         if arch.os == 'linux':
             build.append(lapack)
         build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
-                      superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg, flann,
+                      superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg3, flann,
                       qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
                       geoid, isis])
         if not opt.dev:
@@ -239,7 +239,7 @@ if __name__ == '__main__':
             if arch.os == 'linux':
                 build.append(lapack)
             build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
-                          superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg, flann,
+                          superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg3, flann,
                           qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
                           geoid, isis])
 
