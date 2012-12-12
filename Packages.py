@@ -719,8 +719,8 @@ class ufconfig(Package):
         self.helper('install','-m','644','-c','UFconfig.h',P.join(installdir,'include'),env=e)
 
 class amd(Package):
-    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/amd/files/amd-2.2.0-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/AMD-2.2.2.tar.gz']
-    chksum = ['1b452db185458c92b34634f0a88f643c4f851659','ae8a42da490a537889a46036545d867423ec7c73']
+    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/amd/files/amd-2.2.0-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/AMD-2.2.3.tar.gz']
+    chksum = ['1b452db185458c92b34634f0a88f643c4f851659','cedd6c37c7d214655a0b967a45994e7ec5c38251']
     patch_level = '-p0'
 
     def __init__(self, env):
