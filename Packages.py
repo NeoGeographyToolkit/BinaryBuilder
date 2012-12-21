@@ -75,6 +75,11 @@ class gdal(Package):
 
     @stage
     def configure(self):
+        # Parts of GDAL will attempt to load libproj manual (something
+        # we can't see or correct in the elf tables). This sed should
+        # correct that problem.
+        self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
+
         w = ['threads', 'libtiff', 'geotiff=internal', 'jpeg', 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
         wo = \
             '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
