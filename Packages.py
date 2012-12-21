@@ -254,7 +254,7 @@ class isis(Package):
                     ldflags.append('-F%s' % P.join(self.env['INSTALL_DIR'], 'lib'))
                 print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
 
-            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns QtDBus'
+            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 
             qt_cppflags=['-I%s' % includedir]
@@ -315,7 +315,7 @@ class stereopipeline(GITPackage):
                 else:
                     print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
 
-            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns QtDBus'
+            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 
