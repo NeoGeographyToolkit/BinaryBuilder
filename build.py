@@ -117,6 +117,7 @@ if __name__ == '__main__':
                     BUILD_DIR    = P.join(opt.build_root, 'build'),
                     INSTALL_DIR  = P.join(opt.build_root, 'install'),
                     MISC_DIR = P.join(opt.build_root, 'misc'),
+                    PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
                     PATH=os.environ['PATH'] )
 
     arch = get_platform()
