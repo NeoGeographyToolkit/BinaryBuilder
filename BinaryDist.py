@@ -61,9 +61,9 @@ class DistManager(object):
         for p in snap_symlinks(inpath) if symlinks_too else [inpath]:
             # This relpath weirdness is because libdirs can have subdirs
             ps = P.normpath(p).split('/')
-            for seg_idx in range(0,len(ps)):
+            for seg_idx in xrange(len(ps)-1,-1,-1):
                 seg = ps[seg_idx]
-                if seg == 'lib' or seg == 'lib64' or seg == 'lib32':
+                if seg in ['lib','lib64','lib32','x86_64-linux-gnu','i386-linux-gnu']:
                     relpath = '/'.join(ps[seg_idx+1:])
                     break
             else:
