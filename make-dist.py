@@ -44,7 +44,6 @@ LIB_SYSTEM_LIST = '''
     libXrandr.so.2
     libXrender.so.1
     libXt.so.6
-    libc.so.6
     libdl.so.2
     libfontconfig.so.1
     libfreetype.so.6
@@ -58,7 +57,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship (on linux, anyway)
-LIB_SHIP_PREFIX = '''  libgfortran. libquadmath. libgcc_s. '''.split()
+LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. libc. '''.split()
 if get_platform().os == 'linux':
     LIB_SHIP_PREFIX.insert(0,'libstdc++.')
 else:
