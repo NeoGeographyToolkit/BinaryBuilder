@@ -160,12 +160,13 @@ if __name__ == '__main__':
 
         print('Adding libraries')
 
-        print('\tSecondary pass to get dependencies of libraries')
-        sys.stdout.flush()
-        deplist_copy = copy.deepcopy(mgr.deplist)
-        for lib in deplist_copy:
-            if ( P.exists( P.join(INSTALLDIR, 'lib', lib) ) ):
-                mgr.add_library( P.join(INSTALLDIR, 'lib', lib) );
+        for i in range(2,4):
+            print('\tPass %i to get dependencies of libraries' % i)
+            sys.stdout.flush()
+            deplist_copy = copy.deepcopy(mgr.deplist)
+            for lib in deplist_copy:
+                if ( P.exists( P.join(INSTALLDIR, 'lib', lib) ) ):
+                    mgr.add_library( P.join(INSTALLDIR, 'lib', lib) );
 
         print('\tAdding forced-ship libraries')
         print("Dependencies %s" % mgr.deplist.keys() )
