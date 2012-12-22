@@ -58,11 +58,11 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship (on linux, anyway)
+LIB_SHIP_PREFIX = '''  libgfortran. libquadmath. libgcc_s. '''.split()
 if get_platform().os == 'linux':
-    LIB_SHIP_PREFIX = ''' libstdc++.  libgcc_s. libgfortran. '''.split()
+    LIB_SHIP_PREFIX.insert(0,'libstdc++.')
 else:
-    LIB_SHIP_PREFIX = ''' libgfortran. libgcc_s. '''.split()
-    LIB_SYSTEM_LIST.extend(['libstdc++.6.dylib'])
+    LIB_SYSTEM_LIST.append('libstdc++.6.dylib')
 
 def tarball_name():
     arch = get_platform()
@@ -161,16 +161,17 @@ if __name__ == '__main__':
         print('Adding libraries')
 
         print('\tSecondary pass to get dependencies of libraries')
+        sys.stdout.flush()
         deplist_copy = copy.deepcopy(mgr.deplist)
         for lib in deplist_copy:
             if ( P.exists( P.join(INSTALLDIR, 'lib', lib) ) ):
                 mgr.add_library( P.join(INSTALLDIR, 'lib', lib) );
 
         print('\tAdding forced-ship libraries')
-        dependencies = copy.deepcopy( mgr.deplist.keys() );
-        dependencies.sort()
-        print("Dependencies %s" % dependencies )
+        print("Dependencies %s" % mgr.deplist.keys() )
+        sys.stdout.flush()
         # Handle the shiplist separately
+        found_and_to_be_removed = []
         for copy_lib in LIB_SHIP_PREFIX:
             found = None
             for soname in mgr.deplist.keys():
@@ -179,24 +180,29 @@ if __name__ == '__main__':
                     break
             if found:
                 mgr.add_library(mgr.deplist[found])
-                mgr.remove_deps([found])
+                found_and_to_be_removed.append( found )
+        mgr.remove_deps( found_and_to_be_removed )
 
         print('\tRemoving system libs')
+        sys.stdout.flush()
         mgr.remove_deps(LIB_SYSTEM_LIST)
 
         print('\tFinding deps in search path')
+        sys.stdout.flush()
         mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
                            copy = [INSTALLDIR.lib()])
         if mgr.deplist:
             raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
 
         print('Adding files in dist-add and docs')
+        sys.stdout.flush()
         #XXX Don't depend on cwd
         for dir in 'dist-add', INSTALLDIR.doc():
             if P.exists(dir):
                 mgr.add_directory(dir)
 
         print('Baking RPATH and stripping binaries')
+        sys.stdout.flush()
         mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH))
 
         debuglist = mgr.find_filter('-name', '*.debug')
