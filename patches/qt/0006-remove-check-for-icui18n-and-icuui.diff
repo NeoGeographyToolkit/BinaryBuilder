@@ -1,0 +1,22 @@
+diff -crB ./src/corelib/tools/qlocale_icu.cpp ../qt-everywhere-opensource-src-4.8.3_mod/src/corelib/tools/qlocale_icu.cpp
+*** ./src/corelib/tools/qlocale_icu.cpp	2012-09-10 18:36:50.000000000 -0700
+--- ../qt-everywhere-opensource-src-4.8.3_mod/src/corelib/tools/qlocale_icu.cpp	2012-12-23 14:01:15.444498292 -0800
+***************
+*** 75,82 ****
+  
+  bool qt_initIcu(const QString &localeString)
+  {
+!     if (status == ErrorLoading)
+!         return false;
+  
+      if (status == NotLoaded) {
+  
+--- 75,81 ----
+  
+  bool qt_initIcu(const QString &localeString)
+  {
+!   return false;
+  
+      if (status == NotLoaded) {
+  
+Only in ../qt-everywhere-opensource-src-4.8.3_mod/src/corelib/tools: qlocale_icu.cpp~
