@@ -392,7 +392,7 @@ class lapack(CMakePackage):
             if not i.startswith('-L'):
                 LDFLAGS_CURR.append(i);
         self.env['LDFLAGS'] = ' '.join(LDFLAGS_CURR)
-        super(lapack, self).configure( other=['-DCMAKE_Fortran_COMPILER=gfortran','-DBUILD_SHARED_LIBS=ON','-DBUILD_STATIC_LIBS=OFF'] )
+        super(lapack, self).configure( other=['-DBUILD_SHARED_LIBS=ON','-DBUILD_STATIC_LIBS=OFF','-DCMAKE_Fortran_FLAGS=-fPIC'] )
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
