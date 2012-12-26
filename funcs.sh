@@ -261,3 +261,18 @@ isis_version() {
     fi
     echo "$version"
 }
+
+# Keep this in sync with the function in libexec-funcs.sh
+libc_version() {
+    locations=('/lib/x86_64-linux-gnu/libc.so.6' '/lib/i386-linux-gnu/libc.so.6' '/lib/i686-linux-gnu/libc.so.6' '/lib/libc.so.6' '/lib64/libc.so.6' '/lib32/libc.so.6');
+    # /lib/x86_64-linux-gnu/libc.so.6 |head -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/'
+    for library in "${locations[@]}"; do
+        if [ -e $library ]; then
+            local version="$($library | head -1 | sed 's/[^0-9.]*\([0-9.]*\).*/\1/' )"
+            echo $version
+            return
+        fi
+    done
+    msg "Unable to determine libc version. This is likely our fault since we don't know where your OS put it."
+    die "Could you email the ASP developers with your OS information?"
+}

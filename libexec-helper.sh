@@ -11,6 +11,10 @@ ISISROOT=$TOPLEVEL
 . "${LIBEXEC}/libexec-funcs.sh"
 
 check_isis
+if [ "$(uname -s)" = "Linux" ]
+then
+    check_libc
+fi
 set_lib_paths "${TOPLEVEL}/lib"
 
 PROGRAM="${LIBEXEC}/$(basename $0)"

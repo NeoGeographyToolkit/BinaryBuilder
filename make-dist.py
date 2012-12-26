@@ -4,7 +4,7 @@ from __future__ import print_function
 
 from BinaryDist import grep, DistManager, Prefix, run
 
-import time, logging, copy, sys
+import time, logging, copy, sys, re
 import os.path as P
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die
@@ -93,6 +93,14 @@ def isis_version(isisroot):
         raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT (%s) is incorrect?' % (header, isisroot))
     return m[0].group(1)
 
+def libc_version():
+    locations=['/lib/x86_64-linux-gnu/libc.so.6','/lib/i386-linux-gnu/libc.so.6','/lib/i686-linux-gnu/libc.so.6','/lib/libc.so.6','/lib64/libc.so.6','/lib32/libc.so.6']
+    for library in locations:
+        if P.isfile(library):
+            output = run(library).split('\n')[0]
+            return re.search('[^0-9.]*([0-9.]*).*',output).groups()
+    return "FAILED"
+
 if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
@@ -155,10 +163,13 @@ if __name__ == '__main__':
         for library in isis_secondary_set:
             mgr.add_glob( library, INSTALLDIR )
 
-        print('Adding ISIS version check')
+        print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
         with mgr.create_file('libexec/constants.sh') as f:
             print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
+            print('BAKED_LIBC_VERSION="%s"' % libc_version(), file=f)
+            print('\tFound ISIS version %s' % isis_version(ISISROOT))
+            print('\tFound GLIBC version %s' % libc_version())
 
         print('Adding libraries')
 
