@@ -146,7 +146,14 @@ class DistManager(object):
         if isinstance(exclude, basestring):
             exclude = [exclude]
 
-        cmd = ['tar', 'cjf', name, '-C', P.dirname(self.distdir)]
+        cmd = ['tar']
+        try:
+            # See if we have pbzip2. It would make us a little faster
+            cmd += ['cf', name, '--use-compress-prog=pbzip2']
+        except Exception:
+            cmd += ['cjf', name]
+
+        cmd += ['-C', P.dirname(self.distdir)]
         if include:
             cmd += ['--no-recursion']
         for i in include:
