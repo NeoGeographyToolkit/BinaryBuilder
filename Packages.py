@@ -171,13 +171,12 @@ class liblas(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class geoid(CMakePackage):
-    
     src     = 'https://byss.arc.nasa.gov/geoids/geoids.tar.gz'
     chksum  = '3212c2f0bcb49806cdde87417a3dc08065886f4d'
-    
+
     @stage
     def configure(self): pass
-    
+
     @stage
     def compile(self): pass
 

@@ -100,7 +100,7 @@ if __name__ == '__main__':
             lines = f.readlines()
         with open(control,'w') as f:
             for line in lines:
-                line = re.sub('[\/\.]+[\w\/\.]*?' + binary_builder_prefix() + '\w+/install', installdir, line)
+                line = re.sub('[\/\.]+[\w\/\.]*?' + binary_builder_prefix() + '\w*[\w\/\.]*?/install', installdir, line)
                 f.write( line )
 
     print('Writing config.options.vw')
