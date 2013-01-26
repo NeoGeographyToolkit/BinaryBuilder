@@ -465,8 +465,8 @@ class gsl(Package):
     chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
 
 class geos(Package):
-    src = 'http://download.osgeo.org/geos/geos-3.3.6.tar.bz2'
-    chksum = '454c9b61f158de509db60a69512414a0a1b0743b'
+    src = 'http://download.osgeo.org/geos/geos-3.3.7.tar.bz2'
+    chksum = 'd62c6f86ba854f319feaa5d957bebb8b6bed10a3'
 
     def configure(self):
         super(geos, self).configure(disable=('python', 'ruby'))
@@ -517,8 +517,8 @@ class xercesc(Package):
                                       disable = ['static', 'msgloader-iconv', 'msgloader-icu', 'network'])
 
 class qt(Package):
-    src     = 'http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-4.8.3.tar.gz'
-    chksum  = 'bc352a283610e0cd2fe0dbedbc45613844090fcb'
+    src     = 'http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-4.8.4.tar.gz'
+    chksum  = 'f5880f11c139d7d8d01ecb8d874535f7d9553198'
     patches = 'patches/qt'
     patch_level = '-p0'
 
@@ -811,10 +811,9 @@ class osg3(CMakePackage):
             other=['-DBUILD_OSG_APPLICATIONS=ON'])
 
 class flann(CMakePackage):
-    src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.7.1-src.zip'
-    chksum = '61b9858620528919ea60a2a4b085ccc2b3c2d138'
-    patches = 'patches/flann'
+    src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.8.4-src.zip'
+    chksum = 'e03d9d458757f70f6af1d330ff453e3621550a4f'
 
     def configure(self):
-        super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF','-DBUILD_MATLAB_BINDINGS=OFF','-DBUILD_PYTHON_BINDINGS=OFF','-DBUILD_CUDA_LIB=OFF'])
+        super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF','-DBUILD_MATLAB_BINDINGS=OFF','-DBUILD_PYTHON_BINDINGS=OFF','-DBUILD_CUDA_LIB=OFF','-DUSE_MPI=OFF','-DUSE_OPENMP=OFF'])
 
