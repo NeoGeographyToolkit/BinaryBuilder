@@ -1,0 +1,11 @@
+--- gmm-4.2/tests/Makefile.am	2012-08-01 04:19:46.000000000 -0700
++++ gmm-4.2_mod/tests/Makefile.am	2013-01-26 10:48:09.000000000 -0800
+@@ -7,7 +7,7 @@
+ 
+ LDADD    = -lm @SUPLDFLAGS@
+ 
+-TESTS = $(top_srcdir)/tests/make_gmm_test.pl
++TESTS = make_gmm_test.pl
+ 
+ EXTRA_DIST=\
+           make_gmm_test.pl\
