@@ -173,8 +173,8 @@ class liblas(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class geoid(CMakePackage):
-    src     = 'https://byss.arc.nasa.gov/geoids/geoids.tar.gz'
-    chksum  = '3212c2f0bcb49806cdde87417a3dc08065886f4d'
+    src     = 'https://byss.arc.nasa.gov/geoids/geoids-1.1.tar.gz'
+    chksum  = '49a21acc5f821a7fad916bce68d1f12f58007927'
 
     @stage
     def configure(self): pass
@@ -818,4 +818,3 @@ class flann(CMakePackage):
 
     def configure(self):
         super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF','-DBUILD_MATLAB_BINDINGS=OFF','-DBUILD_PYTHON_BINDINGS=OFF','-DBUILD_CUDA_LIB=OFF','-DUSE_MPI=OFF','-DUSE_OPENMP=OFF'])
-

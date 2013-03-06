@@ -171,7 +171,7 @@ if __name__ == '__main__':
                         isisadjustcnetclip plateorthoproject reconstruct results \
                         rmax2cahvor rmaxadjust stereogui'.split()
         enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz \
-                        orthoproject point2dem point2las dem_adjust point2mesh stereo mer2camera'.split()
+                        orthoproject point2dem point2las dem_geoid point2mesh stereo mer2camera'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
                           ufconfig amd colamd cholmod flann spice qwt gsl \
                           geos xercesc protobuf superlu tiff              \
@@ -229,4 +229,4 @@ if __name__ == '__main__':
 
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('MOC=$BASE/bin/moc',file=config)
-        print('PKG_GEOID_CPPFLAGS="-I$BASE/include -DDEM_ADJUST_GEOID_PATH=$BASE/share/geoids"', file=config)
+        print('PKG_GEOID_CPPFLAGS="-I$BASE/include -DGEOID_PATH=$BASE/share/geoids"', file=config)
