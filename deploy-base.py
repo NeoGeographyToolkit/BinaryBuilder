@@ -103,6 +103,30 @@ if __name__ == '__main__':
                 line = re.sub('[\/\.]+[\w\/\.\-]*?' + binary_builder_prefix() + '\w*[\w\/\.]*?/install', installdir, line)
                 f.write( line )
 
+    # Create libblas.la (out of existing libsuperlu.la). We need
+    # libblas.la to force blas to show up before superlu when linking
+    # on Linux to avoid a bug with corruption when invoking lapack in
+    # a multi-threaded environment.  A better long-term solution is
+    # needed.
+    superlu_la = installdir + '/lib/libsuperlu.la'
+    blas_la = installdir + '/lib/libblas.la'
+    if arch.os == 'linux' and os.path.exists(superlu_la):
+        lines = []
+        with open(superlu_la,'r') as f:
+                lines = f.readlines()
+        with open(blas_la,'w') as f:
+            for line in lines:
+                line = re.sub('libsuperlu', 'libblas', line)
+                line = re.sub('dlname=\'.*?\'',
+                              'dlname=\'libblas.so\'', line)
+                line = re.sub('library_names=\'.+?\'',
+                              'library_names=\'libblas.so\'', line)
+                # Force blas to depend on superlu
+                line = re.sub('dependency_libs=\'.*?\'',
+                              'dependency_libs=\' -L' + installdir
+                              + '/lib  -lsuperlu -lm\'', line)
+                f.write( line )
+
     print('Writing config.options.vw')
     with file(P.join(installdir,'config.options.vw'), 'w') as config:
         print('ENABLE_DEBUG=yes',file=config)
@@ -174,7 +198,7 @@ if __name__ == '__main__':
                         orthoproject point2dem point2las dem_geoid point2mesh stereo mer2camera'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
                           ufconfig amd colamd cholmod flann spice qwt gsl \
-                          geos xercesc protobuf superlu tiff              \
+                          geos xercesc protobuf tiff              \
                           laszip liblas geoid isis superlu gdal'.split()
         off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu gsl_hasblas apple_qwt'.split()
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
@@ -223,9 +247,6 @@ if __name__ == '__main__':
         print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
         print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
         print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
-
-        if arch.os == 'linux':
-            print('PKG_SUPERLU_PLAIN_LIBS=%s' % glob(P.join(installdir, 'lib', 'libsuperlu*.so'))[0], file=config)
 
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('MOC=$BASE/bin/moc',file=config)
