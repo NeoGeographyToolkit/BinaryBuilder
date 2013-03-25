@@ -405,9 +405,9 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_52' # this is used in class liblas
+    version = '1_53' # this is used in class liblas
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = 'cddd6b4526a09152ddc5db856463eaa1dc29c5d9'
+    chksum  = 'e6dd1b62ceed0a51add3dda6f3fc3ce0f636a7f3'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -475,8 +475,8 @@ class gsl(Package):
     chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
 
 class geos(Package):
-    src = 'http://download.osgeo.org/geos/geos-3.3.7.tar.bz2'
-    chksum = 'd62c6f86ba854f319feaa5d957bebb8b6bed10a3'
+    src = 'http://download.osgeo.org/geos/geos-3.3.8.tar.bz2'
+    chksum = '1743e09f37eb75d85283a684a5765c4f44d035fa'
 
     def configure(self):
         super(geos, self).configure(disable=('python', 'ruby'))
@@ -560,8 +560,8 @@ class qt(Package):
         super(qt, self).install()
 
 class qwt(Package):
-    src     = 'http://downloads.sourceforge.net/qwt/qwt-6.0.1.tar.bz2',
-    chksum  = '301cca0c49c7efc14363b42e082b09056178973e',
+    src     = 'http://downloads.sourceforge.net/qwt/qwt-6.0.2.tar.bz2',
+    chksum  = 'cbdd00b29521987c9e7bc6aa51092f0474b9428d',
     patches = 'patches/qwt'
 
     def configure(self):
@@ -617,8 +617,8 @@ class jpeg(Package):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.5.13.tar.bz2'
-    chksum = 'dfca34fa8281299a13cad87099f613ba639626e1'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.5.14.tar.bz2'
+    chksum = 'b634cbd51698a3ddb495fa6decd074ae523c8fbf'
 
     def configure(self):
         super(png,self).configure(disable='static')

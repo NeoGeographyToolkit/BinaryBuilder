@@ -133,8 +133,6 @@ if __name__ == '__main__':
         if "llvm-gcc" in output:
             die('Your compiler is an LLVM-GCC hybrid. It is our experience that these tools can not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
     elif 'clang' in e['CC']:
-        # Remove this when Qt 4.8.4 comes out. Supposedly they have a fix ready.
-        die('QT can\'t be built by Clang. Please chose a different compiler.')
         output = output.lower()
         keywords = output.split()
         version_string = keywords[keywords.index('version')+1]
