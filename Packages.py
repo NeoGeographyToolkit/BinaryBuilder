@@ -198,7 +198,7 @@ class isis(Package):
         super(isis, self).__init__(env)
         self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
         self.isisautotools_localcopy = P.join(env['DOWNLOAD_DIR'], 'git', 'AutotoolsForISIS')
-        self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX/isis/"
+        self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX10.8/isis/"
         self.isisautotools_src = "http://github.com/NeoGeographyToolkit/AutotoolsForISIS.git"
 
     @stage
@@ -241,7 +241,7 @@ class isis(Package):
         self.helper('./autogen')
 
         pkgs = 'arbitrary_qt qwt boost protobuf tnt jama xercesc spice geos gsl \
-                superlu gmm tiff z jpeg ufconfig amd colamd cholmod'.split()
+                superlu gmm tiff z jpeg ufconfig amd colamd cholmod curl xercesc'.split()
 
         w = [i + '=%(INSTALL_DIR)s' % self.env for i in pkgs]
         includedir = P.join(self.env['INSTALL_DIR'], 'include')
@@ -274,6 +274,12 @@ class isis(Package):
             print('HAVE_PKG_APPLE_QWT=no', file=config)
             print('HAVE_PKG_KAKADU=no', file=config)
             print('HAVE_PKG_GSL_HASBLAS=no', file=config)
+
+        # Force the linker to do a thorough job at finding dependencies
+        self.env['LDFLAGS'] = '-Wl,--copy-dt-needed-entries '   \
+                              + '-Wl,--no-as-needed '           \
+                              + '-L' +  self.env['INSTALL_DIR'] \
+                              + '/lib -lblas -lQtXml'
 
         super(isis, self).configure(
             with_ = w,
