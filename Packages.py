@@ -198,6 +198,8 @@ class isis(Package):
         super(isis, self).__init__(env)
         self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
         self.isisautotools_localcopy = P.join(env['DOWNLOAD_DIR'], 'git', 'AutotoolsForISIS')
+        # We download the source code from the OSX branch, should be same code
+        # as on the Linux side.
         self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX10.8/isis/"
         self.isisautotools_src = "http://github.com/NeoGeographyToolkit/AutotoolsForISIS.git"
 
