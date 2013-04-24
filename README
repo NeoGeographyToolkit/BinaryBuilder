@@ -102,13 +102,13 @@ dependencies as an archive tarball:
 
 Then, when you are ready to build the ASP release tarballs:
 
- ./build.py --base BaseSystem-*.tar.gz visionworkbench stereopipeline
+ ./build.py --base BaseSystem-*.tar.bz2 visionworkbench stereopipeline
  ./make-dist.py last-completed-run/install
 
 However, if you just want to call and build VW and ASP yourself so
 that you can modify the code, instead of the last two commands use:
 
- ./deploy-base.py BaseSystem-*.tar.gz <INSTALL DIR for 3rd Party software>
+ ./deploy-base.py BaseSystem-*.tar.bz2 <INSTALL DIR for 3rd Party software>
 
 Inside the <INSTALL DIR> that you specified you'll find the
 appropriate 'bin' and 'lib' directories for all of the used third
