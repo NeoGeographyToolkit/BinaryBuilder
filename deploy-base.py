@@ -204,7 +204,7 @@ if __name__ == '__main__':
                         orthoproject point2dem point2las dem_geoid geodiff point2mesh stereo mer2camera'.split()
         install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
                           ufconfig amd colamd cholmod flann spice qwt gsl \
-                          geos xercesc protobuf tiff              \
+                          geos xercesc protobuf tiff z             \
                           laszip liblas geoid isis superlu gdal'.split()
         off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu gsl_hasblas apple_qwt'.split()
         vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
