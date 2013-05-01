@@ -278,17 +278,26 @@ class isis(Package):
             print('HAVE_PKG_KAKADU=no', file=config)
             print('HAVE_PKG_GSL_HASBLAS=no', file=config)
 
-        # Force the linker to do a thorough job at finding dependencies
-        self.env['LDFLAGS'] = '-Wl,--copy-dt-needed-entries '   \
-                              + '-Wl,--no-as-needed '           \
-                              + '-L' +  self.env['INSTALL_DIR'] \
-                              + '/lib -lblas -lQtXml'
-
-        super(isis, self).configure(
-            with_ = w,
-            without = ['clapack', 'slapack'],
-            disable = ['pkg_paths_default', 'static', 'qt-qmake'] )
-
+        # Force the linker to do a thorough job at finding dependencies.
+        # If older linkers don't like the provided flags, try again
+        # without them.
+        libDir = self.env['INSTALL_DIR'] + '/lib'
+        ld_flags0  = self.env['LDFLAGS']
+        ld_flags1  = ' -Wl,--copy-dt-needed-entries' + ' -Wl,--no-as-needed'
+        ld_flags2  = ' -Wl,-rpath=' + libDir + ' -L' + libDir + ' -lblas -lQtXml'
+        for t in [1, 2]:
+            if t == 1:
+                self.env['LDFLAGS'] = ld_flags0 + ld_flags1 + ld_flags2
+            else:
+                self.env['LDFLAGS'] = ld_flags0 + ld_flags2
+            try:
+                super(isis, self).configure(
+                    with_ = w,
+                    without = ['clapack', 'slapack'],
+                    disable = ['pkg_paths_default', 'static', 'qt-qmake'] )
+                break
+            except:
+                print ("Unexpected error in attempt: ", t, sys.exc_info()[0])
 
 class stereopipeline(GITPackage):
     src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
