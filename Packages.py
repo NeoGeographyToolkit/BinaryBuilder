@@ -61,16 +61,17 @@ class jama(Package):
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, '*.h')) + [d]
         self.helper(*cmd)
 
-class openjpeg2(CMakePackage, SVNPackage):
-    src     = 'http://openjpeg.googlecode.com/svn/branches/v2/@2223'
+class openjpeg2(CMakePackage):
+    src     = 'http://openjpeg.googlecode.com/files/openjpeg-2.0.0.tar.gz'
+    chksum  = '0af78ab2283b43421458f80373422d8029a9f7a7'
 
     @stage
     def configure(self):
         super(openjpeg2, self).configure(other=['-DBUILD_SHARED_LIBS=ON'])
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/gdal-1.9.2.tar.gz'
-    chksum  = '7eda6a4d735b8d6903740e0acdd702b43515e351'
+    src     = 'http://download.osgeo.org/gdal/1.10.0/gdal-1.10.0.tar.gz'
+    chksum  = 'e522b95056905e4c41047fdb42c0ca172ef3ad25'
     patches = 'patches/gdal'
 
     @stage
