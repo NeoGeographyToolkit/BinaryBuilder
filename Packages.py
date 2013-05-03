@@ -330,7 +330,7 @@ class stereopipeline(GITPackage):
                     ldflags.append('-F%s' % (P.join(self.env['INSTALL_DIR'], 'lib')))
 
                 if pkg == 'gdal' and self.arch.os == 'linux':
-                    print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjpeg"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                    print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
                 else:
                     print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
 
@@ -388,7 +388,7 @@ class visionworkbench(GITPackage):
                 print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
                                                        P.join(self.env['INSTALL_DIR'], 'include')), file=config)
                 if pkg == 'gdal' and self.arch.os == 'linux':
-                    print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjpeg"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
+                    print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
                 else:
                     print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
             # Specify executables we use
