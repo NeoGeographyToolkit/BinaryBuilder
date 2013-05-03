@@ -2,7 +2,7 @@ IsisPreferences
 bin/cam2map4stereo.py
 bin/colormap
 bin/dem_geoid
-bin/dg_mosaic.py
+bin/dg_mosaic
 bin/disparitydebug
 bin/geoblend
 bin/hiedr2mosaic.py
