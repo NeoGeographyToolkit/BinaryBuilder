@@ -217,7 +217,6 @@ class isis(Package):
             self.helper('git', 'clone', '--mirror', self.isisautotools_src, self.isisautotools_localcopy)
         else:
             self.helper('git', '--git-dir', self.isisautotools_localcopy, 'fetch', 'origin')
-            #self.helper('git', '--git-dir', self.isisautotools_localcopy, 'reset', '--hard', 'origin/master')
 
     @stage
     def unpack(self):
@@ -281,15 +280,16 @@ class isis(Package):
         # Force the linker to do a thorough job at finding dependencies.
         # If older linkers don't like the provided flags, try again
         # without them.
-        libDir = self.env['INSTALL_DIR'] + '/lib'
-        ld_flags0  = self.env['LDFLAGS']
-        ld_flags1  = ' -Wl,--copy-dt-needed-entries' + ' -Wl,--no-as-needed'
-        ld_flags2  = ' -Wl,-rpath=' + libDir + ' -L' + libDir + ' -lblas -lQtXml'
-        for t in [1, 2]:
-            if t == 1:
-                self.env['LDFLAGS'] = ld_flags0 + ld_flags1 + ld_flags2
-            else:
-                self.env['LDFLAGS'] = ld_flags0 + ld_flags2
+        ldflag_attempts = []
+        ldflag_attempts.append( self.env['LDFLAGS'] )
+        if self.arch.os == 'linux':
+            ld_flags1 = ' -Wl,--copy-dt-needed-entries  -Wl,--no-as-needed'
+            ld_flags2  = ' -Wl,-rpath=%(INSTALL_DIR)s/lib -L%(INSTALL_DIR)s/lib -lblas -lQtXml' % self.env
+            ldflag_attempts.append( ldflag_attempts[0] + ld_flags2 )
+            ldflag_attempts[0] = ldflag_attempts[0] + ld_flags1 + ld_flags2
+
+        for ld_flags in ldflag_attempts:
+            self.env['LDFLAGS'] = ld_flags
             try:
                 super(isis, self).configure(
                     with_ = w,
@@ -297,7 +297,7 @@ class isis(Package):
                     disable = ['pkg_paths_default', 'static', 'qt-qmake'] )
                 break
             except:
-                print ("Unexpected error in attempt: ", t, sys.exc_info()[0])
+                print ("Unexpected error in attempt: ", ld_flags, sys.exc_info()[0])
 
 class stereopipeline(GITPackage):
     src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
