@@ -135,7 +135,9 @@ class curl(Package):
 
     @stage
     def configure(self):
-        super(curl,self).configure(disable=['static','ldap','ldaps'], without=['ssl','libidn'])
+        w = ['zlib=' + self.env['INSTALL_DIR']]
+        wo = 'ssl libidn'.split()
+        super(curl,self).configure(with_=w, without=wo, disable=['static','ldap','ldaps'])
 
 class laszip(CMakePackage):
     src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'

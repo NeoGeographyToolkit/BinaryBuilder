@@ -233,7 +233,7 @@ if __name__ == '__main__':
 
         if arch.os == 'linux':
             build.append(lapack)
-        build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
+        build.extend([gsl, geos, zlib, curl, xercesc, cspice, protobuf, png, jpeg, tiff,
                       superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg3, flann,
                       qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
                       geoid, isis])
@@ -243,7 +243,7 @@ if __name__ == '__main__':
         if opt.dev:
             if arch.os == 'linux':
                 build.append(lapack)
-            build.extend([gsl, geos, curl, xercesc, cspice, protobuf, zlib, png, jpeg, tiff,
+            build.extend([gsl, geos, zlib, curl, xercesc, cspice, protobuf, png, jpeg, tiff,
                           superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg3, flann,
                           qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
                           geoid, isis])
