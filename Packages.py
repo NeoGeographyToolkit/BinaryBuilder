@@ -358,7 +358,7 @@ class stereopipeline(GITPackage):
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],
             with_   = w,
-            without = ['clapack', 'slapack'],
+            without = ['clapack', 'slapack', 'tcmalloc'],
             disable = ['pkg_paths_default', 'static', 'qt-qmake']
             + ['app-' + a for a in disable_apps.split()]
             + ['module-' + a for a in disable_modules.split()],
