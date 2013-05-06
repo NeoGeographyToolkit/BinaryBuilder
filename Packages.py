@@ -596,6 +596,8 @@ class qwt(Package):
         super(qwt, self).install()
         cmd = ['rm', '-vrf', P.join( self.env['INSTALL_DIR'], 'doc', 'html' ) ]
         self.helper(*cmd)
+        cmd = ['rm', '-vrf', P.join( self.env['INSTALL_DIR'], 'doc', 'man' ) ]
+        self.helper(*cmd)
 
 class zlib(Package):
     src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.7.tar.gz'
