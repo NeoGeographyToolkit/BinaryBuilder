@@ -176,7 +176,11 @@ class liblas(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class geoid(CMakePackage):
-    src     = 'https://byss.arc.nasa.gov/geoids/geoids-1.1.tar.gz'
+
+    # Warning: Must keep this version synchronized with dem_geoid.cc!
+    version = "1.1"; # Used in deploy_base.py
+
+    src     = 'https://byss.arc.nasa.gov/geoids/geoids-' + version + '.tar.gz'
     chksum  = '49a21acc5f821a7fad916bce68d1f12f58007927'
 
     @stage

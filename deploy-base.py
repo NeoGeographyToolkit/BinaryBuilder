@@ -12,6 +12,7 @@ import string
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die, run
 from BinaryDist import is_binary, set_rpath, binary_builder_prefix
+from Packages import geoid
 import sys
 from glob import glob
 
@@ -226,8 +227,13 @@ if __name__ == '__main__':
                 print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"' % (pkg.upper(),P.join('$BASE','lib')), file=config)
             else:
                 print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
-            print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(),
-                                              P.join('$BASE','include')), file=config)
+
+            extra_path = ""
+            if pkg == 'geoid':
+                extra_path = " -DGEOID_PATH=$BASE/share/geoids-" + geoid.version
+            print('PKG_%s_CPPFLAGS="-I%s%s"' % (pkg.upper(), P.join('$BASE','include'),
+                                                extra_path), file=config)
+
             if pkg == 'protobuf':
                 print('PROTOC=$BASE/bin/protoc', file=config)
 
@@ -256,4 +262,3 @@ if __name__ == '__main__':
 
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('MOC=$BASE/bin/moc',file=config)
-        print('PKG_GEOID_CPPFLAGS="-I$BASE/include -DGEOID_PATH=$BASE/share/geoids"', file=config)
