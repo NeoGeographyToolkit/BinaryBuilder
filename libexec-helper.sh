@@ -20,6 +20,6 @@ set_lib_paths "${TOPLEVEL}/lib"
 PROGRAM="${LIBEXEC}/$(basename $0)"
 if ! test -f "${PROGRAM}"; then
     msg "Could not find ${PROGRAM}"
-    die "Is your stereo pipeline install incomplete?"
+    die "Is your Stereo Pipeline install incomplete?"
 fi
 exec "${PROGRAM}" "$@"
