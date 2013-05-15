@@ -22,7 +22,7 @@ bin/rpc_mapproject
 bin/stereo
 bin/stereo_corr
 bin/stereo_fltr
-bin/stereo_mpi
+bin/parallel_stereo
 bin/stereo_pprc
 bin/stereo_rfne
 bin/stereo_tri
