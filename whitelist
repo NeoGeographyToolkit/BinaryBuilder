@@ -26,6 +26,7 @@ bin/parallel_stereo
 bin/stereo_pprc
 bin/stereo_rfne
 bin/stereo_tri
+bin/stereo_utils.py
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
