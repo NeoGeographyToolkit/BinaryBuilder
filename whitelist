@@ -19,6 +19,7 @@ bin/point2dem
 bin/point2las
 bin/point2mesh
 bin/rpc_mapproject
+bin/rpc_gen
 bin/stereo
 bin/stereo_corr
 bin/stereo_fltr
