@@ -23,6 +23,7 @@ bin/stereo
 bin/stereo_corr
 bin/stereo_fltr
 bin/parallel_stereo
+bin/sparse_disp
 bin/stereo_pprc
 bin/stereo_rfne
 bin/stereo_tri
