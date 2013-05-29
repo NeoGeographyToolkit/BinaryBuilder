@@ -27,7 +27,6 @@ bin/sparse_disp
 bin/stereo_pprc
 bin/stereo_rfne
 bin/stereo_tri
-bin/stereo_utils.py
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
@@ -35,6 +34,7 @@ lib/libvw*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
 libexec/stereo_parse
 libexec/rpc_gen
+libexec/stereo_utils.py
 share/gdal/*
 share/geoids*
 share/proj/*
