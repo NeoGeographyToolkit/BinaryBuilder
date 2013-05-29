@@ -19,7 +19,6 @@ bin/point2dem
 bin/point2las
 bin/point2mesh
 bin/rpc_mapproject
-bin/rpc_gen
 bin/stereo
 bin/stereo_corr
 bin/stereo_fltr
@@ -34,6 +33,7 @@ lib/libsuperlu*.[so,dylib]*
 lib/libvw*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
 libexec/stereo_parse
+libexec/rpc_gen
 share/gdal/*
 share/geoids*
 share/proj/*
