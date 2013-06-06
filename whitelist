@@ -34,6 +34,7 @@ lib/libvw*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
 libexec/stereo_parse
 libexec/rpc_gen
+libexec/tif_mosaic
 libexec/stereo_utils.py
 share/gdal/*
 share/geoids*
