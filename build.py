@@ -146,8 +146,9 @@ if __name__ == '__main__':
     if opt.build_root is None:
         opt.build_root = mkdtemp(prefix=binary_builder_prefix())
 
-    # Things misbehave if the buildroot is symlinks in it
+    # Things misbehave if directories have symlinks or are relative
     opt.build_root = P.realpath(opt.build_root)
+    opt.download_dir = P.realpath(opt.download_dir)
 
     print("Using build root directory: %s" % opt.build_root)
 
