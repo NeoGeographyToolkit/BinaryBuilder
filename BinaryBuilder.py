@@ -203,7 +203,6 @@ def get(url, output=None):
         info('\nDone')
 
 class Package(object):
-
     src     = None
     chksum  = None
     patches = []
@@ -217,7 +216,7 @@ class Package(object):
         assert '/' not in self.pkgname
 
         self.pkgdir  = P.abspath(P.dirname(inspect.getfile(self.__class__)))
-        info(self.pkgdir)
+        #info(self.pkgdir)
         self.tarball = None
         self.workdir = None
         self.env = env
@@ -254,7 +253,7 @@ class Package(object):
                 if skip: raise PackageError(self, 'Fetch is skipped and no src available')
                 get(src, self.tarball)
 
-            curr_chksum = hash_file(self.tarball) 
+            curr_chksum = hash_file(self.tarball)
             if curr_chksum != chksum:
                 os.remove(self.tarball)
                 raise PackageError(self, 'Checksum on file[%s] failed. Expected %s but got %s. Removed!'

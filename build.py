@@ -66,6 +66,47 @@ def summary(env):
     for k in sorted(env.keys()):
         print('%15s: %s' % (k,env[k]))
 
+def is_sequence(arg):
+    # Returns true if current object is a tuple or list
+    return (not hasattr(arg, "strip") and
+            hasattr(arg, "__getitem__") or
+            hasattr(arg, "__iter__"))
+
+def get_chksum(name):
+    pkg = globals()[name](e)
+    chksum = pkg.chksum
+    # sometimes chksum is a sequence
+    if is_sequence(chksum): chksum = chksum[0]
+    # sometimes chksum is a number
+    chksum = str(chksum)
+    return chksum
+
+def read_done(done_file):
+    # Read the packages already built. Ensure that the chksum agrees.
+    print("\nReading: %s" % done_file)
+    done = {}
+    try:
+        f = open(done_file, 'r')
+        for line in f:
+            a = line.rstrip("\n").split(" ")
+            if len(a) != 2: continue
+            name = a[0]; chksum = a[1]
+            pkg_chksum = get_chksum(name)
+            if chksum == pkg_chksum:
+                done[name] = chksum
+
+    except IOError:
+        pass
+
+    return done
+
+def append_done(pkg, done_file):
+    # Mark the current package as already built.
+    name = pkg.__name__
+    chksum = get_chksum(name)
+    f = open(done_file, 'a')
+    f.write(name + " " + chksum + "\n")
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.set_defaults(mode='all')
@@ -99,11 +140,16 @@ if __name__ == '__main__':
     if opt.resume:
         opt.build_root = grablink('last-run')
 
-    if opt.build_root is None or not P.exists(opt.build_root):
+    if opt.build_root is not None and not P.exists(opt.build_root):
+        os.mkdir(opt.build_root)
+
+    if opt.build_root is None:
         opt.build_root = mkdtemp(prefix=binary_builder_prefix())
 
     # Things misbehave if the buildroot is symlinks in it
     opt.build_root = P.realpath(opt.build_root)
+
+    print("Using build root directory: %s" % opt.build_root)
 
     # -Wl,-z,now ?
     e = Environment(
@@ -214,39 +260,32 @@ if __name__ == '__main__':
     if opt.libtoolize is not None:
         e['LIBTOOLIZE'] = opt.libtoolize
 
+    # Verify we have the executables we need
+    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", e['CC'],e['CXX'],e['F77'],"ccache"]
+    if arch.os == 'linux':
+        common_exec.extend( ["libtool", "chrpath"] )
+    else:
+        common_exec.extend( ["glibtool", "install_name_tool"] )
+
+    missing_exec = []
+    for program in common_exec:
+        if not verify( program ):
+            missing_exec.append(program)
+    if missing_exec:
+        die('Missing required executables for building. You need to install %s.' % missing_exec)
+
     build = []
+    build0 = [gsl, geos, zlib, curl, xercesc, cspice, protobuf, png, jpeg,
+              tiff, superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr,
+              boost, osg3, flann, qt, qwt, ufconfig, amd, colamd, cholmod,
+              tnt, jama, laszip, liblas, geoid, isis]
 
-    if len(args) == 0:
-        # Verify we have the executables we need
-        common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", e['CC'],e['CXX'],e['F77'],"ccache"]
-        if arch.os == 'linux':
-            common_exec.extend( ["libtool", "chrpath"] )
-        else:
-            common_exec.extend( ["glibtool", "install_name_tool"] )
-
-        missing_exec = []
-        for program in common_exec:
-            if not verify( program ):
-                missing_exec.append(program)
-        if missing_exec:
-            die('Missing required executables for building. You need to install %s.' % missing_exec)
-
+    if len(args) == 0 or opt.dev:
         if arch.os == 'linux':
             build.append(lapack)
-        build.extend([gsl, geos, zlib, curl, xercesc, cspice, protobuf, png, jpeg, tiff,
-                      superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg3, flann,
-                      qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
-                      geoid, isis])
+        build.extend(build0)
         if not opt.dev:
             build.extend([visionworkbench, stereopipeline])
-    else:
-        if opt.dev:
-            if arch.os == 'linux':
-                build.append(lapack)
-            build.extend([gsl, geos, zlib, curl, xercesc, cspice, protobuf, png, jpeg, tiff,
-                          superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr, boost, osg3, flann,
-                          qt, qwt, ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas,
-                          geoid, isis])
 
     # Now handle the arguments the user supplied to us! This might be
     # additional packages or minus packages.
@@ -265,11 +304,10 @@ if __name__ == '__main__':
 
     makelink(opt.build_root, 'last-run')
 
-    if opt.base:
+    if opt.base and not opt.resume:
         print('Untarring base system')
-    for base in opt.base:
-        run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
-    if opt.base:
+        for base in opt.base:
+            run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
         info("Fixing Paths in Libtool files.")
         new_libdir = e['INSTALL_DIR']
         for file in glob(P.join(e['INSTALL_DIR'],'lib','*.la')):
@@ -310,9 +348,18 @@ if __name__ == '__main__':
         fetch   = lambda pkg : pkg.fetch(),
         nofetch = lambda pkg : Package.build(pkg, skip_fetch=True))
 
+    # Build the packages, skipping the ones already done
+    done_file = opt.build_root + "/done.txt"
+    done = read_done(done_file)
     try:
         for pkg in build:
+            name = pkg.__name__
+            if name in done:
+                print("Package %s was already built, skipping" % name)
+                continue
+            print("\n========== Building: %s ==========" % name)
             modes[opt.mode](pkg(e.copy_set_default()))
+            append_done(pkg, done_file)
 
     except PackageError, e:
         die(e)

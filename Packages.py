@@ -312,7 +312,7 @@ class stereopipeline(GITPackage):
 
         disable_apps = 'aligndem bundleadjust demprofile isisadjustcameraerr isisadjustcnetclip plateorthoproject reconstruct results rmax2cahvor rmaxadjust stereogui'
         enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz orthoproject point2dem point2las point2mesh stereo mer2camera rpc_mapproject rpc_gen tif_mosaic dem_geoid geodiff'
-        disable_modules  = 'photometrytk controlnettk mpi'
+        disable_modules  = 'controlnettk mpi'
         enable_modules   = 'core spiceio isisio sessions'
 
         install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
@@ -383,7 +383,7 @@ class visionworkbench(GITPackage):
         self.helper('./autogen')
 
         enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools bundleadjustment'.split()
-        disable_modules = 'gpu plate python gui photometry'.split()
+        disable_modules = 'gpu plate python gui'.split()
         install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
 
         w  = [i + '=%(INSTALL_DIR)s' % self.env for i in install_pkgs]
