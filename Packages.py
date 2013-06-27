@@ -310,8 +310,8 @@ class stereopipeline(GITPackage):
     def configure(self):
         self.helper('./autogen')
 
-        disable_apps = 'aligndem bundleadjust demprofile isisadjustcameraerr isisadjustcnetclip plateorthoproject reconstruct results rmax2cahvor rmaxadjust stereogui'
-        enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz orthoproject point2dem point2las point2mesh stereo mer2camera rpc_mapproject rpc_gen tif_mosaic dem_geoid geodiff'
+        disable_apps = 'aligndem bundleadjust demprofile isisadjustcameraerr isisadjustcnetclip plateorthoproject results rmax2cahvor rmaxadjust stereogui'
+        enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz orthoproject point2dem point2las point2mesh stereo mer2camera mapproject rpc_gen tif_mosaic dem_geoid geodiff'
         disable_modules  = 'controlnettk mpi'
         enable_modules   = 'core spiceio isisio sessions'
 
