@@ -1,1 +1,10 @@
 *.pyc
+*.tar
+*.bz2
+*.gz
+*.xz
+*.log
+last-run
+last-completed-run
+build
+tarballs

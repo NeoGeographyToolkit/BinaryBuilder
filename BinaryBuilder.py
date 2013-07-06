@@ -222,7 +222,6 @@ class Package(object):
         self.env = env
         self.arch = get_platform(self)
 
-        self.env['CFLAGS']   = self.env.get('CFLAGS', '')   + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
         self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
         self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
         # If we include flags to directories that don't exist, we

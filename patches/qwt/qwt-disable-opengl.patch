@@ -1,0 +1,20 @@
+diff -crB qwt-6.1.0_org/qwtconfig.pri qwt-6.1.0/qwtconfig.pri
+*** qwt-6.1.0_org/qwtconfig.pri	2013-07-06 12:17:03.316978937 -0700
+--- qwt-6.1.0/qwtconfig.pri	2013-07-06 12:18:43.072979323 -0700
+***************
+*** 97,103 ****
+  # If you want to use a OpenGL plot canvas
+  ######################################################################
+  
+! QWT_CONFIG     += QwtOpenGL
+  
+  ######################################################################
+  # You can use the MathML renderer of the Qt solutions package to 
+--- 97,103 ----
+  # If you want to use a OpenGL plot canvas
+  ######################################################################
+  
+! #QWT_CONFIG     += QwtOpenGL
+  
+  ######################################################################
+  # You can use the MathML renderer of the Qt solutions package to 

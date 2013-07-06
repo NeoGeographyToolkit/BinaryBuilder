@@ -130,25 +130,19 @@ class proj(Package):
         super(proj,self).configure(disable='static', without='jni')
 
 class curl(Package):
-    src     = 'http://curl.haxx.se/download/curl-7.28.0.tar.bz2'
-    chksum  = 'dbb69e510438495aa22dfc438d69477c4b2a49b6'
+    src     = 'http://curl.haxx.se/download/curl-7.31.0.tar.bz2'
+    chksum  = '9333b1fc63ded189b6014afe7bb415fa1f22ae10'
 
     @stage
     def configure(self):
-        w = ['zlib=' + self.env['INSTALL_DIR']]
+        w = ['zlib=%(INSTALL_DIR)s' % self.env]
         wo = 'ssl libidn'.split()
-        super(curl,self).configure(with_=w, without=wo, disable=['static','ldap','ldaps'])
+        super(curl,self).configure(
+            with_=w, without=wo, disable=['static','ldap','ldaps'])
 
 class laszip(CMakePackage):
     src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
-
-    @stage
-    def configure(self):
-        installDir = self.env['INSTALL_DIR']
-        super(laszip, self).configure( other=[
-                '-DCMAKE_INSTALL_PREFIX=' + installDir
-                ] )
 
 class liblas(CMakePackage):
     src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
@@ -156,24 +150,17 @@ class liblas(CMakePackage):
 
     @stage
     def configure(self):
-        installDir = self.env['INSTALL_DIR']
-
         # Remove the pedantic flag. Latest boost is not compliant.
         self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
 
-        # Temporarily append the path to libs to LDFLAGS so that we
-        # can link properly.
-        LDFLAGS_ORIG = self.env['LDFLAGS']
-        self.env['LDFLAGS'] = self.env['LDFLAGS'] + ' -Wl,-rpath -Wl,' + installDir + '/lib'
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
 
-        super(liblas, self).configure( other=[
-                '-DCMAKE_INSTALL_PREFIX=' + installDir,
-                '-DBoost_INCLUDE_DIR='    + installDir + '/include/boost-' + boost.version,
-                '-DBoost_LIBRARY_DIRS='   + installDir + '/lib',
+        super(liblas, self).configure(
+            other=[
+                '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+                '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
                 '-DWITH_LASZIP=true',
-                '-DLASZIP_INCLUDE_DIR=' + installDir + '/include'
-                ] )
-        self.env['LDFLAGS'] = LDFLAGS_ORIG
+                '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')])
 
 class geoid(CMakePackage):
 
@@ -421,15 +408,15 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_53' # this is used in class liblas
+    version = '1_54' # this is used in class liblas
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = 'e6dd1b62ceed0a51add3dda6f3fc3ce0f636a7f3'
+    chksum  = '230782c7219882d0fab5f1effbe86edb85238bf4'
     patches = 'patches/boost'
 
     def __init__(self, env):
         super(boost, self).__init__(env)
         self.env['NO_BZIP2'] = '1'
-        self.env['NO_ZLIB']  = '1'
+#        self.env['NO_ZLIB']  = '1'
 
     @stage
     def configure(self):
@@ -443,6 +430,8 @@ class boost(Package):
             # print('variant mydebug : debug : <optimization>none ;', file=f)
             args = [toolkit] + list(self.env.get(i, ' ') for i in ('CXX', 'CXXFLAGS', 'LDFLAGS'))
             print('using %s : : %s : <cxxflags>"%s" <linkflags>"%s -ldl" ;' % tuple(args), file=f)
+            print('using zlib : 1.2.8 : <include>%s <search>%s ;' %
+                  (P.join(self.env['INSTALL_DIR'],'include'),P.join(self.env['INSTALL_DIR'],'lib')), file=f)
             print('option.set keep-going : false ;', file=f)
 
     # TODO: WRONG. There can be other things besides -j4 in MAKEOPTS
@@ -490,12 +479,15 @@ class gsl(Package):
     src = 'ftp://ftp.gnu.org/gnu/gsl/gsl-1.15.tar.gz',
     chksum = 'd914f84b39a5274b0a589d9b83a66f44cd17ca8e',
 
+    def configure(self):
+        super(gsl, self).configure(disable=('static'))
+
 class geos(Package):
     src = 'http://download.osgeo.org/geos/geos-3.3.8.tar.bz2'
     chksum = '1743e09f37eb75d85283a684a5765c4f44d035fa'
 
     def configure(self):
-        super(geos, self).configure(disable=('python', 'ruby'))
+        super(geos, self).configure(disable=('python', 'ruby', 'static'))
 
 class superlu(Package):
     src    = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/superlu/files/superlu-4.3-autotools.patch','http://crd-legacy.lbl.gov/~xiaoye/SuperLU/superlu_4.3.tar.gz']
@@ -515,7 +507,7 @@ class superlu(Package):
             blas = '"-framework vecLib"'
         else:
             blas = glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0]
-        super(superlu,self).configure(with_=('blas=%s') % blas)
+        super(superlu,self).configure(with_=('blas=%s') % blas,disable=('static'))
 
 class gmm(Package):
     src     = 'http://download.gna.org/getfem/stable/gmm-4.2.tar.gz'
@@ -543,8 +535,8 @@ class xercesc(Package):
                                       disable = ['static', 'msgloader-iconv', 'msgloader-icu', 'network'])
 
 class qt(Package):
-    src     = 'http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-4.8.4.tar.gz'
-    chksum  = 'f5880f11c139d7d8d01ecb8d874535f7d9553198'
+    src     = 'http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz'
+    chksum  = '745f9ebf091696c0d5403ce691dc28c039d77b9e'
     patches = 'patches/qt'
     patch_level = '-p0'
 
@@ -576,8 +568,8 @@ class qt(Package):
         super(qt, self).install()
 
 class qwt(Package):
-    src     = 'http://downloads.sourceforge.net/qwt/qwt-6.0.2.tar.bz2',
-    chksum  = 'cbdd00b29521987c9e7bc6aa51092f0474b9428d',
+    src     = 'http://downloads.sourceforge.net/qwt/qwt-6.1.0.tar.bz2',
+    chksum  = '48a967038f7aa9a9c87c64bcb2eb07c5df375565',
     patches = 'patches/qwt'
 
     def configure(self):
@@ -604,8 +596,8 @@ class qwt(Package):
         self.helper(*cmd)
 
 class zlib(Package):
-    src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.7.tar.gz'
-    chksum  = '4aa358a95d1e5774603e6fa149c926a80df43559'
+    src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.8.tar.gz'
+    chksum  = 'a4d316c404ff54ca545ea71a27af7dbc29817088'
 
     def unpack(self):
         super(zlib, self).unpack()
@@ -635,8 +627,8 @@ class jpeg(Package):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.5.14.tar.bz2'
-    chksum = 'b634cbd51698a3ddb495fa6decd074ae523c8fbf'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.2.tar.gz'
+    chksum = 'd10af2004e7608425cbb8a8a99209a27af276ff7'
 
     def configure(self):
         super(png,self).configure(disable='static')
@@ -703,7 +695,7 @@ class protobuf(Package):
     @stage
     def configure(self):
         self.helper('./autogen.sh')
-        super(protobuf, self).configure()
+        super(protobuf, self).configure(disable=('static'))
 
 class ufconfig(Package):
     src = 'http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/UFconfig-3.6.1.tar.gz'
