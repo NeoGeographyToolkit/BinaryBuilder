@@ -137,11 +137,11 @@ if __name__ == '__main__':
     if opt.ccache and opt.save_temps:
         die('--ccache and --save-temps conflict. Disabling ccache.')
 
-    if opt.resume:
-        opt.build_root = grablink('last-run')
-
     if opt.build_root is not None and not P.exists(opt.build_root):
         os.mkdir(opt.build_root)
+
+    if opt.resume and opt.build_root is None:
+        opt.build_root = grablink('last-run')
 
     if opt.build_root is None:
         opt.build_root = mkdtemp(prefix=binary_builder_prefix())
@@ -149,6 +149,8 @@ if __name__ == '__main__':
     # Things misbehave if directories have symlinks or are relative
     opt.build_root = P.realpath(opt.build_root)
     opt.download_dir = P.realpath(opt.download_dir)
+
+    makelink(opt.build_root, 'last-run')
 
     print("Using build root directory: %s" % opt.build_root)
 
@@ -302,8 +304,6 @@ if __name__ == '__main__':
         info('I want to build:\n%s' % ' '.join(map(lambda x: x.__name__, build)))
         summary(e)
         sys.exit(0)
-
-    makelink(opt.build_root, 'last-run')
 
     if opt.base and not opt.resume:
         print('Untarring base system')

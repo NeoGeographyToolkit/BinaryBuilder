@@ -10,7 +10,7 @@ import stat
 import logging
 import string
 from optparse import OptionParser
-from BinaryBuilder import get_platform, die, run
+from BinaryBuilder import get_platform, die, run, Apps
 from BinaryDist import is_binary, set_rpath, binary_builder_prefix
 from Packages import geoid
 import sys
@@ -198,19 +198,11 @@ if __name__ == '__main__':
 
         print('BASE=%s' % installdir, file=config)
 
-        disable_apps = 'aligndem bundleadjust demprofile isisadjustcameraerr \
-                        isisadjustcnetclip plateorthoproject results \
-                        rmax2cahvor rmaxadjust stereogui'.split()
-        enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz \
-                        orthoproject point2dem mapproject rpc_gen tif_mosaic point2las \
-                        dem_geoid geodiff point2mesh stereo mer2camera'.split()
-        install_pkgs   = 'boost openscenegraph flapack arbitrary_qt curl  \
-                          ufconfig amd colamd cholmod flann spice qwt gsl \
-                          geos xercesc protobuf tiff z             \
-                          laszip liblas geoid isis superlu gdal'.split()
-        off_pkgs       = 'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate kakadu gsl_hasblas apple_qwt'.split()
-        vw_pkgs        = 'vw_core vw_math vw_image vw_fileio vw_camera \
-                          vw_stereo vw_cartography vw_interest_point'.split()
+        disable_apps = Apps.disable_apps.split()
+        enable_apps  = Apps.enable_apps.split()
+        install_pkgs = Apps.install_pkgs.split()
+        off_pkgs     = Apps.off_pkgs.split()
+        vw_pkgs      = Apps.vw_pkgs.split()
 
         print('\n# Applications', file=config)
         for app in disable_apps:
@@ -232,7 +224,8 @@ if __name__ == '__main__':
             extra_path = ""
             if pkg == 'geoid':
                 extra_path = " -DGEOID_PATH=$BASE/share/geoids-" + geoid.version
-            print('PKG_%s_CPPFLAGS="-I%s%s"' % (pkg.upper(), P.join('$BASE','include'),
+            print('PKG_%s_CPPFLAGS="-I%s%s"' % (pkg.upper(),
+                                                P.join('$BASE','include'),
                                                 extra_path), file=config)
 
             if pkg == 'protobuf':
@@ -245,7 +238,7 @@ if __name__ == '__main__':
         for pkg in off_pkgs:
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
-        qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+        qt_pkgs = Apps.qt_pkgs
 
         print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 

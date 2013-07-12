@@ -6,7 +6,7 @@ import os.path as P
 import re, sys
 from glob import glob
 import subprocess
-from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError, SVNPackage
+from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError, SVNPackage, Apps
 
 def strip_flag(flag, key, env):
     ret = []
@@ -297,16 +297,11 @@ class stereopipeline(GITPackage):
     def configure(self):
         self.helper('./autogen')
 
-        disable_apps = 'aligndem bundleadjust demprofile isisadjustcameraerr isisadjustcnetclip plateorthoproject results rmax2cahvor rmaxadjust stereogui'
-        enable_apps  = 'bundlevis disparitydebug hsvmerge isisadjust orbitviz orthoproject point2dem point2las point2mesh stereo mer2camera mapproject rpc_gen tif_mosaic dem_geoid geodiff'
-        disable_modules  = 'controlnettk mpi'
-        enable_modules   = 'core spiceio isisio sessions'
-
-        install_pkgs   = 'boost vw_core vw_math vw_image vw_fileio vw_camera \
-                          vw_stereo vw_cartography vw_interest_point openscenegraph \
-                          flapack arbitrary_qt curl ufconfig amd colamd cholmod flann \
-                          spice qwt gsl geos xercesc kakadu protobuf superlu tiff laszip liblas isis gdal z'.split()
-
+        disable_apps    = Apps.disable_apps
+        enable_apps     = Apps.enable_apps
+        disable_modules = 'controlnettk mpi'
+        enable_modules  = 'core spiceio isisio sessions'
+        install_pkgs    = Apps.vw_pkgs.split() + Apps.install_pkgs.split()
         w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs]
 
         includedir = P.join(self.env['INSTALL_DIR'], 'include')
@@ -327,7 +322,7 @@ class stereopipeline(GITPackage):
                 else:
                     print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
 
-            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+            qt_pkgs = Apps.qt_pkgs
 
             print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
 

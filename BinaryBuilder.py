@@ -581,3 +581,27 @@ class CMakePackage(Package):
     @stage
     def install(self):
         super(CMakePackage, self).install(cwd=self.builddir)
+
+class Apps:
+    disable_apps = \
+                 'bundleadjust demprofile isisadjustcameraerr \
+                 isisadjustcnetclip plateorthoproject results \
+                 rmax2cahvor rmaxadjust stereogui'
+    enable_apps = \
+                'bundlevis dem_geoid disparitydebug geodiff hsvmerge \
+                isisadjust mapproject mer2camera orbitviz orthoproject \
+                point2dem point2las point2mesh pc_align stereo rpc_gen \
+                tif_mosaic'
+    install_pkgs = \
+                 'boost openscenegraph flapack arbitrary_qt curl  \
+                 ufconfig amd colamd cholmod flann spice qwt gsl\
+                 geos xercesc protobuf tiff z             \
+                 laszip liblas geoid isis superlu gdal'
+    vw_pkgs     = \
+            'vw_core vw_math vw_image vw_fileio vw_camera \
+            vw_stereo vw_cartography vw_interest_point'
+    off_pkgs    = \
+             'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate \
+             kakadu gsl_hasblas apple_qwt'
+    qt_pkgs     = \
+            'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
