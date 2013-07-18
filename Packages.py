@@ -235,11 +235,10 @@ class isis(Package):
         self.helper('./autogen')
 
         pkgs = 'arbitrary_qt qwt boost protobuf tnt jama xercesc spice geos gsl \
-                superlu gmm tiff z jpeg ufconfig amd colamd cholmod curl xercesc'.split()
+                lapack superlu gmm tiff z jpeg ufconfig amd colamd cholmod curl xercesc'.split()
 
         w = [i + '=%(INSTALL_DIR)s' % self.env for i in pkgs]
         includedir = P.join(self.env['INSTALL_DIR'], 'include')
-
 
         with file(P.join(self.workdir, 'config.options'), 'w') as config:
             for pkg in pkgs:
@@ -276,8 +275,10 @@ class isis(Package):
         ldflag_attempts.append( self.env['LDFLAGS'] )
         if self.arch.os == 'linux':
             ld_flags1 = ' -Wl,--copy-dt-needed-entries  -Wl,--no-as-needed'
-            ld_flags2  = ' -Wl,-rpath=%(INSTALL_DIR)s/lib -L%(INSTALL_DIR)s/lib -lblas -lQtXml' % self.env
+            ld_flags2 = ' -Wl,-rpath=%(INSTALL_DIR)s/lib -L%(INSTALL_DIR)s/lib -lblas -lQtXml' % self.env
             ldflag_attempts.append( ldflag_attempts[0] + ld_flags2 )
+            ldflag_attempts.append( ldflag_attempts[0] + ld_flags1)
+            ldflag_attempts.append( ldflag_attempts[0] )
             ldflag_attempts[0] = ldflag_attempts[0] + ld_flags1 + ld_flags2
 
         for ld_flags in ldflag_attempts:
