@@ -173,6 +173,16 @@ class Environment(dict):
         for k in key_seq:
             self.append(k, value)
 
+def unique_compiler_flags(iflags):
+    #This is used instead of a set to preserve flag order
+
+    oflags = []
+    used_flags = set()
+    for keyword in iflags.split():
+        if keyword not in used_flags:
+            used_flags.add(keyword)
+            oflags.append(keyword)
+    return " ".join(oflags)
 
 def get(url, output=None):
     if output is None:
@@ -230,6 +240,12 @@ class Package(object):
             self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(ISIS3RDPARTY)s' % self.env
         if P.isdir(self.env['INSTALL_DIR']+'/lib'):
             self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(INSTALL_DIR)s/lib' % self.env
+
+        # Remove repeated entries in CPPFLAGS, CXXFLAGS, LDFLAGS
+        self.env['CPPFLAGS'] = unique_compiler_flags(self.env['CPPFLAGS'])
+        self.env['CXXFLAGS'] = unique_compiler_flags(self.env['CXXFLAGS'])
+        self.env['CFLAGS']   = unique_compiler_flags(self.env['CFLAGS'])
+        self.env['LDFLAGS']  = unique_compiler_flags(self.env['LDFLAGS'])
 
     @stage
     def fetch(self, skip=False):
