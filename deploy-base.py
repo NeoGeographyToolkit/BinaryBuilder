@@ -174,6 +174,8 @@ if __name__ == '__main__':
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
     print('Writing config.options.asp')
+    # To do: Fix duplication in writing config.options.asp in deploy_base.py
+    # and class stereopipeline in Packages.py.
     with file(P.join(installdir,'config.options.asp'), 'w') as config:
         print('ENABLE_DEBUG=yes',file=config)
         print('ENABLE_OPTIMIZE=yes',file=config)
@@ -256,3 +258,7 @@ if __name__ == '__main__':
 
         print('PROTOC=$BASE/bin/protoc', file=config)
         print('MOC=$BASE/bin/moc',file=config)
+
+        print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
+        print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s -std=gnu++0x"' % includedir,
+                  file=config)

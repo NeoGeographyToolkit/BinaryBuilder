@@ -155,12 +155,11 @@ class liblas(CMakePackage):
 
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
 
-        super(liblas, self).configure(
-            other=[
-                '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
-                '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-                '-DWITH_LASZIP=true',
-                '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')])
+        super(liblas, self).configure(other=[
+            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DWITH_LASZIP=true',
+            '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')])
 
 class geoid(CMakePackage):
 
@@ -293,6 +292,8 @@ class isis(Package):
                 print ("Unexpected error in attempt: ", ld_flags, sys.exc_info()[0])
 
 class stereopipeline(GITPackage):
+    # To do: Fix duplication in writing config.options.asp in deploy_base.py
+    # and class stereopipeline in Packages.py.
     src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
         self.helper('./autogen')
@@ -342,6 +343,10 @@ class stereopipeline(GITPackage):
             print('HAVE_PKG_APPLE_QWT=no', file=config)
             print('HAVE_PKG_KAKADU=no', file=config)
             print('HAVE_PKG_GSL_HASBLAS=no', file=config)
+
+            print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
+            print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s -std=gnu++0x"' % includedir,
+                  file=config)
 
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],
@@ -403,7 +408,7 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_54' # this is used in class liblas
+    version = '1_54' # this is used in class liblas, libnabo, etc.
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
     chksum  = '230782c7219882d0fab5f1effbe86edb85238bf4'
     patches = 'patches/boost'
@@ -831,3 +836,60 @@ class flann(CMakePackage):
 
     def configure(self):
         super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF','-DBUILD_MATLAB_BINDINGS=OFF','-DBUILD_PYTHON_BINDINGS=OFF','-DBUILD_CUDA_LIB=OFF','-DUSE_MPI=OFF','-DUSE_OPENMP=OFF'])
+
+class yaml(CMakePackage):
+    src = 'http://yaml-cpp.googlecode.com/files/yaml-cpp-0.3.0.tar.gz'
+    chksum = '28766efa95f1b0f697c4b4a1580a9972be7c9c41'
+
+    def configure(self):
+        super(yaml, self).configure(other=[
+            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
+            ])
+
+class eigen(CMakePackage):
+    src = 'http://bitbucket.org/eigen/eigen/get/3.1.3.tar.bz2'
+    chksum = '07e248deaaa5d2a8822a0581a606151127fce450'
+
+    def configure(self):
+        super(eigen, self).configure(other=[
+            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
+            ])
+
+class libnabo(CMakePackage):
+    # We keep this on byss as this software does not have a fixed release,
+    # and getting things from github directly means at some point
+    # it may change to the point where it breaks.
+    src = 'https://byss.arc.nasa.gov/asp_packages/libnabo-0.0.0.tgz'
+    chksum = 'bc71180748b5ebf1c3bbfe3f45a34e6d6be3dbec'
+
+    def configure(self):
+        super(libnabo, self).configure(other=[
+            '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
+            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
+            ])
+
+class libpointmatcher(CMakePackage):
+    # We keep this on byss as we hacked it a bit to compile. Besides,
+    # we'd like to have a fixed reference version rather than getting
+    # it from github.
+    src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
+    chksum = '0758a440b06fc89f3ae6f387270d3cfc46cbe12d'
+
+    def configure(self):
+        installDir = self.env['INSTALL_DIR']
+        boost_include = P.join(installDir,'include','boost-'+boost.version)
+        self.env['CXXFLAGS'] += ' -I="' + boost_include + '"' # bugfix for lunokhod2
+        super(libpointmatcher, self).configure(other=[
+            '-DCMAKE_CXX_FLAGS=-I' + boost_include,
+            '-DBoost_INCLUDE_DIR=' + boost_include,
+            '-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
+            '-DEIGEN_INCLUDE_DIR=' + P.join(installDir,'include/eigen3'),
+            '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+            '-DCMAKE_PREFIX_PATH=' + installDir
+            ])

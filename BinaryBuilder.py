@@ -595,8 +595,8 @@ class Apps:
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl  \
                  ufconfig amd colamd cholmod flann spice qwt gsl\
-                 geos xercesc protobuf tiff z             \
-                 laszip liblas geoid isis superlu gdal'
+                 geos xercesc protobuf tiff z laszip liblas geoid isis \
+                 superlu gdal yaml libnabo eigen libpointmatcher'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \
             vw_stereo vw_cartography vw_interest_point'

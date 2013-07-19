@@ -14,11 +14,7 @@ from tempfile import mkdtemp, gettempdir
 from distutils import version
 from glob import glob
 
-from Packages import gsl, geos, superlu, gmm, xercesc, cspice, qt, qwt, \
-     zlib, tiff, png, jpeg, proj, gdal, ilmbase, openexr,   \
-     boost, lapack, visionworkbench, stereopipeline, protobuf, flann, curl, \
-     ufconfig, amd, colamd, cholmod, tnt, jama, laszip, liblas, geoid, \
-     isis, openjpeg2, osg3
+from Packages import *
 
 from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
      findfile, run, get_gcc_version, logger, warn
@@ -226,6 +222,7 @@ if __name__ == '__main__':
     compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
     if not P.exists(compiler_dir):
         os.makedirs(compiler_dir)
+
     try:
         findfile(e['F77'], e['PATH'])
     except Exception:
@@ -240,6 +237,7 @@ if __name__ == '__main__':
                 break
             except Exception:
                 pass
+
     if opt.ccache:
         new = dict(
             CC  = P.join(compiler_dir, e['CC']),
@@ -281,7 +279,8 @@ if __name__ == '__main__':
     build0 = [gsl, geos, zlib, curl, xercesc, cspice, protobuf, png, jpeg,
               tiff, superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr,
               boost, osg3, flann, qt, qwt, ufconfig, amd, colamd, cholmod,
-              tnt, jama, laszip, liblas, geoid, isis]
+              tnt, jama, laszip, liblas, geoid, isis, yaml, eigen, libnabo,
+              libpointmatcher]
 
     if len(args) == 0 or opt.dev:
         if arch.os == 'linux':
