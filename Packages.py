@@ -345,8 +345,9 @@ class stereopipeline(GITPackage):
             print('HAVE_PKG_GSL_HASBLAS=no', file=config)
 
             print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
-            print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s -std=gnu++0x"' % includedir,
+            print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s"' % includedir,
                   file=config)
+            print('PKG_PC_ALIGN_CPPFLAGS="-std=gnu++0x"', file=config)
 
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],
