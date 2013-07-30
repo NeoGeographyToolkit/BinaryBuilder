@@ -347,7 +347,6 @@ class stereopipeline(GITPackage):
             print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
             print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s"' % includedir,
                   file=config)
-            print('PKG_PC_ALIGN_CPPFLAGS="-std=gnu++0x"', file=config)
 
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],
@@ -880,7 +879,7 @@ class libpointmatcher(CMakePackage):
     # we'd like to have a fixed reference version rather than getting
     # it from github.
     src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
-    chksum = 'e127a1828f50a132042e03bd7808b163807720c5'
+    chksum = '61e2b666495ba58c555cc1053f2e51fc85e3eff3'
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']

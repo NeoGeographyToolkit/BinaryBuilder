@@ -262,4 +262,3 @@ if __name__ == '__main__':
         print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
         print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s"' % includedir,
               file=config)
-        print('PKG_PC_ALIGN_CPPFLAGS="-std=gnu++0x"', file=config)
