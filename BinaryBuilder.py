@@ -260,19 +260,30 @@ class Package(object):
 
         assert len(self.src) == len(self.chksum), 'len(src) and len(chksum) should be the same'
 
-        for src,chksum in zip(self.src, self.chksum):
+        # Do two attempts, perhaps the locally cached version of the tarball
+        # is not up-to-date, in that case remove it and try again.
+        is_good = False
+        chksum = ""
+        curr_chksum = ""
+        for i in range(0, 2):
 
-            self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(src).path))
+            for src, chksum in zip(self.src, self.chksum):
 
-            if not P.isfile(self.tarball):
-                if skip: raise PackageError(self, 'Fetch is skipped and no src available')
-                get(src, self.tarball)
+                self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(src).path))
 
-            curr_chksum = hash_file(self.tarball)
-            if curr_chksum != chksum:
-                os.remove(self.tarball)
-                raise PackageError(self, 'Checksum on file[%s] failed. Expected %s but got %s. Removed!'
-                                   % (self.tarball, chksum, curr_chksum) )
+                if not P.isfile(self.tarball):
+                    if skip: raise PackageError(self, 'Fetch is skipped and no src available')
+                    get(src, self.tarball)
+
+                curr_chksum = hash_file(self.tarball)
+                if curr_chksum != chksum:
+                    os.remove(self.tarball)
+                else:
+                    is_good = True
+
+        if not is_good:
+            raise PackageError(self, 'Checksum on file[%s] failed. Expected %s but got %s. Removed!'
+                               % (self.tarball, chksum, curr_chksum) )
 
     @stage
     def unpack(self):

@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+# To do: Install chrpath, cmake, libool, etc. Change the path to point to where
+# those tools are. Note: boost does not compile with the new libtool, as it
+# does not have a -static option.
+
 from __future__ import print_function
 
 import os

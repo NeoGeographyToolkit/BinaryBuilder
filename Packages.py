@@ -166,7 +166,7 @@ class geoid(CMakePackage):
     # Warning: Must keep this version synchronized with dem_geoid.cc!
     version = "1.1"; # Used in deploy_base.py
 
-    src     = 'https://byss.arc.nasa.gov/geoids/geoids-' + version + '.tar.gz'
+    src     = 'https://byss.arc.nasa.gov/asp_packages/geoids-' + version + '.tar.gz'
     chksum  = '49a21acc5f821a7fad916bce68d1f12f58007927'
 
     @stage
@@ -451,7 +451,8 @@ class boost(Package):
             '-q', '--user-config=%s/user-config.jam' % self.workdir,
             '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
             'threading=multi', 'variant=release', 'link=shared', 'runtime-link=shared',
-            '--without-mpi', '--without-python', '--without-wave', 'stage'
+            '--without-mpi', '--without-python', '--without-wave', '--without-log', 'stage',
+            '-d+2' # Show commands as they are executed
             ]
 
         cmd += self.args
@@ -829,7 +830,9 @@ class osg3(CMakePackage):
         super(osg3, self).configure(
             with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit'.split(),
             without='COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
-            other=['-DBUILD_OSG_APPLICATIONS=ON'])
+            other=['-DBUILD_OSG_APPLICATIONS=ON',
+                   '-DCMAKE_VERBOSE_MAKEFILE=ON'
+                   ])
 
 class flann(CMakePackage):
     src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.8.4-src.zip'
