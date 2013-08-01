@@ -869,10 +869,11 @@ class libnabo(CMakePackage):
 
     def configure(self):
         super(libnabo, self).configure(other=[
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
+            '-DCMAKE_VERBOSE_MAKEFILE=ON'
             ])
 
 class libpointmatcher(CMakePackage):
@@ -880,17 +881,17 @@ class libpointmatcher(CMakePackage):
     # we'd like to have a fixed reference version rather than getting
     # it from github.
     src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
-    chksum = 'fb59a6a599db5f2349c3c73909b0c8b94309f206'
+    chksum = 'dc28d78e2a190a5942b0dea6865941de653c24c5'
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']
         boost_include = P.join(installDir,'include','boost-'+boost.version)
         self.env['CXXFLAGS'] += ' -I="' + boost_include + '"' # bugfix for lunokhod2
         super(libpointmatcher, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-I' + boost_include,
+            '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_include,
             '-DBoost_INCLUDE_DIR=' + boost_include,
             '-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
             '-DEIGEN_INCLUDE_DIR=' + P.join(installDir,'include/eigen3'),
-            '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir
             ])
