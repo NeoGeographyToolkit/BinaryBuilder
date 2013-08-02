@@ -456,7 +456,12 @@ class boost(Package):
             ]
 
         cmd += self.args
+        PATH_ORIG = self.env['PATH']
+        if self.arch.os == "osx":
+            # Fix for OSX 10.6 which wants the original libtool
+            self.env['PATH'] = '/usr/bin:' + self.env['PATH']
         self.helper(*cmd)
+        self.env['PATH'] = PATH_ORIG
 
     # TODO: Might need some darwin path-munging with install_name_tool?
     @stage
@@ -509,7 +514,12 @@ class superlu(Package):
             blas = '"-framework vecLib"'
         else:
             blas = glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0]
+
+        ldflags_orig = self.env['LDFLAGS']
+        if self.arch.os == "osx": # fix for OSX 10.6
+            self.env['LDFLAGS'] = re.sub('-Wl,-rpath,/a+', '', self.env['LDFLAGS'])
         super(superlu,self).configure(with_=('blas=%s') % blas,disable=('static'))
+        self.env['LDFLAGS'] = ldflags_orig
 
 class gmm(Package):
     src     = 'http://download.gna.org/getfem/stable/gmm-4.2.tar.gz'

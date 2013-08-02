@@ -3,7 +3,8 @@
 # To do: Install chrpath, cmake, libool, etc. Change the path to point to where
 # those tools are. Note: boost does not compile with the new libtool, as it
 # does not have a -static option.
-
+# To do: For mac we also need to get GNU tar
+# Also need pbzip2, ccache, chrpath
 from __future__ import print_function
 
 import os

@@ -185,16 +185,18 @@ if __name__ == '__main__':
         print("Dependencies %s" % mgr.deplist.keys() )
         sys.stdout.flush()
         # Handle the shiplist separately
+        found_set = set()
         found_and_to_be_removed = []
         for copy_lib in LIB_SHIP_PREFIX:
-            found = None
             for soname in mgr.deplist.keys():
                 if soname.startswith(copy_lib):
-                    found = soname
-                    break
-            if found:
-                mgr.add_library(mgr.deplist[found])
-                found_and_to_be_removed.append( found )
+                    # Bugfix: Do an exhaustive search, as same prefix can
+                    # refer to multiple libraries, e.g., libgfortran.so.3 and
+                    # libgfortran.so.1, and sometimes the wrong one is picked.
+                    if mgr.deplist[soname] in found_set: continue
+                    found_set.add(mgr.deplist[soname])
+                    mgr.add_library(mgr.deplist[soname])
+                    found_and_to_be_removed.append( soname )
         mgr.remove_deps( found_and_to_be_removed )
 
         print('\tRemoving system libs')
