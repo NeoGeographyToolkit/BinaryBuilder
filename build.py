@@ -4,7 +4,9 @@
 # those tools are. Note: boost does not compile with the new libtool, as it
 # does not have a -static option.
 # To do: For mac we also need to get GNU tar
-# Also need pbzip2, ccache, chrpath
+# Also need pbzip2, ccache, chrpath, git
+# To do: make_dist.py needs a version check for pfe.
+# To do: In run_tests.sh, wipe unzipped directory when done!
 from __future__ import print_function
 
 import os
@@ -14,6 +16,7 @@ import sys
 import errno
 import string
 import types
+import time
 from optparse import OptionParser
 from tempfile import mkdtemp, gettempdir
 from distutils import version
@@ -363,10 +366,21 @@ if __name__ == '__main__':
                 print("Package %s was already built, skipping" % name)
                 continue
             print("\n========== Building: %s ==========" % name)
-            modes[opt.mode](pkg(e.copy_set_default()))
-            append_done(pkg, done_file)
+            # Make several attempts, perhaps the servers are down.
+            num=10
+            for i in range(0,num):
+                try:
+                    modes[opt.mode](pkg(e.copy_set_default()))
+                    append_done(pkg, done_file)
+                    break
+                except Exception, e:
+                    if i < num-1:
+                        print("Failed to build %s in attempt %d" % (name, i))
+                        time.sleep(60)
+                    else:
+                        raise
 
-    except PackageError, e:
+    except Exception, e:
         die(e)
 
     makelink(opt.build_root, 'last-completed-run')
