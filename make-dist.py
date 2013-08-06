@@ -57,6 +57,11 @@ LIB_SYSTEM_LIST = '''
     librt.so.6
     libc.so.1
     libc.so.6
+    libXxf86vm.so.1
+    libxcb.so.1
+    libuuid.so.1
+    libXau.so.6
+    libxcb-xlib.so.0
 '''.split()
 
 # prefixes of libs that we always ship (on linux, anyway)
