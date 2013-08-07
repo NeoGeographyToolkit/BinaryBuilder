@@ -42,8 +42,14 @@ rm -rf tmp
 if [ "$?" -ne 0 ]; then exit 1; fi
 cp -rf tmp/.git* .; cp -rf tmp/* .; rm -rf tmp
 
+# Use Clang on Mac
+if [ "$(uname -a | grep Darwin)" != "" ]; then
+    opt1="--cc=clang"
+    opt2="--cxx=clang++"
+fi
+
 # Rebuild the dependencies first (only the ones whose chksum changed will get rebuilt)
-./build.py --download-dir $(pwd)/tarballs --dev-env --resume --build-root $(pwd)/$DEPS_BUILD
+./build.py --download-dir $(pwd)/tarballs --dev-env --resume --build-root $(pwd)/$DEPS_BUILD $opt1 $opt2
 if [ "$?" -ne 0 ]; then exit 1; fi
 rm -f BaseSystem*
 ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
@@ -55,7 +61,7 @@ echo "Will build ASP"
 rm -rf  $(pwd)/$ASP_BUILD
 base_system=$(ls -trd BaseSystem* |tail -n 1)
 ./build.py --download-dir $(pwd)/tarballs --base $base_system \
-    visionworkbench stereopipeline --build-root $(pwd)/$ASP_BUILD
+    visionworkbench stereopipeline --build-root $(pwd)/$ASP_BUILD $opt1 $opt2
 if [ "$?" -ne 0 ]; then exit 1; fi
 ./make-dist.py last-completed-run/install
 if [ "$?" -ne 0 ]; then exit 1; fi

@@ -374,8 +374,9 @@ if __name__ == '__main__':
                     append_done(pkg, done_file)
                     break
                 except Exception, e:
+                    print("Failed to build %s in attempt %d %s" %
+                          (name, i, str(e)))
                     if i < num-1:
-                        print("Failed to build %s in attempt %d" % (name, i))
                         time.sleep(60)
                     else:
                         raise

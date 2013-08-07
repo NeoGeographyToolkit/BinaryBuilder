@@ -35,7 +35,7 @@ rsync -avz *sh $user@$machine:$buildDir
 
 # Ensure we first wipe $doneFile, then launch the build
 ssh $user@$machine "rm -f $buildDir/$doneFile"
-ssh $user@$machine "nohup nice -19 $buildDir/build.sh $buildDir $doneFile > $buildDir/output.txt 2>&1&"
+ssh $user@$machine "$buildDir/build.sh $buildDir $doneFile > $buildDir/output.txt 2>&1&"
 
 # Wait until the build finished
 while [ 1 ]; do
