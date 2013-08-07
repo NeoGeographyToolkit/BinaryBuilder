@@ -6,7 +6,7 @@ if [ "$#" -lt 3 ]; then echo Usage: $0 machine buildDir statusFile; exit; fi
 
 # Note: buildDir must be relative to $HOME
 machine=$1; buildDir=$2; statusFile=$3;
-doneFile="done.txt" # Put here the build name when it is done
+doneFile="buildDone.txt" # Put here the build name when it is done
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Directory: $buildDir does not exist"; exit 1; fi;
@@ -35,7 +35,7 @@ rsync -avz *sh $user@$machine:$buildDir
 
 # Ensure we first wipe $doneFile, then launch the build
 ssh $user@$machine "rm -f $buildDir/$doneFile"
-ssh $user@$machine "$buildDir/build.sh $buildDir $doneFile > $buildDir/output.txt 2>&1&"
+ssh $user@$machine "$buildDir/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
 
 # Wait until the build finished
 while [ 1 ]; do
@@ -48,4 +48,7 @@ done
 # Copy back the obtained tarball and mark it as built
 mkdir -p asp_tarballs
 rsync -avz $user@$machine:$buildDir/$asp_tarball asp_tarballs
-echo $buildDir/asp_tarballs/$asp_tarball build_done > $statusFile
+echo asp_tarballs/$asp_tarball build_done > $statusFile
+
+# Wipe older builds
+./rm_old.sh asp_tarballs 12

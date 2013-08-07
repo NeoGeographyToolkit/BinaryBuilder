@@ -1,6 +1,8 @@
 #!/bin/bash
 
-if [ "$#" -lt 2 ]; then echo Usage: $0 buildDir doneFile; exit; fi
+# Build ASP. On any faiulre, ensure the "Fail" flag is set in $doneFile.
+
+if [ "$#" -lt 2 ]; then echo Usage: $0 buildDir doneFile; exit 1; fi
 
 if [ -x /usr/bin/zsh ] && [ "$MY_BUILD_SHELL" = "" ]; then
     # Use zsh if available, that helps with compiling on pfe,
@@ -15,9 +17,9 @@ DEPS_BUILD=deps_build
 ASP_BUILD=asp_build
 
 cd $HOME
-if [ ! -d "$buildDir" ]; then echo "Directory: $buildDir does not exist"; exit 1; fi;
+msg="Error: Directory: $buildDir does not exist"
+if [ ! -d "$buildDir" ]; then echo $msg; echo Fail > $doneFile; exit 1; fi
 cd $buildDir
-rm -f $doneFile Stereo*bz2
 
 # Paths to newest python and to git
 export PATH=/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:$HOME/projects/packages/bin/:$PATH
@@ -42,29 +44,25 @@ rm -rf tmp
 if [ "$?" -ne 0 ]; then exit 1; fi
 cp -rf tmp/.git* .; cp -rf tmp/* .; rm -rf tmp
 
-# Use Clang on Mac
-if [ "$(uname -a | grep Darwin)" != "" ]; then
-    opt1="--cc=clang"
-    opt2="--cxx=clang++"
-fi
-
-# Rebuild the dependencies first (only the ones whose chksum changed will get rebuilt)
-./build.py --download-dir $(pwd)/tarballs --dev-env --resume --build-root $(pwd)/$DEPS_BUILD $opt1 $opt2
-if [ "$?" -ne 0 ]; then exit 1; fi
-rm -f BaseSystem*
+# Rebuild the dependencies first (only the ones whose chksum changed
+# will get rebuilt)
+echo "Will build dependencies"
+./build.py --download-dir $(pwd)/tarballs --dev-env --resume --build-root $(pwd)/$DEPS_BUILD
+if [ "$?" -ne 0 ]; then; echo Fail > $doneFile; exit 1; fi
+rm -f BaseSystem* StereoPipeline*
 ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
-if [ "$?" -ne 0 ]; then exit 1; fi
+if [ "$?" -ne 0 ]; then echo Fail > $doneFile; exit 1; fi
 
 echo "Will build ASP"
-
-# Wipe and rebuid ASP
-rm -rf  $(pwd)/$ASP_BUILD
+rm -rf $(pwd)/$ASP_BUILD
 base_system=$(ls -trd BaseSystem* |tail -n 1)
 ./build.py --download-dir $(pwd)/tarballs --base $base_system \
-    visionworkbench stereopipeline --build-root $(pwd)/$ASP_BUILD $opt1 $opt2
-if [ "$?" -ne 0 ]; then exit 1; fi
+    visionworkbench stereopipeline --build-root $(pwd)/$ASP_BUILD
+if [ "$?" -ne 0 ]; then echo Fail > $doneFile; exit 1; fi
 ./make-dist.py last-completed-run/install
-if [ "$?" -ne 0 ]; then exit 1; fi
+if [ "$?" -ne 0 ]; then echo Fail > $doneFile; exit 1; fi
 
 # Mark the build as finished
-ls -trd Stereo*bz2 | grep -i -v debug |tail -n 1 > $doneFile
+build=$(ls -trd StereoPipeline*bz2 | grep -i -v debug | tail -n 1)
+if [ "$build" = "" ]; then echo Fail > $doneFile; exit 1; fi
+echo $build > $doneFile

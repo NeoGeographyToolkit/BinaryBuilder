@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+# To do: revisit the superlu issue.
 # To do: Install chrpath, cmake, libool, etc. Change the path to point to where
 # those tools are. Note: boost does not compile with the new libtool, as it
 # does not have a -static option.
