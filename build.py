@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
+# To do: Look at the other issues raised on the issue list,
+# particularly Ben's sparse disp thingy and BB issue there.
 # To do: revisit the superlu issue.
-# To do: Install chrpath, cmake, libool, etc. Change the path to point to where
+# To do: Install chrpath, cmake, libool, parallel, gdal_translate, etc.
+# Change the path to point to where
 # those tools are. Note: boost does not compile with the new libtool, as it
 # does not have a -static option.
 # To do: For mac we also need to get GNU tar

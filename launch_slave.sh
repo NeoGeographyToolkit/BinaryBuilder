@@ -9,9 +9,10 @@ machine=$1; buildDir=$2; statusFile=$3;
 doneFile="buildDone.txt" # Put here the build name when it is done
 
 cd $HOME
-if [ ! -d "$buildDir" ]; then echo "Directory: $buildDir does not exist"; exit 1; fi;
+if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
 cd $buildDir
 
+user=$(whoami)
 if [ "$(echo $machine | grep centos)" != "" ]; then
     # The case of virtual machines
     user=build
@@ -24,31 +25,33 @@ if [ "$(echo $machine | grep centos)" != "" ]; then
     while [ 1 ]; do
         ans=$(ssh "$user@$machine" ls $buildDir 2>/dev/null)
         if [ "$ans" != "" ]; then break; fi
+        echo $(date) "Sleping while waiting for $machine to start"
         sleep 60
     done
-else
-    user=$(whoami)
 fi
 
 # Make sure all scripts are up-to-date on the target machine
-rsync -avz *sh $user@$machine:$buildDir
+rsync -avz patches *sh *py $user@$machine:$buildDir
 
 # Ensure we first wipe $doneFile, then launch the build
 ssh $user@$machine "rm -f $buildDir/$doneFile"
-ssh $user@$machine "$buildDir/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
+# Bug fix for Mac: It does not ssh to itself or nohup
+if [ "$(uname -n)" = "$machine" ]; then
+    ./build.sh $buildDir $doneFile > output_build.txt 2>&1&
+else
+    ssh $user@$machine "nohup nice -19 $buildDir/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
+fi
 
 # Wait until the build finished
 while [ 1 ]; do
   asp_tarball=$(ssh "$user@$machine" "cat $buildDir/$doneFile 2>/dev/null" 2>/dev/null)
   if [ "$asp_tarball" != "" ]; then break; fi
-  echo "Sleping while waiting for the build on $machine to finish"
+  echo $(date) "Sleping while waiting for the build on $machine to finish"
   sleep 60
 done
 
 # Copy back the obtained tarball and mark it as built
 mkdir -p asp_tarballs
+echo Copying $user@$machine:$buildDir/$asp_tarball to asp_tarballs
 rsync -avz $user@$machine:$buildDir/$asp_tarball asp_tarballs
-echo asp_tarballs/$asp_tarball build_done > $statusFile
-
-# Wipe older builds
-./rm_old.sh asp_tarballs 12
+echo $asp_tarball build_done > $statusFile
