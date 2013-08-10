@@ -187,6 +187,7 @@ class geoid(CMakePackage):
 # download ISIS and then download the repo for editing ISIS. We apply
 # the patch locally and then build away.
 class isis(Package):
+    patches = 'patches/isis/0001-fix_int.patch'
     def __init__(self, env):
         super(isis, self).__init__(env)
         self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
@@ -229,6 +230,8 @@ class isis(Package):
         self.helper(sys.executable,"AutotoolsForISIS-git/reformat_isis.py","--destination",
                     self.pkgname,"--isisroot","isis_original")
         self.workdir = P.join(output_dir,self.pkgname)
+
+        self._apply_patches()
 
     @stage
     def configure(self):
@@ -456,12 +459,7 @@ class boost(Package):
             ]
 
         cmd += self.args
-        PATH_ORIG = self.env['PATH']
-        if self.arch.os == "osx":
-            # Fix for OSX 10.6 which wants the original libtool
-            self.env['PATH'] = '/usr/bin:' + self.env['PATH']
         self.helper(*cmd)
-        self.env['PATH'] = PATH_ORIG
 
     # TODO: Might need some darwin path-munging with install_name_tool?
     @stage
