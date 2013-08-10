@@ -1,0 +1,36 @@
+diff -ur isis/apps/hideal2pds.dir/hideal2pds.cpp isis_fixed/apps/hideal2pds.dir/hideal2pds.cpp
+--- isis/apps/hideal2pds.dir/hideal2pds.cpp	2013-03-15 11:35:41.000000000 -0700
++++ isis_fixed/apps/hideal2pds.dir/hideal2pds.cpp	2013-08-08 12:57:50.123668665 -0700
+@@ -443,7 +443,7 @@
+   // mosaic input cube.
+   
+   // Add NaifKeywords Object values to the ROOT object
+-  QString radiiName = "BODY" + QString(cam->naifBodyCode()) + "_RADII";
++  QString radiiName = "BODY" + QString((int)cam->naifBodyCode()) + "_RADII";
+   PvlObject naifKeywordGroup = cam->getStoredNaifKeywords();
+ 
+   if (naifKeywordGroup.hasKeyword(radiiName)) {
+diff -ur isis/include/IString.h isis_fixed/include/IString.h
+--- isis/include/IString.h	2013-08-08 12:53:15.474613877 -0700
++++ isis_fixed/include/IString.h	2013-08-08 12:56:23.088988714 -0700
+@@ -42,7 +42,7 @@
+   QString toString(char);
+   QString toString(const int &);
+   QString toString(const unsigned int &);
+-  QString toString(const BigInt &);
++  QString toString(const long &);
+   QString toString(double, int precision = 14);
+ 
+   /**
+diff -ur isis/src/Core/IString/IString.cpp isis_fixed/src/Core/IString/IString.cpp
+--- isis/src/Core/IString/IString.cpp	2013-01-04 10:02:32.000000000 -0800
++++ isis_fixed/src/Core/IString/IString.cpp	2013-08-08 12:57:18.737254144 -0700
+@@ -270,7 +270,7 @@
+    * @param intToConvert Big integer value to be converted to a QString.
+    * @return string Converted QString.  
+    */
+-  QString toString(const BigInt &intToConvert) {
++  QString toString(const long &intToConvert) {
+     return QString::number(intToConvert);
+   }
+ 
