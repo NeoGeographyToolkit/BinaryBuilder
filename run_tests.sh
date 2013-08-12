@@ -20,10 +20,10 @@ if [ "$(uname -n)" != "$launchMachine" ] && [ "$launchMachine" = "centos-32-5" ]
     user=build
     echo Will connect to $user@$launchMachine
     cd $HOME/$buildDir
-    rsync -avz patches *py *sh $user@$launchMachine:$buildDir 2>/dev/null
+    rsync -avz patches *py auto_build $user@$launchMachine:$buildDir 2>/dev/null
     ssh $user@$launchMachine "echo $tarBall now_testing > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
     sleep 5; # Give the filesystem enough time to react
-    ssh $user@$launchMachine "nohup nice -19 $buildDir/run_tests.sh $* > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+    ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $* > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
 
     while [ 1 ]; do
         statusLine=$(ssh $user@$launchMachine \

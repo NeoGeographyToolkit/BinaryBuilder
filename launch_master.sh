@@ -52,12 +52,12 @@ for launchMachine in $launchMachines; do
     for buildMachine in $buildMachines; do
         statusFile="status_"$buildMachine".txt"
         # Make sure all scripts are up-to-date on the target machine
-        rsync -avz patches *py *sh $user@$launchMachine:$buildDir >/dev/null 2>&1
+        rsync -avz patches *py auto_build $user@$launchMachine:$buildDir >/dev/null 2>&1
         if [ "$testOnly" -eq 0 ]; then
             # Set the status to now building
             ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
             sleep 5; # Give the filesystem enough time to react
-            ssh $user@$launchMachine "nohup nice -19 $buildDir/launch_slave.sh $buildMachine $buildDir $statusFile > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+            ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
         fi
     done
 done
@@ -109,7 +109,7 @@ while [ 1 ]; do
                 echo Will launch tests for $buildMachine
                 ssh $user@$launchMachine "echo $tarBall now_testing > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
                 sleep 5; # Give the filesystem enough time to react
-                ssh $user@$launchMachine "nohup nice -19 $buildDir/run_tests.sh $buildMachine $tarBall $testDir $buildDir $statusFile >> $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+                ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $buildMachine $tarBall $testDir $buildDir $statusFile >> $buildDir/output_$statusFile 2>&1&" 2>/dev/null
                 break # launch just one testing session at a time
             fi
         done
@@ -183,7 +183,7 @@ for launchMachine in $launchMachines; do
                 status="Fail"
             fi
             echo "Renaming build $tarBall"
-            tarBall=$(./rename_build.sh $tarBall $version $timestamp)
+            tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp)
             if [ ! -f "$tarBall" ]; then echo Missing $tarBall; status="Fail"; fi
         fi
         if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
@@ -213,7 +213,7 @@ if [ "$overallStatus" = "Success" ] && [ "$debugMode" = "0" ]; then
     done
 
     # Wipe older files on byss and gen the index for today
-    rsync -avz rm_old.sh gen_index.sh $user@$byss:$byssPath 2>/dev/null
+    rsync -avz auto_build/rm_old.sh auto_build/gen_index.sh $user@$byss:$byssPath 2>/dev/null
     ssh $user@$byss "$byssPath/rm_old.sh $byssPath 12" 2>/dev/null
     ssh $user@$byss "$byssPath/gen_index.sh $byssPath $version $timestamp" 2>/dev/null
 fi

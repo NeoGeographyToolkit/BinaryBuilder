@@ -83,8 +83,8 @@ build=asp_tarballs/$build
 echo $build > $doneFile
 
 # Wipe old builds
-if [ "$(uname -n |grep centos)" != "" ]; then
-    ./rm_old.sh asp_tarballs 4
-else
-    ./rm_old.sh asp_tarballs 12
+numKeep=12
+if [ "$(uname -n | grep centos)" != "" ]; then
+    numKeep=4 # these machines have little storage
 fi
+./auto_build/rm_old.sh asp_tarballs $numKeep

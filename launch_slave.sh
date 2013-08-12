@@ -35,15 +35,15 @@ if [ "$(echo $machine | grep centos)" != "" ]; then
 fi
 
 # Make sure all scripts are up-to-date on the target machine
-rsync -avz patches *sh *py $user@$machine:$buildDir
+rsync -avz patches *py auto_build $user@$machine:$buildDir
 
 # Ensure we first wipe $doneFile, then launch the build
 ssh $user@$machine "rm -f $buildDir/$doneFile"
-# Bug fix for Mac: It does not ssh to itself or nohup
+# Bug fix for Mac: It does not like to ssh to itself properly or nohup
 if [ "$(uname -n)" = "$machine" ]; then
-    ./build.sh $buildDir $doneFile > output_build.txt 2>&1&
+    ./auto_build/build.sh $buildDir $doneFile > output_build.txt 2>&1&
 else
-    ssh $user@$machine "nohup nice -19 $buildDir/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
+    ssh $user@$machine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
 fi
 
 # Wait until the build finished
