@@ -1,8 +1,10 @@
 #!/bin/bash
 
-if [ "$#" -lt 5 ]; then echo Usage: $0 launchMachine tarBall testDir buildDir statusFile; exit; fi
+# Launch the tests. We must not exit this script without updating the status file
+# at $HOME/$buildDir/$statusFile, otherwise the caller will wait forever.
 
-echo Starting with $*
+if [ "$#" -lt 5 ]; then echo Usage: $0 launchMachine tarBall testDir buildDir statusFile; exit 1; fi
+
 launchMachine=$1
 tarBall=$2
 testDir=$3
@@ -123,6 +125,3 @@ if [ "$failures" = "" ]; then
 fi
 
 echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
-
-# Ensure the directory is wiped when done
-rm -rf $binDir

@@ -1,40 +1,40 @@
 #!/bin/bash
 
-# Launch and test all builds on all machines. Then notify the user of
-# the status. In case of success, copy the resulting builds to byss.
-# We assume all machines we need (byss, zula, amos, pfe25,
-# centos-64-5, centos-32-5) are set up properly for login without
-# password and their details are in .ssh/config.
+# Launch and test all builds on all machines. In case of success, copy
+# the resulting builds to byss. Then notify the user of the status.
 
+# We assume all machines we need (byss, pfe25, zula, amos,
+# centos-64-5, centos-32-5) are set up properly for login without
+# password and that their details are in .ssh/config.
+
+# See README.txt for more details.
+
+# To do: Add documentation to the test framework.
+# To do: Must push the tests to other machines when new tests are added.
 # To do: When ISIS gets updated, need to update the base_system
 # on each machine presumambly as that one is used in regressions.
 # To do: Enable updating BinaryBuilder from git.
 # To do: Think more about copying .sh files
 # To do: See the .py to do list.
-# To do: test rename_build.sh with 32 bit.
-# To do: How to ensure that the stereo from right dir is executed
-# To do: Create recipe for how to install sparse_disp and put that on amos and zula
-# To do: Deal with the issues on the mac
-# To do: test on zula runs at the same time!
-# To do: Move build stuff to its own auto_build dir
+# To do: How to ensure that the stereo from right dir is executed?
+# To do: Create recipe for how to install sparse_disp and put that on amos and zula.
+# To do: Move build stuff to its own auto_build dir.
 
 version="2.2.2_post" # Must change the version in the future
-byss="byss"
-byssPath="/byss/docroot/stereopipeline/daily_build"
-link="http://byss.arc.nasa.gov/stereopipeline/daily_build/index.html"
 mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
 sleepTime=30
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 timestamp=$(date +%Y-%m-%d)
 user=$(whoami)
-#launchMachines="pfe25 amos zula" # temporary!!
-#launchMachines="pfe25 zula amos" # temporary!!
-launchMachines="pfe25" # pfe25 zula" # temporary!!
-#launchMachines="amos" # temporary!!!
-#launchMachines="zula amos" # temporary!!!
-#zulaSlaves="zula" # temporary!!!
-zulaSlaves="zula centos-64-5" # centos-32-5"
+byss="byss"
+byssPath="/byss/docroot/stereopipeline/daily_build"
+link="http://byss.arc.nasa.gov/stereopipeline/daily_build/index.html"
+launchMachines="pfe25 zula amos"
+launchMachines="pfe25" # temporary!
+zulaSlaves="zula centos-64-5 centos-32-5"
+testOnly=0  # Don't build, just test. Must be set to 0 in production
+debugMode=1 # must be set to 0 in production
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
@@ -53,12 +53,12 @@ for launchMachine in $launchMachines; do
         statusFile="status_"$buildMachine".txt"
         # Make sure all scripts are up-to-date on the target machine
         rsync -avz patches *py *sh $user@$launchMachine:$buildDir >/dev/null 2>&1
-
-        # temporary!!!
-        # Set the status to now building
-        ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
-        sleep 5; # Give the filesystem enough time to react
-        ssh $user@$launchMachine "nohup nice -19 $buildDir/launch_slave.sh $buildMachine $buildDir $statusFile > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+        if [ "$testOnly" -eq 0 ]; then
+            # Set the status to now building
+            ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
+            sleep 5; # Give the filesystem enough time to react
+            ssh $user@$launchMachine "nohup nice -19 $buildDir/launch_slave.sh $buildMachine $buildDir $statusFile > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+        fi
     done
 done
 
@@ -104,7 +104,6 @@ while [ 1 ]; do
             state=$( echo $statusLine | awk '{print $2}' )
 
             if [ "$state" = "build_done" ]; then
-                # To do: Similar code exiss in run_tests.sh!
                 # Build is done, no other builds are being tested,
                 # so test the current build
                 echo Will launch tests for $buildMachine
@@ -174,24 +173,28 @@ for launchMachine in $launchMachines; do
         fi
 
         mkdir -p asp_tarballs
-        echo Copying $user@$launchMachine:$buildDir/$tarBall to asp_tarballs
-        rsync -avz $user@$launchMachine:$buildDir/$tarBall asp_tarballs 2>/dev/null
-        if [ ! -f "$HOME/$buildDir/$tarBall" ]; then
-            echo "Error: Could not copy $HOME/$buildDir/$tarBall"
+        if [ "$tarBall" = "Fail" ]; then
             status="Fail"
+        else
+            echo Copying $user@$launchMachine:$buildDir/$tarBall to asp_tarballs
+            rsync -avz $user@$launchMachine:$buildDir/$tarBall asp_tarballs 2>/dev/null
+            if [ ! -f "$HOME/$buildDir/$tarBall" ]; then
+                echo "Error: Could not copy $HOME/$buildDir/$tarBall"
+                status="Fail"
+            fi
+            echo "Renaming build $tarBall"
+            tarBall=$(./rename_build.sh $tarBall $version $timestamp)
+            if [ ! -f "$tarBall" ]; then echo Missing $tarBall; status="Fail"; fi
         fi
         if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
-        echo "Renaming build $tarBall"
-        tarBall=$(./rename_build.sh $tarBall $version $timestamp)
-        if [ ! -f "$tarBall" ]; then echo Missing $tarBall; status="Fail"; fi
         echo $buildMachine $status >> $statusMasterFile
         builds[$count]="$tarBall"
         ((count++))
     done
 done
 
-# Copy the builds to byss
-if [ "$overallStatus" = "Success" ]; then
+# Copy the builds to byss and update the public link
+if [ "$overallStatus" = "Success" ] && [ "$debugMode" = "0" ]; then
 
     echo "" >> $statusMasterFile
     echo "Link: $link" >> $statusMasterFile
@@ -202,12 +205,11 @@ if [ "$overallStatus" = "Success" ]; then
     rsync -avz dist-add/asp_book.pdf $user@$byss:$byssPath 2>/dev/null
     len="${#builds[@]}"
     for ((count = 0; count < len; count++)); do
-        echo Copying ${builds[$count]} to $user@$byss:$byssPath
-        rsync -avz ${builds[$count]} $user@$byss:$byssPath 2>/dev/null
-        rm -f "${builds[$count]}" # No need to keep this around
-        build=${builds[$count]}
-        build=${build/asp_tarballs\//}
-        echo $byssPath/$build >> $statusMasterFile
+        tarBall=${builds[$count]}
+        echo Copying $tarBall to $user@$byss:$byssPath
+        rsync -avz $tarBall $user@$byss:$byssPath 2>/dev/null
+        rm -f "$tarBall" # No need to keep this around
+        echo $byssPath/$(basename $tarBall) >> $statusMasterFile
     done
 
     # Wipe older files on byss and gen the index for today
@@ -215,6 +217,8 @@ if [ "$overallStatus" = "Success" ]; then
     ssh $user@$byss "$byssPath/rm_old.sh $byssPath 12" 2>/dev/null
     ssh $user@$byss "$byssPath/gen_index.sh $byssPath $version $timestamp" 2>/dev/null
 fi
+
+cat $statusMasterFile
 
 subject="Build $timestamp status is $overallStatus"
 mailx $mailto -s "$subject" < $statusMasterFile

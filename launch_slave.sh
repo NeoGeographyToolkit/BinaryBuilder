@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# Launch a build on the current machine or on one of its virtual submachines
+# Launch a build on the current machine or on one of its virtual
+# submachines.
+
+# This script must not exit without updating the status in $statusFile
+# otherwise the caller will wait forever.
 
 if [ "$#" -lt 3 ]; then echo Usage: $0 machine buildDir statusFile; exit; fi
 
@@ -51,7 +55,9 @@ while [ 1 ]; do
 done
 
 # Copy back the obtained tarball and mark it as built
-mkdir -p asp_tarballs
-echo Copying $user@$machine:$buildDir/$asp_tarball to asp_tarballs
-rsync -avz $user@$machine:$buildDir/$asp_tarball asp_tarballs
+if [ "$asp_tarball" != "Fail" ]; then
+    mkdir -p asp_tarballs
+    echo Copying $user@$machine:$buildDir/$asp_tarball to asp_tarballs
+    rsync -avz $user@$machine:$buildDir/$asp_tarball asp_tarballs
+fi
 echo $asp_tarball build_done > $statusFile

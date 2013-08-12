@@ -1,6 +1,7 @@
 #!/bin/bash
 
-# Build ASP. On any faiulre, ensure the "Fail" flag is set in $doneFile.
+# Build ASP. On any faiulre, ensure the "Fail" flag is set in $doneFile,
+# otherwise the caller will wait forever.
 
 if [ "$#" -lt 2 ]; then echo Usage: $0 buildDir doneFile; exit 1; fi
 
@@ -47,9 +48,9 @@ which gcc; which git; gcc --version; python --version
 # Rebuild the dependencies first (only the ones whose chksum changed
 # will get rebuilt)
 echo "Will build dependencies"
+rm -f ./BaseSystem*bz2 ./StereoPipeline*bz2
 ./build.py --download-dir $(pwd)/tarballs --dev-env --resume --build-root $(pwd)/build_deps
 if [ "$?" -ne 0 ]; then echo Fail > $doneFile; exit 1; fi
-rm -f ./BaseSystem*bz2 ./StereoPipeline*bz2
 ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
 if [ "$?" -ne 0 ]; then echo Fail > $doneFile; exit 1; fi
 
