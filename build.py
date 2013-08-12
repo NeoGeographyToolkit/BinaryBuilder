@@ -2,17 +2,13 @@
 
 # To do: Look at the other issues raised on the issue list,
 # particularly Ben's sparse disp thingy and BB issue there.
-# To do: revisit the superlu issue.
-# To do: Install chrpath, cmake, libool, parallel, gdal_translate, etc.
-# Change the path to point to where
-# those tools are. Note: boost does not compile with the new libtool, as it
-# does not have a -static option.
-# To do: For mac we also need to get GNU tar
-# Also need pbzip2, ccache, chrpath, git
+# To do: Must distribute parallel, gdal_translate.
+# To do: Install chrpath, cmake, pbzip2, ccache, chrpath, git.
+# To do: For mac we also need to get GNU tar.
+# Change the path to point to where the stuff is.
 # To do: make_dist.py needs a version check for pfe.
-# To do: In run_tests.sh, wipe unzipped directory when done!
-from __future__ import print_function
 
+from __future__ import print_function
 import os
 import os.path as P
 import subprocess
@@ -81,7 +77,7 @@ def is_sequence(arg):
             hasattr(arg, "__iter__"))
 
 def get_chksum(name):
-    pkg = globals()[name](e)
+    pkg = globals()[name](build_env)
     chksum = pkg.chksum
     # sometimes chksum is a sequence
     if is_sequence(chksum): chksum = chksum[0]
@@ -163,33 +159,33 @@ if __name__ == '__main__':
     print("Using build root directory: %s" % opt.build_root)
 
     # -Wl,-z,now ?
-    e = Environment(
-                    CC       = opt.cc,
-                    CXX      = opt.cxx,
-                    F77      = opt.f77,
-                    CFLAGS   = '-O3 -g',
-                    CXXFLAGS = '-O3 -g',
-                    LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
-                    MAKEOPTS='-j%s' % opt.threads,
-                    DOWNLOAD_DIR = opt.download_dir,
-                    BUILD_DIR    = P.join(opt.build_root, 'build'),
-                    INSTALL_DIR  = P.join(opt.build_root, 'install'),
-                    MISC_DIR = P.join(opt.build_root, 'misc'),
-                    PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
-                    PATH=os.environ['PATH'] )
+    build_env = Environment(
+        CC       = opt.cc,
+        CXX      = opt.cxx,
+        F77      = opt.f77,
+        CFLAGS   = '-O3 -g',
+        CXXFLAGS = '-O3 -g',
+        LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
+        MAKEOPTS='-j%s' % opt.threads,
+        DOWNLOAD_DIR = opt.download_dir,
+        BUILD_DIR    = P.join(opt.build_root, 'build'),
+        INSTALL_DIR  = P.join(opt.build_root, 'install'),
+        MISC_DIR = P.join(opt.build_root, 'misc'),
+        PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
+        PATH=os.environ['PATH'] )
 
     if opt.ld_library_path is not None:
-        e['LD_LIBRARY_PATH'] = opt.ld_library_path
+        build_env['LD_LIBRARY_PATH'] = opt.ld_library_path
 
     arch = get_platform()
 
     # Check compiler version for compilers we hate
-    output = run(e['CC'],'--version')
-    if 'gcc' in e['CC']:
+    output = run(build_env['CC'],'--version')
+    if 'gcc' in build_env['CC']:
         output = output.lower()
         if "llvm-gcc" in output:
             die('Your compiler is an LLVM-GCC hybrid. It is our experience that these tools can not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
-    elif 'clang' in e['CC']:
+    elif 'clang' in build_env['CC']:
         output = output.lower()
         keywords = output.split()
         version_string = keywords[keywords.index('version')+1]
@@ -197,11 +193,11 @@ if __name__ == '__main__':
             die('Your Clang compiler is older than 3.1. It is our experience that older versions of clang could not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
 
     if arch.os == 'linux':
-        e.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
-        e.append_many(ALL_FLAGS, '-m%i' % arch.bits)
+        build_env.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
+        build_env.append_many(ALL_FLAGS, '-m%i' % arch.bits)
 
     elif arch.os == 'osx':
-        e.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
+        build_env.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
         osx_arch = 'x86_64' #SEMICOLON-DELIMITED
 
         # Define SDK location. This moved in OSX 10.8
@@ -212,69 +208,69 @@ if __name__ == '__main__':
             die("Unable to open '%s'. Double check that you actually have the SDK for OSX %s." % (sysroot,opt.osx_sdk))
 
         # CMake needs these vars to not screw things up.
-        e.append('OSX_SYSROOT', sysroot)
-        e.append('OSX_ARCH', osx_arch)
-        e.append('OSX_TARGET', opt.osx_sdk)
+        build_env.append('OSX_SYSROOT', sysroot)
+        build_env.append('OSX_ARCH', osx_arch)
+        build_env.append('OSX_TARGET', opt.osx_sdk)
 
-        e.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
-        e.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
-        e.append_many(ALL_FLAGS, '-m64')
+        build_env.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
+        build_env.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
+        build_env.append_many(ALL_FLAGS, '-m64')
 
         # # Resolve a bug with -mmacosx-version-min on 10.6 (see
         # # http://markmail.org/message/45nbrtxsxvsjedpn).
         # # Short version: 10.6 generates the new compact header (LD_DYLD_INFO)
         # # even when told to support 10.5 (which can't read it)
         if version.StrictVersion(arch.dist_version) >= '10.6' and opt.osx_sdk == '10.5':
-            e.append('LDFLAGS', '-Wl,-no_compact_linkedit')
+            build_env.append('LDFLAGS', '-Wl,-no_compact_linkedit')
 
     # if arch.osbits == 'linux32':
     #     limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
-    #     e.append('CPPFLAGS', '-include %s' % limit_symbols)
+    #     build_env.append('CPPFLAGS', '-include %s' % limit_symbols)
 
-    compiler_dir = P.join(e['MISC_DIR'], 'mycompilers')
+    compiler_dir = P.join(build_env['MISC_DIR'], 'mycompilers')
     if not P.exists(compiler_dir):
         os.makedirs(compiler_dir)
 
     try:
-        findfile(e['F77'], e['PATH'])
+        findfile(build_env['F77'], build_env['PATH'])
     except Exception:
-        acceptable_fortran_compilers = [e['F77'],'g77']
+        acceptable_fortran_compilers = [build_env['F77'],'g77']
         for i in range(0,10):
             acceptable_fortran_compilers.append("gfortran-mp-4.%s" % i)
         for compiler in acceptable_fortran_compilers:
             try:
-                gfortran_path = findfile(compiler, e['PATH'])
+                gfortran_path = findfile(compiler, build_env['PATH'])
                 print("Found fortran at: %s" % gfortran_path)
-                e['F77'] = compiler
+                build_env['F77'] = compiler
                 break
             except Exception:
                 pass
 
     if opt.ccache:
         new = dict(
-            CC  = P.join(compiler_dir, e['CC']),
-            CXX = P.join(compiler_dir, e['CXX']),
+            CC  = P.join(compiler_dir, build_env['CC']),
+            CXX = P.join(compiler_dir, build_env['CXX']),
             CCACHE_DIR = P.join(opt.download_dir, 'ccache-dir'),
             CCACHE_BASEDIR = gettempdir(),
         )
 
-        ccache_path = findfile('ccache', e['PATH'])
+        ccache_path = findfile('ccache', build_env['PATH'])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
-        e.update(new)
+        build_env.update(new)
 
-    print("%s" % e['PATH'])
+    print("%s" % build_env['PATH'])
 
     if opt.save_temps:
-        e.append_many(CC_FLAGS, '-save-temps')
+        build_env.append_many(CC_FLAGS, '-save-temps')
     else:
-        e.append_many(CC_FLAGS, '-pipe')
+        build_env.append_many(CC_FLAGS, '-pipe')
 
     if opt.libtoolize is not None:
-        e['LIBTOOLIZE'] = opt.libtoolize
+        build_env['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify we have the executables we need
-    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", e['CC'],e['CXX'],e['F77'],"ccache"]
+    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", build_env['CC'],build_env['CXX'],build_env['F77'],"ccache"]
     if arch.os == 'linux':
         common_exec.extend( ["libtool", "chrpath"] )
     else:
@@ -313,16 +309,16 @@ if __name__ == '__main__':
 
     if opt.pretend:
         info('I want to build:\n%s' % ' '.join(map(lambda x: x.__name__, build)))
-        summary(e)
+        summary(build_env)
         sys.exit(0)
 
     if opt.base and not opt.resume:
         print('Untarring base system')
         for base in opt.base:
-            run('tar', 'xf', base, '-C', e['INSTALL_DIR'], '--strip-components', '1')
+            run('tar', 'xf', base, '-C', build_env['INSTALL_DIR'], '--strip-components', '1')
         info("Fixing Paths in Libtool files.")
-        new_libdir = e['INSTALL_DIR']
-        for file in glob(P.join(e['INSTALL_DIR'],'lib','*.la')):
+        new_libdir = build_env['INSTALL_DIR']
+        for file in glob(P.join(build_env['INSTALL_DIR'],'lib','*.la')):
             lines = []
             logger.debug("Fixing libtool: %s" % file )
             with open(file,'r') as f:
@@ -336,22 +332,24 @@ if __name__ == '__main__':
         library_ext = "so"
         if arch.os == 'osx':
             library_ext = "dylib"
-        SEARCHPATH = [P.join(e['INSTALL_DIR'],'lib')]
+        SEARCHPATH = [P.join(build_env['INSTALL_DIR'],'lib')]
         for curr_path in SEARCHPATH:
             for library in glob(P.join(curr_path,'*.'+library_ext+'*')):
                 if not is_binary(library):
                     continue
                 logger.debug('  %s' % P.basename(library))
                 try:
-                    set_rpath(library, e['INSTALL_DIR'], map(lambda path: P.relpath(path, e['INSTALL_DIR']), SEARCHPATH))
+                    set_rpath(library, build_env['INSTALL_DIR'],
+                              map(lambda path: P.relpath(path, build_env['INSTALL_DIR']), SEARCHPATH))
                 except:
                     warn('  Failed rpath on %s' % P.basename(library))
-        for binary in glob(P.join(e['INSTALL_DIR'],'bin','*')):
+        for binary in glob(P.join(build_env['INSTALL_DIR'],'bin','*')):
             if not is_binary(binary):
                 continue
             logger.debug('  %s' % P.basename(binary))
             try:
-                set_rpath(binary, e['INSTALL_DIR'], map(lambda path: P.relpath(path, e['INSTALL_DIR']), SEARCHPATH))
+                set_rpath(binary, build_env['INSTALL_DIR'],
+                          map(lambda path: P.relpath(path, build_env['INSTALL_DIR']), SEARCHPATH))
             except:
                     warn('  Failed rpath on %s' % P.basename(binary))
 
@@ -374,7 +372,7 @@ if __name__ == '__main__':
             num=10
             for i in range(0,num):
                 try:
-                    modes[opt.mode](pkg(e.copy_set_default()))
+                    modes[opt.mode](pkg(build_env.copy_set_default()))
                     append_done(pkg, done_file)
                     break
                 except Exception, e:
@@ -391,4 +389,4 @@ if __name__ == '__main__':
     makelink(opt.build_root, 'last-completed-run')
 
     info('\n\nAll done!')
-    summary(e)
+    summary(build_env)
