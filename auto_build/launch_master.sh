@@ -9,32 +9,26 @@
 
 # See README.txt for more details.
 
-# To do: Add documentation to the test framework.
 # To do: Must push the tests to other machines when new tests are added.
 # To do: When ISIS gets updated, need to update the base_system
 # on each machine presumambly as that one is used in regressions.
-# To do: Enable updating BinaryBuilder from git.
-# To do: Think more about copying .sh files
-# To do: See the .py to do list.
-# To do: How to ensure that the stereo from right dir is executed?
-# To do: Create recipe for how to install sparse_disp and put that on amos and zula.
-# To do: Move build stuff to its own auto_build dir.
 
+if [ "$#" -lt 1 ]; then echo Usage: $0 machine buildDir; exit; fi
+
+buildDir=$1                         # must be relative to home dir
+testDir=projects/StereoPipelineTest # must be relative to home dir
 version="2.2.2_post" # Must change the version in the future
 mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
 sleepTime=30
-buildDir=projects/BinaryBuilder     # must be relative to home dir
-testDir=projects/StereoPipelineTest # must be relative to home dir
 timestamp=$(date +%Y-%m-%d)
 user=$(whoami)
 byss="byss"
 byssPath="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build/index.html"
 launchMachines="pfe25 zula amos"
-launchMachines="pfe25" # temporary!
 zulaSlaves="zula centos-64-5 centos-32-5"
-testOnly=0  # Don't build, just test. Must be set to 0 in production
-debugMode=1 # must be set to 0 in production
+testOnly=0  # Must be set to 0 in production. Don't build, just test.
+debugMode=0 # Must be set to 0 in production.
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
@@ -51,8 +45,10 @@ for launchMachine in $launchMachines; do
 
     for buildMachine in $buildMachines; do
         statusFile="status_"$buildMachine".txt"
-        # Make sure all scripts are up-to-date on the target machine
-        rsync -avz patches *py auto_build $user@$launchMachine:$buildDir >/dev/null 2>&1
+
+        # Make sure all scripts are up-to-date on the machine above to run things on
+        ./auto_build/refresh_code.sh $user $launchMachine $buildDir 2>/dev/null
+
         if [ "$testOnly" -eq 0 ]; then
             # Set the status to now building
             ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile 2>/dev/null" 2>/dev/null

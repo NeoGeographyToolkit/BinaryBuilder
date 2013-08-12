@@ -20,7 +20,10 @@ if [ "$(uname -n)" != "$launchMachine" ] && [ "$launchMachine" = "centos-32-5" ]
     user=build
     echo Will connect to $user@$launchMachine
     cd $HOME/$buildDir
-    rsync -avz patches *py auto_build $user@$launchMachine:$buildDir 2>/dev/null
+
+    # Make sure all scripts are up-to-date on the machine above to run things on
+    ./auto_build/refresh_code.sh $user $launchMachine $buildDir 2>/dev/null
+
     ssh $user@$launchMachine "echo $tarBall now_testing > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
     sleep 5; # Give the filesystem enough time to react
     ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $* > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
@@ -86,14 +89,15 @@ cd $testDir
 
 # Ensure we have an up-to-date version of the test suite
 # To do: Cloning can be sped up by local caching.
-rm -rf tmp
 echo Cloning StereoPipelineTest
-git clone https://github.com/NeoGeographyToolkit/StereoPipelineTest.git tmp
+newDir=StereoPipelineTest_new
+rm -rf $newDir
+git clone https://github.com/NeoGeographyToolkit/StereoPipelineTest.git $newDir
 if [ "$?" -ne 0 ]; then
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
-cp -rf tmp/.git* .; cp -rf tmp/* .; rm -rf tmp
+cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 
 # Set up the config file and run
 machine=$(uname -n)

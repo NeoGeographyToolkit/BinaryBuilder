@@ -34,8 +34,8 @@ if [ "$(echo $machine | grep centos)" != "" ]; then
     done
 fi
 
-# Make sure all scripts are up-to-date on the target machine
-rsync -avz patches *py auto_build $user@$machine:$buildDir
+# Make sure all scripts are up-to-date on the machine above to run things on
+./auto_build/refresh_code.sh $user $machine $buildDir 2>/dev/null
 
 # Ensure we first wipe $doneFile, then launch the build
 ssh $user@$machine "rm -f $buildDir/$doneFile"

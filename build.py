@@ -7,6 +7,7 @@
 # To do: For mac we also need to get GNU tar.
 # Change the path to point to where the stuff is.
 # To do: make_dist.py needs a version check for pfe.
+# To do: Create recipe for how to install sparse_disp and put that on amos and zula.
 
 from __future__ import print_function
 import os

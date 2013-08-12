@@ -42,6 +42,6 @@ bzip2 -dc $in_z | tar xfv - > /dev/null 2>&1
 mv $in $out
 cp -f ../dist-add/asp_book.pdf $out # Copy the ASP book
 tar cf $out_z --use-compress-prog=pbzip2 $out
-rm -rf $in
+rm -rf $in $out
 
 echo asp_tarballs/$out_z

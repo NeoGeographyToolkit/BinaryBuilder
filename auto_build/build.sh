@@ -37,14 +37,6 @@ if [ -f /usr/bin/gcc44 ] && [ -f /usr/bin/g++44 ]; then
 fi
 which gcc; which git; gcc --version; python --version
 
-# Get a fresh BinaryBuilder first.
-# To do: Cloning can be sped up by local caching.
-#rm -rf tmp
-# echo Cloning BinaryBuilder
-#git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git tmp
-#if [ "$?" -ne 0 ]; then echo Fail > $doneFile; exit 1; fi
-#cp -rf tmp/.git* .; cp -rf tmp/* .; rm -rf tmp
-
 # Rebuild the dependencies first (only the ones whose chksum changed
 # will get rebuilt)
 echo "Will build dependencies"
