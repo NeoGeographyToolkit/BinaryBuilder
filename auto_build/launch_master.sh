@@ -1,39 +1,62 @@
 #!/bin/bash
 
-# Launch and test all builds on all machines. In case of success, copy
-# the resulting builds to byss. Then notify the user of the status.
+# Launch and test all builds on all machines and notify the user of
+# the status. In case of success, copy the resulting builds to byss
+# and update the public link.
 
-# We assume all machines we need (byss, pfe25, zula, amos,
-# centos-64-5, centos-32-5) are set up properly for login without
-# password and that their details are in .ssh/config.
+# IMPORTANT NOTE: This script assumes that that all VW, ASP,
+# StereoPipelineTest, and BinaryBuilder code is up-to-date in github.
 
-# See README.txt for more details.
+# If you have local modifications in the BinaryBuilder directory,
+# update the list at auto_build/filesToCopy.txt (that list has all
+# top-level files and directories in BinaryBuilder), and run this
+# script as
+
+# ./auto_build/launch_master.sh local_mode
+
+# Once you are satisfied that everything works, check in your changes.
+
+# See auto_build/README.txt for more details.
 
 # To do: Must push the tests to other machines when new tests are added.
 # To do: When ISIS gets updated, need to update the base_system
 # on each machine presumambly as that one is used in regressions.
 
-if [ "$#" -lt 1 ]; then echo Usage: $0 machine buildDir; exit; fi
-
-buildDir=$1                         # must be relative to home dir
-testDir=projects/StereoPipelineTest # must be relative to home dir
 version="2.2.2_post" # Must change the version in the future
+buildDir=projects/BinaryBuilder     # must be relative to home dir
+testDir=projects/StereoPipelineTest # must be relative to home dir
 mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
-sleepTime=30
-timestamp=$(date +%Y-%m-%d)
-user=$(whoami)
 byss="byss"
 byssPath="/byss/docroot/stereopipeline/daily_build"
-link="http://byss.arc.nasa.gov/stereopipeline/daily_build/index.html"
+link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 launchMachines="pfe25 zula amos"
 zulaSlaves="zula centos-64-5 centos-32-5"
 testOnly=0  # Must be set to 0 in production. Don't build, just test.
 debugMode=0 # Must be set to 0 in production. Don't make a public release.
+timestamp=$(date +%Y-%m-%d)
+user=$(whoami)
+sleepTime=30
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
 if [ ! -d "$testDir" ];  then echo "Error: Directory: $testDir does not exist"; exit 1; fi;
 cd $buildDir
+
+local_mode=$1
+if [ "$local_mode" != "local_mode" ]; then
+    # Update from github
+    dir="BinaryBuilder_newest"
+    rm -rf $dir
+    git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git $dir
+    cd $dir
+    files=$(\ls -ad *)
+    cp -rf $files ..
+    cd ..
+    rm -rf $dir
+    # Need the list of files so that we can mirror those later to the
+    # slave machines
+    echo $files > auto_build/filesToCopy.txt
+fi
 
 for launchMachine in $launchMachines; do
 

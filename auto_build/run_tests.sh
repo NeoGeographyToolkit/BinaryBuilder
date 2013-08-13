@@ -63,8 +63,8 @@ export PATH=/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:$HOME/projects
 # fi
 
 # Unpack the tarball
-if [ ! -e "$HOME/$buildDir/$tarball" ]; then
-    echo "Error: File: $HOME/$buildDir/$tarball does not exist"
+if [ ! -e "$HOME/$buildDir/$tarBall" ]; then
+    echo "Error: File: $HOME/$buildDir/$tarBall does not exist"
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
@@ -86,6 +86,7 @@ if [ ! -d "$testDir" ];  then
     exit 1
 fi
 cd $testDir
+rm -f $reportFile
 
 # Ensure we have an up-to-date version of the test suite
 # To do: Cloning can be sped up by local caching.
@@ -110,7 +111,6 @@ if [ ! -e $configFile ]; then
 fi
 cp -fv $configFile $configFileLocal
 perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFileLocal
-rm -f $reportFile
 bin/run_tests.pl $configFileLocal
 if [ "$?" -ne 0 ]; then
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile

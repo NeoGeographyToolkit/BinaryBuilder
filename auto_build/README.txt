@@ -1,11 +1,9 @@
 The Ames Stereo Pipeline automatic build/test/release framework
-launches every day builds for all supported platforms, tests them,
-and, in case of success, copies the obtained builds to the release
-area and updates the link at:
+launches every day builds for all supported platforms, tests them, and
+notifies the user of the status. In case of success, it copies the
+obtained builds to the release area and updates the link at:
 
 https://byss.arc.nasa.gov/stereopipeline/daily_build
-
-A success/failure notification is sent to the ASP developers.
 
 Machines:
 pfe25:       SuSE Linux on Pleiades supercomputer
@@ -15,8 +13,9 @@ centos-64-5: Older Ubuntu Linux, 64 bit
 centos-32-5: Older Ubuntu Linux, 32 bit
 byss:        The machine storing the obtained builds
 
-The main script is start.sh. It gets started on pfe25. That
-script initiates the jobs on the other machines (and itself).
+The main script is auto_build/launch_master.sh. It gets started on
+pfe25. That script initiates the jobs on the other machines (and
+itself).
 
 On pfe25 and on amos, builds are launched, and then tested on the same
 machine. The process on zula launches builds on zula, centos-64-5
