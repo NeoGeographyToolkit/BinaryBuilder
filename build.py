@@ -2,10 +2,6 @@
 
 # To do: Look at the other issues raised on the issue list,
 # particularly Ben's sparse disp thingy and BB issue there.
-# To do: Must distribute parallel, gdal_translate.
-# To do: Install chrpath, cmake, pbzip2, ccache, chrpath, git.
-# To do: For mac we also need to get GNU tar.
-# Change the path to point to where the stuff is.
 # To do: make_dist.py needs a version check for pfe.
 # To do: Create recipe for how to install sparse_disp and put that on amos and zula.
 
@@ -66,10 +62,10 @@ def verify(program):
             return True
     return False;
 
-def summary(env):
+def summary(env_dict):
     print('===== Environment =====')
-    for k in sorted(env.keys()):
-        print('%15s: %s' % (k,env[k]))
+    for k in sorted(env_dict.keys()):
+        print('%15s: %s' % (k,env_dict[k]))
 
 def is_sequence(arg):
     # Returns true if current object is a tuple or list
@@ -173,7 +169,7 @@ if __name__ == '__main__':
         INSTALL_DIR  = P.join(opt.build_root, 'install'),
         MISC_DIR = P.join(opt.build_root, 'misc'),
         PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
-        PATH=os.environ['PATH'] )
+        PATH = os.environ['PATH'] )
 
     if opt.ld_library_path is not None:
         build_env['LD_LIBRARY_PATH'] = opt.ld_library_path
@@ -285,10 +281,10 @@ if __name__ == '__main__':
         die('Missing required executables for building. You need to install %s.' % missing_exec)
 
     build = []
-    build0 = [gsl, geos, zlib, curl, xercesc, cspice, protobuf, png, jpeg,
-              tiff, superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr,
-              boost, osg3, flann, qt, qwt, ufconfig, amd, colamd, cholmod,
-              tnt, jama, laszip, liblas, geoid, isis, yaml, eigen, libnabo,
+    build0 = [parallel, gsl, geos, zlib, curl, xercesc, cspice, protobuf, png,
+              jpeg, tiff, superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr,
+              boost, osg3, flann, qt, qwt, ufconfig, amd, colamd, cholmod, tnt,
+              jama, laszip, liblas, geoid, isis, yaml, eigen, libnabo,
               libpointmatcher]
 
     if len(args) == 0 or opt.dev:

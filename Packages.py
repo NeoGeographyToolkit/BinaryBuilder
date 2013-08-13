@@ -25,6 +25,33 @@ def strip_flag(flag, key, env):
         del env[key]
     return hit, env
 
+class ccache(Package):
+    src     = 'http://samba.org/ftp/ccache/ccache-3.1.9.tar.bz2'
+    chksum  = 'e80a5cb7301e72f675097246d722505ae56e3cd3'
+
+class cmake(Package):
+    src     = 'http://www.cmake.org/files/v2.8/cmake-2.8.11.2.tar.gz'
+    chksum  = '31f217c9305add433e77eff49a6eac0047b9e929'
+
+class chrpath(Package):
+    src     = 'http://ftp.debian.org/debian/pool/main/c/chrpath/chrpath_0.13.orig.tar.gz'
+    chksum  = '11ff3e3dda2acaf1e529475f394f74f2ef7a8204'
+
+class parallel(Package):
+    src     = 'http://ftp.gnu.org/gnu/parallel/parallel-20130722.tar.bz2'
+    chksum  = 'd794ac9c2c0a73d430b9ae2ebbbd07e4eb2fcaf0'
+
+    @stage
+    def install(self):
+        super(parallel, self).install()
+        # Copy parallel to libexec, as we want it to be hidden there in
+        # the released ASP distribution.
+        libexec = P.join( self.env['INSTALL_DIR'], 'libexec' )
+        self.helper('mkdir', '-p', libexec)
+        cmd = ['cp', '-vf', P.join( self.env['INSTALL_DIR'], 'bin', 'parallel' ),
+               libexec]
+        self.helper(*cmd)
+
 class tnt(Package):
     src     = 'http://math.nist.gov/tnt/tnt_126.zip'
     chksum  = '32f628d7e28a6e373ec2ff66c70c1cb25783b946'
@@ -91,6 +118,17 @@ class gdal(Package):
 
         self.helper('./autogen.sh')
         super(gdal,self).configure(with_=w, without=wo, disable='static', enable='shared')
+
+    @stage
+    def install(self):
+        super(gdal, self).install()
+        # Copy gdal_translate to libexec, as we want it to be hidden there in
+        # the released ASP distribution.
+        libexec = P.join( self.env['INSTALL_DIR'], 'libexec' )
+        self.helper('mkdir', '-p', libexec)
+        cmd = ['cp', '-vf', P.join( self.env['INSTALL_DIR'], 'bin', 'gdal_translate' ),
+               libexec]
+        self.helper(*cmd)
 
 class ilmbase(Package):
     src     = 'http://download.savannah.nongnu.org/releases/openexr/ilmbase-1.0.2.tar.gz'

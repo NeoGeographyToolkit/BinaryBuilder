@@ -14,7 +14,7 @@
 
 # IMPORTANT: The list in auto_build/filesToCopy.txt must be modified
 # each time a new file/directory is added to the top level of
-# BinaryBuilder.  This list is auto-generated below, but based on the
+# BinaryBuilder. This list is auto-generated below, but based on the
 # list of files already on github, so it won't reflect local changes.
 
 no_self_update=$1

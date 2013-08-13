@@ -28,7 +28,7 @@ link="http://byss.arc.nasa.gov/stereopipeline/daily_build/index.html"
 launchMachines="pfe25 zula amos"
 zulaSlaves="zula centos-64-5 centos-32-5"
 testOnly=0  # Must be set to 0 in production. Don't build, just test.
-debugMode=0 # Must be set to 0 in production.
+debugMode=0 # Must be set to 0 in production. Don't make a public release.
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
