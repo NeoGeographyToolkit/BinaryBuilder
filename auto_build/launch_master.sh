@@ -20,6 +20,7 @@
 
 # To do: Replace output_status_pfe25.txt with output_pfe25.txt and append
 # there the build.
+# To do: Implement function to set path and to create output build files.
 # To do: Must push the tests to other machines when new tests are added.
 # To do: When ISIS gets updated, need to update the base_system
 # on each machine presumambly as that one is used in regressions.
@@ -51,6 +52,9 @@ cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
 if [ ! -d "$testDir" ];  then echo "Error: Directory: $testDir does not exist"; exit 1; fi;
 cd $buildDir
+
+# Paths to newest python and to git
+export PATH=/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:$HOME/projects/packages/bin/:$HOME/packages/local/bin/:$PATH
 
 if [ "$local_mode" != "local_mode" ]; then
     # Update from github
