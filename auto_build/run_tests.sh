@@ -47,6 +47,7 @@ fi
 
 status="Fail"
 reportFile="report.txt"
+rm -f $HOME/$testDir/$reportFile
 
 # Paths to newest python and to git
 export PATH=/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:$HOME/projects/packages/bin/:$HOME/packages/local/bin/:$PATH
@@ -86,15 +87,21 @@ if [ ! -d "$testDir" ];  then
     exit 1
 fi
 cd $testDir
-rm -f $reportFile
 
 # Ensure we have an up-to-date version of the test suite
 # To do: Cloning can be sped up by local caching.
-echo Cloning StereoPipelineTest
 newDir=StereoPipelineTest_new
-rm -rf $newDir
-git clone https://github.com/NeoGeographyToolkit/StereoPipelineTest.git $newDir
-if [ "$?" -ne 0 ]; then
+failure=1
+for ((i = 0; i < 600; i++)); do
+    # Bugfix: Sometimes the github server is down, so do multiple attempts.
+    echo "Cloning StereoPipelineTest in attempt $i"
+    rm -rf $newDir
+    git clone https://github.com/NeoGeographyToolkit/StereoPipelineTest.git $newDir
+    failure="$?"
+    if [ "$failure" -eq 0 ]; then break; fi
+    sleep 60
+done
+if [ "$failure" -ne 0 ]; then
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
@@ -111,6 +118,7 @@ if [ ! -e $configFile ]; then
 fi
 cp -fv $configFile $configFileLocal
 perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFileLocal
+
 bin/run_tests.pl $configFileLocal
 if [ "$?" -ne 0 ]; then
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile

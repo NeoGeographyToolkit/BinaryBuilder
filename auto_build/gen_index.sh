@@ -41,6 +41,12 @@ if [ -f "$f" ]; then
     echo "<li><a href=\"$f\">Documentation</a> ($size)</li>" >> $index
 fi
 
+f="StereoPipelinePythonModules.tgz"
+if [ -f "$f" ]; then
+    size="$(ls -lh $f | awk '{print $5}')B"
+    echo "<li><a href=\"$f\">Optional Python Modules</a> ($size)</li>" >> $index
+fi
+
 echo '</ul>
 Contact: stereo-pipeline-owner [at] lists [dot] nasa [dot] gov<br>
 <a href="http://ti.arc.nasa.gov/tech/asr/intelligent-robotics/ngt/stereo/">About Ames Stereo Pipeline</a>

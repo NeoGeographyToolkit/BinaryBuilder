@@ -18,6 +18,8 @@
 
 # See auto_build/README.txt for more details.
 
+# To do: Replace output_status_pfe25.txt with output_pfe25.txt and append
+# there the build.
 # To do: Must push the tests to other machines when new tests are added.
 # To do: When ISIS gets updated, need to update the base_system
 # on each machine presumambly as that one is used in regressions.
@@ -25,34 +27,54 @@
 version="2.2.2_post" # Must change the version in the future
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
-mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
 byss="byss"
 byssPath="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 launchMachines="pfe25 zula amos"
 zulaSlaves="zula centos-64-5 centos-32-5"
-testOnly=0  # Must be set to 0 in production. Don't build, just test.
-debugMode=0 # Must be set to 0 in production. Don't make a public release.
+#launchMachines="pfe25"
+#zulaSlaves="centos-64-5"
+resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
+debugMode=0 # Must be set to 0 in production. 1=Don't make a public release.
 timestamp=$(date +%Y-%m-%d)
 user=$(whoami)
 sleepTime=30
+local_mode=$1
+
+mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
+if [ "$debugMode" -eq 0 ] && [ "$resumeRun" -eq 0 ] &&
+    [ "$local_mode" != "local_mode" ]; then
+    mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
+fi
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
 if [ ! -d "$testDir" ];  then echo "Error: Directory: $testDir does not exist"; exit 1; fi;
 cd $buildDir
 
-local_mode=$1
 if [ "$local_mode" != "local_mode" ]; then
     # Update from github
     dir="BinaryBuilder_newest"
-    rm -rf $dir
-    git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git $dir
+    failure=1
+    for ((i = 0; i < 600; i++)); do
+        # Bugfix: Sometimes the github server is down, so do multiple attempts.
+        echo "Cloning BinaryBuilder in attempt $i"
+        rm -rf $dir
+        git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git $dir
+        failure="$?"
+        if [ "$failure" -eq 0 ]; then break; fi
+        sleep 60
+    done
+    if [ "$failure" -ne 0 ] || [ ! -d "$dir" ]; then
+        echo "Failed to update from github"
+        exit 1
+    fi
     cd $dir
     files=$(\ls -ad *)
     cp -rf $files ..
     cd ..
     rm -rf $dir
+
     # Need the list of files so that we can mirror those later to the
     # slave machines
     echo $files > auto_build/filesToCopy.txt
@@ -72,9 +94,9 @@ for launchMachine in $launchMachines; do
         # Make sure all scripts are up-to-date on the machine above to run things on
         ./auto_build/refresh_code.sh $user $launchMachine $buildDir 2>/dev/null
 
-        if [ "$testOnly" -eq 0 ]; then
+        if [ "$resumeRun" -eq 0 ]; then
             # Set the status to now building
-            ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
+            ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile" 2>/dev/null
             sleep 5; # Give the filesystem enough time to react
             ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
         fi
@@ -233,11 +255,11 @@ if [ "$overallStatus" = "Success" ] && [ "$debugMode" = "0" ]; then
 
     # Wipe older files on byss and gen the index for today
     rsync -avz auto_build/rm_old.sh auto_build/gen_index.sh $user@$byss:$byssPath 2>/dev/null
-    ssh $user@$byss "$byssPath/rm_old.sh $byssPath 12" 2>/dev/null
+    ssh $user@$byss "$byssPath/rm_old.sh $byssPath 12 StereoPipeline-" 2>/dev/null
     ssh $user@$byss "$byssPath/gen_index.sh $byssPath $version $timestamp" 2>/dev/null
 fi
 
 cat $statusMasterFile
 
-subject="Build $timestamp status is $overallStatus"
+subject="ASP build $timestamp status is $overallStatus"
 mailx $mailto -s "$subject" < $statusMasterFile

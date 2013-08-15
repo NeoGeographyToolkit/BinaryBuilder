@@ -39,12 +39,7 @@ fi
 
 # Ensure we first wipe $doneFile, then launch the build
 ssh $user@$machine "rm -f $buildDir/$doneFile"
-# Bug fix for Mac: It does not like to ssh to itself properly or nohup
-if [ "$(uname -n)" = "$machine" ]; then
-    ./auto_build/build.sh $buildDir $doneFile > output_build.txt 2>&1&
-else
-    ssh $user@$machine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
-fi
+ssh $user@$machine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
 
 # Wait until the build finished
 while [ 1 ]; do

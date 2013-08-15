@@ -7,6 +7,7 @@ if [ "$#" -lt 2 ]; then echo Usage: $0 rmFromDir numLeft; exit; fi
 
 dir=$1
 numLeft=$2
+prefix=$3  # rm file starting with this prefix
 
 if [ ! -d "$dir" ]; then echo Missing directory: $dir; exit 1; fi
 
@@ -26,7 +27,7 @@ if [ "$stop" -eq "$num" ]; then
 fi
 
 count=0
-for f in $(ls -trd $dir/*); do
+for f in $(ls -trd $dir/$prefix*); do
     ((count++))
     if [ $count -le $stop ]; then
         echo Removing $f
