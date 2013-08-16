@@ -30,7 +30,7 @@ byssPath="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 launchMachines="pfe25 zula amos"
 zulaSlaves="zula centos-64-5 centos-32-5"
-#launchMachines="pfe25"
+#launchMachines="pfe25 amos"
 #zulaSlaves="centos-64-5"
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 debugMode=0 # Must be set to 0 in production. 1=Don't make a public release.
@@ -97,9 +97,17 @@ for launchMachine in $launchMachines; do
         ./auto_build/push_code.sh $user $launchMachine $buildDir 2>/dev/null
         if [ "$resumeRun" -eq 0 ]; then
             # Set the status to now building
-            ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile" 2>/dev/null
-            sleep 5; # Give the filesystem enough time to react
-            ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile > $outputFile 2>&1&" 2>/dev/null
+            ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile"\
+                2>/dev/null
+            while [ 1 ]; do
+                # Several attempts to start the job
+                sleep 10
+                ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile < /dev/null > $outputFile 2>&1&" 2>/dev/null
+                out=$(ssh $user@$launchMachine "ps ux | grep launch_slave.sh | grep -v grep" \
+                    2>/dev/null)
+                if [ "$out" != "" ]; then echo "Success starting on $launchMachine: $out"; break; fi
+                echo "Trying to start launch_slave.sh at $(date)"
+            done
         fi
     done
 done
