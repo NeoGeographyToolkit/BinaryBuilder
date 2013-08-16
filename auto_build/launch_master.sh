@@ -20,6 +20,7 @@
 
 # To do: Replace output_status_pfe25.txt with output_pfe25.txt and append
 # there the build.
+# To do: Remove buildDone.txt, use instead the status file.
 # To do: Implement function to set path and to create output build files.
 # To do: Must push the tests to other machines when new tests are added.
 # To do: When ISIS gets updated, need to update the base_system
@@ -36,7 +37,7 @@ zulaSlaves="zula centos-64-5 centos-32-5"
 #launchMachines="pfe25"
 #zulaSlaves="centos-64-5"
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
-debugMode=0 # Must be set to 0 in production. 1=Don't make a public release.
+debugMode=1 # Must be set to 0 in production. 1=Don't make a public release.
 timestamp=$(date +%Y-%m-%d)
 user=$(whoami)
 sleepTime=30
@@ -53,8 +54,8 @@ if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist";
 if [ ! -d "$testDir" ];  then echo "Error: Directory: $testDir does not exist"; exit 1; fi;
 cd $buildDir
 
-# Paths to newest python and to git
-export PATH=/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:$HOME/projects/packages/bin/:$HOME/packages/local/bin/:$PATH
+. $HOME/$buildDir/auto_build/utils.sh # load utilities
+set_system_paths
 
 if [ "$local_mode" != "local_mode" ]; then
     # Update from github
@@ -93,16 +94,15 @@ for launchMachine in $launchMachines; do
     fi
 
     for buildMachine in $buildMachines; do
-        statusFile="status_"$buildMachine".txt"
-
-        # Make sure all scripts are up-to-date on the machine above to run things on
+        statusFile=$(status_file $buildMachine)
+        outputFile=$(output_file $buildDir $buildMachine)
+        # Make sure all scripts are up-to-date on the target machine
         ./auto_build/refresh_code.sh $user $launchMachine $buildDir 2>/dev/null
-
         if [ "$resumeRun" -eq 0 ]; then
             # Set the status to now building
             ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile" 2>/dev/null
             sleep 5; # Give the filesystem enough time to react
-            ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+            ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile > $outputFile 2>&1&" 2>/dev/null
         fi
     done
 done
@@ -124,7 +124,7 @@ while [ 1 ]; do
         # machine and whether not all are done
         numRunning=0
         for buildMachine in $buildMachines; do
-            statusFile="status_"$buildMachine".txt"
+            statusFile=$(status_file $buildMachine)
             statusLine=$(ssh $user@$launchMachine \
                 "cat $buildDir/$statusFile 2>/dev/null" 2>/dev/null)
             tarBall=$( echo $statusLine | awk '{print $1}' )
@@ -142,7 +142,8 @@ while [ 1 ]; do
 
         # No regressions are running, see if to start one
         for buildMachine in $buildMachines; do
-            statusFile="status_"$buildMachine".txt"
+            statusFile=$(status_file $buildMachine)
+            outputFile=$(output_file $buildDir $buildMachine)
             statusLine=$(ssh $user@$launchMachine \
                 "cat $buildDir/$statusFile 2>/dev/null" 2>/dev/null)
             tarBall=$( echo $statusLine | awk '{print $1}' )
@@ -154,7 +155,7 @@ while [ 1 ]; do
                 echo Will launch tests for $buildMachine
                 ssh $user@$launchMachine "echo $tarBall now_testing > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
                 sleep 5; # Give the filesystem enough time to react
-                ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $buildMachine $tarBall $testDir $buildDir $statusFile >> $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+                ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $buildMachine $tarBall $testDir $buildDir $statusFile >> $outputFile 2>&1&" 2>/dev/null
                 break # launch just one testing session at a time
             fi
         done
@@ -204,7 +205,7 @@ for launchMachine in $launchMachines; do
 
     numRunning=0
     for buildMachine in $buildMachines; do
-        statusFile="status_"$buildMachine".txt"
+        statusFile=$(status_file $buildMachine)
         statusLine=$(ssh $user@$launchMachine \
             "cat $buildDir/$statusFile 2>/dev/null" 2>/dev/null)
         tarBall=$( echo $statusLine | awk '{print $1}' )

@@ -38,8 +38,9 @@ fi
 ./auto_build/refresh_code.sh $user $machine $buildDir 2>/dev/null
 
 # Ensure we first wipe $doneFile, then launch the build
+outputBuildFile="$buildDir/output_build_"$machine".txt"
 ssh $user@$machine "rm -f $buildDir/$doneFile"
-ssh $user@$machine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $doneFile > $buildDir/output_build.txt 2>&1&"
+ssh $user@$machine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $doneFile > $outputBuildFile 2>&1&"
 
 # Wait until the build finished
 while [ 1 ]; do
@@ -56,3 +57,5 @@ if [ "$asp_tarball" != "Fail" ]; then
     rsync -avz $user@$machine:$buildDir/$asp_tarball asp_tarballs
 fi
 echo $asp_tarball build_done > $statusFile
+
+ssh $user@$machine "cat $outputBuildFile" 2>/dev/null # append to curr logfile

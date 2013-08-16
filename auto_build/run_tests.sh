@@ -11,13 +11,16 @@ testDir=$3
 buildDir=$4
 statusFile=$5
 
+. $HOME/$buildDir/auto_build/utils.sh # load utilities
+set_system_paths
+
 # If we are on zula, but we'd like to run tests for centos-32-5,
-# connect to that machine and run the tests there. The centos-32-5
+# connect to that machine and call this script there. The centos-32-5
 # build does not run on zula, while the one from centos-64-5 has no
 # such problem.
-if [ "$(uname -n)" != "$launchMachine" ] && [ "$launchMachine" = "centos-32-5" ];
-    then
+if [ "$(uname -n)" != "$launchMachine" ] && [ "$launchMachine" = "centos-32-5" ]; then
     user=build
+    outputFile=$(output_file $buildDir $launchMachine)
     echo Will connect to $user@$launchMachine
     cd $HOME/$buildDir
 
@@ -26,8 +29,9 @@ if [ "$(uname -n)" != "$launchMachine" ] && [ "$launchMachine" = "centos-32-5" ]
 
     ssh $user@$launchMachine "echo $tarBall now_testing > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
     sleep 5; # Give the filesystem enough time to react
-    ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $* > $buildDir/output_$statusFile 2>&1&" 2>/dev/null
+    ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $* > $outputFile 2>&1&" 2>/dev/null
 
+    # Wait for the tests to finish
     while [ 1 ]; do
         statusLine=$(ssh $user@$launchMachine \
             "cat $buildDir/$statusFile 2>/dev/null" 2>/dev/null)
@@ -41,16 +45,15 @@ if [ "$(uname -n)" != "$launchMachine" ] && [ "$launchMachine" = "centos-32-5" ]
         echo Status is $statusLine
         sleep 30
     done
+
     echo $statusLine > $HOME/$buildDir/$statusFile
+    ssh $user@$launchMachine "cat $outputFile" 2>/dev/null # append to curr logfile
     exit
 fi
 
 status="Fail"
 reportFile="report.txt"
 rm -f $HOME/$testDir/$reportFile
-
-# Paths to newest python and to git
-export PATH=/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:$HOME/projects/packages/bin/:$HOME/packages/local/bin/:$PATH
 
 # if [ "$(uname -n)" = "centos-32-5" ]; then
 #     cd $HOME/$buildDir
