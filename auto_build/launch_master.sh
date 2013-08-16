@@ -18,10 +18,6 @@
 
 # See auto_build/README.txt for more details.
 
-# To do: Replace output_status_pfe25.txt with output_pfe25.txt and append
-# there the build.
-# To do: Remove buildDone.txt, use instead the status file.
-# To do: Implement function to set path and to create output build files.
 # To do: Must push the tests to other machines when new tests are added.
 # To do: When ISIS gets updated, need to update the base_system
 # on each machine presumambly as that one is used in regressions.
@@ -75,7 +71,7 @@ if [ "$local_mode" != "local_mode" ]; then
         exit 1
     fi
     cd $dir
-    files=$(\ls -ad *)
+    files=$(\ls -ad * .git*)
     cp -rf $files ..
     cd ..
     rm -rf $dir
@@ -190,7 +186,7 @@ done
 
 # Once the regressions are finished, copy the builds to the master
 # machine, rename them for release, and record whether the regressions
-# passed.
+# passed. Copy the logfiles as well.
 statusMasterFile="status_master.txt"
 rm -f $statusMasterFile
 echo "Machine and status" >> $statusMasterFile
@@ -203,9 +199,11 @@ for launchMachine in $launchMachines; do
         buildMachines=$launchMachine
     fi
 
-    numRunning=0
     for buildMachine in $buildMachines; do
+
+        # Check the status
         statusFile=$(status_file $buildMachine)
+        outputFile=$(output_file $buildDir $buildMachine)
         statusLine=$(ssh $user@$launchMachine \
             "cat $buildDir/$statusFile 2>/dev/null" 2>/dev/null)
         tarBall=$( echo $statusLine | awk '{print $1}' )
@@ -218,6 +216,7 @@ for launchMachine in $launchMachines; do
             status="Fail"
         fi
 
+        # Copy the tarballs
         mkdir -p asp_tarballs
         if [ "$tarBall" = "Fail" ]; then
             status="Fail"
@@ -230,12 +229,18 @@ for launchMachine in $launchMachines; do
             fi
             echo "Renaming build $tarBall"
             tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp)
+            if [ "$?" -ne 0 ]; then then "echo Renaming failed"; status="Fail"; fi
             if [ ! -f "$tarBall" ]; then echo Missing $tarBall; status="Fail"; fi
         fi
         if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
         echo $buildMachine $status >> $statusMasterFile
         builds[$count]="$tarBall"
         ((count++))
+
+        # Copy the log files
+        mkdir -p logs
+        rsync -avz $user@$launchMachine:$outputFile logs 2>/dev/null
+
     done
 done
 
@@ -263,6 +268,19 @@ if [ "$overallStatus" = "Success" ] && [ "$debugMode" = "0" ]; then
     ssh $user@$byss "$byssPath/rm_old.sh $byssPath 12 StereoPipeline-" 2>/dev/null
     ssh $user@$byss "$byssPath/gen_index.sh $byssPath $version $timestamp" 2>/dev/null
 fi
+
+# Copy the logs
+byssLogDir="logs/$timestamp"
+ssh $user@$byss "mkdir -p $byssPath/$byssLogDir" 2>/dev/null
+rsync -avz logs/* $user@$byss:$byssPath/$byssLogDir 2>/dev/null
+ssh $user@$byss "$byssPath/rm_old.sh $byssPath/logs 12" 2>/dev/null
+
+# List the logs in the report
+echo "" >> $statusMasterFile
+echo "Logs" >> $statusMasterFile
+for log in $(ls logs); do
+    echo "$link/$byssLogDir/$log" >> $statusMasterFile
+done
 
 cat $statusMasterFile
 

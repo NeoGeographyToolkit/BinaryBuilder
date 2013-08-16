@@ -12,4 +12,6 @@ cd $HOME/$buildDir
 
 # The list of files is generated earlier, in start.sh
 files=$(cat auto_build/filesToCopy.txt)
-rsync -avz $files $user@$machine:$buildDir
+
+echo "rsync -avz $files $user@$machine:$buildDir"
+rsync -avz $files $user@$machine:$buildDir > /dev/null 2>&1

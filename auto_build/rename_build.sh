@@ -38,6 +38,7 @@ in=${in_z/.tar.bz2/}
 out=${out_z/.tar.bz2/}
 
 rm -rf $in $out
+if [ -d "$in" ] || [ -d "$out" ]; then exit 1; fi # could not wipe
 bzip2 -dc $in_z | tar xfv - > /dev/null 2>&1
 mv $in $out
 cp -f ../dist-add/asp_book.pdf $out # Copy the ASP book
