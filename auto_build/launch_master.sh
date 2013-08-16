@@ -33,7 +33,7 @@ zulaSlaves="zula centos-64-5 centos-32-5"
 #launchMachines="pfe25"
 #zulaSlaves="centos-64-5"
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
-debugMode=1 # Must be set to 0 in production. 1=Don't make a public release.
+debugMode=0 # Must be set to 0 in production. 1=Don't make a public release.
 timestamp=$(date +%Y-%m-%d)
 user=$(whoami)
 sleepTime=30
@@ -49,6 +49,7 @@ cd $HOME
 if [ ! -d "$buildDir" ]; then echo "Error: Directory: $buildDir does not exist"; exit 1; fi;
 if [ ! -d "$testDir" ];  then echo "Error: Directory: $testDir does not exist"; exit 1; fi;
 cd $buildDir
+echo "Work directory: $(pwd)"
 
 . $HOME/$buildDir/auto_build/utils.sh # load utilities
 set_system_paths
@@ -229,7 +230,7 @@ for launchMachine in $launchMachines; do
             fi
             echo "Renaming build $tarBall"
             tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp)
-            if [ "$?" -ne 0 ]; then then "echo Renaming failed"; status="Fail"; fi
+            if [ "$?" -ne 0 ]; then "echo Renaming failed"; status="Fail"; fi
             if [ ! -f "$tarBall" ]; then echo Missing $tarBall; status="Fail"; fi
         fi
         if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
@@ -239,6 +240,7 @@ for launchMachine in $launchMachines; do
 
         # Copy the log files
         mkdir -p logs
+        echo Copying log from $user@$launchMachine:$outputFile
         rsync -avz $user@$launchMachine:$outputFile logs 2>/dev/null
 
     done
