@@ -25,7 +25,7 @@ if [ "$(uname -n)" != "$launchMachine" ] && [ "$launchMachine" = "centos-32-5" ]
     cd $HOME/$buildDir
 
     # Make sure all scripts are up-to-date on the machine above to run things on
-    ./auto_build/refresh_code.sh $user $launchMachine $buildDir 2>/dev/null
+    ./auto_build/push_code.sh $user $launchMachine $buildDir 2>/dev/null
 
     ssh $user@$launchMachine "echo $tarBall now_testing > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
     sleep 5; # Give the filesystem enough time to react

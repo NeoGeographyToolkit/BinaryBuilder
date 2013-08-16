@@ -35,7 +35,7 @@ if [ "$(echo $machine | grep centos)" != "" ]; then
 fi
 
 # Make sure all scripts are up-to-date on the machine above to run things on
-./auto_build/refresh_code.sh $user $machine $buildDir 2>/dev/null
+./auto_build/push_code.sh $user $machine $buildDir 2>/dev/null
 
 # Ensure we first wipe $doneFile, then launch the build
 outputBuildFile="$buildDir/output_build_"$machine".txt"

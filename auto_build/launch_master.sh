@@ -97,7 +97,7 @@ for launchMachine in $launchMachines; do
         statusFile=$(status_file $buildMachine)
         outputFile=$(output_file $buildDir $buildMachine)
         # Make sure all scripts are up-to-date on the target machine
-        ./auto_build/refresh_code.sh $user $launchMachine $buildDir 2>/dev/null
+        ./auto_build/push_code.sh $user $launchMachine $buildDir 2>/dev/null
         if [ "$resumeRun" -eq 0 ]; then
             # Set the status to now building
             ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile" 2>/dev/null
