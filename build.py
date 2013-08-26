@@ -376,6 +376,7 @@ if __name__ == '__main__':
                     print("Failed to build %s in attempt %d %s" %
                           (name, i, str(e)))
                     if i < num-1:
+                        print("Sleep for 60 seconds and try again")
                         time.sleep(60)
                     else:
                         raise
