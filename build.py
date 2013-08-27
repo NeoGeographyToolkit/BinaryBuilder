@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-# To do: Check for commits before doing a build.
-# To do: Look at the other issues raised on the issue list,
-# particularly Ben's sparse disp thingy and BB issue there.
-# To do: make_dist.py needs a version check for pfe.
-
 from __future__ import print_function
 import os
 import os.path as P
