@@ -903,12 +903,6 @@ class yaml(CMakePackage):
             '-DBUILD_SHARED_LIBS=ON'
             ])
 
-    @stage
-    def install(self):
-        super(yaml, self).install()
-        cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libyaml*.a'))
-        self.helper(*cmd)
-
 class eigen(CMakePackage):
     src = 'http://bitbucket.org/eigen/eigen/get/3.1.3.tar.bz2'
     chksum = '07e248deaaa5d2a8822a0581a606151127fce450'
@@ -937,12 +931,6 @@ class libnabo(CMakePackage):
             '-DSHARED_LIBS=ON'
             ])
 
-    @stage
-    def install(self):
-        super(libnabo, self).install()
-        cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libnabo*.a'))
-        self.helper(*cmd)
-
 class libpointmatcher(CMakePackage):
     # We keep this on byss as we hacked it a bit to compile. Besides,
     # we'd like to have a fixed reference version rather than getting
@@ -963,9 +951,3 @@ class libpointmatcher(CMakePackage):
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DSHARED_LIBS=ON'
             ])
-
-    @stage
-    def install(self):
-        super(libpointmatcher, self).install()
-        cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libpointmatcher*.a'))
-        self.helper(*cmd)
