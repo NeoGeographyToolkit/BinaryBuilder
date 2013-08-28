@@ -450,7 +450,7 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_54' # this is used in class liblas, libnabo, etc.
+    version = '1_54' # variable is used in class liblas, libnabo, etc.
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
     chksum  = '230782c7219882d0fab5f1effbe86edb85238bf4'
     patches = 'patches/boost'
@@ -642,11 +642,6 @@ class qwt(Package):
 class zlib(Package):
     src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.8.tar.gz'
     chksum  = 'a4d316c404ff54ca545ea71a27af7dbc29817088'
-
-    def unpack(self):
-        super(zlib, self).unpack()
-        # self.helper('sed', '-i',
-        #             r's|\<test "`\([^"]*\) 2>&1`" = ""|\1 2>/dev/null|', 'configure')
 
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
@@ -880,8 +875,14 @@ class flann(CMakePackage):
     src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.8.4-src.zip'
     chksum = 'e03d9d458757f70f6af1d330ff453e3621550a4f'
 
+    @stage
     def configure(self):
         super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF','-DBUILD_MATLAB_BINDINGS=OFF','-DBUILD_PYTHON_BINDINGS=OFF','-DBUILD_CUDA_LIB=OFF','-DUSE_MPI=OFF','-DUSE_OPENMP=OFF'])
+
+    @stage
+    def install(self):
+        super(flann, self).install()
+        self.helper(['rm', P.join(self.env['INSTALL_DIR'], 'lib', 'libflann*.a')])
 
 class yaml(CMakePackage):
     src = 'http://yaml-cpp.googlecode.com/files/yaml-cpp-0.3.0.tar.gz'
@@ -891,7 +892,8 @@ class yaml(CMakePackage):
         super(yaml, self).configure(other=[
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
+            '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+            '-DBUILD_SHARED_LIBS=ON'
             ])
 
 class eigen(CMakePackage):
@@ -918,7 +920,8 @@ class libnabo(CMakePackage):
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DCMAKE_VERBOSE_MAKEFILE=ON'
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DSHARED_LIBS=ON'
             ])
 
 class libpointmatcher(CMakePackage):
@@ -938,5 +941,6 @@ class libpointmatcher(CMakePackage):
             '-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
             '-DEIGEN_INCLUDE_DIR=' + P.join(installDir,'include/eigen3'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
-            '-DCMAKE_PREFIX_PATH=' + installDir
+            '-DCMAKE_PREFIX_PATH=' + installDir,
+            '-DSHARED_LIBS=ON'
             ])
