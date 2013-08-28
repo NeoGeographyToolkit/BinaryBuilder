@@ -47,14 +47,26 @@ def grablink(dst):
         raise Exception('Cannot resume, link target %s for link %s doesn\'t exist' % (ret, dst))
     return ret
 
-def verify(program):
+def verify(program,check_help=False):
     def is_exec(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
+    def has_help(fpath):
+        try:
+            FNULL = open(os.devnull,'w')
+            subprocess.check_call([fpath,"--help"],stdout=FNULL,stderr=FNULL)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
     for path in os.environ["PATH"].split(os.pathsep):
         exec_file = os.path.join( path, program )
-        if is_exec( exec_file ):
-            return True
+        if is_exec( exec_file):
+            if check_help:
+                if has_help(exec_file):
+                    return True
+            else:
+                return True
     return False;
 
 def summary(env_dict):
@@ -262,7 +274,8 @@ if __name__ == '__main__':
         build_env['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify we have the executables we need
-    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", build_env['CC'],build_env['CXX'],build_env['F77'],"ccache"]
+    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn","ccache"]
+    compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['F77'] ]
     if arch.os == 'linux':
         common_exec.extend( ["libtool", "chrpath"] )
     else:
@@ -271,6 +284,9 @@ if __name__ == '__main__':
     missing_exec = []
     for program in common_exec:
         if not verify( program ):
+            missing_exec.append(program)
+    for program in compiler_exec:
+        if not verify( program, True ):
             missing_exec.append(program)
     if missing_exec:
         die('Missing required executables for building. You need to install %s.' % missing_exec)
