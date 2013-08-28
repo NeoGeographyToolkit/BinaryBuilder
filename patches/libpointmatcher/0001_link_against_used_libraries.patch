@@ -1,0 +1,12 @@
+*** libpointmatcher/CMakeLists.txt	2013-08-26 16:22:31.000000000 -0700
+--- libpointmatcher/CMakeLists.txt	2013-08-28 11:35:31.000000000 -0700
+***************
+*** 147,152 ****
+--- 147,153 ----
+  if (SHARED_LIBS)
+  	add_library(pointmatcher SHARED ${POINTMATCHER_SRC})
+  	install(TARGETS pointmatcher LIBRARY DESTINATION lib)
++         target_link_libraries(pointmatcher ${yaml-cpp_LIBRARIES} ${NABO_LIBRARY} ${Boost_LIBRARIES} "-fopenmp")
+  else(SHARED_LIBS)
+  	add_library(pointmatcher ${POINTMATCHER_SRC})
+  	install(TARGETS pointmatcher ARCHIVE DESTINATION lib)
