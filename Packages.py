@@ -643,8 +643,14 @@ class zlib(Package):
     src     = 'http://downloads.sourceforge.net/libpng/zlib-1.2.8.tar.gz'
     chksum  = 'a4d316c404ff54ca545ea71a27af7dbc29817088'
 
+    @stage
     def configure(self):
         super(zlib,self).configure(other=('--shared',))
+
+    @stage
+    def install(self):
+        super(zlib, self).install()
+        self.helper(*['rm', P.join(self.env['INSTALL_DIR'], 'lib', 'libz.a')])
 
 class tiff(Package):
     src     = 'http://download.osgeo.org/libtiff/tiff-4.0.3.tar.gz'
@@ -882,7 +888,8 @@ class flann(CMakePackage):
     @stage
     def install(self):
         super(flann, self).install()
-        self.helper(['rm', P.join(self.env['INSTALL_DIR'], 'lib', 'libflann*.a')])
+        cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libflann*.a'))
+        self.helper(*cmd)
 
 class yaml(CMakePackage):
     src = 'http://yaml-cpp.googlecode.com/files/yaml-cpp-0.3.0.tar.gz'
@@ -895,6 +902,12 @@ class yaml(CMakePackage):
             '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
             '-DBUILD_SHARED_LIBS=ON'
             ])
+
+    @stage
+    def install(self):
+        super(yaml, self).install()
+        cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libyaml*.a'))
+        self.helper(*cmd)
 
 class eigen(CMakePackage):
     src = 'http://bitbucket.org/eigen/eigen/get/3.1.3.tar.bz2'
@@ -924,6 +937,12 @@ class libnabo(CMakePackage):
             '-DSHARED_LIBS=ON'
             ])
 
+    @stage
+    def install(self):
+        super(libnabo, self).install()
+        cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libnabo*.a'))
+        self.helper(*cmd)
+
 class libpointmatcher(CMakePackage):
     # We keep this on byss as we hacked it a bit to compile. Besides,
     # we'd like to have a fixed reference version rather than getting
@@ -944,3 +963,9 @@ class libpointmatcher(CMakePackage):
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DSHARED_LIBS=ON'
             ])
+
+    @stage
+    def install(self):
+        super(libpointmatcher, self).install()
+        cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libpointmatcher*.a'))
+        self.helper(*cmd)
