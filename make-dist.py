@@ -65,7 +65,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship (on linux, anyway)
-LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. '''.split()
+LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. libgomp.'''.split()
 if get_platform().os == 'linux':
     LIB_SHIP_PREFIX.insert(0,'libstdc++.')
 else:
