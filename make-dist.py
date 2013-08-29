@@ -186,13 +186,14 @@ if __name__ == '__main__':
                 if ( P.exists( P.join(INSTALLDIR, 'lib', lib) ) ):
                     mgr.add_library( P.join(INSTALLDIR, 'lib', lib) );
 
+        # Handle the shiplist separately. This will also add more dependencies
         print('\tAdding forced-ship libraries')
-        print("Dependencies %s" % mgr.deplist.keys() )
         sys.stdout.flush()
-        # Handle the shiplist separately
         found_set = set()
         found_and_to_be_removed = []
         for copy_lib in LIB_SHIP_PREFIX:
+            print("Processing %s" % copy_lib)
+            sys.stdout.flush()
             for soname in mgr.deplist.keys():
                 if soname.startswith(copy_lib):
                     # Bugfix: Do an exhaustive search, as same prefix can

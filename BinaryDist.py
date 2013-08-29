@@ -59,16 +59,11 @@ class DistManager(object):
             to deplist.'''
         logger.debug('attempting to add %s' % inpath)
         for p in snap_symlinks(inpath) if symlinks_too else [inpath]:
-            # This relpath weirdness is because libdirs can have subdirs
-            ps = P.normpath(p).split('/')
-            for seg_idx in xrange(len(ps)-1,-1,-1):
-                seg = ps[seg_idx]
-                if seg in ['lib','lib64','lib32','x86_64-linux-gnu','i386-linux-gnu']:
-                    relpath = '/'.join(ps[seg_idx+1:])
-                    break
-            else:
-                raise Exception('Expected library %s to be in a libdir' % p)
-            self._add_file(p, self.distdir.lib(relpath), add_deps=add_deps)
+            # This pulls out only the filename for the library. We
+            # don't preserve the subdirs underneath 'lib'. This make
+            # later rpath code easier to understand.
+            lib = P.normpath(p).split('/')[-1]
+            self._add_file(p, self.distdir.lib(lib), add_deps=add_deps)
 
     def add_glob(self, pattern, prefix, require_match=True):
         ''' Add a pattern to the tree. pattern must be relative to an
@@ -131,6 +126,9 @@ class DistManager(object):
         return file(self.distdir.base(relpath), mode)
 
     def bake(self, searchpath, baker = default_baker):
+        logger.debug('Baking list------------------------------------------')
+        for filename in self.distlist:
+            logger.debug('  %s' % filename)
         for filename in self.distlist:
             baker(filename, self.distdir, searchpath)
 
@@ -430,17 +428,6 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         logger.debug("Info sopath %s" % info.sopath)
         logger.debug("Toplevel var %s" % toplevel)
         logger.debug("Possible search path %s" % searchpath)
-        # Add libraries back in with their directory if they have a
-        # dir after the lib folder.
-        additional_libs = {}
-        for soname, sopath in info.libs.iteritems():
-            split_apart = sopath.split("/")
-            if "lib" in split_apart and \
-                    split_apart.index('lib') != len(split_apart) - 2:
-                new_soname = P.join('/'.join(split_apart[split_apart.index('lib')+1:-1]), soname)
-                logger.debug("XXX Adding new Soname %s" % new_soname)
-                additional_libs[new_soname] = sopath
-        info.libs.update( additional_libs )
 
         for soname, sopath in info.libs.iteritems():
             logger.debug("Soname %s Sopath %s" % (soname, sopath))
