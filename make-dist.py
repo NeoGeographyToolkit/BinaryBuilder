@@ -65,9 +65,10 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship (on linux, anyway)
-LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. libgomp.'''.split()
+LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. '''.split()
 if get_platform().os == 'linux':
     LIB_SHIP_PREFIX.insert(0,'libstdc++.')
+    LIB_SHIP_PREFIX.append('libgomp.')
 else:
     LIB_SYSTEM_LIST.append('libstdc++.6.dylib')
 
@@ -192,8 +193,6 @@ if __name__ == '__main__':
         found_set = set()
         found_and_to_be_removed = []
         for copy_lib in LIB_SHIP_PREFIX:
-            print("Processing %s" % copy_lib)
-            sys.stdout.flush()
             for soname in mgr.deplist.keys():
                 if soname.startswith(copy_lib):
                     # Bugfix: Do an exhaustive search, as same prefix can
