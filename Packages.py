@@ -936,7 +936,7 @@ class libpointmatcher(CMakePackage):
     # we'd like to have a fixed reference version rather than getting
     # it from github.
     src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
-    chksum = 'dacb4a44acdbfc2c2681a3eb534df4eb0a599f73'
+    chksum = '434d97f3255514b3d8d26c009bde7bfc320c9c8a'
     patches = 'patches/libpointmatcher'
 
     def configure(self):
