@@ -19,7 +19,7 @@ echo '<ul>' >> $index
 tags="OSX x86_64-Linux-GLIBC-2.5 i686-Linux-GLIBC-2.5 x86_64-Linux-GLIBC-2.17"
 for tag in $tags; do
   for f in $(ls *$version*$timestamp*$tag*bz2 2>/dev/null); do
-      size="$(ls -lh $f | awk '{print $5}')B"
+      size="$(ls -sh $f | awk '{print $1}')B"
       if [ "$(echo $f | grep -i OSX)" != "" ]; then
           echo "<li><a href=\"$f\">Mac OS X 10.6+</a> ($size)</li>" >> $index
       fi
@@ -37,13 +37,13 @@ done
 
 f="asp_book.pdf"
 if [ -f "$f" ]; then
-    size="$(ls -lh $f | awk '{print $5}')B"
+    size="$(ls -sh $f | awk '{print $1}')B"
     echo "<li><a href=\"$f\">Documentation</a> ($size)</li>" >> $index
 fi
 
 f="StereoPipelinePythonModules.tgz"
 if [ -f "$f" ]; then
-    size="$(ls -lh $f | awk '{print $5}')B"
+    size="$(ls -sh $f | awk '{print $1}')B"
     echo "<li><a href=\"$f\">Optional Python Modules</a> ($size)</li>" >> $index
 fi
 
