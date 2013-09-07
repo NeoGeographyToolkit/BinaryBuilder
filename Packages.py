@@ -943,7 +943,8 @@ class libpointmatcher(CMakePackage):
         installDir = self.env['INSTALL_DIR']
         boost_include = P.join(installDir,'include','boost-'+boost.version)
         self.env['CXXFLAGS'] += ' -I="' + boost_include + '"' # bugfix for lunokhod2
-        super(libpointmatcher, self).configure(other=[
+
+        options = [
             '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_include,
             '-DBoost_INCLUDE_DIR=' + boost_include,
             '-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
@@ -951,4 +952,12 @@ class libpointmatcher(CMakePackage):
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DSHARED_LIBS=ON'
-            ])
+            ]
+        if self.arch.os == 'linux':
+            # bugfixes for lunokhod2
+            options += [
+                '-DBoost_DIR=' + os.getcwd() + '/dist-add/share/boost',
+                '-DMY_BOOST_VERSION=' + boost.version,
+                '-DMY_BOOST_DIR=' + installDir
+                ]
+        super(libpointmatcher, self).configure(other=options)
