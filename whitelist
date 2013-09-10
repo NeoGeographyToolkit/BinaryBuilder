@@ -37,6 +37,7 @@ libexec/rpc_gen
 libexec/tif_mosaic
 libexec/stereo_utils.py
 libexec/gdal_translate
+libexec/gdalinfo
 libexec/parallel
 share/gdal/*
 share/geoids*
