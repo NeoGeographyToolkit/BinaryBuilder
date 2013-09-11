@@ -122,13 +122,15 @@ class gdal(Package):
     @stage
     def install(self):
         super(gdal, self).install()
-        # Copy gdal_translate to libexec, as we want it to be hidden there in
-        # the released ASP distribution.
+        # Copy gdal_translate and gdalinfo to libexec, as we want it
+        # to be hidden there in the released ASP distribution.
+        progs = ['gdalinfo', 'gdal_translate']
         libexec = P.join( self.env['INSTALL_DIR'], 'libexec' )
         self.helper('mkdir', '-p', libexec)
-        cmd = ['cp', '-vf', P.join( self.env['INSTALL_DIR'], 'bin', 'gdal_translate' ),
-               libexec]
-        self.helper(*cmd)
+        for prog in progs:
+            cmd = ['cp', '-vf', P.join( self.env['INSTALL_DIR'], 'bin',
+                                        prog ), libexec]
+            self.helper(*cmd)
 
 class ilmbase(Package):
     src     = 'http://download.savannah.nongnu.org/releases/openexr/ilmbase-1.0.2.tar.gz'
