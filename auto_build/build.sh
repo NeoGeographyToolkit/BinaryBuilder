@@ -76,7 +76,7 @@ if [ "$asp_tarball" = "" ]; then echo "Fail build_failed" > $statusFile; exit 1;
 mkdir -p asp_tarballs
 mv $asp_tarball asp_tarballs
 asp_tarball=asp_tarballs/$asp_tarball
-echo "$asp_tarball build_done" > $statusFile
+echo "$asp_tarball build_done Success" > $statusFile
 
 # Wipe old builds
 numKeep=12

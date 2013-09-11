@@ -30,18 +30,19 @@ byssPath="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 launchMachines="pfe25 zula amos"
 zulaSlaves="zula centos-64-5 centos-32-5"
-#launchMachines="pfe25 amos"
+#launchMachines="pfe25"
 #zulaSlaves="centos-64-5"
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
-debugMode=0 # Must be set to 0 in production. 1=Don't make a public release.
+skipBuild=0 # Must be set to 0 in production. 1=Skip build, do testing.
+skipRelease=0 # Must be set to 0 in production. 1=Don't make a public release.
 timestamp=$(date +%Y-%m-%d)
 user=$(whoami)
 sleepTime=30
 local_mode=$1
 
 mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
-if [ "$debugMode" -eq 0 ] && [ "$resumeRun" -eq 0 ] &&
-    [ "$local_mode" != "local_mode" ]; then
+if [ "$resumeRun" -eq 0 ] && [ "$skipBuild" -eq 0 ] && \
+    [ "$skipRelease" -eq 0 ] && [ "$local_mode" != "local_mode" ]; then
     mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
 fi
 
@@ -92,13 +93,24 @@ for launchMachine in $launchMachines; do
 
     for buildMachine in $buildMachines; do
         statusFile=$(status_file $buildMachine)
+        statusLine=$(ssh $user@$launchMachine \
+            "cat $buildDir/$statusFile 2>/dev/null" 2>/dev/null)
+        tarBall=$( echo $statusLine | awk '{print $1}' )
+        state=$( echo $statusLine | awk '{print $2}' )
+        status=$( echo $statusLine | awk '{print $3}' )
+
         outputFile=$(output_file $buildDir $buildMachine)
         # Make sure all scripts are up-to-date on the target machine
         ./auto_build/push_code.sh $user $launchMachine $buildDir 2>/dev/null
-        if [ "$resumeRun" -eq 0 ]; then
+        if [ "$skipBuild" -ne 0 ]; then
+            ssh $user@$launchMachine "echo $tarBall build_done Success > $buildDir/$statusFile" 2>/dev/null
+            sleep 10
+            continue
+        fi
+        if [ "$resumeRun" -eq 0 ] || [ "$state" = "build_failed" ]; then
             # Set the status to now building
-            ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile"\
-                2>/dev/null
+            ssh $user@$launchMachine "echo NoTarballYet now_building > $buildDir/$statusFile" 2>/dev/null
+            sleep 10
             for ((count = 0; count < 100; count++)); do
                 # Several attempts to start the job
                 sleep 10
@@ -161,6 +173,7 @@ while [ 1 ]; do
                 ssh $user@$launchMachine "echo $tarBall now_testing > $buildDir/$statusFile 2>/dev/null" 2>/dev/null
                 sleep 5; # Give the filesystem enough time to react
                 ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $buildMachine $tarBall $testDir $buildDir $statusFile >> $outputFile 2>&1&" 2>/dev/null
+                allDone=0
                 break # launch just one testing session at a time
             fi
         done
@@ -255,7 +268,7 @@ for launchMachine in $launchMachines; do
 done
 
 # Copy the builds to byss and update the public link
-if [ "$overallStatus" = "Success" ] && [ "$debugMode" = "0" ]; then
+if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
 
     echo "" >> $statusMasterFile
     echo "Link: $link" >> $statusMasterFile
