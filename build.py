@@ -158,6 +158,13 @@ if __name__ == '__main__':
     opt.build_root = P.realpath(opt.build_root)
     opt.download_dir = P.realpath(opt.download_dir)
 
+    # We count in deploy-base.py on opt.build_root to contain the
+    # string binary_builder_prefix()
+    m = re.match("^.*?" + binary_builder_prefix(), opt.build_root)
+    if not m:
+        raise Exception('Build directory: %s must contain the string: "%s".'
+                        % ( opt.build_root, binary_builder_prefix()) )
+        
     makelink(opt.build_root, 'last-run')
 
     print("Using build root directory: %s" % opt.build_root)
