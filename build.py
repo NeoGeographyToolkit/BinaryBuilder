@@ -146,7 +146,7 @@ if __name__ == '__main__':
         die('--ccache and --save-temps conflict. Disabling ccache.')
 
     if opt.build_root is not None and not P.exists(opt.build_root):
-        os.mkdir(opt.build_root)
+        os.makedirs(opt.build_root)
 
     if opt.resume and opt.build_root is None:
         opt.build_root = grablink('last-run')
