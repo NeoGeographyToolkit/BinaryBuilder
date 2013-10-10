@@ -25,13 +25,21 @@
 version="2.2.2_post" # Must change the version in the future
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
-byss="byss"
-byssPath="/byss/docroot/stereopipeline/daily_build"
+
+# Machines and paths 
+#releaseHost="byss"
+#releaseDir="/byss/docroot/stereopipeline/daily_build"
+#link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
+#launchMachines="pfe25 zula amos"
+#zulaSlaves="zula centos-64-5 centos-32-5"
+
+# Temporary machines and paths while on shutdown
+releaseHost="zula"
+releaseDir="$HOME/projects/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
-launchMachines="pfe25 zula amos"
+launchMachines="zula"
 zulaSlaves="zula centos-64-5 centos-32-5"
-#launchMachines="pfe25"
-#zulaSlaves="centos-64-5"
+
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 skipBuild=0 # Must be set to 0 in production. 1=Skip build, do testing.
 skipRelease=0 # Must be set to 0 in production. 1=Don't make a public release.
@@ -267,42 +275,43 @@ for launchMachine in $launchMachines; do
     done
 done
 
-# Copy the builds to byss and update the public link
+# Copy the builds to $releaseHost and update the public link
 if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
 
     echo "" >> $statusMasterFile
     echo "Link: $link" >> $statusMasterFile
     echo "" >> $statusMasterFile
-    echo "Paths on byss" >> $statusMasterFile
+    echo "Paths on $releaseHost" >> $statusMasterFile
 
-    echo Wil copy doc and builds to byss
-    rsync -avz dist-add/asp_book.pdf $user@$byss:$byssPath 2>/dev/null
+    echo Wil copy doc and builds to $releaseHost
+    ssh $user@$releaseHost "mkdir -p $releaseDir"
+    rsync -avz dist-add/asp_book.pdf $user@$releaseHost:$releaseDir 2>/dev/null
     len="${#builds[@]}"
     for ((count = 0; count < len; count++)); do
         tarBall=${builds[$count]}
-        echo Copying $tarBall to $user@$byss:$byssPath
-        rsync -avz $tarBall $user@$byss:$byssPath 2>/dev/null
-        rm -f "$tarBall" # No need to keep this around
-        echo $byssPath/$(basename $tarBall) >> $statusMasterFile
+        echo Copying $tarBall to $user@$releaseHost:$releaseDir
+        rsync -avz $tarBall $user@$releaseHost:$releaseDir 2>/dev/null
+        rm -f $tarBall # No need to keep this around
+        echo $releaseDir/$(basename $tarBall) >> $statusMasterFile
     done
 
-    # Wipe older files on byss and gen the index for today
-    rsync -avz auto_build/rm_old.sh auto_build/gen_index.sh $user@$byss:$byssPath 2>/dev/null
-    ssh $user@$byss "$byssPath/rm_old.sh $byssPath 12 StereoPipeline-" 2>/dev/null
-    ssh $user@$byss "$byssPath/gen_index.sh $byssPath $version $timestamp" 2>/dev/null
+    # Wipe older files on $releaseHost and gen the index for today
+    rsync -avz auto_build/rm_old.sh auto_build/gen_index.sh $user@$releaseHost:$releaseDir 2>/dev/null
+    ssh $user@$releaseHost "$releaseDir/rm_old.sh $releaseDir 12 StereoPipeline-" 2>/dev/null
+    ssh $user@$releaseHost "$releaseDir/gen_index.sh $releaseDir $version $timestamp" 2>/dev/null
 fi
 
 # Copy the logs
-byssLogDir="logs/$timestamp"
-ssh $user@$byss "mkdir -p $byssPath/$byssLogDir" 2>/dev/null
-rsync -avz logs/* $user@$byss:$byssPath/$byssLogDir 2>/dev/null
-ssh $user@$byss "$byssPath/rm_old.sh $byssPath/logs 12" 2>/dev/null
+logDir="logs/$timestamp"
+ssh $user@$releaseHost "mkdir -p $releaseDir/$logDir" 2>/dev/null
+rsync -avz logs/* $user@$releaseHost:$releaseDir/$logDir 2>/dev/null
+ssh $user@$releaseHost "$releaseDir/rm_old.sh $releaseDir/logs 12" 2>/dev/null
 
 # List the logs in the report
 echo "" >> $statusMasterFile
 echo "Logs" >> $statusMasterFile
 for log in $(ls logs); do
-    echo "$link/$byssLogDir/$log" >> $statusMasterFile
+    echo "$link/$logDir/$log" >> $statusMasterFile
 done
 
 cat $statusMasterFile
