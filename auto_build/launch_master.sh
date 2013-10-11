@@ -203,7 +203,9 @@ done
 overallStatus="Success"
 for launchMachine in $launchMachines; do
     if [ "$launchMachine" = "zula" ]; then
-        rm -fv dist-add/asp_book.pdf
+        if [ "$(uname -n)" != "zula" ]; then
+            rm -fv dist-add/asp_book.pdf
+        fi
         echo Copying the documentation from $user@$launchMachine
         rsync -avz $user@$launchMachine:$buildDir/dist-add/asp_book.pdf \
             dist-add
@@ -275,6 +277,8 @@ for launchMachine in $launchMachines; do
     done
 done
 
+ssh $user@$releaseHost "mkdir -p $releaseDir"
+
 # Copy the builds to $releaseHost and update the public link
 if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
 
@@ -284,7 +288,6 @@ if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
     echo "Paths on $releaseHost" >> $statusMasterFile
 
     echo Wil copy doc and builds to $releaseHost
-    ssh $user@$releaseHost "mkdir -p $releaseDir"
     rsync -avz dist-add/asp_book.pdf $user@$releaseHost:$releaseDir 2>/dev/null
     len="${#builds[@]}"
     for ((count = 0; count < len; count++)); do
