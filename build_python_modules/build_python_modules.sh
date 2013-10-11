@@ -73,7 +73,7 @@ export LAPACK=$installDir
 rm -rf scipy-0.12.0
 file=scipy-0.12.0.tar.gz
 if [ ! -f "$file" ]; then
-    wget https://pypi.python.org/packages/source/s/scipy/$file
+    wget --no-check-certificate https://pypi.python.org/packages/source/s/scipy/$file
 fi
 tar xzfv $file
 cd scipy-0.12.0
