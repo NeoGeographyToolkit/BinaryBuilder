@@ -403,6 +403,13 @@ class stereopipeline(GITPackage):
             + ['app-' + a for a in enable_apps.split()]
             + ['module-' + a for a in enable_modules.split()])
 
+    @stage
+    def compile(self, cwd=None):
+        # Do 'make check' as part of compilation
+        super(stereopipeline, self).compile(cwd)
+        cmd = ('make', 'check')
+        self.helper(*cmd)
+
 class visionworkbench(GITPackage):
     src     = 'https://github.com/visionworkbench/visionworkbench.git'
 
@@ -437,6 +444,13 @@ class visionworkbench(GITPackage):
                                                disable = ['pkg_paths_default','static', 'qt-qmake'] + ['module-' + a for a in disable_modules],
                                                enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
 
+    @stage
+    def compile(self, cwd=None):
+        # Do 'make check' as part of compilation
+        super(visionworkbench, self).compile(cwd)
+        cmd = ('make', 'check')
+        self.helper(*cmd)
+         
 class lapack(CMakePackage):
     src     = 'http://www.netlib.org/lapack/lapack-3.4.2.tgz'
     chksum  = '93a6e4e6639aaf00571d53a580ddc415416e868b'
