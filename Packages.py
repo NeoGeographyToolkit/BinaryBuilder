@@ -338,7 +338,7 @@ class isis(Package):
 class stereopipeline(GITPackage):
     # To do: Fix duplication in writing config.options.asp in deploy_base.py
     # and class stereopipeline in Packages.py.
-    src     = 'http://github.com/NeoGeographyToolkit/StereoPipeline.git'
+    src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
         self.helper('./autogen')
 
@@ -404,7 +404,7 @@ class stereopipeline(GITPackage):
             + ['module-' + a for a in enable_modules.split()])
 
 class visionworkbench(GITPackage):
-    src     = 'http://github.com/visionworkbench/visionworkbench.git'
+    src     = 'https://github.com/visionworkbench/visionworkbench.git'
 
     def __init__(self,env):
         super(visionworkbench,self).__init__(env)
