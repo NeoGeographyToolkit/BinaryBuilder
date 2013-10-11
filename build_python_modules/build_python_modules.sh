@@ -1,12 +1,5 @@
 #!/bin/bash
 
-if [ "$#" -lt 1 ]; then echo Usage: $0 '<installation directory>'; exit; fi
-installDir=$1
-buildDir=$(pwd)
-n_cpu=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)
-if [ "$n_cpu" = "" ]; then n_cpu=2; fi
-echo Will use $n_cpu processes
-
 function compute_python_path () {
     installDir=$1
     dir1=$(ls -d $installDir/lib/python*/site-packages 2>/dev/null | head -n 1)
@@ -17,10 +10,27 @@ function compute_python_path () {
         perl -pi -e "s#:*\$##g" | perl -pi -e "s#:+#:#g"
 }
 
-mkdir -p $buildDir/build_python
+if [ "$#" -lt 1 ]; then echo Usage: $0 '<installation directory>'; exit; fi
+installDir=$1
+
+# Find the absolute path of installDir
+mkdir -p $installDir
+if [ "$?" -ne 0 ]; then exit 1; fi
+currDir=$(pwd)
+cd $installDir
+installDir=$(pwd)
+cd $currDir
+
+n_cpu=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)
+if [ "$n_cpu" = "" ]; then n_cpu=2; fi
+echo Will use $n_cpu processes
+
+buildDir=$(pwd)/build_python
+mkdir -p $buildDir
+if [ "$?" -ne 0 ]; then exit 1; fi
 
 # install blas/lapack
-cd $buildDir/build_python
+cd $buildDir
 file=lapack-3.4.2.tgz
 if [ ! -f "$file" ]; then
     wget http://www.netlib.org/lapack/$file
@@ -38,7 +48,7 @@ make install
 if [ "$?" -ne 0 ]; then exit 1; fi
 
 # Install numpy
-cd $buildDir/build_python
+cd $buildDir
 rm -rf numpy-1.7.0
 file=numpy-1.7.0.tar.gz
 if [ ! -f "$file" ]; then
@@ -55,10 +65,10 @@ if [ "$?" -ne 0 ]; then exit 1; fi
 # Install scipy
 p=$(compute_python_path $installDir);
 export PYTHONPATH=$p # refresh the python path
-cd $buildDir/build_python
-export BLAS_SRC=$buildDir/build_python/lapack-3.4.2/BLAS/SRC
+cd $buildDir
+export BLAS_SRC=$buildDir/lapack-3.4.2/BLAS/SRC
 export BLAS=$installDir
-export LAPACK_SRC=$buildDir/build_python/lapack-3.4.2
+export LAPACK_SRC=$buildDir/lapack-3.4.2
 export LAPACK=$installDir
 rm -rf scipy-0.12.0
 file=scipy-0.12.0.tar.gz
@@ -73,7 +83,7 @@ python setup.py install --prefix=$installDir
 if [ "$?" -ne 0 ]; then exit 1; fi
 
 # install geos
-cd $buildDir/build_python
+cd $buildDir
 p=$(compute_python_path $installDir)
 export PYTHONPATH=$p # refresh the python path
 rm -rf geos-3.4.2
@@ -91,7 +101,7 @@ make install
 if [ "$?" -ne 0 ]; then exit 1; fi
 
 # Install proj4
-cd $buildDir/build_python
+cd $buildDir
 p=$(compute_python_path $installDir)
 export PYTHONPATH=$p # refresh the python path
 rm -rf proj-4.8.0
@@ -109,7 +119,7 @@ make install
 if [ "$?" -ne 0 ]; then exit 1; fi
 
 # Install gdal
-cd $buildDir/build_python
+cd $buildDir
 p=$(compute_python_path $installDir)
 export PYTHONPATH=$p # refresh the python path
 rm -rf gdal-1.10.0
@@ -142,3 +152,5 @@ echo ""
 echo "***********************************************"
 echo ""
 echo ""
+
+exit 0
