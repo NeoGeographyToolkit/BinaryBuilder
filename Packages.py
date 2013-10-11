@@ -235,7 +235,7 @@ class isis(Package):
         # We download the source code from the OSX branch, should be same code
         # as on the Linux side.
         self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX10.8/isis/"
-        self.isisautotools_src = "http://github.com/NeoGeographyToolkit/AutotoolsForISIS.git"
+        self.isisautotools_src = "https://github.com/NeoGeographyToolkit/AutotoolsForISIS.git"
 
     @stage
     def fetch(self, skip=False):
