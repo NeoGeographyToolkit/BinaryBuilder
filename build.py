@@ -108,10 +108,11 @@ def read_done(done_file):
 
     return done
 
-def append_done(pkg, done_file):
+def append_done(pkg, done, done_file):
     # Mark the current package as already built.
     name = pkg.__name__
     chksum = get_chksum(name)
+    done[name] = chksum
     f = open(done_file, 'a')
     f.write(name + " " + chksum + "\n")
 
@@ -388,7 +389,7 @@ if __name__ == '__main__':
             for i in range(0,num):
                 try:
                     modes[opt.mode](pkg(build_env.copy_set_default()))
-                    append_done(pkg, done_file)
+                    append_done(pkg, done, done_file)
                     break
                 except Exception, e:
                     print("Failed to build %s in attempt %d %s" %
