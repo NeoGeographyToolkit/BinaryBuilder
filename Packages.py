@@ -405,10 +405,10 @@ class stereopipeline(GITPackage):
 
     @stage
     def compile(self, cwd=None):
-        # Do 'make check' as part of compilation
         super(stereopipeline, self).compile(cwd)
-        cmd = ('make', 'check')
-        self.helper(*cmd)
+        # Turn off 'make check', as it depends on ISIS being setup
+        #cmd = ('make', 'check')
+        #self.helper(*cmd)
 
 class visionworkbench(GITPackage):
     src     = 'https://github.com/visionworkbench/visionworkbench.git'
