@@ -217,7 +217,7 @@ if __name__ == '__main__':
 
         print('Adding files in dist-add and docs')
         sys.stdout.flush()
-        #XXX Don't depend on cwd
+        # To do: Don't depend on cwd
         for dir in 'dist-add', INSTALLDIR.doc():
             if P.exists(dir):
                 mgr.add_directory(dir)
