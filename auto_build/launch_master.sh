@@ -38,7 +38,7 @@ releaseHost="zula"
 releaseDir="$HOME/projects/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 launchMachines="zula"
-zulaSlaves="zula centos-64-5 centos-32-5"
+zulaSlaves="centos-64-5"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 skipBuild=0 # Must be set to 0 in production. 1=Skip build, do testing.
