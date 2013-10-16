@@ -32,6 +32,7 @@ lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
 lib/libvw*.[so,dylib]*
+lib/osgPlugins-*/osgdb_*
 libexec/stereo_parse
 libexec/rpc_gen
 libexec/tif_mosaic

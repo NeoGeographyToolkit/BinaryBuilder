@@ -38,7 +38,7 @@ diff -ruN OpenSceneGraph-3.0.1_orig/CMakeLists.txt OpenSceneGraph-3.0.1/CMakeLis
 -    FIND_PACKAGE(DirectInput)
 -    FIND_PACKAGE(NVTT)
 +    MACRO_OPTIONAL_FIND_PACKAGE(FreeType)
-+    MACRO_OPTIONAL_FIND_PACKAGE(Inventor)
++    FIND_PACKAGE(Inventor)
 +    MACRO_OPTIONAL_FIND_PACKAGE(Jasper)
 +    MACRO_OPTIONAL_FIND_PACKAGE(OpenEXR)
 +    MACRO_OPTIONAL_FIND_PACKAGE(COLLADA)
