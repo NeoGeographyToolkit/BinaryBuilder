@@ -2,6 +2,13 @@
 
 from __future__ import print_function
 
+import sys
+code = -1
+# Must have this check before importing other BB modules
+if sys.version_info < (2, 6, 1):
+    print('\nERROR: Must use Python 2.6.1 or greater.')
+    sys.exit(code)
+
 import time
 import os.path as P
 import os
@@ -13,7 +20,6 @@ from optparse import OptionParser
 from BinaryBuilder import get_platform, die, run, Apps
 from BinaryDist import is_binary, set_rpath, binary_builder_prefix
 from Packages import geoid
-import sys
 from glob import glob
 
 global logger
@@ -25,11 +31,6 @@ def usage(msg, code):
     sys.exit(code)
 
 if __name__ == '__main__':
-
-    code = -1
-    if sys.version_info < (2, 6):
-        print('\nERROR: Must use Python 2.6 or greater.')
-        sys.exit(code)
 
     parser = OptionParser(usage='%s tarball installdir' % sys.argv[0])
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')

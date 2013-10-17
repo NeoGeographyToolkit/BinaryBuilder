@@ -1,10 +1,17 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
+
+import sys
+code = -1
+# Must have this check before importing other BB modules
+if sys.version_info < (2, 6, 1):
+    print('\nERROR: Must use Python 2.6.1 or greater.')
+    sys.exit(code)
+
 import os
 import os.path as P
 import subprocess
-import sys
 import errno
 import string
 import types

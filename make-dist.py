@@ -2,9 +2,16 @@
 
 from __future__ import print_function
 
+import sys
+code = -1
+# Must have this check before importing other BB modules
+if sys.version_info < (2, 6, 1):
+    print('\nERROR: Must use Python 2.6.1 or greater.')
+    sys.exit(code)
+
 from BinaryDist import grep, DistManager, Prefix, run
 
-import time, logging, copy, sys, re
+import time, logging, copy, re
 import os.path as P
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die
