@@ -26,18 +26,11 @@ version="2.2.2_post" # Must change the version in the future
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 
-# Machines and paths 
-#releaseHost="byss"
-#releaseDir="/byss/docroot/stereopipeline/daily_build"
-#link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
-#launchMachines="pfe25 zula amos"
-#zulaSlaves="zula centos-64-5 centos-32-5"
-
-# Temporary machines and paths while on shutdown
-releaseHost="zula"
-releaseDir="$HOME/projects/stereopipeline/daily_build"
+# Machines and paths
+releaseHost="byss"
+releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
-launchMachines="zula"
+launchMachines="pfe25 zula amos"
 zulaSlaves="zula centos-64-5 centos-32-5"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
