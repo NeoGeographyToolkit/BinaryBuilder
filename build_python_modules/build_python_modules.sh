@@ -10,10 +10,10 @@ function compute_python_path () {
         perl -pi -e "s#:*\$##g" | perl -pi -e "s#:+#:#g"
 }
 
-if [ "$#" -lt 1 ]; then echo Usage: $0 '<installation directory>'; exit; fi
-installDir=$1
 
 # Find the absolute path of installDir
+if [ "$#" -lt 1 ]; then echo Usage: $0 '<installation directory>'; exit; fi
+installDir=$1
 mkdir -p $installDir
 if [ "$?" -ne 0 ]; then exit 1; fi
 currDir=$(pwd)
@@ -29,6 +29,33 @@ buildDir=$(pwd)/build_python
 mkdir -p $buildDir
 if [ "$?" -ne 0 ]; then exit 1; fi
 
+# Find gfortran
+gfortran=$(which gfortran)
+if [ "$gfortran" = "" ]; then 
+    dirs=$(echo $PATH | perl -pi -e "s#:# #g")
+    for dir in $dirs; do
+        val=$(ls $dir/gfortran* 2>/dev/null | head -n 1)
+        if [ "$val" != "" ]; then
+            gfortran=$val
+            break
+        fi
+    done
+fi
+if [ "$gfortran" = "" ]; then 
+    echo "ERROR: Cannot find gfortran"
+    exit 1
+fi
+
+# If gfortran is named gfortran-mp-4.8 or so, create a symlink to gfortran,
+# otherwise the numpy build gets confused later
+gfortran2=$(dirname $gfortran)/gfortran
+if [ "$gfortran2" != "$gfortran" ]; then
+    gfortran2=$buildDir/gfortran
+    ln -s $gfortran $gfortran2
+    gfortran=$gfortran2
+    export PATH=$buildDir:$PATH
+fi
+
 # install blas/lapack
 cd $buildDir
 file=lapack-3.4.2.tgz
@@ -40,7 +67,8 @@ cd lapack-3.4.2
 rm -rf build
 mkdir -p build
 cd build
-cmake .. -DCMAKE_INSTALL_PREFIX=$installDir -DCMAKE_Fortran_FLAGS:STRING="-fPIC" -DBUILD_SHARED_LIBS:BOOL=ON
+cmake .. -DCMAKE_INSTALL_PREFIX=$installDir -DCMAKE_Fortran_FLAGS:STRING="-fPIC" -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_Fortran_COMPILER=$gfortran
+
 if [ "$?" -ne 0 ]; then exit 1; fi
 make -j $n_cpu
 if [ "$?" -ne 0 ]; then exit 1; fi
