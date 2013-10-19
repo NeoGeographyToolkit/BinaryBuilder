@@ -6,7 +6,7 @@
 # This script must not exit without updating the status in $statusFile
 # otherwise the caller will wait forever.
 
-if [ "$#" -lt 3 ]; then echo Usage: $0 buildMachine buildDir statusFile; exit; fi
+if [ "$#" -lt 3 ]; then echo Usage: $0 buildMachine buildDir statusFile; exit 1; fi
 
 # Note: buildDir must be relative to $HOME
 buildMachine=$1; buildDir=$2; statusFile=$3;
@@ -41,7 +41,14 @@ fi
 # Initiate the status file on the build machine (which may not be this machine)
 outputBuildFile="$buildDir/output_build_"$buildMachine".txt"
 ssh $user@$buildMachine "echo NoTarballYet now_building > $buildDir/$statusFile" 2>/dev/null
-sleep 5; # Give the filesystem enugh time to react
+sleep 5 # Give the filesystem enough time to react
+
+# We cannot build on andey, there we will just copy the build from amos
+if [ "$buildMachine" = "andey" ]; then
+    exit 0
+fi
+
+# Start the build
 ssh $user@$buildMachine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $statusFile > $outputBuildFile 2>&1&"
 
 # Wait until the build finished
@@ -69,3 +76,12 @@ echo "$asp_tarball build_done" > $statusFile
 echo ssh $user@$buildMachine "cat $outputBuildFile" 2>/dev/null
 
 ssh $user@$buildMachine "cat $outputBuildFile" 2>/dev/null # append to curr logfile
+
+# Copy the build from amos to andey
+if [ "$buildMachine" = "amos" ]; then
+    ssh $user@andey "mkdir -p $buildDir/asp_tarballs"
+    rsync -avz $asp_tarball $user@andey:$buildDir/asp_tarballs
+    statusFile2=${statusFile/amos/andey}
+    rsync -avz $statusFile $user@andey:$buildDir/$statusFile2
+fi
+

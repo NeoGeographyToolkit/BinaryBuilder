@@ -74,7 +74,7 @@ if [ ! -e "$HOME/$buildDir/$tarBall" ]; then
 fi
 tarBallDir=$(dirname $HOME/$buildDir/$tarBall)
 cd $tarBallDir
-bzip2 -dc $HOME/$buildDir/$tarBall | tar xfv - > /dev/null 2>&1
+tar xjfv $HOME/$buildDir/$tarBall
 binDir=$HOME/$buildDir/$tarBall
 binDir=${binDir/.tar.bz2/}
 if [ ! -e "$binDir" ]; then

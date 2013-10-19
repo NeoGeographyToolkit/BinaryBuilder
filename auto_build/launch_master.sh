@@ -30,7 +30,7 @@ testDir=projects/StereoPipelineTest # must be relative to home dir
 releaseHost="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
-launchMachines="pfe25 zula amos"
+launchMachines="pfe25 zula amos andey"
 zulaSlaves="zula centos-64-5 centos-32-5"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.

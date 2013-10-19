@@ -7,10 +7,11 @@ https://byss.arc.nasa.gov/stereopipeline/daily_build
 
 Machines:
 pfe25:       SuSE Linux on Pleiades supercomputer
-amos:        Mac OS X 10.6
 zula:        Newer Ubuntu Linux, 64 bit 
 centos-64-5: Older Ubuntu Linux, 64 bit
 centos-32-5: Older Ubuntu Linux, 32 bit
+amos:        Mac OS X 10.6
+andey:       Mac OS X 10.8
 byss:        The machine storing the obtained builds
 
 The main script is auto_build/launch_master.sh. It gets started on
@@ -18,12 +19,16 @@ pfe25. That script initiates the jobs on the other machines (and
 itself).
 
 On pfe25 and on amos, builds are launched, and then tested on the same
-machine. The process on zula launches builds on zula, centos-64-5
-and centos-32-5.
+machine. 
 
-The builds done on zula and centos-64-5 are tested on zula. The build
-launched on centos-32-5 is tested on that machine, as zula is missing
-some libraries expected by that build.
+The process on zula launches builds on zula, centos-64-5 and
+centos-32-5. The builds done on zula and centos-64-5 are tested on
+zula. The build launched on centos-32-5 is tested on that machine, as
+zula is missing some libraries expected by that build.
+
+We do not build on andey, instead we copy there the build from amos
+and just test it. The goal here is to uncover any subtle dependencies
+of a given build on the build machine libraries.
 
 The test process on pfe25 is the strictest, it will fail if any
 obtained resuls differ from the reference. The tests on other machines
