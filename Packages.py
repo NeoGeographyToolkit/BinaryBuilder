@@ -901,13 +901,15 @@ class osg3(CMakePackage):
     patches = 'patches/osg3'
 
     def configure(self):
+        other=['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON']
+        if self.arch.os == 'osx':
+            other += ['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio',
+                      '-DOSG_WINDOWING_SYSTEM=Cocoa']
         super(osg3, self).configure(
             with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit'.split(),
             without='COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
-            other=['-DBUILD_OSG_APPLICATIONS=ON',
-                   '-DCMAKE_VERBOSE_MAKEFILE=ON'
-                   ])
-
+            other=other)
+            
 class flann(CMakePackage):
     src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.8.4-src.zip'
     chksum = 'e03d9d458757f70f6af1d330ff453e3621550a4f'
