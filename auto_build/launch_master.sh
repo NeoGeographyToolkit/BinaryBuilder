@@ -103,6 +103,7 @@ for launchMachine in $launchMachines; do
         outputFile=$(output_file $buildDir $buildMachine)
         # Make sure all scripts are up-to-date on the target machine
         ./auto_build/push_code.sh $user $launchMachine $buildDir 2>/dev/null
+        
         if [ "$skipBuild" -ne 0 ] && [ "$resumeRun" -eq 0 ]; then
             ssh $user@$launchMachine "echo $tarBall build_done Success > $buildDir/$statusFile" 2>/dev/null
             sleep 10

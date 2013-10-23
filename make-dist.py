@@ -152,6 +152,8 @@ if __name__ == '__main__':
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
         # work correctly on Ubuntu 13.10.
         if get_platform().os == 'linux':
+            if "LD_LIBRARY_PATH" not in os.environ:
+                os.environ["LD_LIBRARY_PATH"] = ""
             os.environ["LD_LIBRARY_PATH"] = INSTALLDIR.lib() + os.pathsep + os.environ["LD_LIBRARY_PATH"]
             
         if opt.isisroot is not None:
