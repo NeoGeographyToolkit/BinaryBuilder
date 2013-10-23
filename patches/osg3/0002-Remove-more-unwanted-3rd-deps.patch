@@ -49,7 +49,7 @@ diff -ruN OpenSceneGraph-3.0.1/CMakeLists.txt OpenSceneGraph-3.0.1_prior/CMakeLi
 -        FIND_PACKAGE(PNG)
 -        FIND_PACKAGE(TIFF)
 +        MACRO_OPTIONAL_FIND_PACKAGE(GIFLIB)
-+        FIND_PACKAGE(JPEG)
++        MACRO_OPTIONAL_FIND_PACKAGE(JPEG)
 +        MACRO_OPTIONAL_FIND_PACKAGE(PNG)
 +        MACRO_OPTIONAL_FIND_PACKAGE(TIFF)
  

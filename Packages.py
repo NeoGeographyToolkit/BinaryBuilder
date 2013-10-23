@@ -896,20 +896,16 @@ class cholmod(Package):
                         P.join(d,'CHOLMOD',P.basename(header)) )
 
 class osg3(CMakePackage):
-    src = 'http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-3.0.1/source/OpenSceneGraph-3.0.1.zip'
-    chksum = '13c7e39f6d62047ad944d8d28a0f0eb60384ce33'
+    src = 'http://www.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.1.1.zip'
+    chksum = '3d040720642f1b7a97e91200468fb6c557b8b95c'
     patches = 'patches/osg3'
 
     def configure(self):
-        other=['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON']
-        if self.arch.os == 'osx':
-            other += ['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio',
-                      '-DOSG_WINDOWING_SYSTEM=Cocoa']
         super(osg3, self).configure(
             with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit'.split(),
             without='COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
-            other=other)
-            
+            other=['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON'])
+
 class flann(CMakePackage):
     src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.8.4-src.zip'
     chksum = 'e03d9d458757f70f6af1d330ff453e3621550a4f'
