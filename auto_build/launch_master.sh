@@ -200,8 +200,7 @@ for launchMachine in $launchMachines; do
             rm -fv dist-add/asp_book.pdf
         fi
         echo Copying the documentation from $user@$launchMachine
-        rsync -avz $user@$launchMachine:$buildDir/dist-add/asp_book.pdf \
-            dist-add
+        rsync -avz $user@$launchMachine:$buildDir/dist-add/asp_book.pdf dist-add 2>/dev/null
         if [ ! -f "dist-add/asp_book.pdf" ]; then
             echo "Error: Missing dist-add/asp_book.pdf"
             overallStatus="Fail"

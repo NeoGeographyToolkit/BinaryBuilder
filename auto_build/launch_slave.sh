@@ -49,7 +49,7 @@ if [ "$buildMachine" = "andey" ]; then
 fi
 
 # Start the build
-ssh $user@$buildMachine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $statusFile > $outputBuildFile 2>&1&"
+ssh $user@$buildMachine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $statusFile > $outputBuildFile 2>&1&" 2>/dev/null
 
 # Wait until the build finished
 while [ 1 ]; do
@@ -69,19 +69,31 @@ done
 if [ "$asp_tarball" != "Fail" ]; then
     mkdir -p asp_tarballs
     echo Copying $user@$buildMachine:$buildDir/$asp_tarball to asp_tarballs
-    rsync -avz $user@$buildMachine:$buildDir/$asp_tarball asp_tarballs
+    rsync -avz $user@$buildMachine:$buildDir/$asp_tarball asp_tarballs 2>/dev/null
 fi
 echo "$asp_tarball build_done" > $statusFile
 
-echo ssh $user@$buildMachine "cat $outputBuildFile" 2>/dev/null
-
-ssh $user@$buildMachine "cat $outputBuildFile" 2>/dev/null # append to curr logfile
-
 # Copy the build from amos to andey
-if [ "$buildMachine" = "amos" ]; then
-    ssh $user@andey "mkdir -p $buildDir/asp_tarballs"
-    rsync -avz $asp_tarball $user@andey:$buildDir/asp_tarballs
-    statusFile2=${statusFile/amos/andey}
-    rsync -avz $statusFile $user@andey:$buildDir/$statusFile2
+echo Machine is "'$buildMachine'"
+if [ "$buildMachine" = "amos" ] && \
+    [ "$asp_tarball" != "Fail" ] && [ -f "$asp_tarball" ]; then
+    res=""
+    while [ "$res" = "" ]; do
+        echo Will attempt to copy to andey: 
+        ssh $user@andey "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
+        rsync -avz $asp_tarball $user@andey:$buildDir/asp_tarballs 2>/dev/null
+        res=$(ssh $user@andey "ls $buildDir/$asp_tarball" 2>/dev/null)
+        echo Result is $res
+        statusFile2=${statusFile/amos/andey}
+        rsync -avz $statusFile $user@andey:$buildDir/$statusFile2 2>/dev/null
+        sleep 10
+    done
 fi
+
+# Append build log file to current logfile.
+# Wipe weird characters which can create funny artifacts in the log file.
+echo Will append $outputBuildFile
+echo ssh $user@$buildMachine "cat $outputBuildFile" 2>/dev/null
+ssh $user@$buildMachine "cat $outputBuildFile" | perl -pi -e "s/[^\s[:print:]]//g" 2>/dev/null 
+echo Done appending $outputBuildFile
 
