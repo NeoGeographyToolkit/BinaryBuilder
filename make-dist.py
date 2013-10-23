@@ -11,7 +11,7 @@ if sys.version_info < (2, 6, 1):
 
 from BinaryDist import grep, DistManager, Prefix, run
 
-import time, logging, copy, re
+import time, logging, copy, re, os
 import os.path as P
 from optparse import OptionParser
 from BinaryBuilder import get_platform, die
@@ -148,6 +148,12 @@ if __name__ == '__main__':
         INSTALLDIR = Prefix(installdir)
         ISISROOT   = P.join(INSTALLDIR)
         SEARCHPATH = [INSTALLDIR.lib()]
+
+        # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
+        # work correctly on Ubuntu 13.10.
+        if get_platform().os == 'linux':
+            os.environ["LD_LIBRARY_PATH"] = INSTALLDIR.lib() + os.pathsep + os.environ["LD_LIBRARY_PATH"]
+            
         if opt.isisroot is not None:
             ISISROOT = opt.isisroot
 
