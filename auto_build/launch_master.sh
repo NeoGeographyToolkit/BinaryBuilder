@@ -99,7 +99,8 @@ for launchMachine in $launchMachines; do
         tarBall=$( echo $statusLine | awk '{print $1}' )
         state=$( echo $statusLine | awk '{print $2}' )
         status=$( echo $statusLine | awk '{print $3}' )
-
+        
+        statusBuildFile=$(status_build_file $buildMachine)
         outputFile=$(output_file $buildDir $buildMachine)
         # Make sure all scripts are up-to-date on the target machine
         ./auto_build/push_code.sh $user $launchMachine $buildDir 2>/dev/null
@@ -116,7 +117,7 @@ for launchMachine in $launchMachines; do
             for ((count = 0; count < 100; count++)); do
                 # Several attempts to start the job
                 sleep 10
-                ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile < /dev/null > $outputFile 2>&1&" 2>/dev/null
+                ssh $user@$launchMachine "nohup nice -19 $buildDir/auto_build/launch_slave.sh $buildMachine $buildDir $statusFile $statusBuildFile < /dev/null > $outputFile 2>&1&" 2>/dev/null
                 out=$(ssh $user@$launchMachine "ps ux | grep launch_slave.sh | grep -v grep" \
                     2>/dev/null)
                 if [ "$out" != "" ]; then echo "Success starting on $launchMachine: $out"; break; fi

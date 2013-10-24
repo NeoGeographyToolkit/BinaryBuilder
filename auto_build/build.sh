@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Build ASP. On any faiulre, ensure the "Fail" flag is set in $statusFile,
+# Build ASP. On any faiulre, ensure the "Fail" flag is set in $statusBuildFile,
 # otherwise the caller will wait forever.
 
-if [ "$#" -lt 2 ]; then echo Usage: $0 buildDir statusFile; exit 1; fi
+if [ "$#" -lt 2 ]; then echo Usage: $0 buildDir statusBuildFile; exit 1; fi
 
 if [ -x /usr/bin/zsh ] && [ "$MY_BUILD_SHELL" = "" ]; then
     # Use zsh if available, that helps with compiling on pfe,
@@ -13,12 +13,12 @@ if [ -x /usr/bin/zsh ] && [ "$MY_BUILD_SHELL" = "" ]; then
 fi
 
 buildDir=$1
-statusFile=$2
+statusBuildFile=$2
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then
     echo "Error: Directory: $buildDir does not exist"
-    echo "Fail build_failed" > $statusFile
+    echo "Fail build_failed" > $statusBuildFile
     exit 1
 fi
 cd $buildDir
@@ -46,16 +46,16 @@ echo "Will build dependencies"
 rm -f ./BaseSystem*bz2 ./StereoPipeline*bz2
 ./build.py --download-dir $(pwd)/tarballs --dev-env --resume \
     --build-root $(pwd)/build_deps
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusFile; exit 1; fi
+if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
 ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusFile; exit 1; fi
+if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
 
 echo "Will build ASP"
 rm -rf $(pwd)/build_asp
 base_system=$(ls -trd BaseSystem* |tail -n 1)
 ./build.py --download-dir $(pwd)/tarballs --base $base_system \
     visionworkbench stereopipeline --build-root $(pwd)/build_asp
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusFile; exit 1; fi
+if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
 
 if [ "$(uname -n)" = "zula" ]; then
     echo "Will build the documentation"
@@ -68,15 +68,14 @@ if [ "$(uname -n)" = "zula" ]; then
 fi
 
 ./make-dist.py last-completed-run/install
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusFile; exit 1; fi
+if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
 
-# Mark the build as finished
+# Copy the build to asp_tarballs
 asp_tarball=$(ls -trd StereoPipeline*bz2 | grep -i -v debug | tail -n 1)
-if [ "$asp_tarball" = "" ]; then echo "Fail build_failed" > $statusFile; exit 1; fi
+if [ "$asp_tarball" = "" ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
 mkdir -p asp_tarballs
 mv $asp_tarball asp_tarballs
 asp_tarball=asp_tarballs/$asp_tarball
-echo "$asp_tarball build_done Success" > $statusFile
 
 # Wipe old builds
 numKeep=12
@@ -84,3 +83,7 @@ if [ "$(uname -n | grep centos)" != "" ]; then
     numKeep=4 # these machines have little storage
 fi
 ./auto_build/rm_old.sh asp_tarballs $numKeep
+
+# Mark the build as finished. This must happen at the very end,
+# otherwise the parent script will take over before this script finished.
+echo "$asp_tarball build_done Success" > $statusBuildFile
