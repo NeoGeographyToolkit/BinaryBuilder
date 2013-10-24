@@ -33,7 +33,7 @@ link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 launchMachines="pfe25 zula amos andey"
 zulaSlaves="zula centos-64-5 centos-32-5"
 
-resumeRun=1 # Must be set to 0 in production. 1=Resume where it left off.
+resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 skipBuild=0 # Must be set to 0 in production. 1=Skip build, do testing.
 skipRelease=0 # Must be set to 0 in production. 1=Don't make a public release.
 timestamp=$(date +%Y-%m-%d)
