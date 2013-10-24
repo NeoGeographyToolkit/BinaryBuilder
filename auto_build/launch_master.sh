@@ -33,7 +33,7 @@ link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 launchMachines="pfe25 zula amos andey"
 zulaSlaves="zula centos-64-5 centos-32-5"
 
-resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
+resumeRun=1 # Must be set to 0 in production. 1=Resume where it left off.
 skipBuild=0 # Must be set to 0 in production. 1=Skip build, do testing.
 skipRelease=0 # Must be set to 0 in production. 1=Don't make a public release.
 timestamp=$(date +%Y-%m-%d)
@@ -294,7 +294,7 @@ if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
 
     # Wipe older files on $releaseHost and gen the index for today
     rsync -avz auto_build/rm_old.sh auto_build/gen_index.sh $user@$releaseHost:$releaseDir 2>/dev/null
-    ssh $user@$releaseHost "$releaseDir/rm_old.sh $releaseDir 12 StereoPipeline-" 2>/dev/null
+    ssh $user@$releaseHost "$releaseDir/rm_old.sh $releaseDir 24 StereoPipeline-" 2>/dev/null
     ssh $user@$releaseHost "$releaseDir/gen_index.sh $releaseDir $version $timestamp" 2>/dev/null
 fi
 
@@ -302,7 +302,7 @@ fi
 logDir="logs/$timestamp"
 ssh $user@$releaseHost "mkdir -p $releaseDir/$logDir" 2>/dev/null
 rsync -avz logs/* $user@$releaseHost:$releaseDir/$logDir 2>/dev/null
-ssh $user@$releaseHost "$releaseDir/rm_old.sh $releaseDir/logs 12" 2>/dev/null
+ssh $user@$releaseHost "$releaseDir/rm_old.sh $releaseDir/logs 24" 2>/dev/null
 
 # List the logs in the report
 echo "" >> $statusMasterFile
