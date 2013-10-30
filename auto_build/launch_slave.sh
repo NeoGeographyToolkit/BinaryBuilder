@@ -76,13 +76,9 @@ fi
 
 # Append the build log file to current logfile.
 # Wipe weird characters which can create funny artifacts in the log file.
-echo Will append $buildOutputFile
-echo ssh $user@$buildMachine "cat $buildOutputFile" 2>/dev/null
-#ssh $user@$buildMachine "cat $buildOutputFile" | perl -pi -e "s/[^\s[:print:]]//g" 2>/dev/null 
-echo Done appending $buildOutputFile
+ssh $user@$buildMachine "cat $buildOutputFile" | perl -pi -e "s/[^\s[:print:]]//g" 2>/dev/null 
 
 # Copy the build from amos to andey
-echo Machine is "'$buildMachine'"
 if [ "$buildMachine" = "amos" ]; then 
 
     if [ "$asp_tarball" != "Fail" ] && [ -f "$asp_tarball" ]; then
