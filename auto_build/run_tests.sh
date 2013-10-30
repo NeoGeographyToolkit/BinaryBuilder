@@ -110,7 +110,7 @@ if [ "$failure" -ne 0 ]; then
 fi
 cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 
-# Set up the config file and run
+# Set up the config file
 machine=$(uname -n)
 configFile="release_"$machine".conf"
 configFileLocal="release_"$machine"_local.conf"
@@ -122,16 +122,21 @@ fi
 cp -fv $configFile $configFileLocal
 perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFileLocal
 
-bin/run_tests.pl $configFileLocal
+# Run the tests. Let the verbose output go to a file.
+bin/run_tests.pl $configFileLocal > output_test_"$machine".txt 2>&1
+
 if [ "$?" -ne 0 ]; then
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
-if [ ! -f $reportFile ]; then
+if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
+
+# Append the result of tests to the logfile
+cat $reportFile
 
 # Mark run as done
 failures=$(grep -i fail $reportFile)
