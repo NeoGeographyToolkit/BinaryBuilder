@@ -105,6 +105,7 @@ class parallel(Package):
 class tnt(Package):
     src     = 'http://math.nist.gov/tnt/tnt_126.zip'
     chksum  = '32f628d7e28a6e373ec2ff66c70c1cb25783b946'
+    patches = 'patches/tnt'
 
     def __init__(self, env):
         super(tnt, self).__init__(env)

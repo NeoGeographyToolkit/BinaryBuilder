@@ -1,0 +1,27 @@
+diff -crB build/build/tnt/tnt_sparse_matrix_csr.h build/install/include/tnt/tnt_sparse_matrix_csr.h
+*** tnt/tnt_sparse_matrix_csr.h	2004-10-15 14:06:49.000000000 -0700
+--- tnt/tnt_sparse_matrix_csr.h	2013-11-03 14:04:24.000000000 -0800
+***************
+*** 91,100 ****
+  		(i.e. the ith row begins at val[row[i]]).
+  	@param c column-indices: c[i] denotes the column location of val[i]
+  */
+  template <class T>
+  Sparse_Matrix_CompRow<T>::Sparse_Matrix_CompRow(int M, int N, int nz,
+  	const T *val, const int *r, const int *c) : val_(nz,val), 
+! 		rowptr_(M, r), colind_(nz, c), dim1_(M), dim2_(N) {}
+  
+  
+  }
+--- 91,101 ----
+  		(i.e. the ith row begins at val[row[i]]).
+  	@param c column-indices: c[i] denotes the column location of val[i]
+  */
++ // There is an ugly hack here because Array1D do not have a const version of themselves.
+  template <class T>
+  Sparse_Matrix_CompRow<T>::Sparse_Matrix_CompRow(int M, int N, int nz,
+  	const T *val, const int *r, const int *c) : val_(nz,val), 
+!                                                     rowptr_(M, const_cast<int *>(r)), colind_(nz, const_cast<int *>(c)), dim1_(M), dim2_(N) {}
+  
+  
+  }
