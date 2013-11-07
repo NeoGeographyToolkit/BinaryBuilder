@@ -83,13 +83,13 @@ if [ "$buildMachine" = "amos" ]; then
 
     if [ "$asp_tarball" != "Fail" ] && [ -f "$asp_tarball" ]; then
         res=""
-        while [ "$res" = "" ]; do
-            echo Will attempt to copy to andey: 
+        echo Will attempt to copy to andey: 
+        for ((i=0; i < 10; i++)); do 
             ssh $user@andey "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
             rsync -avz $asp_tarball $user@andey:$buildDir/asp_tarballs 2>/dev/null
             res=$(ssh $user@andey "ls $buildDir/$asp_tarball" 2>/dev/null)
             echo Result is $res
-            sleep 10
+            sleep 60
         done
     fi
 
