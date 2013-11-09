@@ -57,6 +57,13 @@ echo "Work directory: $(pwd)"
 set_system_paths
 
 if [ "$local_mode" != "local_mode" ]; then
+
+    check_if_remotes_changed
+    if [ "$remotes_changed" = "0" ]; then
+        echo No remotes changed, no need to build/test
+        exit 0
+    fi
+    
     # Update from github
     dir="BinaryBuilder_newest"
     failure=1
@@ -296,6 +303,11 @@ if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
     rsync -avz auto_build/rm_old.sh auto_build/gen_index.sh $user@$releaseHost:$releaseDir 2>/dev/null
     ssh $user@$releaseHost "$releaseDir/rm_old.sh $releaseDir 24 StereoPipeline-" 2>/dev/null
     ssh $user@$releaseHost "$releaseDir/gen_index.sh $releaseDir $version $timestamp" 2>/dev/null
+
+    if [ "$local_mode" != "local_mode" ]; then
+        # Mark the fact that we've built/tested for the current state of remote repositories
+        cp -fv $curr_hash_file $done_hash_file
+    fi
 fi
 
 # Copy the logs
