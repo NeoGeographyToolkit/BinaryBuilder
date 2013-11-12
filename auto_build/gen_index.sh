@@ -15,6 +15,7 @@ echo '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 ' > $index
 
 echo "<h2>Ames Stereo Pipeline version $version, build: $timestamp</h2>" >> $index
+echo '<p>This is the latest <b>development</b> version of Stereo Pipeline, and it may not be rock solid. See at the bottom the link to the latest stable release.' >> $index
 echo '<ul>' >> $index
 tags="OSX x86_64-Linux-GLIBC-2.5 i686-Linux-GLIBC-2.5 x86_64-Linux-GLIBC-2.17"
 for tag in $tags; do
