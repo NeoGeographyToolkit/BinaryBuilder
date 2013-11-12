@@ -138,6 +138,9 @@ fi
 # Append the result of tests to the logfile
 cat $reportFile
 
+# Display the allowed error (actual error with extra tolerance) for each run
+bin/print_allowed_error.pl $reportFile
+
 # Mark run as done
 failures=$(grep -i fail $reportFile)
 if [ "$failures" = "" ]; then
