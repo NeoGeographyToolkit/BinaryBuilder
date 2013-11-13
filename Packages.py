@@ -985,7 +985,7 @@ class libpointmatcher(CMakePackage):
         if self.arch.os == 'linux':
             # bugfixes for lunokhod2
             options += [
-                '-DBoost_DIR=' + os.getcwd() + '/dist-add/share/boost',
+                '-DBoost_DIR=' + os.getcwd() + '/patches/boost',
                 '-DMY_BOOST_VERSION=' + boost.version,
                 '-DMY_BOOST_DIR=' + installDir
                 ]
