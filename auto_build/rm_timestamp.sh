@@ -15,8 +15,6 @@ if [[ ! $tarball =~ \.tar\.bz2$ ]]; then
     exit 1
 fi
 
-currDir=$(pwd)
-
 tarballDir=$(dirname $tarball)
 tarballNameIn=$(basename $tarball)
 cd $tarballDir
@@ -29,10 +27,13 @@ out=${tarballNameOut/.tar.bz2/}
 rm -rf $in $out
 
 bzip2 -dc $tarballNameIn | tar xfv - > /dev/null 2>&1
+if [ "$?" -ne 0 ]; then echo "Unpacking failed"; exit 1; fi
 
 mv $in $out
 
 tar cf $tarballNameOut --use-compress-prog=pbzip2 $out
+if [ "$?" -ne 0 ]; then echo "Packing back failed"; exit 1; fi
+
 rm -rf $in $out
 
 echo Renamed $tarballDir/$tarballNameIn to $tarballDir/$tarballNameOut
