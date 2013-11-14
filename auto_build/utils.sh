@@ -13,6 +13,10 @@ function status_build_file () {
     echo "status_build_"$1".txt"
 }
 
+function version_file (){
+    echo "version_"$1".txt"
+}
+
 # To do: Make this consistent with the above, so
 # remove the buildDir from here
 function output_file () {

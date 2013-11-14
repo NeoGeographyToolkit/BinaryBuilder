@@ -22,7 +22,6 @@
 # To do: When ISIS gets updated, need to update the base_system
 # on each machine presumambly as that one is used in regressions.
 
-version="2.2.2_post" # Must change the version in the future
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 
@@ -216,6 +215,19 @@ for launchMachine in $launchMachines; do
         fi
     fi
 done
+
+# Get the ASP version. Hopefully some machine has it.
+version=""
+for launchMachine in $launchMachines; do
+    versionFile=$(version_file $launchMachine)
+    localVersion=$(ssh $user@$launchMachine \
+        "cat $buildDir/$versionFile 2>/dev/null" 2>/dev/null)
+    echo Version on $launchMachine is $localVersion
+    if [ "$version" = "" ]; then version=$localVersion; fi
+done
+if [ "$version" = "" ]; then
+    overallStatus="Fail"
+fi
 
 # Once the regressions are finished, copy the builds to the master
 # machine, rename them for release, and record whether the regressions

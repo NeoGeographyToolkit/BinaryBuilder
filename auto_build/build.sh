@@ -67,6 +67,11 @@ if [ "$(uname -n)" = "zula" ]; then
     cd $HOME/$buildDir
 fi
 
+# Dump the ASP version
+buildMachine=$(uname -n)
+versionFile=$(version_file $buildMachine)
+build_asp/install/bin/stereo -v 2>/dev/null | grep "NASA Ames Stereo Pipeline" | awk '{print $5}' >  $versionFile
+
 ./make-dist.py last-completed-run/install
 if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
 
