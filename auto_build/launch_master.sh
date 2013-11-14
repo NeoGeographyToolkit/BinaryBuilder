@@ -295,7 +295,6 @@ if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
         tarBall=${builds[$count]}
         echo Copying $tarBall to $user@$releaseHost:$releaseDir
         rsync -avz $tarBall $user@$releaseHost:$releaseDir 2>/dev/null
-        rm -f $tarBall # No need to keep this around
         echo $releaseDir/$(basename $tarBall) >> $statusMasterFile
     done
 

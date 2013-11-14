@@ -82,6 +82,9 @@ numKeep=12
 if [ "$(uname -n | grep centos)" != "" ]; then
     numKeep=4 # these machines have little storage
 fi
+if [ "$(uname -n | grep pfe)" != "" ]; then
+    numKeep=24 # keep more builds on master machine
+fi
 ./auto_build/rm_old.sh asp_tarballs $numKeep
 
 # Mark the build as finished. This must happen at the very end,
