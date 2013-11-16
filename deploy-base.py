@@ -62,7 +62,13 @@ if __name__ == '__main__':
         print('Extracting tarball')
         run('tar', 'xf', tarball, '-C', installdir, '--strip-components', '1')
 
-    SEARCHPATH = [P.join(installdir,'lib'),P.join(installdir,'lib','osgPlugins*')]
+    # Ensure installdir/bin is in the path, to be able to find chrpath, etc.
+    if "PATH" not in os.environ: os.environ["PATH"] = ""
+    os.environ["PATH"] = P.join(installdir, 'bin') + \
+                         os.pathsep + os.environ["PATH"] 
+
+    SEARCHPATH = [P.join(installdir,'lib'),
+                  P.join(installdir,'lib','osgPlugins*')]
 
     print('Fixing RPATHs')
     for curr_path in SEARCHPATH:

@@ -140,6 +140,11 @@ if __name__ == '__main__':
         parser.print_help()
         die('\nIllegal argument to --isisroot: path does not exist')
 
+    # Ensure installdir/bin is in the path, to be able to find chrpath, etc.
+    if "PATH" not in os.environ: os.environ["PATH"] = ""
+    os.environ["PATH"] = P.join(installdir, 'bin') + \
+                         os.pathsep + os.environ["PATH"] 
+    
     logging.basicConfig(level=opt.loglevel)
 
     mgr = DistManager(tarball_name())

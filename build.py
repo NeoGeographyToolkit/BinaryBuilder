@@ -177,6 +177,12 @@ if __name__ == '__main__':
 
     print("Using build root directory: %s" % opt.build_root)
 
+    # Ensure that opt.build_root/install/bin is in the path, as there we keep
+    # chrpath, etc.
+    if "PATH" not in os.environ: os.environ["PATH"] = ""
+    os.environ["PATH"] = P.join(opt.build_root, 'install/bin') + \
+                         os.pathsep + os.environ["PATH"]
+                       
     # -Wl,-z,now ?
     build_env = Environment(
         CC       = opt.cc,
@@ -289,10 +295,10 @@ if __name__ == '__main__':
         build_env['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify we have the executables we need
-    common_exec = ["cmake", "make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn","ccache"]
+    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn","ccache"]
     compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['F77'] ]
     if arch.os == 'linux':
-        common_exec.extend( ["libtool", "chrpath"] )
+        common_exec.extend( ["libtool"] )
     else:
         common_exec.extend( ["glibtool", "install_name_tool"] )
 
@@ -314,8 +320,9 @@ if __name__ == '__main__':
               libpointmatcher]
 
     if len(args) == 0 or opt.dev:
+        build.extend([cmake])
         if arch.os == 'linux':
-            build.append(lapack)
+            build.extend([chrpath, lapack])
         build.extend(build0)
         if not opt.dev:
             build.extend([visionworkbench, stereopipeline])
