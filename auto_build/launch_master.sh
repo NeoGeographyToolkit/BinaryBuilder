@@ -263,7 +263,8 @@ for launchMachine in $launchMachines; do
 
         # Copy the tarballs
         mkdir -p asp_tarballs
-        if [ "$tarBall" = "Fail" ]; then
+        if [[ ! $tarBall =~ \.tar\.bz2$ ]]; then
+            echo "Expecting '$tarBall' to be with .tar.bz2 extension"
             status="Fail"
         else
             echo Copying $user@$launchMachine:$buildDir/$tarBall to asp_tarballs

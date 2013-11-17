@@ -68,7 +68,7 @@ while [ 1 ]; do
 done
 
 # Copy back the obtained tarball
-if [ "$asp_tarball" != "Fail" ]; then
+if [[ "$asp_tarball" =~ \.tar\.bz2$ ]]; then
     mkdir -p asp_tarballs
     echo Copying $user@$buildMachine:$buildDir/$asp_tarball to asp_tarballs
     rsync -avz $user@$buildMachine:$buildDir/$asp_tarball asp_tarballs 2>/dev/null
@@ -81,7 +81,7 @@ ssh $user@$buildMachine "cat $buildOutputFile" | perl -pi -e "s/[^\s[:print:]]//
 # Copy the build from amos to andey
 if [ "$buildMachine" = "amos" ]; then 
 
-    if [ "$asp_tarball" != "Fail" ] && [ -f "$asp_tarball" ]; then
+    if [[ "$asp_tarball" =~ \.tar\.bz2$ ]] && [ -f "$asp_tarball" ]; then
         res=""
         echo Will attempt to copy to andey: 
         for ((i=0; i < 10; i++)); do 
