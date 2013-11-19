@@ -600,7 +600,7 @@ class gmm(Package):
         super(gmm,self).configure(with_=('blas=%s') % blas)
 
 class xercesc(Package):
-    src    = 'http://download.nextag.com/apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
+    src    = 'http://mirror.symnds.com/software/Apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
     chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
 
     @stage
