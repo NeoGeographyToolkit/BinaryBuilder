@@ -981,13 +981,11 @@ class libpointmatcher(CMakePackage):
             '-DEIGEN_INCLUDE_DIR=' + P.join(installDir,'include/eigen3'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir,
-            '-DSHARED_LIBS=ON'
+            '-DSHARED_LIBS=ON', 
+            # Bugfixes for lunokhod2 and Mac OSX 10.8.
+            # To do: This must be enabled in CMakePackage instead.
+            '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
+            '-DMY_BOOST_VERSION=' + boost.version,
+            '-DMY_BOOST_DIR=' + installDir
             ]
-        if self.arch.os == 'linux':
-            # bugfixes for lunokhod2
-            options += [
-                '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
-                '-DMY_BOOST_VERSION=' + boost.version,
-                '-DMY_BOOST_DIR=' + installDir
-                ]
         super(libpointmatcher, self).configure(other=options)
