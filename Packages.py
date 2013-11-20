@@ -949,6 +949,7 @@ class libnabo(CMakePackage):
     # it may change to the point where it breaks.
     src = 'https://byss.arc.nasa.gov/asp_packages/libnabo-0.0.0.tgz'
     chksum = 'bc71180748b5ebf1c3bbfe3f45a34e6d6be3dbec'
+    patches = 'patches/libnabo'
 
     def configure(self):
         super(libnabo, self).configure(other=[

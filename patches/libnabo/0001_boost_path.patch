@@ -1,0 +1,12 @@
+--- libnabo/CMakeLists.txt	2013-11-19 15:37:14.000000000 -0800
++++ libnabo/CMakeLists.txt	2013-11-19 15:46:24.000000000 -0800
+@@ -74,7 +76,8 @@
+ # endif(USE_OPEN_CL)
+ 
+ # include all libs so far
+-include_directories(${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
++include_directories(${EIGEN_INCLUDE_DIR} ${Boost_INCLUDE_DIR} ${Boost_INCLUDE_DIRS})
++link_directories(${Boost_LIBRARY_DIR} ${Boost_LIBRARY_DIRS})
+ 
+ # main nabo lib
+ set(NABO_SRC
