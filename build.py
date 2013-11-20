@@ -151,7 +151,7 @@ if __name__ == '__main__':
     info('Using %d build processes' % opt.threads)
 
     if opt.ccache and opt.save_temps:
-        die('--ccache and --save-temps conflict. Disabling ccache.')
+        die('--save-temps was specified. Disable ccache with --no-ccache.')
 
     if opt.build_root is not None and not P.exists(opt.build_root):
         os.makedirs(opt.build_root)
