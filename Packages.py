@@ -37,6 +37,40 @@ class chrpath(Package):
     src     = 'http://ftp.debian.org/debian/pool/main/c/chrpath/chrpath_0.13.orig.tar.gz'
     chksum  = '11ff3e3dda2acaf1e529475f394f74f2ef7a8204'
 
+class bzip2(Package):
+    src     = 'http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz'
+    chksum  = '3f89f861209ce81a6bab1fd1998c0ef311712002'
+    def configure(self): pass
+    @stage
+    def install(self):
+        # Copy just the things we need.
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, '*.h')) + \
+              [P.join(self.env['INSTALL_DIR'], 'include')]
+        self.helper(*cmd)
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib*')) + \
+              [P.join(self.env['INSTALL_DIR'], 'lib')]
+        self.helper(*cmd)
+        cmd = ['cp', '-vf', P.join(self.workdir, 'bzip2'),
+               P.join(self.env['INSTALL_DIR'], 'bin')]
+        self.helper(*cmd)
+
+class pbzip2(Package):
+    src     = 'http://compression.ca/pbzip2/pbzip2-1.1.6.tar.gz'
+    chksum  = '3b4d0ffa3ac362c3702793cc5d9e61664d468aeb'
+    def configure(self): pass
+    def compile(self):
+        self.helper('sed','-ibak','-e','s# g++# %s#g' % self.env['CXX'],
+                    'Makefile');
+        cflags = 'CFLAGS = -I' + P.join(self.env['INSTALL_DIR'], 'include') + \
+                 ' -L' + P.join(self.env['INSTALL_DIR'], 'lib') + ' '
+        self.helper('sed','-ibak','-e','s#CFLAGS = #%s#g' % cflags, 'Makefile')
+        super(pbzip2, self).compile()
+    def install(self):
+        # Copy just the things we need.
+        cmd = ['cp', '-vf', P.join(self.workdir, 'pbzip2'),
+               P.join(self.env['INSTALL_DIR'], 'bin')]
+        self.helper(*cmd)
+
 class parallel(Package):
     src     = 'http://ftp.gnu.org/gnu/parallel/parallel-20130722.tar.bz2'
     chksum  = 'd794ac9c2c0a73d430b9ae2ebbbd07e4eb2fcaf0'

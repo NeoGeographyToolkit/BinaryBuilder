@@ -323,7 +323,7 @@ if __name__ == '__main__':
               libpointmatcher]
 
     if len(args) == 0 or opt.dev:
-        build.extend([cmake])
+        build.extend([cmake, bzip2, pbzip2])
         if arch.os == 'linux':
             build.extend([chrpath, lapack])
         build.extend(build0)

@@ -144,15 +144,7 @@ class DistManager(object):
         if isinstance(exclude, basestring):
             exclude = [exclude]
 
-        from distutils import spawn
-        cmd = ['tar']
-        # See if we have pbzip2. It would make us a little faster
-        # For Python >3.3, can use shutil.which()
-        if distutils.spawn.find_executable('pbzip2'):
-            cmd += ['cf', name, '--use-compress-prog=pbzip2']
-        else:
-            cmd += ['cjf', name]
-
+        cmd = ['tar', 'cf', name, '--use-compress-prog=pbzip2']
         cmd += ['-C', P.dirname(self.distdir)]
         if include:
             cmd += ['--no-recursion']
