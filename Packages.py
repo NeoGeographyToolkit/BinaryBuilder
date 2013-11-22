@@ -32,10 +32,22 @@ class ccache(Package):
 class cmake(Package):
     src     = 'http://www.cmake.org/files/v2.8/cmake-2.8.11.2.tar.gz'
     chksum  = '31f217c9305add433e77eff49a6eac0047b9e929'
+    # cmake pollutes the doc folder
+    @stage
+    def install(self):
+        super(cmake, self).install()
+        cmd = ['rm', '-vrf'] + glob(P.join( self.env['INSTALL_DIR'], 'doc', 'cmake*' )) 
+        self.helper(*cmd)
 
 class chrpath(Package):
     src     = 'http://ftp.debian.org/debian/pool/main/c/chrpath/chrpath_0.13.orig.tar.gz'
     chksum  = '11ff3e3dda2acaf1e529475f394f74f2ef7a8204'
+    # chrpath pollutes the doc folder
+    @stage
+    def install(self):
+        super(chrpath, self).install()
+        cmd = ['rm', '-vrf'] + glob(P.join( self.env['INSTALL_DIR'], 'doc', 'chrpath*' )) 
+        self.helper(*cmd)
 
 class bzip2(Package):
     src     = 'http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz'
