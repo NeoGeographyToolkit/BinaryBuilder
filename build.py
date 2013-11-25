@@ -17,7 +17,7 @@ import string
 import types
 import time
 from optparse import OptionParser
-from tempfile import mkdtemp, gettempdir
+from tempfile import mkdtemp
 from distutils import version
 from glob import glob
 
@@ -271,19 +271,6 @@ if __name__ == '__main__':
             except Exception:
                 pass
 
-    if opt.ccache:
-        new = dict(
-            CC  = P.join(compiler_dir, build_env['CC']),
-            CXX = P.join(compiler_dir, build_env['CXX']),
-            CCACHE_DIR = P.join(opt.download_dir, 'ccache-dir'),
-            CCACHE_BASEDIR = gettempdir(),
-        )
-
-        ccache_path = findfile('ccache', build_env['PATH'])
-        subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
-        subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
-        build_env.update(new)
-
     print("%s" % build_env['PATH'])
 
     if opt.save_temps:
@@ -301,9 +288,6 @@ if __name__ == '__main__':
         common_exec.extend( ["libtool"] )
     else:
         common_exec.extend( ["glibtool", "install_name_tool"] )
-
-    if opt.ccache:
-        common_exec.extend( ["ccache"] )
 
     missing_exec = []
     for program in common_exec:
@@ -385,6 +369,27 @@ if __name__ == '__main__':
                           map(lambda path: P.relpath(path, build_env['INSTALL_DIR']), SEARCHPATH))
             except:
                     warn('  Failed rpath on %s' % P.basename(binary))
+
+    # This must happen after untarring the base system,
+    # as perhaps cache will be found there.
+    if opt.ccache:
+
+        try:
+            ccache_path = findfile('ccache', build_env['PATH'])
+        except:
+            # If could not find ccache, build it.
+            print("\n========== Building: %s ==========" % ccache.__name__)
+            Package.build(ccache(build_env.copy_set_default()))
+            ccache_path = findfile('ccache', build_env['PATH'])
+            
+        new = dict(
+            CC  = P.join(compiler_dir, build_env['CC']),
+            CXX = P.join(compiler_dir, build_env['CXX']),
+        )
+
+        subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
+        subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
+        build_env.update(new)
 
     modes = dict(
         all     = lambda pkg : Package.build(pkg, skip_fetch=False),
