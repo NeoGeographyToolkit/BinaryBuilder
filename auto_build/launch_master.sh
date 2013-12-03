@@ -57,11 +57,11 @@ set_system_paths
 
 if [ "$local_mode" != "local_mode" ]; then
 
-    check_if_remotes_changed
-    if [ "$remotes_changed" = "0" ]; then
-        echo No remotes changed, no need to build/test
-        exit 0
-    fi
+    #check_if_remotes_changed
+    #if [ "$remotes_changed" = "0" ]; then
+    #    echo No remotes changed, no need to build/test
+    #    exit 0
+    #fi
     
     # Update from github
     dir="BinaryBuilder_newest"
