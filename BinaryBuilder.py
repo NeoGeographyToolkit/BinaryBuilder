@@ -610,6 +610,9 @@ class CMakePackage(Package):
         super(CMakePackage, self).install(cwd=self.builddir)
 
 class Apps:
+    disable_modules = 'controlnettk mpi'
+    enable_modules  = 'core spiceio isisio sessions'
+
     disable_apps = \
                  'bundleadjust demprofile isisadjustcameraerr \
                  isisadjustcnetclip plateorthoproject results \
@@ -626,9 +629,105 @@ class Apps:
                  superlu gdal yaml libnabo eigen libpointmatcher'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \
-            vw_stereo vw_cartography vw_interest_point'
+             vw_stereo vw_cartography vw_interest_point'
     off_pkgs    = \
              'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate \
              kakadu gsl_hasblas apple_qwt'
     qt_pkgs     = \
             'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+
+
+def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
+
+    print('Writing ' + config_file)
+
+    disable_apps = Apps.disable_apps.split()
+    enable_apps  = Apps.enable_apps.split()
+    off_pkgs     = Apps.off_pkgs.split()
+    install_pkgs = Apps.install_pkgs.split()
+    vw_pkgs      = Apps.vw_pkgs.split()
+    base         = '$BASE'
+    includedir   = P.join(base, 'include')
+    libdir       = P.join(base, 'lib')
+    bindir       = P.join(base, 'bin')
+
+    with file(config_file, 'w') as config:
+
+        print('# You need to modify VW to point to the location of your VW install dir', file=config)
+        print('VW=' + vw_build, file=config)
+        print('BASE=%s' % installdir, file=config)
+        print('PREFIX=' + prefix, file=config)
+
+        print('ENABLE_DEBUG=yes', file=config)
+        print('ENABLE_OPTIMIZE=yes', file=config)
+        print('ENABLE_RPATH=yes', file=config)
+        print('ENABLE_STATIC=no', file=config)
+        print('ENABLE_PKG_PATHS_DEFAULT=no', file=config)
+
+        if arch.os == 'osx':
+            print('CCFLAGS="-arch x86_64"\nCXXFLAGS="-arch x86_64"', file=config)
+            print('LDFLAGS="-Wl,-rpath -Wl,' + base + '"', file=config)
+
+        for module in Apps.disable_modules.split():
+            print('ENABLE_MODULE_%s=no' % module.upper(), file=config)
+        for module in Apps.enable_modules.split():
+            print('ENABLE_MODULE_%s=yes' % module.upper(), file=config)
+
+        print('\n# Applications', file=config)
+        for app in disable_apps:
+            print('ENABLE_APP_%s=no' % app.upper(), file=config)
+        for app in enable_apps:
+            print('ENABLE_APP_%s=yes' % app.upper(), file=config)
+
+        print('\n# Dependencies', file=config)
+        for pkg in install_pkgs:
+
+            ldflags=[]
+            ldflags.append('-L%s' % (libdir))
+
+            if arch.os == 'osx':
+                ldflags.append('-F%s' % (libdir))
+
+            if pkg == 'tiff':
+                ldflags.extend(['-ltiff','-ljpeg'])
+
+            if pkg == 'gdal' and arch.os == 'linux':
+                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
+            else:
+                print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
+
+            extra_path = ""
+            if pkg == 'geoid':
+                extra_path = " -DGEOID_PATH=" + base + "/share/geoids-" \
+                             + geoid.version
+            print('PKG_%s_CPPFLAGS="-I%s%s"' % (pkg.upper(),
+                                                includedir,
+                                                extra_path), file=config)
+
+
+        for pkg in install_pkgs:
+            print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)
+        for pkg in vw_pkgs:
+            print('HAVE_PKG_%s=$VW' % pkg.upper(), file=config)
+        for pkg in off_pkgs:
+            print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
+
+        # Qt
+        qt_pkgs = Apps.qt_pkgs
+        print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
+        qt_cppflags=['-I%s' % includedir]
+        qt_libs=['-L%s' % libdir]
+        for module in qt_pkgs.split():
+            qt_cppflags.append('-I%s/%s' % (includedir, module))
+            qt_libs.append('-l%s' % module)
+        print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags),
+              file=config)
+        print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
+        print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
+        print('MOC=%s' % (P.join(bindir, 'moc')),file=config)
+
+        print('PROTOC=%s' % (P.join(bindir, 'protoc')),file=config)
+
+        print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
+        print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s"' % includedir, file=config)
+    

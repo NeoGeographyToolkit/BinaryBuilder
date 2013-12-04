@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 from __future__ import print_function
-
 import sys
 code = -1
 # Must have this check before importing other BB modules
@@ -20,11 +19,10 @@ from optparse import OptionParser
 from tempfile import mkdtemp
 from distutils import version
 from glob import glob
-
 from Packages import *
 
-from BinaryBuilder import Package, Environment, PackageError, die, info, get_platform, \
-     findfile, run, get_gcc_version, logger, warn
+from BinaryBuilder import Package, Environment, PackageError, die, info,\
+     get_platform, findfile, run, get_gcc_version, logger, warn
 from BinaryDist import is_binary, set_rpath, binary_builder_prefix
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
@@ -34,7 +32,9 @@ ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
 def get_cores():
     try:
         n = os.sysconf('SC_NPROCESSORS_ONLN')
-        return n if n else 2
+        if n:
+            return n
+        return 2
     except:
         return 2
 
@@ -338,12 +338,12 @@ if __name__ == '__main__':
         for file in glob(P.join(build_env['INSTALL_DIR'],'lib','*.la')):
             lines = []
             logger.debug("Fixing libtool: %s" % file )
-            with open(file,'r') as f:
-                lines = f.readlines()
+            f = open(file,'r')
+            lines = f.readlines()
             old_libdir = P.normpath(P.join(lines[-1][lines[-1].find("'")+1:lines[-1].rfind("'")],'..'))
-            with open(file,'w') as f:
-                for line in lines:
-                    f.write( string.replace(line,old_libdir,new_libdir) )
+            f = open(file,'w')
+            for line in lines:
+                f.write( string.replace(line,old_libdir,new_libdir) )
 
         info("Fixing binary paths and libraries")
         library_ext = "so"

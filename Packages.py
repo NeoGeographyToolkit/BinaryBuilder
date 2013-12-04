@@ -6,7 +6,8 @@ import os.path as P
 import re, sys
 from glob import glob
 import subprocess
-from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, PackageError, HelperError, SVNPackage, Apps
+from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
+     PackageError, HelperError, SVNPackage, Apps, write_asp_config
 
 def strip_flag(flag, key, env):
     ret = []
@@ -395,72 +396,24 @@ class isis(Package):
                 print ("Unexpected error in attempt: ", ld_flags, sys.exc_info()[0])
 
 class stereopipeline(GITPackage):
-    # To do: Fix duplication in writing config.options.asp in deploy_base.py
-    # and class stereopipeline in Packages.py.
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
         self.helper('./autogen')
 
-        disable_apps    = Apps.disable_apps
-        enable_apps     = Apps.enable_apps
-        disable_modules = 'controlnettk mpi'
-        enable_modules  = 'core spiceio isisio sessions'
-        install_pkgs    = Apps.vw_pkgs.split() + Apps.install_pkgs.split()
-        w = [i + '=%(INSTALL_DIR)s'   % self.env for i in install_pkgs]
-
-        includedir = P.join(self.env['INSTALL_DIR'], 'include')
-
-        with file(P.join(self.workdir, 'config.options'), 'w') as config:
-            for pkg in install_pkgs:
-                ldflags=[]
-                ldflags.append('-L%s' % (P.join(self.env['INSTALL_DIR'], 'lib')))
-
-                if pkg == 'tiff':
-                    ldflags.extend(['-ltiff','-ljpeg'])
-
-                if self.arch.os == 'osx':
-                    ldflags.append('-F%s' % (P.join(self.env['INSTALL_DIR'], 'lib')))
-
-                if pkg == 'gdal' and self.arch.os == 'linux':
-                    print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
-                else:
-                    print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
-
-            qt_pkgs = Apps.qt_pkgs
-
-            print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
-
-            qt_cppflags=['-I%s' % includedir]
-            qt_libs=['-L%s' % P.join(self.env['INSTALL_DIR'], 'lib')]
-
-            for module in qt_pkgs.split():
-                qt_cppflags.append('-I%s/%s' % (includedir, module))
-                qt_libs.append('-l%s' % module)
-
-            print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags), file=config)
-            print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
-            print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
-
-            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
-            print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')),file=config)
-            print('HAVE_PKG_APPLE_QWT=no', file=config)
-            print('HAVE_PKG_KAKADU=no', file=config)
-            print('HAVE_PKG_GSL_HASBLAS=no', file=config)
-
-            print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
-            print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s"' % includedir,
-                  file=config)
-
+        prefix       = self.env['INSTALL_DIR']
+        installdir   = prefix
+        vw_build     = prefix
+        arch         = self.arch
+        config_file  = P.join(self.workdir, 'config.options')
+        write_asp_config(prefix, installdir, vw_build,
+                         arch, geoid, config_file)
+            
         super(stereopipeline, self).configure(
-            other   = ['docdir=%s/doc' % self.env['INSTALL_DIR']],
-            with_   = w,
+            other   = ['docdir=%s/doc' % prefix],
             without = ['clapack', 'slapack', 'tcmalloc'],
-            disable = ['pkg_paths_default', 'static', 'qt-qmake']
-            + ['app-' + a for a in disable_apps.split()]
-            + ['module-' + a for a in disable_modules.split()],
+            disable = ['pkg_paths_default', 'static', 'qt-qmake'],
             enable  = ['debug=ignore', 'optimize=ignore']
-            + ['app-' + a for a in enable_apps.split()]
-            + ['module-' + a for a in enable_modules.split()])
+            )
 
     @stage
     def compile(self, cwd=None):
