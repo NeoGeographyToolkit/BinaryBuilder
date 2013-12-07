@@ -57,6 +57,9 @@ class bzip2(Package):
     @stage
     def install(self):
         # Copy just the things we need.
+        self.helper(*['mkdir','-p',P.join(self.env['INSTALL_DIR'],'include')]);
+        self.helper(*['mkdir','-p',P.join(self.env['INSTALL_DIR'],'lib')]);
+        self.helper(*['mkdir','-p',P.join(self.env['INSTALL_DIR'],'bin')]);
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, '*.h')) + \
               [P.join(self.env['INSTALL_DIR'], 'include')]
         self.helper(*cmd)
