@@ -9,7 +9,7 @@ diff -ruN OpenSceneGraph-3.0.1_orig/CMakeLists.txt OpenSceneGraph-3.0.1/CMakeLis
  
  ## Option to enable Android build using AndroidNDK
  OPTION(OSG_BUILD_PLATFORM_ANDROID OFF)
-@@ -450,30 +451,30 @@
+@@ -513,33 +513,33 @@
      ANDROID_3RD_PARTY()
  ELSE()
  # Common to all platforms except android:
@@ -28,7 +28,6 @@ diff -ruN OpenSceneGraph-3.0.1_orig/CMakeLists.txt OpenSceneGraph-3.0.1/CMakeLis
 -    FIND_PACKAGE(CURL)
 -    FIND_PACKAGE(LibVNCServer)
 -    FIND_PACKAGE(OurDCMTK)
--    FIND_PACKAGE(OpenAL)
 -    FIND_PACKAGE(FFmpeg)
 -    FIND_PACKAGE(DirectShow)
 -    FIND_PACKAGE(SDL)
@@ -52,7 +51,6 @@ diff -ruN OpenSceneGraph-3.0.1_orig/CMakeLists.txt OpenSceneGraph-3.0.1/CMakeLis
 +    MACRO_OPTIONAL_FIND_PACKAGE(CURL)
 +    MACRO_OPTIONAL_FIND_PACKAGE(LibVNCServer)
 +    MACRO_OPTIONAL_FIND_PACKAGE(OurDCMTK)
-+    MACRO_OPTIONAL_FIND_PACKAGE(OpenAL)
 +    MACRO_OPTIONAL_FIND_PACKAGE(FFmpeg)
 +    MACRO_OPTIONAL_FIND_PACKAGE(DirectShow)
 +    MACRO_OPTIONAL_FIND_PACKAGE(SDL)
@@ -61,6 +59,12 @@ diff -ruN OpenSceneGraph-3.0.1_orig/CMakeLists.txt OpenSceneGraph-3.0.1/CMakeLis
 +    MACRO_OPTIONAL_FIND_PACKAGE(GtkGl)
 +    MACRO_OPTIONAL_FIND_PACKAGE(DirectInput)
 +    MACRO_OPTIONAL_FIND_PACKAGE(NVTT)
+     IF (NOT WIN32)
+-        FIND_PACKAGE(Asio)
++        MACRO_OPTIONAL_FIND_PACKAGE(Asio)
+     ENDIF()
+-    FIND_PACKAGE(ZeroConf)
++    MACRO_OPTIONAL_FIND_PACKAGE(ZeroConf)
  ENDIF()
  
  # Include macro utilities here

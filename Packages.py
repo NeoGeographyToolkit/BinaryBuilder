@@ -899,8 +899,8 @@ class cholmod(Package):
                         P.join(d,'CHOLMOD',P.basename(header)) )
 
 class osg3(CMakePackage):
-    src = 'http://www.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.1.1.zip'
-    chksum = '3d040720642f1b7a97e91200468fb6c557b8b95c'
+    src = 'http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
+    chksum = 'c20891862b5876983d180fc4a3d3cfb2b4a3375c'
     patches = 'patches/osg3'
 
     def configure(self):
