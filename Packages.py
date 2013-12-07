@@ -291,7 +291,7 @@ class geoid(CMakePackage):
 # download ISIS and then download the repo for editing ISIS. We apply
 # the patch locally and then build away.
 class isis(Package):
-    patches = 'patches/isis/0001-fix_int.patch'
+    patches = 'patches/isis'
     def __init__(self, env):
         super(isis, self).__init__(env)
         self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
