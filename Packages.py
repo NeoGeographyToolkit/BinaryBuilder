@@ -148,8 +148,8 @@ class openjpeg2(CMakePackage):
         super(openjpeg2, self).configure(other=['-DBUILD_SHARED_LIBS=ON'])
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/1.10.0/gdal-1.10.0.tar.gz'
-    chksum  = 'e522b95056905e4c41047fdb42c0ca172ef3ad25'
+    src     = 'http://download.osgeo.org/gdal/1.10.1/gdal-1.10.1.tar.gz'
+    chksum  = 'b4df76e2c0854625d2bedce70cc1eaf4205594ae'
     patches = 'patches/gdal'
 
     @stage
@@ -221,8 +221,8 @@ class proj(Package):
         super(proj,self).configure(disable='static', without='jni')
 
 class curl(Package):
-    src     = 'http://curl.haxx.se/download/curl-7.31.0.tar.bz2'
-    chksum  = '9333b1fc63ded189b6014afe7bb415fa1f22ae10'
+    src     = 'http://curl.haxx.se/download/curl-7.33.0.tar.bz2'
+    chksum  = 'b0dc79066f31a000190fd8a15277738e8c1940aa'
 
     @stage
     def configure(self):
@@ -470,8 +470,8 @@ class visionworkbench(GITPackage):
             self.helper(*cmd)
          
 class lapack(CMakePackage):
-    src     = 'http://www.netlib.org/lapack/lapack-3.4.2.tgz'
-    chksum  = '93a6e4e6639aaf00571d53a580ddc415416e868b'
+    src     = 'http://www.netlib.org/lapack/lapack-3.5.0.tgz'
+    chksum  = '5870081889bf5d15fd977993daab29cf3c5ea970'
 
     def configure(self):
         LDFLAGS_ORIG = self.env['LDFLAGS']
@@ -484,9 +484,9 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_54' # variable is used in class liblas, libnabo, etc.
+    version = '1_55' # variable is used in class liblas, libnabo, etc.
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = '230782c7219882d0fab5f1effbe86edb85238bf4'
+    chksum  = 'cef9a0cc7084b1d639e06cd3bc34e4251524c840'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -560,8 +560,8 @@ class gsl(Package):
         super(gsl, self).configure(disable=('static'))
 
 class geos(Package):
-    src = 'http://download.osgeo.org/geos/geos-3.3.8.tar.bz2'
-    chksum = '1743e09f37eb75d85283a684a5765c4f44d035fa'
+    src = 'http://download.osgeo.org/geos/geos-3.3.9.tar.bz2'
+    chksum = '1523f000b69523dfbaf008c7407b98217470e7a3'
 
     def configure(self):
         super(geos, self).configure(disable=('python', 'ruby', 'static'))
@@ -706,8 +706,8 @@ class jpeg(Package):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.2.tar.gz'
-    chksum = 'd10af2004e7608425cbb8a8a99209a27af276ff7'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.7.tar.gz'
+    chksum = '22fcd1aaab3d8f4b98f43e5b301cc4fd7cc15722'
 
     def configure(self):
         super(png,self).configure(disable='static')
