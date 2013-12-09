@@ -1,0 +1,12 @@
+diff -ur gdal-1.10.1/port/cpl_spawn.cpp gdal-1.10.1_mod/port/cpl_spawn.cpp
+--- gdal-1.10.1/port/cpl_spawn.cpp	2013-08-26 13:01:00.000000000 -0700
++++ gdal-1.10.1_mod/port/cpl_spawn.cpp	2013-12-09 10:45:08.000000000 -0800
+@@ -464,7 +464,7 @@
+     #ifdef __APPLE__
+         #include <TargetConditionals.h>
+     #endif
+-    #if defined(__APPLE__) && !defined(TARGET_OS_IPHONE)
++    #if defined(__APPLE__) && (!defined(TARGET_OS_IPHONE) || TARGET_OS_IPHONE==0)
+         #include <crt_externs.h>
+         #define environ (*_NSGetEnviron())
+     #else
