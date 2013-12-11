@@ -666,8 +666,8 @@ def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
 
         if arch.os == 'osx':
             print('CCFLAGS="-arch x86_64"\nCXXFLAGS="-arch x86_64"', file=config)
-            print('LDFLAGS="-Wl,-rpath -Wl,' + base + '"', file=config)
-
+            print('LDFLAGS="-Wl,-rpath -Wl,' + base + ' -F' + libdir + '"', file=config)
+            
         for module in Apps.disable_modules.split():
             print('ENABLE_MODULE_%s=no' % module.upper(), file=config)
         for module in Apps.enable_modules.split():

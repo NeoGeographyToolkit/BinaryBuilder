@@ -14,6 +14,6 @@ cd $HOME/$buildDir
 files=$(cat auto_build/filesToCopy.txt)
 
 echo "rsync -avz $files $user@$machine:$buildDir"
-rsync -avz $files $user@$machine:$buildDir 2>/dev/null
+rsync -avz --delete $files $user@$machine:$buildDir 2>/dev/null
 
 sleep 5 # just in case, to ensure the files finished copying

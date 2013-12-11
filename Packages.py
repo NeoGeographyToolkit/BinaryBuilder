@@ -411,7 +411,7 @@ class stereopipeline(GITPackage):
         config_file  = P.join(self.workdir, 'config.options')
         write_asp_config(prefix, installdir, vw_build,
                          arch, geoid, config_file)
-            
+
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % prefix],
             without = ['clapack', 'slapack', 'tcmalloc'],
@@ -562,6 +562,13 @@ class gsl(Package):
 class geos(Package):
     src = 'http://download.osgeo.org/geos/geos-3.3.9.tar.bz2'
     chksum = '1523f000b69523dfbaf008c7407b98217470e7a3'
+    
+    def __init__(self, env):
+        super(geos, self).__init__(env)
+        if self.arch.os == 'linux':
+            # Bugfix for SuSE, skip using ccache
+            self.env['CXX']='g++'
+            self.env['CC']='gcc'
 
     def configure(self):
         super(geos, self).configure(disable=('python', 'ruby', 'static'))
