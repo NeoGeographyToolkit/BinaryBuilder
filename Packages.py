@@ -404,12 +404,13 @@ class stereopipeline(GITPackage):
     def configure(self):
         self.helper('./autogen')
 
-        prefix       = self.env['INSTALL_DIR']
-        installdir   = prefix
-        vw_build     = prefix
-        arch         = self.arch
-        config_file  = P.join(self.workdir, 'config.options')
-        write_asp_config(prefix, installdir, vw_build,
+        use_env_flags = True
+        prefix        = self.env['INSTALL_DIR']
+        installdir    = prefix
+        vw_build      = prefix
+        arch          = self.arch
+        config_file   = P.join(self.workdir, 'config.options')
+        write_asp_config(use_env_flags, prefix, installdir, vw_build,
                          arch, geoid, config_file)
 
         super(stereopipeline, self).configure(

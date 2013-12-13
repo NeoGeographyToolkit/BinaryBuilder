@@ -59,8 +59,9 @@ if __name__ == '__main__':
     arch = get_platform()
     fix_install_paths(installdir, arch)
 
-    print('Writing config.options.vw')
-    with file(P.join(installdir,'config.options.vw'), 'w') as config:
+    config_file  = P.join(installdir, 'config.options.vw')
+    print('Writing ' + config_file)
+    with file(config_file, 'w') as config:
         print('ENABLE_DEBUG=yes',file=config)
         print('ENABLE_OPTIMIZE=yes',file=config)
         print('PREFIX=$PWD/build', file=config)
@@ -98,8 +99,10 @@ if __name__ == '__main__':
         for pkg in off_pkgs:
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
+    use_env_flags = False
     prefix       = '$PWD/build'
     vw_build     = '~/projects/visionworkbench/build'
     config_file  = P.join(installdir, 'config.options.asp')
-    write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file)
+    write_asp_config(use_env_flags,
+                     prefix, installdir, vw_build, arch, geoid, config_file)
 

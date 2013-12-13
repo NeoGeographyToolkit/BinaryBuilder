@@ -637,7 +637,8 @@ class Apps:
             'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
 
 
-def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
+def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
+                     geoid, config_file):
 
     print('Writing ' + config_file)
 
@@ -650,6 +651,11 @@ def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
     includedir   = P.join(base, 'include')
     libdir       = P.join(base, 'lib')
     bindir       = P.join(base, 'bin')
+    
+    cflags   = ['-O3', '-g']
+    cxxflags = ['-O3', '-g']
+    cppflags = ['-I' + includedir]
+    ldflags  = ['-L' + libdir, '-Wl,-rpath', '-Wl,' + base]
 
     with file(config_file, 'w') as config:
 
@@ -665,8 +671,9 @@ def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
         print('ENABLE_PKG_PATHS_DEFAULT=no', file=config)
 
         if arch.os == 'osx':
-            print('CCFLAGS="-arch x86_64"\nCXXFLAGS="-arch x86_64"', file=config)
-            print('LDFLAGS="-Wl,-rpath -Wl,' + base + ' -F' + libdir + '"', file=config)
+            cflags.extend(['-arch x86_64'])
+            cxxflags.extend(['-arch x86_64'])
+            ldflags.extend(['-F' + libdir])
             
         for module in Apps.disable_modules.split():
             print('ENABLE_MODULE_%s=no' % module.upper(), file=config)
@@ -682,28 +689,12 @@ def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
         print('\n# Dependencies', file=config)
         for pkg in install_pkgs:
 
-            ldflags=[]
-            ldflags.append('-L%s' % (libdir))
+            if pkg == 'gdal':
+                print('PKG_%s_LDFLAGS="-ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper()), file=config)
 
-            if arch.os == 'osx':
-                ldflags.append('-F%s' % (libdir))
-
-            if pkg == 'tiff':
-                ldflags.extend(['-ltiff','-ljpeg'])
-
-            if pkg == 'gdal' and arch.os == 'linux':
-                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
-            else:
-                print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
-
-            extra_path = ""
             if pkg == 'geoid':
-                extra_path = " -DGEOID_PATH=" + base + "/share/geoids-" \
-                             + geoid.version
-            print('PKG_%s_CPPFLAGS="-I%s%s"' % (pkg.upper(),
-                                                includedir,
-                                                extra_path), file=config)
-
+                cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids-' \
+                             + geoid.version])
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)
@@ -720,17 +711,20 @@ def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
         for module in qt_pkgs.split():
             qt_cppflags.append('-I%s/%s' % (includedir, module))
             qt_libs.append('-l%s' % module)
-        print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' %  ' '.join(qt_cppflags),
-              file=config)
         print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
         print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
         print('MOC=%s' % (P.join(bindir, 'moc')),file=config)
+        cppflags.extend(qt_cppflags)
 
         print('PROTOC=%s' % (P.join(bindir, 'protoc')),file=config)
+        cppflags.extend(["-I%s/eigen3" % includedir])
 
-        print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
-        print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s"' % includedir, file=config)
-    
+        if not use_env_flags:
+            print('CFLAGS="'   + ' '.join(cflags)   + '"', file=config)
+            print('CXXFLAGS="' + ' '.join(cxxflags) + '"', file=config)
+        
+        print('CPPFLAGS="' + ' '.join(cppflags) + '"', file=config)
+        print('LDFLAGS="'  + ' '.join(ldflags)  + '"', file=config)
 
 def binary_builder_prefix():
     return 'BinaryBuilder'
