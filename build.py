@@ -22,8 +22,9 @@ from glob import glob
 from Packages import *
 
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
-     get_platform, findfile, run, get_gcc_version, logger, warn
-from BinaryDist import is_binary, set_rpath, binary_builder_prefix
+     get_platform, findfile, run, get_gcc_version, logger, warn, \
+     binary_builder_prefix
+from BinaryDist import fix_install_paths
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
@@ -333,42 +334,7 @@ if __name__ == '__main__':
         print('Untarring base system')
         for base in opt.base:
             run('tar', 'xf', base, '-C', build_env['INSTALL_DIR'], '--strip-components', '1')
-        info("Fixing Paths in Libtool files.")
-        new_libdir = build_env['INSTALL_DIR']
-        for file in glob(P.join(build_env['INSTALL_DIR'],'lib','*.la')):
-            lines = []
-            logger.debug("Fixing libtool: %s" % file )
-            f = open(file,'r')
-            lines = f.readlines()
-            old_libdir = P.normpath(P.join(lines[-1][lines[-1].find("'")+1:lines[-1].rfind("'")],'..'))
-            f = open(file,'w')
-            for line in lines:
-                f.write( string.replace(line,old_libdir,new_libdir) )
-
-        info("Fixing binary paths and libraries")
-        library_ext = "so"
-        if arch.os == 'osx':
-            library_ext = "dylib"
-        SEARCHPATH = [P.join(build_env['INSTALL_DIR'],'lib')]
-        for curr_path in SEARCHPATH:
-            for library in glob(P.join(curr_path,'*.'+library_ext+'*')):
-                if not is_binary(library):
-                    continue
-                logger.debug('  %s' % P.basename(library))
-                try:
-                    set_rpath(library, build_env['INSTALL_DIR'],
-                              map(lambda path: P.relpath(path, build_env['INSTALL_DIR']), SEARCHPATH))
-                except:
-                    warn('  Failed rpath on %s' % P.basename(library))
-        for binary in glob(P.join(build_env['INSTALL_DIR'],'bin','*')):
-            if not is_binary(binary):
-                continue
-            logger.debug('  %s' % P.basename(binary))
-            try:
-                set_rpath(binary, build_env['INSTALL_DIR'],
-                          map(lambda path: P.relpath(path, build_env['INSTALL_DIR']), SEARCHPATH))
-            except:
-                    warn('  Failed rpath on %s' % P.basename(binary))
+        fix_install_paths(build_env['INSTALL_DIR'], arch)
 
     # This must happen after untarring the base system,
     # as perhaps cache will be found there.

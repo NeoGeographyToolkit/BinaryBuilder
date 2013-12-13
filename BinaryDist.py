@@ -2,16 +2,20 @@
 
 import os.path as P
 import logging
-import itertools, shutil, re, errno, sys
+import itertools, shutil, re, errno, sys, os, stat
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
-from BinaryBuilder import get_platform, run, hash_file
+from BinaryBuilder import get_platform, run, hash_file, binary_builder_prefix
 from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
 from functools import partial, wraps
 
 global logger
 logger = logging.getLogger()
+
+def is_binary(filename):
+    ret = run('file', filename, output=True)
+    return (ret.find('ELF') != -1) or (ret.find('Mach-O') != -1)
 
 def doctest_on(os):
     def outer(f):
@@ -299,10 +303,6 @@ def required_libs(filename):
 
     return locals()[get_platform().os]()
 
-def is_binary(filename):
-    ret = run('file', filename, output=True)
-    return (ret.find('ELF') != -1) or (ret.find('Mach-O') != -1)
-
 def grep(regex, filename):
     ret = []
     rx = re.compile(regex)
@@ -470,9 +470,96 @@ def snap_symlinks(src):
         return [src]
     return [src] + snap_symlinks(P.join(P.dirname(src), readlink(src)))
 
-def binary_builder_prefix():
-    return 'BinaryBuilder'
+def fix_install_paths(installdir, arch):
+
+    # After unpacking a set of pre-built binaries, in given directory,
+    # fix any paths to point to the current directory.
+
+    print('Fixing paths in libtool control files, etc.')
+    control_files = glob(P.join(installdir,'include','*config.h')) + \
+                    glob(P.join(installdir,'lib','*.la'))          + \
+                    glob(P.join(installdir,'lib','*.prl'))         + \
+                    glob(P.join(installdir,'lib','*', '*.pc'))     + \
+                    glob(P.join(installdir,'bin','*-config'))      + \
+                    glob(P.join(installdir,'mkspecs','*.pri'))
+
+    for control in control_files:
+
+        print('  %s' % P.basename(control))
+
+        # ensure we can read and write (some files have odd permissions)
+        st = os.stat(control)
+        os.chmod(control, st.st_mode | stat.S_IREAD | stat.S_IWRITE)
+
+        # replace the temporary install directory with the one we're deploying to.
+        lines = []
+        with open(control,'r') as f:
+            lines = f.readlines()
+        with open(control,'w') as f:
+            for line in lines: 
+                line = re.sub('[\/\.]+[\w\/\.\-]*?' + binary_builder_prefix() + '\w*[\w\/\.]*?/install', installdir, line)
+                f.write( line )
+
+    # Create libblas.la (out of existing libsuperlu.la). We need
+    # libblas.la to force blas to show up before superlu when linking
+    # on Linux to avoid a bug with corruption when invoking lapack in
+    # a multi-threaded environment.  A better long-term solution is
+    # needed.
+    superlu_la = installdir + '/lib/libsuperlu.la'
+    blas_la = installdir + '/lib/libblas.la'
+    if arch.os == 'linux' and os.path.exists(superlu_la):
+        lines = []
+        with open(superlu_la,'r') as f:
+                lines = f.readlines()
+        with open(blas_la,'w') as f:
+            for line in lines:
+                line = re.sub('libsuperlu', 'libblas', line)
+                line = re.sub('dlname=\'.*?\'',
+                              'dlname=\'libblas.so\'', line)
+                line = re.sub('library_names=\'.+?\'',
+                              'library_names=\'libblas.so\'', line)
+                # Force blas to depend on superlu
+                line = re.sub('dependency_libs=\'.*?\'',
+                              'dependency_libs=\' -L' + installdir
+                              + '/lib  -lsuperlu -lm\'', line)
+                f.write( line )
+
+    library_ext = ["so"]
+    if arch.os == 'osx':
+        library_ext.append("dylib")
+
+    # Ensure installdir/bin is in the path, to be able to find chrpath, etc.
+    if "PATH" not in os.environ: os.environ["PATH"] = ""
+    os.environ["PATH"] = P.join(installdir, 'bin') + \
+                         os.pathsep + os.environ["PATH"] 
+
+    SEARCHPATH = [P.join(installdir,'lib'),
+                  P.join(installdir,'lib','osgPlugins*')]
+
+    print('Fixing RPATHs')
+    for curr_path in SEARCHPATH:
+        for extension in library_ext:
+            for library in glob(P.join(curr_path,'*.'+extension+'*')):
+                if not is_binary(library):
+                    continue
+                print('  %s' % P.basename(library))
+                try:
+                    set_rpath(library, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
+                except:
+                    print('  Failed %s' % P.basename(library))
+
+    print('Fixing Binaries')
+    for binary in glob(P.join(installdir,'bin','*')):
+        if not is_binary(binary):
+            continue
+        print('  %s' % P.basename(binary))
+        try:
+            set_rpath(binary, installdir, map(lambda path: P.relpath(path, installdir), SEARCHPATH), False)
+        except:
+            print('  Failed %s' % P.basename(binary))
+
 
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
+

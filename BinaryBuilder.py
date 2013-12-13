@@ -625,8 +625,8 @@ class Apps:
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl  \
                  ufconfig amd colamd cholmod flann spice qwt gsl\
-                 geos xercesc protobuf tiff z laszip liblas geoid isis \
-                 superlu gdal yaml libnabo eigen libpointmatcher'
+                 geos xercesc protobuf tiff z ilmbase openexr jpeg laszip liblas geoid isis \
+                 superlu gdal yaml libnabo eigen libpointmatcher proj4'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \
              vw_stereo vw_cartography vw_interest_point'
@@ -731,3 +731,8 @@ def write_asp_config(prefix, installdir, vw_build, arch, geoid, config_file):
         print('PKG_EIGEN_CPPFLAGS="-I%s/eigen3"' % includedir, file=config)
         print('PKG_LIBPOINTMATCHER_CPPFLAGS="-I%s"' % includedir, file=config)
     
+
+def binary_builder_prefix():
+    return 'BinaryBuilder'
+
+
