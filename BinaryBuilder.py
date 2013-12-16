@@ -609,6 +609,68 @@ class CMakePackage(Package):
     def install(self):
         super(CMakePackage, self).install(cwd=self.builddir)
 
+def write_vw_config(prefix, installdir, noinstalldir, arch, config_file):
+
+    print('Writing ' + config_file)
+    base = '$BASE'
+
+    # Enable
+    enable_features = 'debug optimize rpath as_needed no_undefined'.split()
+    enable_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
+    enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools bundleadjustment'.split()
+
+    # Disable
+    disable_features = 'pkg_paths_default static qt-qmake'.split()
+    disable_pkgs = 'tiff hdr cairomm tcmalloc x11 clapack slapack opencv cg zeromq rabbitmq_c qt_qmake arbitrary_qt apple_qmake_qt linux_qmake_qt guess_qt qt'.split()
+    disable_modules = 'gpu plate python gui'.split()
+   
+    with file(config_file, 'w') as config:
+
+        print('BASE=%s' % installdir, file=config)
+        print('PREFIX=%s' % prefix, file=config)
+        print('', file=config) # newline
+
+        # To do: Test removing -rpath from cflags and cxxflags
+        if arch.os == 'osx':
+            print('CFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % base,
+                  file=config)
+            print('CXXFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % base,
+                  file=config)
+            print('LDFLAGS="-Wl,-rpath -Wl,%s"' % base, file=config)
+            print('', file=config) # newline
+
+        for feature in enable_features:
+            print('ENABLE_%s=yes' % feature.upper(), file=config)
+        for feature in disable_features:
+            print('ENABLE_%s=no' % feature.upper(), file=config)
+        print('', file=config) # newline
+
+        for module in enable_modules:
+            print('ENABLE_MODULE_%s=yes' % module.upper(), file=config)
+        for module in disable_modules:
+            print('ENABLE_MODULE_%s=no' % module.upper(), file=config)
+        print('', file=config) # newline
+
+        for pkg in enable_pkgs:
+            print('HAVE_PKG_%s=%s' % (pkg.upper(), base),
+                  file=config)
+            print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(noinstalldir,   'include'),
+                                                   P.join(base, 'include')), file=config)
+            if pkg == 'gdal' and arch.os == 'linux':
+                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), P.join(base, 'lib')), file=config)
+            else:
+                print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), P.join(base, 'lib')), file=config)
+
+        for pkg in disable_pkgs:
+            print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
+        print('', file=config) # newline
+
+        # Specify executables we use
+        print('PROTOC=%s' % (P.join(base, 'bin',
+                                    'protoc')),file=config)
+        print('MOC=%s' % (P.join(base, 'bin',
+                                 'moc')),file=config)
+
 class Apps:
     disable_modules = 'controlnettk mpi'
     enable_modules  = 'core spiceio isisio sessions'
@@ -651,7 +713,8 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
     includedir   = P.join(base, 'include')
     libdir       = P.join(base, 'lib')
     bindir       = P.join(base, 'bin')
-    
+
+    # To do: Test removing -O3 and -g, as well as use_env_flags
     cflags   = ['-O3', '-g']
     cxxflags = ['-O3', '-g']
     cppflags = ['-I' + includedir]

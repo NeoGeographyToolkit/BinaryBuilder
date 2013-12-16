@@ -7,7 +7,7 @@ import re, sys
 from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
-     PackageError, HelperError, SVNPackage, Apps, write_asp_config
+     PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config
 
 def strip_flag(flag, key, env):
     ret = []
@@ -437,33 +437,16 @@ class visionworkbench(GITPackage):
     def configure(self):
         self.helper('./autogen')
 
-        enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools bundleadjustment'.split()
-        disable_modules = 'gpu plate python gui'.split()
-        install_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
-
-        w  = [i + '=%(INSTALL_DIR)s' % self.env for i in install_pkgs]
-        w.append('protobuf=%(INSTALL_DIR)s' % self.env)
-
-        with file(P.join(self.workdir, 'config.options'), 'w') as config:
-            for pkg in install_pkgs:
-                print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(self.env['NOINSTALL_DIR'],   'include'),
-                                                       P.join(self.env['INSTALL_DIR'], 'include')), file=config)
-                if pkg == 'gdal' and self.arch.os == 'linux':
-                    print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
-                else:
-                    print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), P.join(self.env['INSTALL_DIR'], 'lib')), file=config)
-            # Specify executables we use
-            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')),file=config)
-            print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')),file=config)
-
-        super(visionworkbench, self).configure(with_   = w,
-                                               without = ('tiff hdf cairomm zeromq rabbitmq_c tcmalloc x11 clapack slapack qt opencv cg'.split()),
-                                               disable = ['pkg_paths_default','static', 'qt-qmake'] + ['module-' + a for a in disable_modules],
-                                               enable  = ['debug=ignore', 'optimize=ignore', 'as-needed', 'no-undefined'] + ['module-' + a for a in enable_modules])
+        arch         = self.arch
+        installdir   = self.env['INSTALL_DIR']
+        noinstalldir = self.env['NOINSTALL_DIR']
+        prefix       = installdir
+        config_file  = P.join(self.workdir, 'config.options')
+        write_vw_config(prefix, installdir, noinstalldir, arch, config_file)
+        super(visionworkbench, self).configure()
 
     @stage
     def compile(self, cwd=None):
-        # Do 'make check' as part of compilation
         super(visionworkbench, self).compile(cwd)
         # To do: See why make check fails on Mac and centos-64-5
         # cmd = ('make', 'check')
