@@ -683,7 +683,7 @@ class Apps:
                 'bundlevis dem_geoid disparitydebug geodiff hsvmerge \
                 isisadjust mapproject mer2camera orbitviz orthoproject \
                 point2dem point2las point2mesh pc_align stereo rpc_gen \
-                tif_mosaic'
+                tif_mosaic wv_correct'
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl  \
                  ufconfig amd colamd cholmod flann spice qwt gsl\

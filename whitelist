@@ -28,6 +28,7 @@ bin/stereo_pprc
 bin/stereo_rfne
 bin/stereo_tri
 bin/pc_align
+bin/wv_correct
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
