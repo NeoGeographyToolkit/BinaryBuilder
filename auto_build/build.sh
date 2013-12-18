@@ -92,6 +92,8 @@ if [ "$(uname -n | grep pfe)" != "" ]; then
 fi
 ./auto_build/rm_old.sh asp_tarballs $numKeep
 
+rm -f StereoPipeline*debug.tar.bz2
+
 # Mark the build as finished. This must happen at the very end,
 # otherwise the parent script will take over before this script finished.
 echo "$asp_tarball build_done Success" > $statusBuildFile
