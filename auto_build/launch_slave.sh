@@ -23,18 +23,6 @@ user=$(whoami)
 if [ "$(echo $buildMachine | grep centos)" != "" ]; then
     # The case of virtual machines
     user=build
-    # If the machine is not running, start it
-    isRunning=$(virsh list --all 2>/dev/null | grep running | grep $buildMachine)
-    if [ "$isRunning" == "" ]; then
-        virsh start $buildMachine
-    fi
-    # Wait until the machine is fully running
-    while [ 1 ]; do
-        ans=$(ssh $user@$buildMachine "ls /" 2>/dev/null)
-        if [ "$ans" != "" ]; then break; fi
-        echo $(date) "Sleping while waiting for $buildMachine to start"
-        sleep 60
-    done
 fi
 
 # Make sure all scripts are up-to-date on the build machine

@@ -25,6 +25,27 @@ function output_file () {
     echo "$buildDir/output_"$machine".txt"
 }
 
+function start_vrts {
+
+    host=$1
+    vrt1=$2
+    vrt2=$3
+
+    # Connect to $host and start virtual machines $vrt1 and $vrt2
+    ssh $host virsh start $vrt1 2>/dev/null
+    ssh $host virsh start $vrt2 2>/dev/null
+
+    while [ 1 ]; do
+        ans1=$(ssh $vrt1 "ls /" 2>/dev/null)
+        ans2=$(ssh $vrt2 "ls /" 2>/dev/null)
+        if [ "$ans1" != "" ] && [ "$ans2" != "" ]; then break; fi
+        echo $(date) "Sleping while waiting for virtual machines" \
+            "$vrt1 $vrt2 to start"
+        sleep 60
+    done
+        
+}
+
 # Infrastructure needed for checking if any remote repositories changed.
 # If nothing changed, there's no need to build/test.
 

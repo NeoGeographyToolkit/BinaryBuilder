@@ -54,7 +54,10 @@ echo "Work directory: $(pwd)"
 
 . $HOME/$buildDir/auto_build/utils.sh # load utilities
 set_system_paths
+start_vrts $zulaSlaves
 
+# Unless running in local mode for test purposes, fetch from github
+# the latest version of BinaryBuilder.
 if [ "$local_mode" != "local_mode" ]; then
 
     #check_if_remotes_changed
@@ -90,6 +93,7 @@ if [ "$local_mode" != "local_mode" ]; then
     echo $files > auto_build/filesToCopy.txt
 fi
 
+# Start the builds
 for launchMachine in $launchMachines; do
 
     if [ "$launchMachine" = "zula" ]; then
