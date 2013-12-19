@@ -936,13 +936,13 @@ class eigen(CMakePackage):
             '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
             ])
 
-class libnabo(CMakePackage):
+class libnabo(GITPackage, CMakePackage):
     # We keep this on byss as this software does not have a fixed release,
     # and getting things from github directly means at some point
     # it may change to the point where it breaks.
-    src = 'https://byss.arc.nasa.gov/asp_packages/libnabo-0.0.0.tgz'
-    chksum = 'bc71180748b5ebf1c3bbfe3f45a34e6d6be3dbec'
+    src = 'https://github.com/ethz-asl/libnabo.git'
     patches = 'patches/libnabo'
+    commit = '4cda228'
 
     def configure(self):
         super(libnabo, self).configure(other=[
@@ -961,7 +961,7 @@ class libpointmatcher(CMakePackage):
     src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
     chksum = '9131d80fa72eff2b03688ada92de3a65a7a05a54'
     patches = 'patches/libpointmatcher'
-
+    
     def configure(self):
         installDir = self.env['INSTALL_DIR']
         boost_include = P.join(installDir,'include','boost-'+boost.version)

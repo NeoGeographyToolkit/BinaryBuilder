@@ -451,6 +451,7 @@ class Package(object):
         os.makedirs(output_dir)
 
 class GITPackage(Package):
+    commit = None
     def __init__(self, env):
         super(GITPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'git', self.pkgname)
@@ -476,6 +477,10 @@ class GITPackage(Package):
         self.workdir = P.join(output_dir, self.pkgname + '-git')
         os.mkdir(self.workdir)
         self.helper('git', 'clone', self.localcopy, self.workdir)
+        # Checkout a specific commit
+        if self.commit is not None:
+            cmd = ('git', 'checkout', self.commit)
+            self.helper(*cmd, cwd=self.workdir)
         self._apply_patches()
 
 class SVNPackage(Package):
