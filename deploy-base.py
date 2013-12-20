@@ -60,15 +60,21 @@ if __name__ == '__main__':
     arch = get_platform()
     fix_install_paths(installdir, arch)
 
-    noinstalldir =  P.join(installdir, 'noinstall')
+    # Replace /home/user with $HOME, looks nicer in the output
+    vardir = installdir
+    r = re.compile('^' + os.environ["HOME"] + '(.*?)$')
+    m = r.search(vardir)
+    if m:
+        vardir = '$HOME' + m.group(1)
+        
     prefix       = '$PWD/build'
     config_file  = P.join(installdir, 'config.options.vw')
-    write_vw_config(prefix, installdir, noinstalldir, arch, config_file)
+    write_vw_config(prefix, vardir, arch, config_file)
 
     use_env_flags = False
     prefix       = '$PWD/build'
-    vw_build     = '~/projects/visionworkbench/build'
+    vw_build     = '$HOME/projects/visionworkbench/build'
     config_file  = P.join(installdir, 'config.options.asp')
     write_asp_config(use_env_flags,
-                     prefix, installdir, vw_build, arch, geoid, config_file)
+                     prefix, vardir, vw_build, arch, geoid, config_file)
 

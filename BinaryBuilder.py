@@ -614,7 +614,7 @@ class CMakePackage(Package):
     def install(self):
         super(CMakePackage, self).install(cwd=self.builddir)
 
-def write_vw_config(prefix, installdir, noinstalldir, arch, config_file):
+def write_vw_config(prefix, installdir, arch, config_file):
 
     print('Writing ' + config_file)
     base = '$BASE'
@@ -631,7 +631,11 @@ def write_vw_config(prefix, installdir, noinstalldir, arch, config_file):
    
     with file(config_file, 'w') as config:
 
+        print('# The path to the installed 3rd party libraries', file=config)
         print('BASE=%s' % installdir, file=config)
+        print('', file=config) # newline
+
+        print('# Installation prefix', file=config)
         print('PREFIX=%s' % prefix, file=config)
         print('', file=config) # newline
 
@@ -659,8 +663,7 @@ def write_vw_config(prefix, installdir, noinstalldir, arch, config_file):
         for pkg in enable_pkgs:
             print('HAVE_PKG_%s=%s' % (pkg.upper(), base),
                   file=config)
-            print('PKG_%s_CPPFLAGS="-I%s -I%s"' % (pkg.upper(), P.join(noinstalldir,   'include'),
-                                                   P.join(base, 'include')), file=config)
+            print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(), P.join(base, 'include')), file=config)
             if pkg == 'gdal' and arch.os == 'linux':
                 print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), P.join(base, 'lib')), file=config)
             else:
@@ -727,10 +730,17 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
 
     with file(config_file, 'w') as config:
 
-        print('# You need to modify VW to point to the location of your VW install dir', file=config)
-        print('VW=' + vw_build, file=config)
+        print('# The path to the installed 3rd party libraries', file=config)
         print('BASE=%s' % installdir, file=config)
+        print('', file=config) # newline
+
+        print('# The location of the VW install directory', file=config)
+        print('VW=' + vw_build, file=config)
+        print('', file=config) # newline
+
+        print('# Installation prefix', file=config)
         print('PREFIX=' + prefix, file=config)
+        print('', file=config) # newline
 
         print('ENABLE_DEBUG=yes', file=config)
         print('ENABLE_OPTIMIZE=yes', file=config)

@@ -439,10 +439,9 @@ class visionworkbench(GITPackage):
 
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
-        noinstalldir = self.env['NOINSTALL_DIR']
         prefix       = installdir
         config_file  = P.join(self.workdir, 'config.options')
-        write_vw_config(prefix, installdir, noinstalldir, arch, config_file)
+        write_vw_config(prefix, installdir, arch, config_file)
         super(visionworkbench, self).configure()
 
     @stage
