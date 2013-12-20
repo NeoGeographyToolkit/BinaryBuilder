@@ -389,7 +389,7 @@ class isis(Package):
             ldflag_attempts[0] = ldflag_attempts[0] + ld_flags1 + ld_flags2
 
         for ld_flags in ldflag_attempts:
-            self.env['LDFLAGS'] = ld_flags
+            self.env['LDFLAGS'] = ld_flags + " -lsuitesparseconfig"
             try:
                 super(isis, self).configure(
                     with_ = w,
@@ -779,8 +779,22 @@ class suitesparse(Package):
 
     @stage
     def install(self):
-        self.helper('make','install','INSTALL_LIB='+P.join(self.env['INSTALL_DIR'],'lib'),
-                    'INSTALL_INCLUDE='+P.join(self.env['INSTALL_DIR'],'include'))
+        d = P.join(self.env['INSTALL_DIR'],'include')
+        self.helper('make','install',
+                    'INSTALL_LIB='+P.join(self.env['INSTALL_DIR'],'lib'),
+                    'INSTALL_INCLUDE='+d)
+
+        # ISIS requires that the CHOLMOD headers be inside a CHOLMOD directory
+        if P.exists( P.join(d,'CHOLMOD') ):
+            self.helper('rm', '-rf', P.join(d,'CHOLMOD'))
+        os.mkdir(P.join(d,'CHOLMOD'))
+        headers = []
+        headers.extend( glob( P.join(d,'UFconfig.h') ) )
+        headers.extend( glob( P.join(d,'cholmod*.h') ) )
+        for header in headers:
+            os.symlink( P.relpath( header,
+                                   P.join(d,'CHOLMOD')),
+                        P.join(d,'CHOLMOD',P.basename(header)) )
 
 class osg3(CMakePackage):
     src = 'http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
@@ -839,8 +853,8 @@ class ceres(CMakePackage):
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DCMAKE_VERBOSE_MAKEFILE=ON',
-            '-DSHARED_LIBS=ON', '-DMINIGLOG=ON',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=ON',
+            '-DLIB_SUFFIX='
             ])
 
 class libnabo(GITPackage, CMakePackage):
@@ -849,11 +863,14 @@ class libnabo(GITPackage, CMakePackage):
     commit = '4cda228'
 
     def configure(self):
+        # Remove python bindings, tests, and examples
+        self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
         super(libnabo, self).configure(other=[
             '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DSHARED_LIBS=ON'
             ])
