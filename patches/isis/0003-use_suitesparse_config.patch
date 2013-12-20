@@ -1,0 +1,12 @@
+diff -ur isis/include/BundleAdjust.h isis_o/include/BundleAdjust.h
+--- isis/include/BundleAdjust.h	2013-12-20 13:56:22.000000000 -0800
++++ isis_o/include/BundleAdjust.h	2013-12-20 14:03:31.606298856 -0800
+@@ -42,7 +42,7 @@
+ #include "SparseBlockMatrix.h"
+ 
+ #include <CHOLMOD/cholmod.h>
+-#include <CHOLMOD/UFconfig.h>
++#include <SuiteSparse_config.h>
+ 
+ template< typename T > class QList;
+ template< typename A, typename B > class QMap;

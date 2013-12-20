@@ -37,7 +37,7 @@ class cmake(Package):
     @stage
     def install(self):
         super(cmake, self).install()
-        cmd = ['rm', '-vrf'] + glob(P.join( self.env['INSTALL_DIR'], 'doc', 'cmake*' )) 
+        cmd = ['rm', '-vrf'] + glob(P.join( self.env['INSTALL_DIR'], 'doc', 'cmake*' ))
         self.helper(*cmd)
 
 class chrpath(Package):
@@ -47,7 +47,7 @@ class chrpath(Package):
     @stage
     def install(self):
         super(chrpath, self).install()
-        cmd = ['rm', '-vrf'] + glob(P.join( self.env['INSTALL_DIR'], 'doc', 'chrpath*' )) 
+        cmd = ['rm', '-vrf'] + glob(P.join( self.env['INSTALL_DIR'], 'doc', 'chrpath*' ))
         self.helper(*cmd)
 
 class bzip2(Package):
@@ -450,7 +450,7 @@ class visionworkbench(GITPackage):
         # To do: See why make check fails on Mac and centos-64-5
         # cmd = ('make', 'check')
         # self.helper(*cmd)
-         
+
 class lapack(CMakePackage):
     src     = 'http://www.netlib.org/lapack/lapack-3.5.0.tgz'
     chksum  = '5870081889bf5d15fd977993daab29cf3c5ea970'
@@ -544,7 +544,7 @@ class gsl(Package):
 class geos(Package):
     src = 'http://download.osgeo.org/geos/geos-3.3.9.tar.bz2'
     chksum = '1523f000b69523dfbaf008c7407b98217470e7a3'
-    
+
     def __init__(self, env):
         super(geos, self).__init__(env)
         if self.arch.os == 'linux':
@@ -765,127 +765,22 @@ class protobuf(Package):
         self.helper('./autogen.sh')
         super(protobuf, self).configure(disable=('static'))
 
-class ufconfig(Package):
-    src = 'http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/UFconfig-3.6.1.tar.gz'
-    chksum = '2cf8f557787b462de3427e979d1b0de82466326f'
+class suitesparse(Package):
+    src = 'http://www.cise.ufl.edu/research/sparse/SuiteSparse/current/SuiteSparse.tar.gz'
+    chksum = '2fec3bf93314bd14cbb7470c0a2c294988096ed6'
 
+    # Note: Currently this is archive only. They don't have the option
+    # of using shared (probably for performance reasons). If we want
+    # shared, we'll have make then a build system.
+
+    @stage
     def configure(self):
         pass
 
     @stage
-    def compile(self):
-        compile_cmd = [self.env['CC']] + self.env['CFLAGS'].split(' ')
-        compile_cmd += ['-fPIC','-c', 'UFconfig.c', '-o', 'UFconfig.lo']
-        self.helper(*compile_cmd)
-        link_cmd = [self.env['CC']] + self.env['LDFLAGS'].split(' ')
-        link_cmd += ['-shared','UFconfig.lo']
-        if self.arch.os == 'osx':
-            link_cmd.extend(['-dynamiclib','-Wl,-install_name,libufconfig.3.6.1.dylib','-o','libufconfig.3.6.1.dylib'])
-        else:
-            link_cmd.extend(['-Wl,-soname,libufconfig.so.3.6.1','-o','libufconfig.so.3.6.1'])
-        self.helper(*link_cmd)
-
-    def build(self):
-        pass
-
-    @stage
     def install(self):
-        # This is all manual since UFconfig doesn't supply a viable
-        # build system.
-        e = self.env.copy_set_default(prefix = self.env['INSTALL_DIR'])
-        installdir = self.env['INSTALL_DIR']
-        if not P.isdir(P.join(installdir,'lib')):
-            os.mkdir(P.join(installdir,'lib'))
-        else:
-            for filename in glob(P.join(installdir,'lib','libufconfig*')):
-                os.remove(filename)
-        if not P.isdir(P.join(installdir,'include')):
-            os.mkdir(P.join(installdir,'include'))
-        else:
-            if P.isfile(P.join(installdir, 'include', 'UFconfig.h')):
-                os.remove(P.join(installdir,'include','UFconfig.h'))
-        if self.arch.os == 'osx':
-            self.helper('glibtool','--mode=install','install','-c','libufconfig.3.6.1.dylib',P.join(installdir,'lib'),env=e)
-            self.helper('ln','-s','libufconfig.3.6.1.dylib',P.join(installdir,'lib','libufconfig.dylib'),env=e)
-        else:
-            self.helper('libtool','--mode=install','install','-c','libufconfig.so.3.6.1',P.join(installdir,'lib'),env=e)
-            self.helper('ln','-s','libufconfig.so.3.6.1',P.join(installdir,'lib','libufconfig.so'),env=e)
-        self.helper('install','-m','644','-c','UFconfig.h',P.join(installdir,'include'),env=e)
-
-class amd(Package):
-    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/amd/files/amd-2.2.0-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/AMD-2.2.3.tar.gz']
-    chksum = ['1b452db185458c92b34634f0a88f643c4f851659','cedd6c37c7d214655a0b967a45994e7ec5c38251']
-    patch_level = '-p0'
-
-    def __init__(self, env):
-        super(amd, self).__init__(env)
-        self.patches = [P.join(env['DOWNLOAD_DIR'],'amd-2.2.0-autotools.patch'),
-                        P.join(self.pkgdir,'patches/amd/0001-disable-fortran.patch'),
-                        P.join(self.pkgdir,'patches/amd/0002-amd-libtool.patch')]
-
-    @stage
-    def configure(self):
-        self.helper('mkdir','m4')
-        self.helper('autoreconf','--verbose','--install')
-        super(amd, self).configure(disable='static')
-
-class colamd(Package):
-    src = ['http://sources.gentoo.org/cgi-bin/viewvc.cgi/gentoo-x86/sci-libs/colamd/files/colamd-2.7.1-autotools.patch','http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/COLAMD-2.7.3.tar.gz']
-    chksum = ['0c1a3c429f929b77998aec88dd5c4f5169547f9a','75d490967b180c86cc33e04daeebf217ed179987']
-    patch_level = '-p0'
-
-    def __init__(self, env):
-        super(colamd, self).__init__(env)
-        self.patches = [P.join(env['DOWNLOAD_DIR'],'colamd-2.7.1-autotools.patch'),
-                        P.join(self.pkgdir, 'patches/colamd/0001_colamd_libtool.patch')]
-
-    @stage
-    def configure(self):
-        self.helper('mkdir','m4')
-        self.helper('autoreconf','--verbose','--install')
-        super(colamd, self).configure(disable='static')
-
-class cholmod(Package):
-    src = ['http://ftp.ucsb.edu/pub/mirrors/linux/gentoo/distfiles/cholmod-1.7.0-autotools.patch.bz2','http://www.cise.ufl.edu/research/sparse/cholmod/CHOLMOD-1.7.3.tar.gz']
-    chksum = ['0c15bc824b590d096998417f07b1849cc6f645fb','c85ce011da25337f53c0a5b11e329d855698caa0']
-
-    def __init__(self, env):
-        super(cholmod,self).__init__(env)
-        self.patches = [P.join(env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch'),
-                        P.join(self.pkgdir,'patches/cholmod/0001-fix-cholmod-build.patch'),
-                        P.join(self.pkgdir,'patches/cholmod/0002_cholamd_libtool.patch')]
-
-    @stage
-    def unpack(self):
-        if P.isfile(P.join(self.env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch')):
-            os.remove(P.join(self.env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch'))
-        self.helper('bzip2','-d','-k',P.join(self.env['DOWNLOAD_DIR'],'cholmod-1.7.0-autotools.patch.bz2'))
-        super(cholmod, self).unpack()
-
-    @stage
-    def configure(self):
-        self.helper('mkdir','m4')
-        self.helper('autoreconf','--install','--force','--verbose')
-        super(cholmod, self).configure(disable=('static','mod-partition','mod-supernodal'))
-
-    @stage
-    def install(self):
-        super(cholmod, self).install()
-
-        # ISIS also demands that the CHOLMOD and family headers be
-        # available in a CHOLMOD directory. Instead of editing their
-        # build system .. we'll just softlink the headers into place.
-        d = P.join(self.env['INSTALL_DIR'],'include')
-        if P.exists( P.join(d,'CHOLMOD') ):
-            self.helper('rm', '-rf', P.join(d,'CHOLMOD'))
-        os.mkdir(P.join(d,'CHOLMOD'))
-        headers = []
-        headers.extend( glob( P.join(d,'UFconfig.h') ) )
-        headers.extend( glob( P.join(d,'cholmod*.h') ) )
-        for header in headers:
-            os.symlink( P.relpath( header,
-                                   P.join(d,'CHOLMOD') ),
-                        P.join(d,'CHOLMOD',P.basename(header)) )
+        self.helper('make','install','INSTALL_LIB='+P.join(self.env['INSTALL_DIR'],'lib'),
+                    'INSTALL_INCLUDE='+P.join(self.env['INSTALL_DIR'],'include'))
 
 class osg3(CMakePackage):
     src = 'http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
@@ -935,6 +830,19 @@ class eigen(CMakePackage):
             '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
             ])
 
+class ceres(CMakePackage):
+    src = 'https://ceres-solver.googlecode.com/files/ceres-solver-1.8.0.tar.gz'
+    chksum = '8a67268d995b8351bd5ee5acf1eebff910028e7e'
+
+    def configure(self):
+        super(ceres, self).configure(other=[
+            '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
+            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DSHARED_LIBS=ON', '-DMINIGLOG=ON',
+            ])
+
 class libnabo(GITPackage, CMakePackage):
     src = 'https://github.com/ethz-asl/libnabo.git'
     patches = 'patches/libnabo'
@@ -957,7 +865,7 @@ class libpointmatcher(CMakePackage):
     src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
     chksum = '339eeeba5b402484233474f341735d86bacb9027'
     patches = 'patches/libpointmatcher'
-    
+
     def configure(self):
         installDir = self.env['INSTALL_DIR']
         boost_include = P.join(installDir,'include','boost-'+boost.version)
@@ -980,4 +888,3 @@ class libpointmatcher(CMakePackage):
                 '-DMY_BOOST_DIR=' + installDir
                 ]
         super(libpointmatcher, self).configure(other=options)
-        
