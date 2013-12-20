@@ -937,9 +937,6 @@ class eigen(CMakePackage):
             ])
 
 class libnabo(GITPackage, CMakePackage):
-    # We keep this on byss as this software does not have a fixed release,
-    # and getting things from github directly means at some point
-    # it may change to the point where it breaks.
     src = 'https://github.com/ethz-asl/libnabo.git'
     patches = 'patches/libnabo'
     commit = '4cda228'
@@ -959,7 +956,7 @@ class libpointmatcher(CMakePackage):
     # we'd like to have a fixed reference version rather than getting
     # it from github.
     src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
-    chksum = '9131d80fa72eff2b03688ada92de3a65a7a05a54'
+    chksum = '339eeeba5b402484233474f341735d86bacb9027'
     patches = 'patches/libpointmatcher'
     
     def configure(self):
