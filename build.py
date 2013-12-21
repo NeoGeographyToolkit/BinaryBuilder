@@ -89,7 +89,10 @@ def is_sequence(arg):
             hasattr(arg, "__iter__"))
 
 def get_chksum(name):
-    pkg = globals()[name](build_env)
+    try:
+        pkg = globals()[name](build_env)
+    except KeyError:
+        return "none"
     chksum = pkg.chksum
     # sometimes chksum is a sequence
     if is_sequence(chksum): chksum = chksum[0]
