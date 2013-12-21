@@ -342,7 +342,7 @@ class isis(Package):
         self.helper('./autogen')
 
         pkgs = 'arbitrary_qt qwt boost protobuf tnt jama xercesc spice geos gsl \
-                lapack superlu gmm tiff z jpeg ufconfig amd colamd cholmod curl xercesc'.split()
+                lapack superlu gmm tiff z jpeg suitesparse amd colamd cholmod curl xercesc'.split()
 
         w = [i + '=%(INSTALL_DIR)s' % self.env for i in pkgs]
         includedir = P.join(self.env['INSTALL_DIR'], 'include')
@@ -389,7 +389,7 @@ class isis(Package):
             ldflag_attempts[0] = ldflag_attempts[0] + ld_flags1 + ld_flags2
 
         for ld_flags in ldflag_attempts:
-            self.env['LDFLAGS'] = ld_flags + " -lsuitesparseconfig"
+            self.env['LDFLAGS'] = ld_flags
             try:
                 super(isis, self).configure(
                     with_ = w,
@@ -783,18 +783,6 @@ class suitesparse(Package):
         self.helper('make','install',
                     'INSTALL_LIB='+P.join(self.env['INSTALL_DIR'],'lib'),
                     'INSTALL_INCLUDE='+d)
-
-        # ISIS requires that the CHOLMOD headers be inside a CHOLMOD directory
-        if P.exists( P.join(d,'CHOLMOD') ):
-            self.helper('rm', '-rf', P.join(d,'CHOLMOD'))
-        os.mkdir(P.join(d,'CHOLMOD'))
-        headers = []
-        headers.extend( glob( P.join(d,'UFconfig.h') ) )
-        headers.extend( glob( P.join(d,'cholmod*.h') ) )
-        for header in headers:
-            os.symlink( P.relpath( header,
-                                   P.join(d,'CHOLMOD')),
-                        P.join(d,'CHOLMOD',P.basename(header)) )
 
 class osg3(CMakePackage):
     src = 'http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
