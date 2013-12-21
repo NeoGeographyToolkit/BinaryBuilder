@@ -837,12 +837,14 @@ class ceres(CMakePackage):
     chksum = '8a67268d995b8351bd5ee5acf1eebff910028e7e'
 
     def configure(self):
+        # Remove warnings as errors. They don't pass newest compilers.
+        self.helper('sed', '-ibak', '-e', 's/-Werror//g', 'CMakeLists.txt')
         super(ceres, self).configure(other=[
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=ON',
-            '-DLIB_SUFFIX='
+            '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
             ])
 
 class libnabo(GITPackage, CMakePackage):
