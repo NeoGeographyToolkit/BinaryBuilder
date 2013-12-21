@@ -694,7 +694,7 @@ class Apps:
                 tif_mosaic wv_correct'
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl  \
-                 ufconfig amd colamd cholmod flann spice qwt gsl\
+                 suitesparse amd colamd cholmod flann spice qwt gsl\
                  geos xercesc protobuf tiff z ilmbase openexr jpeg laszip liblas geoid isis \
                  superlu gdal yaml libnabo eigen libpointmatcher proj4'
     vw_pkgs     = \
