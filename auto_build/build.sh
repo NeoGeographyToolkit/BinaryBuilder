@@ -40,10 +40,12 @@ if [ -f /usr/bin/gcc44 ] && [ -f /usr/bin/g++44 ]; then
 fi
 which gcc; which git; gcc --version; python --version
 
+rm -fv ./BaseSystem*bz2
+rm -fv ./StereoPipeline*bz2
+
 # Rebuild the dependencies first (only the ones whose chksum changed
 # will get rebuilt)
 echo "Will build dependencies"
-rm -f ./BaseSystem*bz2 ./StereoPipeline*bz2
 ./build.py --download-dir $(pwd)/tarballs --dev-env --resume \
     --build-root $(pwd)/build_deps
 if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
