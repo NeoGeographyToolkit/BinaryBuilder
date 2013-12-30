@@ -30,6 +30,10 @@ class ccache(Package):
     src     = 'http://samba.org/ftp/ccache/ccache-3.1.9.tar.bz2'
     chksum  = 'e80a5cb7301e72f675097246d722505ae56e3cd3'
 
+class libtool(Package):
+    src     = 'http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz'
+    chksum  = '22b71a8b5ce3ad86e1094e7285981cae10e6ff88'
+
 class cmake(Package):
     src     = 'http://www.cmake.org/files/v2.8/cmake-2.8.11.2.tar.gz'
     chksum  = '31f217c9305add433e77eff49a6eac0047b9e929'
