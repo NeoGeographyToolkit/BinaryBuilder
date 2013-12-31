@@ -456,6 +456,13 @@ class GITPackage(Package):
         super(GITPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'git', self.pkgname)
 
+        # For git packages we don't have a chksum as we do for
+        # tarballs.  We will use instead the commit hash. This helps
+        # during building in deciding if the current version of the
+        # software was built already.
+        if self.chksum is None:
+            self.chksum = self.commit
+        
     def _git(self, *args):
         cmd = ['git', '--git-dir', self.localcopy]
         cmd.extend(args)
