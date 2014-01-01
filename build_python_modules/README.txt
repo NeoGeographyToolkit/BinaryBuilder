@@ -10,6 +10,8 @@ The script will print at the end the value of the environmental variable
 ASP_PYTHON_MODULES_PATH which needs to be set before running the Stereo
 Pipeline.
 
-The script requires that the gcc, g++, and gfortran compilers be present on
-your system.
+Required software:
+ - ggc, g++, gfortran
+ - recent cmake, e.g., version 2.8.11
+
 

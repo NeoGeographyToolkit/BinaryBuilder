@@ -68,7 +68,6 @@ rm -rf build
 mkdir -p build
 cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=$installDir -DCMAKE_Fortran_FLAGS:STRING="-fPIC" -DBUILD_SHARED_LIBS:BOOL=ON -DCMAKE_Fortran_COMPILER=$gfortran
-
 if [ "$?" -ne 0 ]; then exit 1; fi
 make -j $n_cpu
 if [ "$?" -ne 0 ]; then exit 1; fi
