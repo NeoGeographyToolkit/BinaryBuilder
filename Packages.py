@@ -30,10 +30,22 @@ class ccache(Package):
     src     = 'http://samba.org/ftp/ccache/ccache-3.1.9.tar.bz2'
     chksum  = 'e80a5cb7301e72f675097246d722505ae56e3cd3'
 
+class m4(Package):
+    src     = 'http://ftp.gnu.org/gnu/m4/m4-1.4.17.tar.gz'
+    chksum  = '4f80aed6d8ae3dacf97a0cb6e989845269e342f0'
+    
 class libtool(Package):
     src     = 'http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz'
     chksum  = '22b71a8b5ce3ad86e1094e7285981cae10e6ff88'
 
+class autoconf(Package):
+    src='http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz'
+    chksum  = '562471cbcb0dd0fa42a76665acf0dbb68479b78a'
+
+class automake(Package):
+    src='ftp://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz'
+    chksum  = '0bb1714b78d70cab9907d2013082978a28f48a46'
+    
 class cmake(Package):
     src     = 'http://www.cmake.org/files/v2.8/cmake-2.8.11.2.tar.gz'
     chksum  = '31f217c9305add433e77eff49a6eac0047b9e929'
