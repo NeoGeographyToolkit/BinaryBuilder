@@ -3,17 +3,27 @@
 # Before we launch any job on a given machine, ensure that that
 # machine has the code in BinaryBuilder up-to-date.
 
-if [ "$#" -lt 3 ]; then echo Usage: $0 user machine buildDir; exit; fi
-user=$1
-machine=$2
-buildDir=$3
+if [ "$#" -lt 3 ]; then echo Usage: $0 machine buildDir filesList; exit; fi
+
+machine=$1
+buildDir=$2
+filesList=$3
 
 cd $HOME/$buildDir
 
-# The list of files is generated earlier, in start.sh
-files=$(cat auto_build/filesToCopy.txt)
+if [ ! -f "$filesList" ]; then
+    echo Error: Cannot find $filesList
+    exit 1
+fi
 
-echo "rsync -avz $files $user@$machine:$buildDir"
-rsync -avz --delete $files $user@$machine:$buildDir 2>/dev/null
+# The list of files to push
+files=$(cat $filesList)
+
+ssh $machine "mkdir -p $buildDir" 2>/dev/null
+
+echo "rsync -avz $files $machine:$buildDir"
+rsync -avz --delete $files $machine:$buildDir 2>/dev/null
 
 sleep 5 # just in case, to ensure the files finished copying
+
+exit 0

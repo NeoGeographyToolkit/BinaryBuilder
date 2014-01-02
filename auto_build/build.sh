@@ -1,9 +1,16 @@
 #!/bin/bash
 
-# Build ASP. On any faiulre, ensure the "Fail" flag is set in $statusBuildFile,
-# otherwise the caller will wait forever.
+# Build ASP. On any failure, ensure the "Fail" flag is set in
+# $statusFile on the calling machine, otherwise the caller will wait
+# forever.
 
-if [ "$#" -lt 2 ]; then echo Usage: $0 buildDir statusBuildFile; exit 1; fi
+# On success, copy back to the master machine the built tarball and
+# set the status.
+
+if [ "$#" -lt 3 ]; then
+    echo Usage: $0 buildDir statusFile masterMachine
+    exit 1
+fi
 
 if [ -x /usr/bin/zsh ] && [ "$MY_BUILD_SHELL" = "" ]; then
     # Use zsh if available, that helps with compiling on pfe,
@@ -13,12 +20,14 @@ if [ -x /usr/bin/zsh ] && [ "$MY_BUILD_SHELL" = "" ]; then
 fi
 
 buildDir=$1
-statusBuildFile=$2
+statusFile=$2
+masterMachine=$3
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then
     echo "Error: Directory: $buildDir does not exist"
-    echo "Fail build_failed" > $statusBuildFile
+    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
+        2>/dev/null
     exit 1
 fi
 cd $buildDir
@@ -48,54 +57,86 @@ rm -fv ./StereoPipeline*bz2
 echo "Will build dependencies"
 ./build.py --download-dir $(pwd)/tarballs --dev-env --resume \
     --build-root $(pwd)/build_deps
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
+if [ "$?" -ne 0 ]; then
+    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
+        2>/dev/null
+    exit 1
+fi
 ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
+if [ "$?" -ne 0 ]; then
+    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
+        2>/dev/null
+    exit 1
+fi
 
 echo "Will build ASP"
 rm -rf $(pwd)/build_asp
 base_system=$(ls -trd BaseSystem* |tail -n 1)
 ./build.py --download-dir $(pwd)/tarballs --base $base_system \
     visionworkbench stereopipeline --build-root $(pwd)/build_asp
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
+if [ "$?" -ne 0 ]; then
+    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
+        2>/dev/null
+    exit 1
+fi
 
-if [ "$(uname -n)" = "zula" ]; then
+buildMachine=$(uname -n | perl -pi -e "s#\..*?\$##g")
+if [ "$buildMachine" = "ubuntu-64-13" ]; then
+    # Build the documentation on the machine which has LaTeX
     echo "Will build the documentation"
     rm -fv dist-add/asp_book.pdf
     cd build_asp/build/stereopipeline/stereopipeline-git/docs/book
     make
+
+    # Reduce the size of the pdf by about 10x
     gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf asp_book.pdf
-    mv -f output.pdf $HOME/$buildDir/dist-add/asp_book.pdf
+
+    # Copy the documentation to the master machine
+    echo Copying the documentation to $masterMachine
+    rsync -avz output.pdf $masterMachine:$buildDir/dist-add/asp_book.pdf \
+        2>/dev/null
+
     cd $HOME/$buildDir
 fi
 
 # Dump the ASP version
-buildMachine=$(uname -n)
 versionFile=$(version_file $buildMachine)
 build_asp/install/bin/stereo -v 2>/dev/null | grep "NASA Ames Stereo Pipeline" | awk '{print $5}' >  $versionFile
 
 ./make-dist.py last-completed-run/install
-if [ "$?" -ne 0 ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
+if [ "$?" -ne 0 ]; then
+    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
+        2>/dev/null
+    exit 1
+fi
 
 # Copy the build to asp_tarballs
 asp_tarball=$(ls -trd StereoPipeline*bz2 | grep -i -v debug | tail -n 1)
-if [ "$asp_tarball" = "" ]; then echo "Fail build_failed" > $statusBuildFile; exit 1; fi
+if [ "$asp_tarball" = "" ]; then
+    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
+        2>/dev/null
+    exit 1
+fi
 mkdir -p asp_tarballs
 mv $asp_tarball asp_tarballs
 asp_tarball=asp_tarballs/$asp_tarball
 
 # Wipe old builds
-numKeep=12
-if [ "$(uname -n | grep centos)" != "" ]; then
-    numKeep=4 # these machines have little storage
-fi
-if [ "$(uname -n | grep pfe)" != "" ]; then
+numKeep=8
+if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
     numKeep=24 # keep more builds on master machine
 fi
 ./auto_build/rm_old.sh asp_tarballs $numKeep
 
 rm -f StereoPipeline*debug.tar.bz2
 
+# Copy the build to the master machine
+rsync -avz $asp_tarball $masterMachine:$buildDir/asp_tarballs \
+        2>/dev/null
+
 # Mark the build as finished. This must happen at the very end,
-# otherwise the parent script will take over before this script finished.
-echo "$asp_tarball build_done Success" > $statusBuildFile
+# otherwise the parent script will take over before this script
+# finished.
+ssh $masterMachine \
+    "echo '$asp_tarball build_done Success' > $buildDir/$statusFile" \
+    2>/dev/null

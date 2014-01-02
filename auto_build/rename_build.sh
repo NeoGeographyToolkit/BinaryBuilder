@@ -47,7 +47,9 @@ rm -rf $in $out
 if [ -d "$in" ] || [ -d "$out" ]; then exit 1; fi # could not wipe
 bzip2 -dc $in_z | tar xfv - > /dev/null 2>&1
 if [ "$?" -ne 0 ]; then echo "Unpacking failed"; exit 1; fi
-mv $in $out
+if [ "$in" != "$out" ]; then 
+    mv $in $out
+fi
 
 # Copy the ASP book
 doc=../dist-add/asp_book.pdf

@@ -9,6 +9,10 @@ function status_file () {
     echo "status_"$1".txt"
 }
 
+function status_test_file () {
+    echo "status_test_"$1".txt"
+}
+
 function status_build_file () {
     echo "status_build_"$1".txt"
 }
@@ -24,26 +28,57 @@ function output_file () {
     machine=$2
     echo "$buildDir/output_"$machine".txt"
 }
+function output_test_file () {
+    buildDir=$1
+    machine=$2
+    echo "$buildDir/output_test_"$machine".txt"
+}
 
 function start_vrts {
 
-    host=$1
-    vrt1=$2
-    vrt2=$3
+    virtualMachines=$*
 
-    # Connect to $host and start virtual machines $vrt1 and $vrt2
-    ssh $host virsh start $vrt1 2>/dev/null
-    ssh $host virsh start $vrt2 2>/dev/null
+    for vrt in $virtualMachines; do 
+        virsh start $vrt 2>/dev/null
+    done
 
     while [ 1 ]; do
-        ans1=$(ssh $vrt1 "ls /" 2>/dev/null)
-        ans2=$(ssh $vrt2 "ls /" 2>/dev/null)
-        if [ "$ans1" != "" ] && [ "$ans2" != "" ]; then break; fi
-        echo $(date) "Sleping while waiting for virtual machines" \
-            "$vrt1 $vrt2 to start"
-        sleep 60
+        allStarted=1
+        for vrt in $virtualMachines; do
+            ans=$(ssh $vrt "ls /" 2>/dev/null)
+            if [ "$ans" = "" ]; then
+                echo "Machine $vrt is not up yet"
+                allStarted=0
+            else
+                echo "Machine $vrt is up"
+            fi
+        done
+        if [ "$allStarted" -eq 1 ]; then
+            break
+        fi
+        sec=30
+        echo Sleeping for $sec seconds
+        sleep $sec
     done
         
+}
+
+function get_test_machines {
+
+    # Test the amos build on itself and andey.
+    # Test the centos-64-5 build on itself and $masterMachine.
+        
+    buildMachine=$1
+    masterMachine=$2
+
+    if [ "$buildMachine" = "amos" ]; then
+        testMachines="$buildMachine andey"
+    elif [ "$buildMachine" = "centos-64-5" ]; then
+        testMachines="$buildMachine $masterMachine"
+    else
+        testMachines=$buildMachine
+    fi
+    echo $testMachines
 }
 
 # Infrastructure needed for checking if any remote repositories changed.
