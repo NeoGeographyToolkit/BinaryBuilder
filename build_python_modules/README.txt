@@ -11,7 +11,8 @@ ASP_PYTHON_MODULES_PATH which needs to be set before running the Stereo
 Pipeline.
 
 Required software:
- - ggc, g++, gfortran
- - recent cmake, e.g., version 2.8.11
-
+ - gcc, g++, gfortran
+ - cmake, version >= 2.8.7
+ - Python, version >= 2.6
+ - python-devel
 
