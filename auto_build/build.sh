@@ -70,7 +70,6 @@ if [ "$?" -ne 0 ]; then
 fi
 
 echo "Will build ASP"
-rm -rf $(pwd)/build_asp
 base_system=$(ls -trd BaseSystem* |tail -n 1)
 ./build.py --download-dir $(pwd)/tarballs --base $base_system \
     visionworkbench stereopipeline --build-root $(pwd)/build_asp

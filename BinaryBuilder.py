@@ -456,6 +456,15 @@ class GITPackage(Package):
         super(GITPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'git', self.pkgname)
 
+        if self.commit is None:
+            # If the user did not specify which commit to fetch,
+            # we'll fetch the latest. Store its commit hash.
+            for line in self.helper('git', 'ls-remote', '--heads', self.src,
+                                    stdout=subprocess.PIPE)[0].split('\n'):
+                tokens = line.split()
+                if len(tokens) > 1 and tokens[1] == 'refs/heads/master':
+                    self.commit = tokens[0]
+        
         # For git packages we don't have a chksum as we do for
         # tarballs.  We will use instead the commit hash. This helps
         # during building in deciding if the current version of the
