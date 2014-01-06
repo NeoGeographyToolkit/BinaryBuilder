@@ -63,6 +63,34 @@ function start_vrts {
         
 }
 
+function robust_ssh {
+    
+    # Do several attempts to launch a job on a machine.
+    # This is primarily needed for OSX, sometimes
+    # a nohup job on it fails.
+    
+    machine=$1
+    prog=$2
+    opts=$3
+    outfile=$4
+    name=$(basename $prog)
+
+    for ((count = 0; count < 50; count++)); do
+        cmd="nohup nice -19 $prog $opts > $outfile 2>&1&"
+        echo ssh $machine \"$cmd\"
+        ssh $machine "$cmd" 2>/dev/null
+        sleep 20
+        out=$(ssh $machine "ps ux | grep $name | grep -v grep" \
+            2>/dev/null)
+        if [ "$out" != "" ]; then
+            echo "Success starting on $machine: $out";
+            break
+        fi
+        echo "Trying to start $name at $(date) on $machine in attempt $count"
+    done
+    
+}
+
 function get_test_machines {
 
     # Test the amos build on itself and andey.

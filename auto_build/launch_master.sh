@@ -30,15 +30,14 @@ virtualMachines="centos-32-5 centos-64-5 ubuntu-64-13"
 buildMachines="amos $virtualMachines"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
-skipBuild=0 # Must be set to 0 in production. 1=Skip build, do testing.
 skipRelease=0 # Must be set to 0 in production. 1=Don't make a public release.
 timestamp=$(date +%Y-%m-%d)
 sleepTime=30
 local_mode=$1
 
 mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
-if [ "$resumeRun" -eq 0 ] && [ "$skipBuild" -eq 0 ] && \
-    [ "$skipRelease" -eq 0 ] && [ "$local_mode" != "local_mode" ]; then
+if [ "$resumeRun" -eq 0 ] && [ "$skipRelease" -eq 0 ] && \
+    [ "$local_mode" != "local_mode" ]; then
     mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
 fi
 
@@ -95,43 +94,30 @@ mkdir -p asp_tarballs
 for buildMachine in $buildMachines; do
 
     statusFile=$(status_file $buildMachine)
-    
-    if [ "$skipBuild" -ne 0 ] || [ "$resumeRun" -ne 0 ]; then
-        statusLine=$(cat $statusFile)
-        tarBall=$( echo $statusLine | awk '{print $1}' )
-        progress=$( echo $statusLine | awk '{print $2}' )
-    fi
-    
     outputFile=$(output_file $buildDir $buildMachine)
+
     # Make sure all scripts are up-to-date on $buildMachine
     ./auto_build/push_code.sh $buildMachine $buildDir $filesList
     if [ "$?" -ne 0 ]; then exit 1; fi
 
-    if [ "$skipBuild" -ne 0 ] && [ "$resumeRun" -eq 0 ]; then
-        echo "$tarBall build_done" > $statusFile
-        sleep 10
-        continue
+    if [ "$resumeRun" -ne 0 ]; then
+        statusLine=$(cat $statusFile 2>/dev/null)
+        tarBall=$( echo $statusLine | awk '{print $1}' )
+        progress=$( echo $statusLine | awk '{print $2}' )
+        # Don't build if earlier the build finished successfully
+        if [ "$progress" != "build_failed" ] && [ "$progress" != "" ]; then
+            continue
+        fi
     fi
-    if [ "$resumeRun" -eq 0 ] || [ "$progress" = "build_failed" ]; then
-        # Set the status to now building
-        echo "NoTarballYet now_building" > $statusFile
-        for ((count = 0; count < 100; count++)); do
-            # Several attempts to start the job
-            ssh $buildMachine "nohup nice -19 $buildDir/auto_build/build.sh $buildDir $statusFile $masterMachine > $outputFile 2>&1&" 2>/dev/null
-            sleep 10
-            out=$(ssh $buildMachine "ps ux | grep build.sh | grep -v grep" \
-                2>/dev/null)
-            if [ "$out" != "" ]; then
-                echo "Success starting on $buildMachine: $out";
-                break
-            fi
-            echo "Trying to start build.sh at $(date) on $buildMachine in attempt $count"
-        done
-    fi
+    
+    # Launch the build
+    echo "NoTarballYet now_building" > $statusFile
+    robust_ssh $buildMachine $buildDir/auto_build/build.sh \
+        "$buildDir $statusFile $masterMachine" $outputFile
 done
 
 # Wipe all status test files before we start with testing.
-if [ "$resumeRun" -eq 0 ] && [ "$skipBuild" -eq 0 ]; then
+if [ "$resumeRun" -eq 0 ]; then
     for buildMachine in $buildMachines; do
         testMachines=$(get_test_machines $buildMachine $masterMachine)
         for testMachine in $testMachines; do
@@ -156,11 +142,11 @@ while [ 1 ]; do
         testMachines=$(get_test_machines $buildMachine $masterMachine)
         
         if [ "$progress" = "now_building" ]; then
-            echo "Build status for $buildMachine is $statusLine"
+            echo "Status for $buildMachine is $statusLine"
             allTestsAreDone=0
         elif [ "$progress" = "build_failed" ]; then
             # Nothing can be done for this machine
-            echo "Build status for $buildMachine is $statusLine"
+            echo "Status for $buildMachine is $statusLine"
         elif [ "$progress" = "build_done" ]; then
 
             # Build for current machine is done, need to test it
@@ -184,7 +170,9 @@ while [ 1 ]; do
                     2>/dev/null
 
                 sleep 5; # Give the filesystem enough time to react
-                ssh $testMachine "nohup nice -19 $buildDir/auto_build/run_tests.sh $buildDir $tarBall $testDir $statusTestFile $masterMachine > $outputTestFile 2>&1&" 2>/dev/null
+                robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
+                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
+                    $outputTestFile
             done
             
         elif [ "$progress" = "now_testing" ]; then
@@ -197,7 +185,7 @@ while [ 1 ]; do
                 statusTestLine=$(cat $statusTestFile)
                 testProgress=$(echo $statusTestLine | awk '{print $2}')
                 testStatus=$(echo $statusTestLine | awk '{print $3}')
-                echo "Test status for $testMachine is $statusTestLine"
+                echo "Status for $testMachine is $statusTestLine"
                 if [ "$testProgress" != "test_done" ]; then
                     allDoneForCurrMachine=0
                 elif [ "$testStatus" != "Success" ]; then
@@ -216,6 +204,8 @@ while [ 1 ]; do
             # we read is in the process of being written to and is empty.
             echo "Unknown progress value: '$progress'. Will wait."
             allTestsAreDone=0
+        else
+            echo "Status for $buildMachine is $statusLine"
         fi
         
     done
