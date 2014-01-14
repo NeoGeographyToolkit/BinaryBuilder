@@ -27,7 +27,6 @@ def list_recursively(dir):
     matches = []
     for root, dirnames, filenames in os.walk(dir):
         for filename in filenames:
-            print("filename is ", filename)
             matches.append(os.path.join(root, filename))
     return matches
 
