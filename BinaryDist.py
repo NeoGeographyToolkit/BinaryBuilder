@@ -5,7 +5,8 @@ import logging
 import itertools, shutil, re, errno, sys, os, stat
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
-from BinaryBuilder import get_platform, run, hash_file, binary_builder_prefix
+from BinaryBuilder import get_platform, run, hash_file, binary_builder_prefix,\
+     list_recursively
 from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
 from functools import partial, wraps
@@ -480,11 +481,15 @@ def fix_install_paths(installdir, arch):
                     glob(P.join(installdir,'lib','*.la'))          + \
                     glob(P.join(installdir,'lib','*.prl'))         + \
                     glob(P.join(installdir,'lib','*', '*.pc'))     + \
-                    glob(P.join(installdir,'bin','*-config'))      + \
-                    glob(P.join(installdir,'mkspecs','*.pri'))
-
+                    glob(P.join(installdir,'bin','*'))             + \
+                    glob(P.join(installdir,'mkspecs','*.pri'))     + \
+                    list_recursively(P.join(installdir,'share'))
+    
     for control in control_files:
 
+        if os.path.isdir(control): continue
+        if is_binary(control): continue
+        
         print('  %s' % P.basename(control))
 
         # ensure we can read and write (some files have odd permissions)

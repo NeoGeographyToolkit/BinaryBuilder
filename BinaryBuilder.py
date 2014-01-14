@@ -22,6 +22,15 @@ from urlparse import urlparse
 global logger
 logger = logging.getLogger()
 
+def list_recursively(dir):
+    # List resursively all files in given directory
+    matches = []
+    for root, dirnames, filenames in os.walk(dir):
+        for filename in filenames:
+            print("filename is ", filename)
+            matches.append(os.path.join(root, filename))
+    return matches
+
 def get_platform(pkg=None):
     system  = platform.system()
     machine = platform.machine()
