@@ -42,11 +42,8 @@ if [ -f "$f" ]; then
     echo "<li><a href=\"$f\">Documentation</a> ($size)</li>" >> $index
 fi
 
-f="StereoPipelinePythonModules.tgz"
-if [ -f "$f" ]; then
-    size="$(ls -sh $f | awk '{print $1}')B"
-    echo "<li><a href=\"$f\">Optional Python Modules</a> ($size)</li>" >> $index
-fi
+modules_link='https://github.com/NeoGeographyToolkit/BinaryBuilder/tree/master/build_python_modules'
+echo "<li><a href=\"$modules_link\">Optional Python Modules</a></li>" >> $index
 
 echo '</ul>
 Contact: stereo-pipeline-owner [at] lists [dot] nasa [dot] gov<br>

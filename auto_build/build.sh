@@ -87,12 +87,9 @@ if [ "$buildMachine" = "ubuntu-64-13" ]; then
     cd build_asp/build/stereopipeline/stereopipeline-git/docs/book
     make
 
-    # Reduce the size of the pdf by about 10x
-    gs -sDEVICE=pdfwrite -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook -dNOPAUSE -dQUIET -dBATCH -sOutputFile=output.pdf asp_book.pdf
-
     # Copy the documentation to the master machine
     echo Copying the documentation to $masterMachine
-    rsync -avz output.pdf $masterMachine:$buildDir/dist-add/asp_book.pdf \
+    rsync -avz asp_book.pdf $masterMachine:$buildDir/dist-add/ \
         2>/dev/null
 
     cd $HOME/$buildDir

@@ -68,20 +68,18 @@ cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 # Set up the config file
 machine=$(uname -n | perl -pi -e "s#\..*?\$##g")
 configFile="release_"$machine".conf"
-configFileLocal="release_"$machine"_local.conf"
 if [ ! -e $configFile ]; then
     echo "Error: File $configFile does not exist"
     ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
         2>/dev/null
     exit 1
 fi
-cp -fv $configFile $configFileLocal
-perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFileLocal
+perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFile
 
 # Run the tests. Let the verbose output go to a file.
 outputFile=output_test_"$machine".txt
 echo "Launching the tests. Output goes to: $(pwd)/$outputFile"
-bin/run_tests.pl $configFileLocal > $outputFile 2>&1
+bin/run_tests.pl $configFile > $outputFile 2>&1
 
 if [ "$?" -ne 0 ]; then
     ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\

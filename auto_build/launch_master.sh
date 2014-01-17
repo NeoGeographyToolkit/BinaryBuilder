@@ -89,6 +89,9 @@ set_system_paths
 start_vrts $virtualMachines
 mkdir -p asp_tarballs
 
+# Wipe the doc before regenerating it
+rm -fv dist-add/asp_book.pdf
+
 # Start the builds. The build script will copy back the built tarballs
 # and status files.
 for buildMachine in $buildMachines; do
@@ -221,6 +224,21 @@ done
 
 overallStatus="Success"
 
+# Builds and tests finished. The documentation is now in
+# dist-add/asp_book.pdf. Need to reduce its size.
+# On the machine the doc was generated gs creates
+# non-searcheable pdfs, so need to reduce the size here.
+if [ ! -f "dist-add/asp_book.pdf" ]; then overallStatus="Fail"; fi
+gs -dUseCIEColor -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer          \
+    -dEmbedAllFonts=true -dSubsetFonts=true -dMaxSubsetPct=100            \
+    -sDEVICE=pdfwrite -dNOPAUSE -dQUIET -dBATCH                           \
+    -dDownsampleColorImages -dDownsampleGrayImages -dDownsampleMonoImages \
+    -dColorImageDownsampleType=/Bicubic -dColorImageResolution=100        \
+    -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=100          \
+    -sOutputFile=output.pdf dist-add/asp_book.pdf
+if [ "$?" -ne 0 ]; then overallStatus="Fail"; fi
+mv -fv output.pdf dist-add/asp_book.pdf
+
 # Get the ASP version. Hopefully some machine has it.
 version=""
 for buildMachine in $buildMachines; do
@@ -319,10 +337,6 @@ if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
     ssh $releaseMachine "$releaseDir/rm_old.sh $releaseDir 24 StereoPipeline-" 2>/dev/null
     ssh $releaseMachine "$releaseDir/gen_index.sh $releaseDir $version $timestamp" 2>/dev/null
 
-    if [ "$local_mode" != "local_mode" ]; then
-        # Mark the fact that we've built/tested for the current state of remote repositories
-        cp -fv $curr_hash_file $done_hash_file
-    fi
 fi
 
 # Copy the logs to $releaseMachine
