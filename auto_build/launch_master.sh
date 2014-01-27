@@ -90,8 +90,10 @@ start_vrts $virtualMachines
 mkdir -p asp_tarballs
 
 # Wipe the doc before regenerating it
-rm -fv dist-add/asp_book.pdf
-
+if [ "$resumeRun" -eq 0 ]; then
+    rm -fv dist-add/asp_book.pdf
+fi
+    
 # Start the builds. The build script will copy back the built tarballs
 # and status files.
 for buildMachine in $buildMachines; do
@@ -353,6 +355,7 @@ for log in $(ls logs |grep -v test); do
 done
 
 cat $statusMasterFile
+echo Status is $overallStatus
 
 subject="ASP build $timestamp status is $overallStatus"
 cat status_master.txt | mailx -s "$subject" $mailto
