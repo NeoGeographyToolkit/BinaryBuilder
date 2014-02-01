@@ -35,11 +35,11 @@ timestamp=$(date +%Y-%m-%d)
 sleepTime=30
 local_mode=$1
 
-mailto="oleg.alexandrov@nasa.gov oleg.alexandrov@gmail.com"
-if [ "$resumeRun" -eq 0 ] && [ "$skipRelease" -eq 0 ] && \
-    [ "$local_mode" != "local_mode" ]; then
-    mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
-fi
+mailto="oleg.alexandrov@nasa.gov"
+# if [ "$resumeRun" -eq 0 ] && [ "$skipRelease" -eq 0 ] && \
+#     [ "$local_mode" != "local_mode" ]; then
+#     mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
+# fi
 
 currMachine=$(uname -n | perl -pi -e "s#\..*?\$##g")
 if [ "$currMachine" != "$masterMachine" ]; then
