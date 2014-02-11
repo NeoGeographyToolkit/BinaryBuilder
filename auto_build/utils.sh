@@ -77,7 +77,7 @@ function robust_ssh {
     for ((count = 0; count < 50; count++)); do
         cmd="nohup nice -19 $prog $opts > $outfile 2>&1&"
         echo ssh $machine \"$cmd\"
-        ssh $machine "$cmd" 2>/dev/null
+        ssh $machine "$cmd" 2>/dev/null &
         sleep 20
         out=$(ssh $machine "ps ux | grep $name | grep -v grep" \
             2>/dev/null)

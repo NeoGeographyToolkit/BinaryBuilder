@@ -74,7 +74,7 @@ if [ "$local_mode" != "local_mode" ]; then
         exit 1
     fi
     cd $dir
-    files=$(\ls -ad * .git*)
+    files=$(ls -ad *  | grep -v \\.git)
     cp -rf $files ..
     cd ..
     rm -rf $dir
