@@ -79,7 +79,7 @@ if [ "$?" -ne 0 ]; then
     exit 1
 fi
 
-buildMachine=$(uname -n | perl -pi -e "s#\..*?\$##g")
+buildMachine=$(machine_name)
 if [ "$buildMachine" = "ubuntu-64-13" ]; then
     # Build the documentation on the machine which has LaTeX
     echo "Will build the documentation"
@@ -117,7 +117,7 @@ mkdir -p asp_tarballs
 mv $asp_tarball asp_tarballs
 asp_tarball=asp_tarballs/$asp_tarball
 
-# Wipe old builds
+# Wipe old builds on the build machine
 numKeep=8
 if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
     numKeep=24 # keep more builds on master machine

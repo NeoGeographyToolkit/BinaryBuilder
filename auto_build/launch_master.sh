@@ -41,12 +41,6 @@ mailto="oleg.alexandrov@nasa.gov"
 #     mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
 # fi
 
-currMachine=$(uname -n | perl -pi -e "s#\..*?\$##g")
-if [ "$currMachine" != "$masterMachine" ]; then
-    echo Error: Expecting the jobs to be launched from $masterMachine
-    exit 1
-fi
-
 cd $HOME
 mkdir -p $buildDir
 cd $buildDir
@@ -85,6 +79,13 @@ if [ "$local_mode" != "local_mode" ]; then
 fi
 
 . $HOME/$buildDir/auto_build/utils.sh # load utilities
+
+currMachine=$(machine_name)
+if [ "$currMachine" != "$masterMachine" ]; then
+    echo Error: Expecting the jobs to be launched from $masterMachine
+    exit 1
+fi
+
 set_system_paths
 start_vrts $virtualMachines
 mkdir -p asp_tarballs

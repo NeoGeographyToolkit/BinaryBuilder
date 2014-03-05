@@ -66,7 +66,7 @@ fi
 cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 
 # Set up the config file
-machine=$(uname -n | perl -pi -e "s#\..*?\$##g")
+machine=$(machine_name)
 configFile="release_"$machine".conf"
 if [ ! -e $configFile ]; then
     echo "Error: File $configFile does not exist"
@@ -92,6 +92,13 @@ if [ ! -f "$reportFile" ]; then
         2>/dev/null
     exit 1
 fi
+
+# Wipe old builds on the test machine
+numKeep=8
+if [ "$(echo $machine | grep $masterMachine)" != "" ]; then
+    numKeep=24 # keep more builds on master machine
+fi
+./auto_build/rm_old.sh asp_tarballs $numKeep
 
 # Append the result of tests to the logfile
 cat $reportFile
