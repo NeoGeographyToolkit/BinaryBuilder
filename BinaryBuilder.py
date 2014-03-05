@@ -712,15 +712,16 @@ class Apps:
                  isisadjustcnetclip plateorthoproject results \
                  rmax2cahvor rmaxadjust stereogui'
     enable_apps = \
-                'bundlevis dem_geoid disparitydebug geodiff hsvmerge \
+                'bundlevis dem_geoid disparitydebug geodiff hsvmerge   \
                 isisadjust mapproject mer2camera orbitviz orthoproject \
                 point2dem point2las point2mesh pc_align stereo rpc_gen \
-                tif_mosaic wv_correct'
+                tif_mosaic wv_correct lronacjitreg'
     install_pkgs = \
-                 'boost openscenegraph flapack arbitrary_qt curl  \
-                 suitesparse amd colamd cholmod flann spice qwt gsl\
-                 geos xercesc protobuf tiff z ilmbase openexr jpeg laszip liblas geoid isis \
-                 superlu gdal yaml libnabo eigen libpointmatcher proj4'
+                 'boost openscenegraph flapack arbitrary_qt curl    \
+                 suitesparse amd colamd cholmod flann spice qwt gsl \
+                 geos xercesc protobuf tiff z ilmbase openexr jpeg  \
+                 laszip liblas geoid isis superlu gdal yaml libnabo \
+                 eigen libpointmatcher proj4'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \
              vw_stereo vw_cartography vw_interest_point'

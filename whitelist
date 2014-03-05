@@ -11,6 +11,7 @@ bin/hsv_merge
 bin/image2qtree
 bin/ipfind
 bin/ipmatch
+bin/lronac2mosaic.py
 bin/mer2camera
 bin/orbitviz
 bin/orthoproject
@@ -34,6 +35,7 @@ lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
 lib/libvw*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
+libexec/lronacjitreg
 libexec/stereo_parse
 libexec/rpc_gen
 libexec/tif_mosaic
