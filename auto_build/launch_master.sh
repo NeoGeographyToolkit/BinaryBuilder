@@ -30,13 +30,13 @@ virtualMachines="centos-32-5 centos-64-5 ubuntu-64-13"
 buildMachines="amos $virtualMachines"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
-skipRelease=0 # Must be set to 0 in production. 1=Don't make a public release.
+if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
 timestamp=$(date +%Y-%m-%d)
 sleepTime=30
-local_mode=$1
+local_mode=$1 # Run local copy of the code, must not happen in production.
 
 mailto="oleg.alexandrov@nasa.gov"
-# if [ "$resumeRun" -eq 0 ] && [ "$skipRelease" -eq 0 ] && \
+# if [ "$resumeRun" -eq 0 ] && \
 #     [ "$local_mode" != "local_mode" ]; then
 #     mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
 # fi
@@ -318,7 +318,7 @@ done
 
 # Copy the builds to $releaseMachine and update the public link
 ssh $releaseMachine "mkdir -p $releaseDir" 2>/dev/null
-if [ "$overallStatus" = "Success" ] && [ "$skipRelease" = "0" ]; then
+if [ "$overallStatus" = "Success" ]; then
 
     echo "" >> $statusMasterFile
     echo "Link: $link" >> $statusMasterFile
