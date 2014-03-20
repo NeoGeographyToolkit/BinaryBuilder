@@ -85,6 +85,7 @@ if [ "$buildMachine" = "ubuntu-64-13" ]; then
     echo "Will build the documentation"
     rm -fv dist-add/asp_book.pdf
     cd build_asp/build/stereopipeline/stereopipeline-git/docs/book
+    rm -fv asp_book.pdf
     make
 
     # Copy the documentation to the master machine
