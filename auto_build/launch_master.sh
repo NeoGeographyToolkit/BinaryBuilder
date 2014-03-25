@@ -37,7 +37,7 @@ local_mode=$1 # Run local copy of the code, must not happen in production.
 
 mailto="oleg.alexandrov@nasa.gov"
 if [ "$resumeRun" -eq 0 ] && \
-#     [ "$local_mode" != "local_mode" ]; then
+    [ "$local_mode" != "local_mode" ]; then
     #mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
     mailto="$mailto SMcMichael@sgt-inc.com"
 fi
