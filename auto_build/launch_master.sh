@@ -33,11 +33,11 @@ resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
 timestamp=$(date +%Y-%m-%d)
 sleepTime=30
-local_mode=$1 # Run local copy of the code, must not happen in production.
+localMode=0 # Run local copy of the code. Must not happen in production.
+if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
 mailto="oleg.alexandrov@nasa.gov"
-if [ "$resumeRun" -eq 0 ] && \
-    [ "$local_mode" != "local_mode" ]; then
+if [ "$resumeRun" -eq 0 ] && [ "$localMode" -eq 0 ]; then
     #mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
     mailto="$mailto SMcMichael@sgt-inc.com"
 fi
@@ -50,7 +50,7 @@ echo "Work directory: $(pwd)"
 # Unless running in local mode for test purposes, fetch from github
 # the latest version of BinaryBuilder.
 filesList=auto_build/filesToCopy.txt
-if [ "$local_mode" != "local_mode" ]; then
+if [ "$localMode" -eq 0 ]; then
 
     # Update from github
     dir="BinaryBuilder_newest"

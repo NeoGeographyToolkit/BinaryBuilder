@@ -98,7 +98,7 @@ numKeep=8
 if [ "$(echo $machine | grep $masterMachine)" != "" ]; then
     numKeep=24 # keep more builds on master machine
 fi
-./auto_build/rm_old.sh asp_tarballs $numKeep
+$HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
 
 # Append the result of tests to the logfile
 cat $reportFile
