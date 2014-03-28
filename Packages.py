@@ -881,12 +881,11 @@ class libnabo(GITPackage, CMakePackage):
             '-DSHARED_LIBS=ON'
             ])
 
-class libpointmatcher(CMakePackage):
-    # We keep this on byss as we hacked it a bit to compile. Besides,
-    # we'd like to have a fixed reference version rather than getting
-    # it from github.
-    src = 'https://byss.arc.nasa.gov/asp_packages/libpointmatcher-0.0.0.tgz'
-    chksum = '339eeeba5b402484233474f341735d86bacb9027'
+class libpointmatcher(GITPackage, CMakePackage):
+    # We are fetching a hacked version of this from GitHub. Need to upgdate
+    # at some point to the master version.
+    src   = 'https://github.com/oleg-alexandrov/libpointmatcher'
+    chksum = '0e8e2a8'
     patches = 'patches/libpointmatcher'
 
     def configure(self):
