@@ -805,18 +805,22 @@ class osg3(CMakePackage):
     chksum = 'c20891862b5876983d180fc4a3d3cfb2b4a3375c'
     patches = 'patches/osg3'
 
+    def __init__(self, env):
+        super(osg3, self).__init__(env)
+
+        # Cocoa bindings can't be built unless using an apple provided
+        # compiler. Using a homebrew or macports built GCC or hand
+        # built clang will be missing the required 'blocks'
+        # extension. The error will look something like "NSTask.h:
+        # error: expected unqualified-id before '^' token".
+        if self.arch.os == 'osx':
+            self.env['CXX'] = 'g++'
+            self.env['CC'] = 'gcc'
+
     def configure(self):
         other_flags = ['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DOSG_USE_QT=OFF', '-DBUILD_DOCUMENTATION=OFF']
         if self.arch.os == 'osx':
             other_flags.extend(['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio','-DOSG_WINDOWING_SYSTEM=Cocoa'])
-            # Cocoa bindings can't be built unless using an apple
-            # provided compiler. Using a homebrew or macports built
-            # GCC or hand built clang will be missing the required
-            # 'blocks' extension. The error will look something like
-            # "NSTask.h: error: expected unqualified-id before '^'
-            # token".
-            self.env['CXX'] = 'g++'
-            self.env['CC'] = 'gcc'
         super(osg3, self).configure(
             with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit'.split(),
             without='COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),

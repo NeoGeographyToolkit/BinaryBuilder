@@ -11,6 +11,7 @@ import subprocess
 import sys
 import urllib2
 import logging
+import copy
 
 from collections import namedtuple
 from functools import wraps, partial
@@ -237,7 +238,7 @@ class Package(object):
         #info(self.pkgdir)
         self.tarball = None
         self.workdir = None
-        self.env = env
+        self.env = copy.deepcopy(env)
         self.arch = get_platform(self)
 
         self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
