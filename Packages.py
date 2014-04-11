@@ -463,9 +463,8 @@ class visionworkbench(GITPackage):
     @stage
     def compile(self, cwd=None):
         super(visionworkbench, self).compile(cwd)
-        # To do: See why make check fails on Mac and centos-64-5
-        # cmd = ('make', 'check')
-        # self.helper(*cmd)
+        cmd = ('make', 'check')
+        self.helper(*cmd)
 
 class lapack(CMakePackage):
     src     = 'http://www.netlib.org/lapack/lapack-3.5.0.tgz'
