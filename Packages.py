@@ -821,8 +821,8 @@ class osg3(CMakePackage):
         if self.arch.os == 'osx':
             other_flags.extend(['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio','-DOSG_WINDOWING_SYSTEM=Cocoa'])
         super(osg3, self).configure(
-            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit Inventor COLLADA'.split(),
-            without='FBX FFmpeg FLTK FOX FreeType GIFLIB ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
+            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit COLLADA'.split(),
+            without='FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
             other=other_flags)
 
 class flann(CMakePackage):
