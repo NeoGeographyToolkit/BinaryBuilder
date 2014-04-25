@@ -395,6 +395,9 @@ if __name__ == '__main__':
                     name = pkg.__name__
                     chksum = get_chksum(name)
                     done[name] = chksum
+                    # Save the status after each package was built,
+                    # in case the process gets interrupted.
+                    write_done(done, done_file)
                     break
                 except Exception, e:
                     print("Failed to build %s in attempt %d %s" %
@@ -404,7 +407,6 @@ if __name__ == '__main__':
                         time.sleep(60)
                     else:
                         raise
-        write_done(done, done_file)
 
     except Exception, e:
         die(e)
