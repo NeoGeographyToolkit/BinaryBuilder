@@ -113,20 +113,22 @@ def read_done(done_file):
             pkg_chksum = get_chksum(name)
             if chksum == pkg_chksum:
                 done[name] = chksum
-
+        f.close()
     except IOError:
+        # Don't complain is the file is missing, that means no
+        # packages were built yet.
         pass
 
     return done
 
-def append_done(pkg, done, done_file):
-    # Mark the current package as already built.
-    name = pkg.__name__
-    chksum = get_chksum(name)
-    done[name] = chksum
-    f = open(done_file, 'a')
-    f.write(name + " " + chksum + "\n")
-
+def write_done(done, done_file):
+    # Write the packages already built. 
+    f = open(done_file, 'w')
+    for name in done:
+        chksum = done[name]
+        f.write(name + " " + chksum + "\n")
+    f.close()
+    
 if __name__ == '__main__':
     parser = OptionParser()
     parser.set_defaults(mode='all')
@@ -229,10 +231,16 @@ if __name__ == '__main__':
         build_env.append('LDFLAGS', '-Wl,-headerpad_max_install_names')
         osx_arch = 'x86_64' #SEMICOLON-DELIMITED
 
+        ver = version.StrictVersion(arch.dist_version)
+
+        # Transform 10.8.5 into 10.8
+        ver_arr = str(ver).split("."); ver_arr = ver_arr[0:2]
+        ver2 = ".".join(ver_arr)
+
         # Define SDK location. This moved in OSX 10.8
         sysroot = '/Developer/SDKs/MacOSX%s.sdk' % opt.osx_sdk
-        if version.StrictVersion(arch.dist_version) >= "10.8":
-            sysroot = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX%s.sdk' % opt.osx_sdk
+        if ver >= "10.8":
+            sysroot = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX%s.sdk' % ver2
         if not os.path.isdir( sysroot ):
             die("Unable to open '%s'. Double check that you actually have the SDK for OSX %s." % (sysroot,opt.osx_sdk))
 
@@ -249,7 +257,7 @@ if __name__ == '__main__':
         # # http://markmail.org/message/45nbrtxsxvsjedpn).
         # # Short version: 10.6 generates the new compact header (LD_DYLD_INFO)
         # # even when told to support 10.5 (which can't read it)
-        if version.StrictVersion(arch.dist_version) >= '10.6' and opt.osx_sdk == '10.5':
+        if ver >= '10.6' and opt.osx_sdk == '10.5':
             build_env.append('LDFLAGS', '-Wl,-no_compact_linkedit')
 
     # if arch.osbits == 'linux32':
@@ -381,8 +389,12 @@ if __name__ == '__main__':
             num=10
             for i in range(0,num):
                 try:
+                    # Build
                     modes[opt.mode](pkg(build_env.copy_set_default()))
-                    append_done(pkg, done, done_file)
+                    # Mark as done
+                    name = pkg.__name__
+                    chksum = get_chksum(name)
+                    done[name] = chksum
                     break
                 except Exception, e:
                     print("Failed to build %s in attempt %d %s" %
@@ -392,6 +404,7 @@ if __name__ == '__main__':
                         time.sleep(60)
                     else:
                         raise
+        write_done(done, done_file)
 
     except Exception, e:
         die(e)
