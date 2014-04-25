@@ -47,32 +47,16 @@ if [ -f /usr/bin/gcc44 ] && [ -f /usr/bin/g++44 ]; then
     rm -f g++; ln -s /usr/bin/g++44 g++
     export PATH=$(pwd):$PATH
 fi
+
 which gcc; which git; gcc --version; python --version
 
 rm -fv ./BaseSystem*bz2
 rm -fv ./StereoPipeline*bz2
 
-# Rebuild the dependencies first (only the ones whose chksum changed
-# will get rebuilt)
-echo "Will build dependencies"
-./build.py --download-dir $(pwd)/tarballs --dev-env --resume \
-    --build-root $(pwd)/build_deps
-if [ "$?" -ne 0 ]; then
-    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
-        2>/dev/null
-    exit 1
-fi
-./make-dist.py --include all --set-name BaseSystem last-completed-run/install
-if [ "$?" -ne 0 ]; then
-    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
-        2>/dev/null
-    exit 1
-fi
-
-echo "Will build ASP"
-base_system=$(ls -trd BaseSystem* |tail -n 1)
-./build.py --download-dir $(pwd)/tarballs --base $base_system \
-    visionworkbench stereopipeline --build-root $(pwd)/build_asp
+# Build everything, including VW and ASP. Only the packages
+# whose checksum changed will get built.
+echo "Building changed packages"
+./build.py --download-dir $(pwd)/tarballs --build-root $(pwd)/build_asp
 if [ "$?" -ne 0 ]; then
     ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
         2>/dev/null
