@@ -639,20 +639,42 @@ class CMakePackage(Package):
     def install(self):
         super(CMakePackage, self).install(cwd=self.builddir)
 
+def print_qt_config(cppflags, config, bindir, includedir, libdir):
+    qt_pkgs = \
+            'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+    print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
+    qt_cppflags=[]
+    qt_libs=['-L%s' % libdir]
+    for module in qt_pkgs.split():
+        qt_cppflags.append('-I%s/%s' % (includedir, module))
+        qt_libs.append('-l%s' % module)
+    print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
+    print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
+    print('MOC=%s' % (P.join(bindir, 'moc')),file=config)
+    cppflags.extend(qt_cppflags)
+
 def write_vw_config(prefix, installdir, arch, config_file):
 
     print('Writing ' + config_file)
-    base = '$BASE'
+    base       = '$BASE'
+    includedir = P.join(base, 'include')
+    libdir     = P.join(base, 'lib')
+    bindir     = P.join(base, 'bin')
+    cppflags = ['-I' + includedir]
 
     # Enable
     enable_features = 'debug optimize rpath as_needed no_undefined'.split()
-    enable_pkgs = 'jpeg png gdal proj4 z ilmbase openexr boost flapack protobuf flann'.split()
-    enable_modules  = 'camera mosaic interestpoint cartography hdr stereo geometry tools bundleadjustment'.split()
+    enable_pkgs = ('jpeg png gdal proj4 z ilmbase openexr boost flapack ' + 
+                  'protobuf flann qt arbitrary_qt').split()
+    enable_modules  = ('camera mosaic interestpoint cartography hdr stereo ' +
+                       'geometry tools bundleadjustment gui').split()
 
     # Disable
     disable_features = 'pkg_paths_default static qt-qmake'.split()
-    disable_pkgs = 'tiff hdr cairomm tcmalloc x11 clapack slapack opencv cg zeromq rabbitmq_c qt_qmake arbitrary_qt apple_qmake_qt linux_qmake_qt guess_qt qt'.split()
-    disable_modules = 'gpu plate python gui'.split()
+    disable_pkgs = ('tiff hdr cairomm tcmalloc x11 clapack slapack opencv ' +
+                    'cg zeromq rabbitmq_c qt_qmake apple_qmake_qt '         + 
+                    'linux_qmake_qt guess_qt').split()
+    disable_modules = 'gpu plate python'.split()
    
     with file(config_file, 'w') as config:
 
@@ -663,15 +685,6 @@ def write_vw_config(prefix, installdir, arch, config_file):
         print('# Installation prefix', file=config)
         print('PREFIX=%s' % prefix, file=config)
         print('', file=config) # newline
-
-        # To do: Test removing -rpath from cflags and cxxflags
-        if arch.os == 'osx':
-            print('CFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % base,
-                  file=config)
-            print('CXXFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % base,
-                  file=config)
-            print('LDFLAGS="-Wl,-rpath -Wl,%s"' % base, file=config)
-            print('', file=config) # newline
 
         for feature in enable_features:
             print('ENABLE_%s=yes' % feature.upper(), file=config)
@@ -688,21 +701,32 @@ def write_vw_config(prefix, installdir, arch, config_file):
         for pkg in enable_pkgs:
             print('HAVE_PKG_%s=%s' % (pkg.upper(), base),
                   file=config)
-            print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(), P.join(base, 'include')), file=config)
+            print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(), includedir),
+                  file=config)
             if pkg == 'gdal' and arch.os == 'linux':
-                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), P.join(base, 'lib')), file=config)
+                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
             else:
-                print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), P.join(base, 'lib')), file=config)
+                print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), libdir), file=config)
 
         for pkg in disable_pkgs:
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
         print('', file=config) # newline
 
+        print_qt_config(cppflags, config, bindir, includedir, libdir)
+
         # Specify executables we use
-        print('PROTOC=%s' % (P.join(base, 'bin',
-                                    'protoc')),file=config)
-        print('MOC=%s' % (P.join(base, 'bin',
-                                 'moc')),file=config)
+        print('PROTOC=%s' % (P.join(bindir, 'protoc')),file=config)
+        print('', file=config) # newline
+
+        print('CPPFLAGS="' + ' '.join(cppflags) + '"', file=config)
+        if arch.os == 'osx':
+            # To do: Test removing -rpath from cflags and cxxflags
+            print('CFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % base,
+                  file=config)
+            print('CXXFLAGS="-arch x86_64 -Wl,-rpath -Wl,%s"' % base,
+                  file=config)
+            print('LDFLAGS="-Wl,-rpath -Wl,%s"' % base, file=config)
+        print('', file=config) # newline
 
 class Apps:
     disable_modules = 'controlnettk mpi'
@@ -729,9 +753,6 @@ class Apps:
     off_pkgs    = \
              'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate \
              kakadu gsl_hasblas apple_qwt'
-    qt_pkgs     = \
-            'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
-
 
 def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
                      geoid, config_file):
@@ -796,31 +817,23 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
             if pkg == 'gdal':
                 print('PKG_%s_LDFLAGS="-ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper()), file=config)
 
-            if pkg == 'geoid':
+            elif pkg == 'geoid':
                 cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids-' \
                              + geoid.version])
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)
+                
         for pkg in vw_pkgs:
             print('HAVE_PKG_%s=$VW' % pkg.upper(), file=config)
         for pkg in off_pkgs:
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
 
-        # Qt
-        qt_pkgs = Apps.qt_pkgs
-        print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
-        qt_cppflags=['-I%s' % includedir]
-        qt_libs=['-L%s' % libdir]
-        for module in qt_pkgs.split():
-            qt_cppflags.append('-I%s/%s' % (includedir, module))
-            qt_libs.append('-l%s' % module)
-        print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
-        print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
-        print('MOC=%s' % (P.join(bindir, 'moc')),file=config)
-        cppflags.extend(qt_cppflags)
+        print_qt_config(cppflags, config, bindir, includedir, libdir)
 
         print('PROTOC=%s' % (P.join(bindir, 'protoc')),file=config)
+        print('', file=config) # newline
+
         cppflags.extend(["-I%s/eigen3" % includedir])
 
         if not use_env_flags:
