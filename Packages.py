@@ -630,8 +630,8 @@ class qt(Package):
         # problem is -fconstant-cfstrings. Macports also gives up in
         # this situation and blacks lists all Macport built compilers.
         if self.arch.os == 'osx':
-            self.env['CXX']='g++'
-            self.env['CC']='gcc'
+            self.env['CXX']='c++'
+            self.env['CC']='cc'
 
     @stage
     def configure(self):
@@ -813,16 +813,16 @@ class osg3(CMakePackage):
         # extension. The error will look something like "NSTask.h:
         # error: expected unqualified-id before '^' token".
         if self.arch.os == 'osx':
-            self.env['CXX'] = 'g++'
-            self.env['CC'] = 'gcc'
+            self.env['CXX'] = 'c++'
+            self.env['CC'] = 'cc'
 
     def configure(self):
         other_flags = ['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DOSG_USE_QT=OFF', '-DBUILD_DOCUMENTATION=OFF']
         if self.arch.os == 'osx':
             other_flags.extend(['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio','-DOSG_WINDOWING_SYSTEM=Cocoa'])
         super(osg3, self).configure(
-            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL QuickTime CoreVideo QTKit'.split(),
-            without='COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
+            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL'.split(),
+            without='QuickTime CoreVideo QTKit COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
             other=other_flags)
 
 class flann(CMakePackage):
