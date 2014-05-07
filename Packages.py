@@ -307,7 +307,7 @@ class geoid(CMakePackage):
 # download ISIS and then download the repo for editing ISIS. We apply
 # the patch locally and then build away.
 class isis(Package):
-
+    chksum = '3.4.6' # must change here when new ISIS is out
     def __init__(self, env):
         super(isis, self).__init__(env)
         self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
