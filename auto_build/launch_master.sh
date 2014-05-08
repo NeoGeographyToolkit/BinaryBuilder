@@ -109,10 +109,13 @@ for buildMachine in $buildMachines; do
 
     if [ "$resumeRun" -ne 0 ]; then
         statusLine=$(cat $statusFile 2>/dev/null)
-        tarBall=$( echo $statusLine | awk '{print $1}' )
+        tarBall=$(  echo $statusLine | awk '{print $1}' )
         progress=$( echo $statusLine | awk '{print $2}' )
-        # Don't build if earlier the build finished successfully
-        if [ "$progress" != "build_failed" ] && [ "$progress" != "" ]; then
+        status=$(   echo $statusLine | awk '{print $3}' )
+        # If we resume, rebuild only if the previous build failed
+        # or previous testing failed.
+        if [ "$progress" != "build_failed" ] && [ "$progress" != "" ] && \
+            [ "$status" != "Fail" ]; then
             continue
         fi
     fi
