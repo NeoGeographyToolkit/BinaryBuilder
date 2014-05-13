@@ -62,3 +62,4 @@ if [ "$?" -ne 0 ]; then echo "Packing back failed"; exit 1; fi
 rm -rf $in $out
 
 echo asp_tarballs/$out_z
+
