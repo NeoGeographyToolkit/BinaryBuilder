@@ -664,7 +664,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
 
     # Enable
     enable_features = 'debug optimize rpath as_needed no_undefined'.split()
-    enable_pkgs = ('jpeg png gdal proj4 z ilmbase openexr boost flapack ' + 
+    enable_pkgs = ('jpeg png geotiff gdal proj4 z ilmbase openexr boost flapack ' + 
                   'protobuf flann qt arbitrary_qt').split()
     enable_modules  = ('camera mosaic interestpoint cartography hdr stereo ' +
                        'geometry tools bundleadjustment gui').split()
@@ -744,8 +744,8 @@ class Apps:
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl    \
                  suitesparse amd colamd cholmod flann spice qwt gsl \
-                 geos xercesc protobuf tiff z ilmbase openexr jpeg  \
-                 laszip liblas geoid isis superlu gdal yaml libnabo \
+                 geos xercesc protobuf z ilmbase openexr jpeg  \
+                 laszip liblas geoid isis superlu geotiff gdal yaml libnabo \
                  eigen libpointmatcher proj4'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \

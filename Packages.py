@@ -163,6 +163,21 @@ class openjpeg2(CMakePackage):
     def configure(self):
         super(openjpeg2, self).configure(other=['-DBUILD_SHARED_LIBS=ON'])
 
+class tiff(Package):
+    src     = 'http://download.osgeo.org/libtiff/tiff-4.0.3.tar.gz'
+    chksum  = '652e97b78f1444237a82cbcfe014310e776eb6f0'
+
+    def configure(self):
+        super(tiff, self).configure(
+            with_ = ['jpeg', 'png', 'zlib'],
+            without = ['x'],
+            enable=('shared',),
+            disable = ['static', 'lzma', 'cxx', 'logluv'])
+
+class libgeotiff(CMakePackage):
+    src='http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.0.tar.gz'
+    chksum='4c6f405869826bb7d9f35f1d69167e3b44a57ef0'
+    
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/1.10.1/gdal-1.10.1.tar.gz'
     chksum  = 'b4df76e2c0854625d2bedce70cc1eaf4205594ae'
@@ -173,9 +188,11 @@ class gdal(Package):
         # Parts of GDAL will attempt to load libproj manual (something
         # we can't see or correct in the elf tables). This sed should
         # correct that problem.
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -lproj' % self.env
+        #self.env['LDFLAGS'] += ' -ljpeg '
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
-        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'], 'jpeg', 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
+        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'], 'jpeg=' + self.env['INSTALL_DIR'], 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
         wo = \
             '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
@@ -252,16 +269,6 @@ class curl(Package):
         wo = 'ssl libidn'.split()
         super(curl,self).configure(
             with_=w, without=wo, disable=['static','ldap','ldaps'])
-
-class libgeotiff(CMakePackage):
-    src='http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.0.tar.gz'
-    chksum='4c6f405869826bb7d9f35f1d69167e3b44a57ef0'
-    
-    @stage
-    def configure(self):
-        super(libgeotiff, self).configure(other=[
-            '-DWITH_JPEG=ON',
-            '-DJPEG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')])
 
 class liblas(CMakePackage):
     src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
@@ -710,17 +717,6 @@ class zlib(Package):
     def install(self):
         super(zlib, self).install()
         self.helper(*['rm', P.join(self.env['INSTALL_DIR'], 'lib', 'libz.a')])
-
-class tiff(Package):
-    src     = 'http://download.osgeo.org/libtiff/tiff-4.0.3.tar.gz'
-    chksum  = '652e97b78f1444237a82cbcfe014310e776eb6f0'
-
-    def configure(self):
-        super(tiff, self).configure(
-            with_ = ['jpeg', 'png', 'zlib'],
-            without = ['x'],
-            enable=('shared',),
-            disable = ['static', 'lzma', 'cxx', 'logluv'])
 
 class jpeg(Package):
     src     = 'http://www.ijg.org/files/jpegsrc.v8d.tar.gz'
