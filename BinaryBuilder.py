@@ -703,8 +703,8 @@ def write_vw_config(prefix, installdir, arch, config_file):
                   file=config)
             print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(), includedir),
                   file=config)
-            if pkg == 'gdal' and arch.os == 'linux':
-                print('PKG_%s_LDFLAGS="-L%s -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
+            if pkg == 'gdal':
+                print('PKG_%s_LDFLAGS="-L%s -lgeotiff -lproj -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
             else:
                 print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), libdir), file=config)
 
@@ -733,11 +733,11 @@ class Apps:
     enable_modules  = 'core spiceio isisio sessions'
 
     disable_apps = \
-                 'bundleadjust demprofile isisadjustcameraerr \
+                 'demprofile isisadjustcameraerr \
                  isisadjustcnetclip plateorthoproject results \
                  rmax2cahvor rmaxadjust stereogui'
     enable_apps = \
-                'bundlevis dem_geoid disparitydebug geodiff hsvmerge   \
+                'bundleadjust bundlevis dem_geoid disparitydebug geodiff hsvmerge   \
                 isisadjust mapproject mer2camera orbitviz orthoproject \
                 point2dem point2las point2mesh pc_align stereo rpc_gen \
                 tif_mosaic wv_correct lronacjitreg'
@@ -815,7 +815,7 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
         for pkg in install_pkgs:
 
             if pkg == 'gdal':
-                print('PKG_%s_LDFLAGS="-ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper()), file=config)
+                print('PKG_%s_LDFLAGS="-L%s -lgeotiff -lproj -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
 
             elif pkg == 'geoid':
                 cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids-' \

@@ -175,7 +175,7 @@ class gdal(Package):
         # correct that problem.
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
-        w = ['threads', 'libtiff', 'geotiff=internal', 'jpeg', 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
+        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'], 'jpeg', 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
         wo = \
             '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
@@ -231,6 +231,12 @@ class openexr(Package):
 class proj(Package):
     src     = 'http://download.osgeo.org/proj/proj-4.8.0.tar.gz'
     chksum  = '5c8d6769a791c390c873fef92134bf20bb20e82a'
+    def install(self):
+        super(proj, self).install()
+        # Copy extra files which are needed by libgeotiff to compile.
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src/*.h')) + \
+              [P.join(self.env['INSTALL_DIR'], 'include')]
+        self.helper(*cmd)
 
     @stage
     def configure(self):
@@ -247,9 +253,15 @@ class curl(Package):
         super(curl,self).configure(
             with_=w, without=wo, disable=['static','ldap','ldaps'])
 
-class laszip(CMakePackage):
-    src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
-    chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
+class libgeotiff(CMakePackage):
+    src='http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.0.tar.gz'
+    chksum='4c6f405869826bb7d9f35f1d69167e3b44a57ef0'
+    
+    @stage
+    def configure(self):
+        super(libgeotiff, self).configure(other=[
+            '-DWITH_JPEG=ON',
+            '-DJPEG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')])
 
 class liblas(CMakePackage):
     src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
@@ -266,8 +278,13 @@ class liblas(CMakePackage):
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DWITH_LASZIP=true',
-            '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')])
-
+            '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
+            '-DWITH_GDAL=true',
+            '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
+            '-DWITH_GEOTIFF=true',
+            '-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')
+            ])
+        
     @stage
     def install(self):
         super(liblas, self).install()
@@ -280,6 +297,10 @@ class liblas(CMakePackage):
             cmd = ['cp', '-vf', P.join( self.env['INSTALL_DIR'], 'bin',
                                         prog ), libexec]
             self.helper(*cmd)
+
+class laszip(CMakePackage):
+    src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
+    chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
 
 class geoid(CMakePackage):
 

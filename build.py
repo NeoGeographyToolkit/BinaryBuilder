@@ -313,11 +313,11 @@ if __name__ == '__main__':
 
     build = []
     build0 = [parallel, gsl, geos, zlib, curl, xercesc, cspice, protobuf, png,
-              jpeg, tiff, superlu, gmm, proj, openjpeg2, gdal, ilmbase, openexr,
-              boost, osg3, flann, qt, qwt, suitesparse, tnt, jama, laszip,
-              liblas, geoid, isis, yaml, eigen, ceres, libnabo,
+              jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
+              ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
+              jama, laszip, liblas, geoid, isis, yaml, eigen, ceres, libnabo,
               libpointmatcher]
-
+    
     if len(args) == 0 or opt.dev:
         if arch.os == 'linux':
             build.extend([m4, libtool, autoconf, automake])
