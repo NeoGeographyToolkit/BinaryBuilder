@@ -8,6 +8,7 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config
+from BinaryDist import fix_install_paths
 
 def strip_flag(flag, key, env):
     ret = []
@@ -177,7 +178,10 @@ class tiff(Package):
 class libgeotiff(CMakePackage):
     src='http://download.osgeo.org/geotiff/libgeotiff/libgeotiff-1.4.0.tar.gz'
     chksum='4c6f405869826bb7d9f35f1d69167e3b44a57ef0'
-    
+    def configure(self):
+        super(libgeotiff, self).configure( other=['-DBUILD_SHARED_LIBS=ON',
+                                                  '-DBUILD_STATIC_LIBS=OFF'] )
+        
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/1.10.1/gdal-1.10.1.tar.gz'
     chksum  = 'b4df76e2c0854625d2bedce70cc1eaf4205594ae'
@@ -189,7 +193,6 @@ class gdal(Package):
         # we can't see or correct in the elf tables). This sed should
         # correct that problem.
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -lproj' % self.env
-        #self.env['LDFLAGS'] += ' -ljpeg '
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
         w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'], 'jpeg=' + self.env['INSTALL_DIR'], 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
@@ -486,6 +489,7 @@ class visionworkbench(GITPackage):
         prefix       = installdir
         config_file  = P.join(self.workdir, 'config.options')
         write_vw_config(prefix, installdir, arch, config_file)
+        fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
         super(visionworkbench, self).configure()
 
     @stage
