@@ -883,6 +883,21 @@ class eigen(CMakePackage):
             '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
             ])
 
+class glog(Package):
+    src     = 'https://google-glog.googlecode.com/files/glog-0.3.3.tar.gz'
+    chksum  = 'ed40c26ecffc5ad47c618684415799ebaaa30d65'
+    def configure(self):
+        if self.arch.os == 'osx':
+            other_flags = ['CFLAGS=-m64', 'CXXFLAGS=-m64',]
+        else:
+            other_flags = []
+            
+        super(glog, self).configure(
+            enable=['shared',],
+            disable = ['static'],
+            other = other_flags
+            )
+        
 class ceres(CMakePackage):
     src = 'https://ceres-solver.googlecode.com/files/ceres-solver-1.8.0.tar.gz'
     chksum = '8a67268d995b8351bd5ee5acf1eebff910028e7e'
@@ -894,7 +909,7 @@ class ceres(CMakePackage):
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=ON',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=OFF',
             '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
             ])
 
