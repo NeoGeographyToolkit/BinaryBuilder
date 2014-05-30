@@ -815,10 +815,12 @@ class suitesparse(Package):
 
     @stage
     def install(self):
-        d = P.join(self.env['INSTALL_DIR'],'include')
+        inc = P.join(self.env['INSTALL_DIR'],'include')
+        lib = P.join(self.env['INSTALL_DIR'],'lib')
         self.helper('make','install',
-                    'INSTALL_LIB='+P.join(self.env['INSTALL_DIR'],'lib'),
-                    'INSTALL_INCLUDE='+d)
+                    'INSTALL_INCLUDE=' + inc,
+                    'INSTALL_LIB=' + lib
+                    )
 
 class osg3(CMakePackage):
     src = 'http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
@@ -910,6 +912,7 @@ class ceres(CMakePackage):
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=OFF',
+            '-DSUITESPARSE=ON', '-DLAPACK=ON',
             '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
             ])
 

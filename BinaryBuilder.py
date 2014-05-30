@@ -743,7 +743,7 @@ class Apps:
                 tif_mosaic wv_correct lronacjitreg'
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl    \
-                 suitesparse amd colamd cholmod flann spice qwt gsl \
+                 suitesparse amd colamd cholmod glog ceres flann spice qwt gsl \
                  geos xercesc protobuf z ilmbase openexr jpeg  \
                  laszip liblas geoid isis superlu geotiff gdal yaml libnabo \
                  eigen libpointmatcher proj4'
