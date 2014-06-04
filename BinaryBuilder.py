@@ -330,6 +330,15 @@ class Package(object):
 
         self._apply_patches()
 
+        # Prepend the work dir to the include dirs, to ensure the newest
+        # version of any headers is used. This is a bugfix.
+        self.env['CPPFLAGS'] = '-I' + self.workdir + '/include ' \
+                               + self.env['CPPFLAGS']
+        self.env['CXXFLAGS'] = '-I' + self.workdir + '/include ' \
+                               + self.env['CXXFLAGS']
+        self.env['CFLAGS'] = '-I' + self.workdir + '/include ' \
+                               + self.env['CFLAGS']
+
     @stage
     def configure(self, other=(), with_=(), without=(), enable=(), disable=(), configure='./configure'):
         '''After configure, the source code should be ready to build.'''
