@@ -649,8 +649,8 @@ class xercesc(Package):
                                       disable = ['static', 'msgloader-iconv', 'msgloader-icu', 'network'])
 
 class qt(Package):
-    src     = 'http://download.qt-project.org/official_releases/qt/4.8/4.8.5/qt-everywhere-opensource-src-4.8.5.tar.gz'
-    chksum  = '745f9ebf091696c0d5403ce691dc28c039d77b9e'
+    src     = 'http://download.qt-project.org/official_releases/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz'
+    chksum  = 'ddf9c20ca8309a116e0466c42984238009525da6' #SHA-1 Hash
     patches = 'patches/qt'
     patch_level = '-p0'
 
