@@ -373,13 +373,17 @@ class isis(Package):
             os.makedirs(P.join(output_dir, 'isis_original'))
         self.copytree(self.isis_localcopy + '/', P.join(output_dir, 'isis_original'),
                       ['--link-dest=%s' % self.isis_localcopy])
-        os.mkdir( P.join(output_dir, 'AutotoolsForISIS-git') )
-        self.helper('git', 'clone', self.isisautotools_localcopy,
-                    P.join(output_dir, 'AutotoolsForISIS-git'))
+        autotools_dir = P.join(output_dir, 'AutotoolsForISIS-git')
+        os.mkdir(autotools_dir )
+        self.helper('git', 'clone', self.isisautotools_localcopy, autotools_dir)
+
+        # Delete patches that apply to applications we are not building (4 and 5)
+        os.remove(os.path.join(autotools_dir, 'patches/00004-fix_int.patch'))
+        os.remove(os.path.join(autotools_dir, 'patches/00005-fix_variable_length_array.patch'))
 
         # Now we actually run commands that patch ISIS with a build system
         self.helper(sys.executable,"AutotoolsForISIS-git/reformat_isis.py","--destination",
-                    self.pkgname,"--isisroot","isis_original")
+                    self.pkgname,"--isisroot","isis_original","--dont-build-apps")
         self.workdir = P.join(output_dir,self.pkgname)
 
         self._apply_patches()
