@@ -39,7 +39,7 @@ if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 mailto="oleg.alexandrov@nasa.gov"
 if [ "$localMode" -eq 0 ]; then
     #mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
-    mailto="$mailto SMcMichael@sgt-inc.com"
+    mailto=""
 fi
 
 cd $HOME
