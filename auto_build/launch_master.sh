@@ -26,7 +26,7 @@ releaseMachine="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
-virtualMachines="centos-32-5 centos-64-5 ubuntu-64-13"
+virtualMachines="centos-32-5 centos-64-5"
 buildMachines="amos $virtualMachines"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.

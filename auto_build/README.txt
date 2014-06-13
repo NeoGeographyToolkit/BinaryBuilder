@@ -7,15 +7,14 @@ https://byss.arc.nasa.gov/stereopipeline/daily_build
 
 Machines:
 lunokhod1:    Master machine on which the framework starts
-ubuntu-64-13: Newer Linux, 64 bit 
-centos-64-5:  Older Linux, 64 bit
-centos-32-5:  Older Linux, 32 bit
+centos-64-5:  Linux, 64 bit
+centos-32-5:  Linux, 32 bit
 amos:         Mac OS X 10.6
 andey:        Mac OS X 10.8
 byss:         The machine storing the obtained builds
 
-The hosts ubuntu-64-13, centos-64-5, and centos-32-5 are virtual
-machines on lunokhod1.
+The hosts centos-64-5 and centos-32-5 are virtual machines on
+lunokhod1.
 
 ssh must be configured so that ssh connections from each machine to
 lunokhod1 and back, and to itself (both using its name and using
@@ -26,10 +25,10 @@ The main script is auto_build/launch_master.sh. It gets started on
 lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on the following machines: ubuntu-64-13, centos-64-5,
-centos-32-5, and amos. Each build is being tested on the same
-machine. In addition, the centos-64-5 build is also tested on
-lunokhod1, while the amos build is also tested on andey.
+Builds are done on the following machines: centos-64-5, centos-32-5,
+and amos. Each build is being tested on the same machine. In addition,
+the centos-64-5 build is also tested on lunokhod1, while the amos
+build is also tested on andey.
 
 The test process on lunokhod1 is the strictest, it will fail if any
 obtained results differ from the reference. The tests on other
@@ -39,7 +38,7 @@ architecture being different, etc.), and those tests are allowed to
 deviate somewhat from the reference results for lunokhod1.
 
 The obtained builds include the latest pdf documentation, generated on
-ubuntu-64-13 (as other machines lack LaTeX). The builds are renamed
+centos-64-5 (as other machines lack LaTeX). The builds are renamed
 according to the release convention, and copied to byss at
 /byss/docroot/stereopipeline/daily_build (the internal location of the
 public link from above).

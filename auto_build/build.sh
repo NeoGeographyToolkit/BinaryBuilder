@@ -64,7 +64,7 @@ if [ "$?" -ne 0 ]; then
 fi
 
 buildMachine=$(machine_name)
-if [ "$buildMachine" = "ubuntu-64-13" ]; then
+if [ "$buildMachine" = "centos-64-5" ]; then
     # Build the documentation on the machine which has LaTeX
     echo "Will build the documentation"
     rm -fv dist-add/asp_book.pdf
