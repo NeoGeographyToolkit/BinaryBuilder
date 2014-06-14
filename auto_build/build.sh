@@ -42,13 +42,13 @@ ulimit -v unlimited 2>/dev/null
 ulimit -u unlimited 2>/dev/null
 
 # These are needed for centos-32-5 and 64-5
-if [ -f /usr/bin/gcc44 ] && [ -f /usr/bin/g++44 ]; then
+if [ -f /usr/bin/gcc44 ] && [ -f /usr/bin/g++44 ] && \
+    [ -f /usr/bin/gfortran44 ]; then
     rm -f gcc; ln -s /usr/bin/gcc44 gcc
     rm -f g++; ln -s /usr/bin/g++44 g++
+    rm -f gfortran; ln -s /usr/bin/gfortran44 gfortran
     export PATH=$(pwd):$PATH
 fi
-
-which gcc; which git; gcc --version; python --version
 
 rm -fv ./BaseSystem*bz2
 rm -fv ./StereoPipeline*bz2

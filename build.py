@@ -22,7 +22,7 @@ from glob import glob
 from Packages import *
 
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
-     get_platform, findfile, run, get_gcc_version, logger, warn, \
+     get_platform, findfile, run, get_prog_version, logger, warn, \
      binary_builder_prefix
 from BinaryDist import fix_install_paths
 
@@ -189,6 +189,8 @@ if __name__ == '__main__':
     os.environ["PATH"] = P.join(opt.build_root, 'install/bin') + \
                          os.pathsep + os.environ["PATH"]
                        
+    MIN_CC_VERSION = 4.4
+    
     # -Wl,-z,now ?
     build_env = Environment(
         CC       = opt.cc,
@@ -222,6 +224,12 @@ if __name__ == '__main__':
         version_string = keywords[keywords.index('version')+1]
         if version.StrictVersion(version_string) < "3.1":
             die('Your Clang compiler is older than 3.1. It is our experience that older versions of clang could not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
+
+    if arch.os == 'linux':
+        ver1 = get_prog_version(build_env['CC'])
+        ver2 = get_prog_version(build_env['CXX'])
+        if ver1 < MIN_CC_VERSION or ver2 < MIN_CC_VERSION:
+            die('Expecting gcc and g++ version >= ' + str(MIN_CC_VERSION))
 
     if arch.os == 'linux':
         build_env.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
@@ -268,6 +276,7 @@ if __name__ == '__main__':
     if not P.exists(compiler_dir):
         os.makedirs(compiler_dir)
 
+    # Deal with the Fortran compiler
     try:
         findfile(build_env['F77'], build_env['PATH'])
     except Exception:
@@ -282,6 +291,9 @@ if __name__ == '__main__':
                 break
             except Exception:
                 pass
+    ver = get_prog_version(build_env['F77'])
+    if ver < MIN_CC_VERSION:
+        die('Expecting ' + build_env['F77'] + ' version >= ' + str(MIN_CC_VERSION))
 
     print("%s" % build_env['PATH'])
 

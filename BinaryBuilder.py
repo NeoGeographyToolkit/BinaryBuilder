@@ -11,7 +11,7 @@ import subprocess
 import sys
 import urllib2
 import logging
-import copy
+import copy, re
 
 from collections import namedtuple
 from functools import wraps, partial
@@ -60,13 +60,19 @@ def get_platform(pkg=None):
         else:
             raise PackageError(pkg, message)
 
-def get_gcc_version():
-    p = subprocess.Popen(["gcc","--version"], stdout=subprocess.PIPE)
-    out, err = p.communicate()
+def get_prog_version(prog):
+    try:
+        p = subprocess.Popen([prog,"--version"], stdout=subprocess.PIPE)
+        out, err = p.communicate()
+    except:
+        raise Exception("Could not find: " + prog)
     if p.returncode != 0:
-        raise Exception("Checking GCC version caused errors")
-    out = out.split('\n')[0]
-    return float(out[out.find(')')+2:out.rfind('.')])
+        raise Exception("Checking " + prog + " version caused errors")
+
+    m = re.match("^.*?(\d+\.\d+)", out)
+    if not m:
+        raise Exception("Could not find " + prog + " version")
+    return float(m.group(1))
 
 class PackageError(Exception):
     def __init__(self, pkg, message):
