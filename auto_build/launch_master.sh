@@ -69,7 +69,7 @@ if [ "$localMode" -eq 0 ]; then
         exit 1
     fi
     cd $dir
-    files=$(ls -ad *  | grep -v \\.git)
+    files=$(ls -ad * .*)
     cp -rf $files ..
     cd ..
     rm -rf $dir
