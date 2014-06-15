@@ -377,8 +377,7 @@ class isis(Package):
         os.mkdir(autotools_dir )
         self.helper('git', 'clone', self.isisautotools_localcopy, autotools_dir)
 
-        # Delete patches that apply to applications we are not building (4 and 5)
-        os.remove(os.path.join(autotools_dir, 'patches/00004-fix_int.patch'))
+        # Delete the patch that applies to applications we are not building
         os.remove(os.path.join(autotools_dir, 'patches/00005-fix_variable_length_array.patch'))
 
         # Now we actually run commands that patch ISIS with a build system
