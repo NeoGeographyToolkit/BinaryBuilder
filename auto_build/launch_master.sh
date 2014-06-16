@@ -69,7 +69,7 @@ if [ "$localMode" -eq 0 ]; then
         exit 1
     fi
     cd $dir
-    files=$(ls -ad * .*)
+    files=$(ls -ad *)
     cp -rf $files ..
     cd ..
     rm -rf $dir
@@ -98,7 +98,10 @@ fi
     
 # Start the builds. The build script will copy back the built tarballs
 # and status files.
-for buildMachine in $buildMachines; do
+# The reason we build on $masterMachine here is to make the docs,
+# which fails on other machines. When it comes to testing though,
+# we'll test on $masterMachine the build from centos-64-5.
+for buildMachine in $buildMachines $masterMachine; do
 
     statusFile=$(status_file $buildMachine)
     outputFile=$(output_file $buildDir $buildMachine)
