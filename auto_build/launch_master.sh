@@ -37,10 +37,9 @@ localMode=0 # Run local copy of the code. Must not happen in production.
 if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
 mailto="oleg.alexandrov@nasa.gov"
-if [ "$localMode" -eq 0 ]; then
+#if [ "$localMode" -eq 0 ]; then
     #mailto="$mailto z.m.moratto@nasa.gov SMcMichael@sgt-inc.com"
-    mailto=""
-fi
+#fi
 
 cd $HOME
 mkdir -p $buildDir
