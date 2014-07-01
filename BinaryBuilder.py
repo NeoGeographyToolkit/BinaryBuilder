@@ -749,12 +749,11 @@ class Apps:
     enable_modules  = 'core spiceio isisio sessions'
 
     disable_apps = \
-                 'demprofile isisadjustcameraerr \
-                 isisadjustcnetclip plateorthoproject results \
+                 'demprofile plateorthoproject results \
                  rmax2cahvor rmaxadjust stereogui'
     enable_apps = \
                 'bundleadjust bundlevis dem_geoid disparitydebug geodiff hsvmerge   \
-                isisadjust mapproject mer2camera orbitviz orthoproject \
+                mapproject mer2camera orbitviz orthoproject \
                 point2dem point2las point2mesh pc_align stereo rpc_gen \
                 tif_mosaic wv_correct lronacjitreg'
     install_pkgs = \
