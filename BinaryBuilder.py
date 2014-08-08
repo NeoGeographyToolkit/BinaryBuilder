@@ -833,8 +833,8 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
                 print('PKG_%s_LDFLAGS="-L%s -lgeotiff -lproj -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
 
             elif pkg == 'geoid':
-                cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids-' \
-                             + geoid.version])
+                print('PKG_%s_LDFLAGS="-L%s -legm2008"' % (pkg.upper(), libdir), file=config)
+                cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids'])
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)

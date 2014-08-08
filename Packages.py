@@ -312,25 +312,29 @@ class laszip(CMakePackage):
     src     = 'http://download.osgeo.org/laszip/laszip-2.1.0.tar.gz'
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
 
-class geoid(CMakePackage):
+class geoid(Package):
 
-    # Warning: Must keep this version synchronized with dem_geoid.cc!
-    version = "1.1"; # Used in deploy_base.py
-
-    src     = 'https://byss.arc.nasa.gov/asp_packages/geoids-' + version + '.tar.gz'
-    chksum  = '49a21acc5f821a7fad916bce68d1f12f58007927'
+    src     = 'https://byss.arc.nasa.gov/asp_packages/geoids.tar.gz'
+    chksum  = 'cc8b21957cdbb4f93e267c4d60ee473c37b22291'
 
     @stage
     def configure(self): pass
 
-    @stage
-    def compile(self): pass
-
-    @stage
+    def compile(self):
+        self.helper(self.env['F77'], '-c','-fPIC','interp_2p5min.f')
+        if self.arch.os == 'osx':
+            flag = '-dynamiclib'
+        else:
+            flag = '-shared'
+        self.helper(self.env['F77'], flag, '-o', 'libegm2008.so', 'interp_2p5min.o')
+            
     def install(self):
-        # Copy the geoids
-        d = P.join('%(INSTALL_DIR)s' % self.env, 'share')
-        cmd = ['cp', '-rvf'] + [self.workdir] + [d]
+        cmd = ['cp'] + glob(P.join(self.workdir, 'libegm2008.*')) \
+              + [P.join(self.env['INSTALL_DIR'], 'lib')]
+        self.helper(*cmd)
+        geoidDir = P.join(self.env['INSTALL_DIR'], 'share/geoids')
+        self.helper('mkdir', '-p', geoidDir)
+        cmd = ['cp'] + glob(P.join(self.workdir, '*tif')) + [geoidDir]
         self.helper(*cmd)
 
 # Due to legal reasons ... we are not going to download a modified
