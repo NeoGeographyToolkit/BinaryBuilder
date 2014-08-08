@@ -314,8 +314,8 @@ class laszip(CMakePackage):
 
 class geoid(Package):
 
-    src     = 'https://byss.arc.nasa.gov/asp_packages/geoids.tar.gz'
-    chksum  = 'cc8b21957cdbb4f93e267c4d60ee473c37b22291'
+    src     = 'https://byss.arc.nasa.gov/asp_packages/geoids.tgz'
+    chksum  = 'e6e3961d6a84e10b4c49039b9a84098d57bd2206'
 
     @stage
     def configure(self): pass
@@ -334,7 +334,8 @@ class geoid(Package):
         self.helper(*cmd)
         geoidDir = P.join(self.env['INSTALL_DIR'], 'share/geoids')
         self.helper('mkdir', '-p', geoidDir)
-        cmd = ['cp'] + glob(P.join(self.workdir, '*tif')) + [geoidDir]
+        cmd = ['cp'] + glob(P.join(self.workdir, '*tif')) \
+        + glob(P.join(self.workdir, '*jp2')) + [geoidDir] 
         self.helper(*cmd)
 
 # Due to legal reasons ... we are not going to download a modified
