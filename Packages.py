@@ -750,19 +750,19 @@ class cspice(Package):
     PLATFORM = dict(
         linux64 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_64bit/packages/cspice.tar.Z',
-            chksum = '29e3bdea10fd4005a4db8934b8d953c116a2cec7', # N0064
+            chksum = '335a16141e3d4f5d2e596838285fc9f918c2f328', # N0065
             ),
         linux32 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_32bit/packages/cspice.tar.Z',
-            chksum = 'df8ad284db3efef912a0a3090acedd2c4561a25f', # N0064
+            chksum = 'a875f47ac9811bdc22359ff77e1511a0376bd1bd', # N0065
             ),
         osx32   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/cspice.tar.Z',
-            chksum = '3a1174d0b5ca183168115d8259901e923b97eec0', # N0064
+            chksum = '45efcac7fb260401fcd2124dfe9d226d9f74211d', # N0065
             ),
         osx64   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit//C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
-            chksum = 'e5546a72a2d0c7e337850a10d208014efb57d78d', # N0064
+            chksum = '1500a926f01a0bb04744ebe8af0149c7ae098a8f', # N0065
             ),
         )
 
@@ -810,7 +810,7 @@ class protobuf(Package):
         super(protobuf, self).configure(disable=('static'))
 
 class suitesparse(Package):
-    src = 'http://www.cise.ufl.edu/research/sparse/SuiteSparse/current/SuiteSparse.tar.gz'
+    src = 'http://www.cise.ufl.edu/research/sparse/SuiteSparse/SuiteSparse-4.2.1.tar.gz'
     chksum = '2fec3bf93314bd14cbb7470c0a2c294988096ed6'
 
     # Note: Currently this is archive only. They don't have the option
