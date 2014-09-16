@@ -752,8 +752,8 @@ class Apps:
                  'demprofile plateorthoproject results \
                  rmax2cahvor rmaxadjust stereogui'
     enable_apps = \
-                'bundleadjust bundlevis dem_geoid disparitydebug geodiff hsvmerge   \
-                mapproject mer2camera orbitviz orthoproject \
+                'bundle_adjust bundlevis dem_geoid dem_mosaic disparitydebug \
+                geodiff hsvmerge mapproject mer2camera orbitviz orthoproject \
                 point2dem point2las point2mesh pc_align stereo rpc_gen \
                 tif_mosaic wv_correct lronacjitreg'
     install_pkgs = \
