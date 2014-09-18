@@ -274,8 +274,8 @@ class curl(Package):
             with_=w, without=wo, disable=['static','ldap','ldaps'])
 
 class liblas(CMakePackage):
-    src     = 'http://download.osgeo.org/liblas/libLAS-1.7.0.tar.gz'
-    chksum  = 'f31070efdf7bb7d6675c23c6c6c84584e3a10869'
+    src     = 'http://download.osgeo.org/liblas/libLAS-1.8.0.tar.bz2'
+    chksum  = '73a29a97dfb8373d51c5e36bdf12a825c44fa398'
 
     @stage
     def configure(self):
