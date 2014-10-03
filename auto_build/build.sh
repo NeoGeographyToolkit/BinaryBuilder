@@ -53,6 +53,18 @@ fi
 rm -fv ./BaseSystem*bz2
 rm -fv ./StereoPipeline*bz2
 
+# Set the ISIS env, needed for 'make check' in ASP
+isis=$(isis_file)
+if [ -f "$isis" ]; then
+    . "$isis"
+    env
+else
+    echo "Error: Cannot find $isis"
+    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
+        2>/dev/null
+    exit 1
+fi
+
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
 echo "Building changed packages"

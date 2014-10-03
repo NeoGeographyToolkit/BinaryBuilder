@@ -67,7 +67,8 @@ cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 
 # Set up the config file
 machine=$(machine_name)
-configFile="release_"$machine".conf"
+configFile=$(release_conf_file $machine)
+
 if [ ! -e $configFile ]; then
     echo "Error: File $configFile does not exist"
     ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\

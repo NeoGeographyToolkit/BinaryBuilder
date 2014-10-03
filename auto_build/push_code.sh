@@ -17,7 +17,7 @@ if [ ! -f "$filesList" ]; then
 fi
 
 # The list of files to push
-files=$(cat $filesList)
+files=$(cat $filesList | tr '\n' ' ')
 
 ssh $machine "mkdir -p $buildDir" 2>/dev/null
 

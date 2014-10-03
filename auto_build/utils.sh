@@ -24,6 +24,14 @@ function version_file (){
     echo "version_"$1".txt"
 }
 
+function release_conf_file (){
+    echo "release_"$1".conf"
+}
+
+function isis_file (){
+    echo "auto_build/isis.sh"
+}
+
 # To do: Make this consistent with the above, so
 # remove the buildDir from here
 function output_file () {

@@ -105,8 +105,17 @@ for buildMachine in $buildMachines $masterMachine; do
     statusFile=$(status_file $buildMachine)
     outputFile=$(output_file $buildDir $buildMachine)
 
+    # Set the ISIS env, needed for 'make check' in ASP.
+    # We will push this to the build machine.
+    configFile=$(release_conf_file $buildMachine)
+    isis=$(isis_file)
+    if [ ! -f "$HOME/$testDir/$configFile" ]; then
+        echo Missing $HOME/$testDir/$configFile; exit 1;
+    fi
+    grep -i isis $HOME/$testDir/$configFile | grep export > $(isis_file)
+    
     # Make sure all scripts are up-to-date on $buildMachine
-    ./auto_build/push_code.sh $buildMachine $buildDir $filesList
+    ./auto_build/push_code.sh $buildMachine $buildDir $filesList 
     if [ "$?" -ne 0 ]; then exit 1; fi
 
     if [ "$resumeRun" -ne 0 ]; then
