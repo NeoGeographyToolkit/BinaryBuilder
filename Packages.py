@@ -354,7 +354,7 @@ class isis(Package):
 
         # Fetch the ISIS version. We will rebuild it each time
         # the version changes.
-        cmd = ['rsync', self.isis_src +'version']
+        cmd = ['rsync', self.isis_src +'version', '.']
         self.helper(*cmd)
         f = open('version','r')
         self.chksum = f.readline().strip()
