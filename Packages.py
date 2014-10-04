@@ -357,8 +357,8 @@ class isis(Package):
         cmd = ['rsync', self.isis_src +'version']
         self.helper(*cmd)
         f = open('version','r')
-        chksum = f.readline().strip()
-        if chksum == "":
+        self.chksum = f.readline().strip()
+        if self.chksum == "":
             raise PackageError(self, 'Could not find the ISIS version')
         
     @stage
