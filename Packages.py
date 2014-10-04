@@ -343,7 +343,6 @@ class geoid(Package):
 # download ISIS and then download the repo for editing ISIS. We apply
 # the patch locally and then build away.
 class isis(Package):
-    chksum = '3.4.7' # must change here when new ISIS is out
     def __init__(self, env):
         super(isis, self).__init__(env)
         self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
@@ -353,6 +352,15 @@ class isis(Package):
         self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX10.8/isis/"
         self.isisautotools_src = "https://github.com/NeoGeographyToolkit/AutotoolsForISIS.git"
 
+        # Fetch the ISIS version. We will rebuild it each time
+        # the version changes.
+        cmd = ['rsync', self.isis_src +'version']
+        self.helper(*cmd)
+        f = open('version','r')
+        chksum = f.readline().strip()
+        if chksum == "":
+            raise PackageError(self, 'Could not find the ISIS version')
+        
     @stage
     def fetch(self, skip=False):
         if not P.exists(self.isis_localcopy) or \
