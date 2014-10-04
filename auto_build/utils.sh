@@ -32,6 +32,10 @@ function isis_file (){
     echo "auto_build/isis.sh"
 }
 
+function build_opts {
+    echo "--download-dir $(pwd)/tarballs --build-root $(pwd)/build_asp"
+}
+
 # To do: Make this consistent with the above, so
 # remove the buildDir from here
 function output_file () {

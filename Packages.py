@@ -974,3 +974,15 @@ class libpointmatcher(GITPackage, CMakePackage):
                 '-DMY_BOOST_DIR=' + installDir
                 ]
         super(libpointmatcher, self).configure(other=options)
+
+# We would like to fetch this very source code. This is used
+# in the nightly builds and regressions.
+class binarybuilder(GITPackage):
+    src     = 'https://github.com/NeoGeographyToolkit/BinaryBuilder.git'
+    def configure(self): pass
+
+    @stage
+    def compile(self, cwd=None): pass
+            
+    @stage
+    def install(self): pass

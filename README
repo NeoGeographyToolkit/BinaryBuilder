@@ -88,7 +88,7 @@ to rebuild one specific package (that presumably failed):
 
  ./build.py --resume gdal
 
-I strongly encourage you to read the output from ./build.py --help and
+We strongly encourage you to read the output from ./build.py --help and
 ./make-dist.py --help. There are more features not talked about here.
 
 B. Produce a Partial Build or Dev Environment
@@ -118,7 +118,25 @@ ASP. Then you can build VW. Modify the config.options for ASP so that
 it points to where VW is.
 
 ************************************************************************
-4. CREDITS
+4. ADDITIONAL BUILD OPTIONS
+
+By default, build.py stores the packages it downloads in /tmp. This
+can be over-ridden with --download-dir <download dir name>. Also by
+default, the build directory is a randomly generated string, unless
+build.py is invoked with --resume. To use a fixed name, invoke it with
+--build-root <build dir name>.
+
+The list of packages that were already built is stored in <build dir
+name>/done.txt. On each line is the package name and the hash tag for
+that package. To force a package to be rebuilt, remove its entry from
+the list. A package will be rebuilt in either case if the hash tag
+changes.
+
+To avoid building a package even if it was not built yet, invoke
+build.py with the option _<package name>, i.e., ./build.py _isis.
+
+************************************************************************
+5. CREDITS
 
 The NGT was developed within the Autonomous Systems and
 Robotics area of the Intelligent Systems Division at NASA's Ames

@@ -46,19 +46,20 @@ mkdir -p $buildDir
 cd $buildDir
 echo "Work directory: $(pwd)"
 
+. $HOME/$buildDir/auto_build/utils.sh # load utilities
+
 # Unless running in local mode for test purposes, fetch from github
-# the latest version of BinaryBuilder.
+# the latest version of BinaryBuilder, including this very script.
 filesList=auto_build/filesToCopy.txt
 if [ "$localMode" -eq 0 ]; then
 
-    # Update from github
-    dir="BinaryBuilder_newest"
+    # Update itself from github
     failure=1
     for ((i = 0; i < 600; i++)); do
         # Bugfix: Sometimes the github server is down, so do multiple attempts.
         echo "Cloning BinaryBuilder in attempt $i"
-        rm -rf $dir
-        git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git $dir
+
+        ./build.py $(build_opts) binarybuilder
         failure="$?"
         if [ "$failure" -eq 0 ]; then break; fi
         sleep 60
@@ -67,18 +68,16 @@ if [ "$localMode" -eq 0 ]; then
         echo "Failed to update from github"
         exit 1
     fi
-    cd $dir
+    currDir=$(pwd)
+    cd build_asp/build/binarybuilder/binarybuilder-git
     files=$(ls -ad *)
-    cp -rf $files ..
-    cd ..
-    rm -rf $dir
+    rsync -avz $files $currDir
+    cd $currDir
 
     # Need the list of files so that we can mirror those later to the
     # build machines
     echo $files > $filesList
 fi
-
-. $HOME/$buildDir/auto_build/utils.sh # load utilities
 
 currMachine=$(machine_name)
 if [ "$currMachine" != "$masterMachine" ]; then
