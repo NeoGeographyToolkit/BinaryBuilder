@@ -64,10 +64,6 @@ if [ "$localMode" -eq 0 ]; then
         if [ "$failure" -eq 0 ]; then break; fi
         sleep 60
     done
-    if [ "$failure" -ne 0 ] || [ ! -d "$dir" ]; then
-        echo "Failed to update from github"
-        exit 1
-    fi
     currDir=$(pwd)
     cd build_asp/build/binarybuilder/binarybuilder-git
     files=$(ls -ad *)
