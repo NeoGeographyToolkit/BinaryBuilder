@@ -485,13 +485,12 @@ class stereopipeline(GITPackage):
 
     @stage
     def compile(self, cwd=None):
-            
         super(stereopipeline, self).compile(cwd)
-        if 'ISISROOT' in os.environ and 'ISIS3DATA' in os.environ and self.arch.os == 'osx':
-            # Do 'make check' if ISIS was set up. Do it only on the Mac,
-            # as in other places we are lacking all ISIS kernels.
-            cmd = ('make', 'check')
-            self.helper(*cmd)
+        #if 'ISISROOT' in os.environ and 'ISIS3DATA' in os.environ and self.arch.os == 'osx':
+        #    # Do 'make check' if ISIS was set up. Do it only on the Mac,
+        #    # as in other places we are lacking all ISIS kernels.
+        #    cmd = ('make', 'check')
+        #    self.helper(*cmd)
 
 class visionworkbench(GITPackage):
     src     = 'https://github.com/visionworkbench/visionworkbench.git'
