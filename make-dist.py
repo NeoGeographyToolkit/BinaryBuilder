@@ -234,7 +234,18 @@ if __name__ == '__main__':
                            copy = [INSTALLDIR.lib()])
         if mgr.deplist:
             raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
-
+        
+        # We don't want to distribute with ASP any random files in
+        # 'docs' installed by any of its deps. Distribute only
+        # what we need.
+        for f in glob(P.join(INSTALLDIR.doc(),'*')):
+            base_f = os.path.basename(f)
+            if base_f not in ['AUTHORS', 'COPYING', 'INSTALL', 'LICENSE', 'NEWS',
+                              'README', 'THIRDPARTYLICENSES', 'examples']:
+                try:
+                    os.remove(f)
+                except Exception:
+                    pass
         print('Adding files in dist-add and docs')
         sys.stdout.flush()
         # To do: Don't depend on cwd
