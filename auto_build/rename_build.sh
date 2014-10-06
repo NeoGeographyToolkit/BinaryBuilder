@@ -27,10 +27,10 @@ if [ "$(echo $in_z | grep -i Darwin)" != "" ]; then
     out_z=StereoPipeline-$version-$timestamp-x86_64-OSX.tar.bz2
 fi
 if [ "$(echo $in_z | grep -i x86_64-redhat)" != "" ]; then
-    out_z=StereoPipeline-$version-$timestamp-x86_64-Linux-GLIBC-2.5.tar.bz2
+    out_z=StereoPipeline-$version-$timestamp-x86_64-Linux.tar.bz2
 fi
 if [ "$(echo $in_z | grep -i i686-redhat)" != "" ]; then
-    out_z=StereoPipeline-$version-$timestamp-i686-Linux-GLIBC-2.5.tar.bz2
+    out_z=StereoPipeline-$version-$timestamp-i686-Linux.tar.bz2
 fi
 if [ "$(echo $in_z | grep -i Ubuntu13)" != "" ]; then
     out_z=StereoPipeline-$version-$timestamp-x86_64-Linux-GLIBC-2.17.tar.bz2
