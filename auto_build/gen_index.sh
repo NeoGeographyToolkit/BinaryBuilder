@@ -17,17 +17,17 @@ echo '<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 echo "<h2>Ames Stereo Pipeline version $version, build: $timestamp</h2>" >> $index
 echo '<p>This is the latest <b>development</b> version of Stereo Pipeline, and it may not be rock solid. See at the bottom the link to the latest stable release.' >> $index
 echo '<ul>' >> $index
-tags="OSX x86_64-Linux-GLIBC-2.5 i686-Linux-GLIBC-2.5 x86_64-Linux-GLIBC-2.17"
+tags="OSX Linux"
 for tag in $tags; do
   for f in $(ls *$version*$timestamp*$tag*bz2 2>/dev/null); do
       size="$(ls -sh $f | awk '{print $1}')B"
       if [ "$(echo $f | grep -i OSX)" != "" ]; then
           echo "<li><a href=\"$f\">Mac OS X 10.6+</a> ($size)</li>" >> $index
       fi
-      if [ "$(echo $f | grep -i x86_64-Linux-GLIBC-2.5)" != "" ]; then
+      if [ "$(echo $f | grep -i x86_64-Linux)" != "" ]; then
           echo "<li><a href=\"$f\">Linux-64bit</a> ($size)</li>" >> $index
       fi
-      if [ "$(echo $f | grep -i i686-Linux-GLIBC-2.5)" != "" ]; then
+      if [ "$(echo $f | grep -i i686-Linux)" != "" ]; then
           echo "<li><a href=\"$f\">Linux-32bit</a> ($size)</li>" >> $index
       fi
       if [ "$(echo $f | grep -i x86_64-Linux-GLIBC-2.17)" != "" ]; then
