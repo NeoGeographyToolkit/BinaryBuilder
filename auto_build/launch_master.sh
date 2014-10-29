@@ -23,8 +23,7 @@ testDir=projects/StereoPipelineTest # must be relative to home dir
 
 # Machines and paths
 releaseMachine="byss"
-#releaseDir="/byss/docroot/stereopipeline/daily_build"
-releaseDir="/opt/asani/apache/data/docroot/stereopipeline/daily_build"
+releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
 virtualMachines="centos-32-5 centos-64-5"
