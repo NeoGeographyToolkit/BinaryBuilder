@@ -122,13 +122,13 @@ def read_done(done_file):
     return done
 
 def write_done(done, done_file):
-    # Write the packages already built. 
+    # Write the packages already built.
     f = open(done_file, 'w')
     for name in done:
         chksum = done[name]
         f.write(name + " " + chksum + "\n")
     f.close()
-    
+
 if __name__ == '__main__':
     parser = OptionParser()
     parser.set_defaults(mode='all')
@@ -178,7 +178,7 @@ if __name__ == '__main__':
     if not m:
         raise Exception('Build directory: %s must contain the string: "%s".'
                         % ( opt.build_root, binary_builder_prefix()) )
-        
+
     makelink(opt.build_root, 'last-run')
 
     print("Using build root directory: %s" % opt.build_root)
@@ -188,9 +188,9 @@ if __name__ == '__main__':
     if "PATH" not in os.environ: os.environ["PATH"] = ""
     os.environ["PATH"] = P.join(opt.build_root, 'install/bin') + \
                          os.pathsep + os.environ["PATH"]
-                       
+
     MIN_CC_VERSION = 4.4
-    
+
     # -Wl,-z,now ?
     build_env = Environment(
         CC       = opt.cc,
@@ -324,12 +324,12 @@ if __name__ == '__main__':
         die('Missing required executables for building. You need to install %s.' % missing_exec)
 
     build = []
-    build0 = [parallel, gsl, geos, zlib, curl, xercesc, cspice, protobuf, png,
+    build0 = [parallel, gsl, geos, zlib, curl, xercesc, dsk, cspice, protobuf, png,
               jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
               ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
               jama, laszip, liblas, geoid, isis, yaml, eigen, glog, ceres,
               libnabo, libpointmatcher]
-    
+
     if len(args) == 0 or opt.dev:
         if arch.os == 'linux':
             build.extend([m4, libtool, autoconf, automake])
@@ -372,7 +372,7 @@ if __name__ == '__main__':
             print("\n========== Building: %s ==========" % ccache.__name__)
             Package.build(ccache(build_env.copy_set_default()))
             ccache_path = findfile('ccache', build_env['PATH'])
-            
+
         new = dict(
             CC  = P.join(compiler_dir, build_env['CC']),
             CXX = P.join(compiler_dir, build_env['CXX']),

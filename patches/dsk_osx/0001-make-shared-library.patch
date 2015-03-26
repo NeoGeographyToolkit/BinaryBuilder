@@ -1,0 +1,34 @@
+diff -crB cspice/src/cspice/getenv_.c cspice_mod/src/cspice/getenv_.c
+*** cspice/src/cspice/getenv_.c	2010-06-10 11:47:59.000000000 -0700
+--- cspice_mod/src/cspice/getenv_.c	2012-06-16 16:50:14.000000000 -0700
+***************
+*** 118,123 ****
+--- 118,126 ----
+  
+  #include <stdlib.h>
+  
++ #include <crt_externs.h>
++ #define environ (*_NSGetEnviron())
++ 
+  /* 
+  Undefine min and max macros to prevent a macro redefine warning
+  from the min and max defintions in f2c.h. 
+
+diff -crB alpha_dsk_c/src/dsklib_c/mkprodct.csh alpha_dsk_c/src_new2/dsklib_c/mkprodct.csh
+*** alpha_dsk_c/src/dsklib_c/mkprodct.csh	2014-07-18 18:47:52.000000000 -0700
+--- alpha_dsk_c/src_new2/dsklib_c/mkprodct.csh	2015-03-26 15:07:51.693899174 -0700
+***************
+*** 209,214 ****
+--- 209,220 ----
+      echo "      Inserting objects in the library $LIBRARY ..."
+      ar  crv $LIBRARY.a *.o
+      ranlib  $LIBRARY.a
++     echo "      Creating dynamic library ..."
++     set SONAME = `basename $PWD`
++     set SOFLAGS = `echo $TKCOMPILEOPTIONS  | sed 's/ -c / /g'`
++     echo "$TKCOMPILER $LDFLAGS $SOFLAGS -shared -o ../../lib/libcsdsk.dylib *.o"
++     $TKCOMPILER $LDFLAGS $SOFLAGS -shared -o ../../lib/libcsdsk.dylib *.o
++     echo " "
+      \rm                *.o
+      echo " "
+  

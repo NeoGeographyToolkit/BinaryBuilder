@@ -42,4 +42,3 @@ diff -crB cspice/src/cspice/mkprodct.csh cspice_mod/src/cspice/mkprodct.csh
   endif
   
   #
-Only in cspice_mod/src/cspice: mkprodct.csh~

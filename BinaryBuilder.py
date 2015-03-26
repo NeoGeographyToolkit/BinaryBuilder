@@ -489,14 +489,14 @@ class GITPackage(Package):
                 tokens = line.split()
                 if len(tokens) > 1 and tokens[1] == 'refs/heads/master':
                     self.commit = tokens[0]
-        
+
         # For git packages we don't have a chksum as we do for
         # tarballs.  We will use instead the commit hash. This helps
         # during building in deciding if the current version of the
         # software was built already.
         if self.chksum is None:
             self.chksum = self.commit
-        
+
     def _git(self, *args):
         cmd = ['git', '--git-dir', self.localcopy]
         cmd.extend(args)
@@ -680,7 +680,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
 
     # Enable
     enable_features = 'debug optimize rpath as_needed no_undefined'.split()
-    enable_pkgs = ('jpeg png geotiff gdal proj4 z ilmbase openexr boost flapack ' + 
+    enable_pkgs = ('jpeg png geotiff gdal proj4 z ilmbase openexr boost flapack ' +
                   'protobuf flann qt arbitrary_qt').split()
     enable_modules  = ('camera mosaic interestpoint cartography hdr stereo ' +
                        'geometry tools bundleadjustment gui').split()
@@ -688,10 +688,10 @@ def write_vw_config(prefix, installdir, arch, config_file):
     # Disable
     disable_features = 'pkg_paths_default static qt-qmake'.split()
     disable_pkgs = ('tiff hdr cairomm tcmalloc x11 clapack slapack opencv ' +
-                    'cg zeromq rabbitmq_c qt_qmake apple_qmake_qt '         + 
+                    'cg zeromq rabbitmq_c qt_qmake apple_qmake_qt '         +
                     'linux_qmake_qt guess_qt').split()
     disable_modules = 'gpu plate python'.split()
-   
+
     with file(config_file, 'w') as config:
 
         print('# The path to the installed 3rd party libraries', file=config)
@@ -758,7 +758,7 @@ class Apps:
                 tif_mosaic wv_correct lronacjitreg'
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl    \
-                 suitesparse amd colamd cholmod glog ceres flann spice qwt gsl \
+                 suitesparse amd colamd cholmod glog ceres flann dsk spice qwt gsl \
                  geos xercesc protobuf z ilmbase openexr jpeg  \
                  laszip liblas geoid isis superlu geotiff gdal yaml libnabo \
                  eigen libpointmatcher proj4'
@@ -814,7 +814,7 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
             cflags.extend(['-arch x86_64'])
             cxxflags.extend(['-arch x86_64'])
             ldflags.extend(['-F' + libdir])
-            
+
         for module in Apps.disable_modules.split():
             print('ENABLE_MODULE_%s=no' % module.upper(), file=config)
         for module in Apps.enable_modules.split():
@@ -838,7 +838,7 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
 
         for pkg in install_pkgs:
             print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)
-                
+
         for pkg in vw_pkgs:
             print('HAVE_PKG_%s=$VW' % pkg.upper(), file=config)
         for pkg in off_pkgs:
@@ -854,11 +854,9 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
         if not use_env_flags:
             print('CFLAGS="'   + ' '.join(cflags)   + '"', file=config)
             print('CXXFLAGS="' + ' '.join(cxxflags) + '"', file=config)
-        
+
         print('CPPFLAGS="' + ' '.join(cppflags) + '"', file=config)
         print('LDFLAGS="'  + ' '.join(ldflags)  + '"', file=config)
 
 def binary_builder_prefix():
     return 'BinaryBuilder'
-
-

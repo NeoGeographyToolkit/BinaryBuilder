@@ -34,7 +34,7 @@ class ccache(Package):
 class m4(Package):
     src     = 'http://ftp.gnu.org/gnu/m4/m4-1.4.17.tar.gz'
     chksum  = '4f80aed6d8ae3dacf97a0cb6e989845269e342f0'
-    
+
 class libtool(Package):
     src     = 'http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz'
     chksum  = '22b71a8b5ce3ad86e1094e7285981cae10e6ff88'
@@ -46,7 +46,7 @@ class autoconf(Package):
 class automake(Package):
     src='ftp://ftp.gnu.org/gnu/automake/automake-1.14.1.tar.gz'
     chksum  = '0bb1714b78d70cab9907d2013082978a28f48a46'
-    
+
 class cmake(Package):
     src     = 'http://www.cmake.org/files/v2.8/cmake-2.8.11.2.tar.gz'
     chksum  = '31f217c9305add433e77eff49a6eac0047b9e929'
@@ -181,7 +181,7 @@ class libgeotiff(CMakePackage):
     def configure(self):
         super(libgeotiff, self).configure( other=['-DBUILD_SHARED_LIBS=ON',
                                                   '-DBUILD_STATIC_LIBS=OFF'] )
-        
+
 class gdal(Package):
     src     = 'http://download.osgeo.org/gdal/1.10.1/gdal-1.10.1.tar.gz'
     chksum  = 'b4df76e2c0854625d2bedce70cc1eaf4205594ae'
@@ -294,7 +294,7 @@ class liblas(CMakePackage):
             '-DWITH_GEOTIFF=true',
             '-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')
             ])
-        
+
     @stage
     def install(self):
         super(liblas, self).install()
@@ -327,7 +327,7 @@ class geoid(Package):
         else:
             flag = '-shared'
         self.helper(self.env['F77'], flag, '-o', 'libegm2008.so', 'interp_2p5min.o')
-            
+
     def install(self):
         cmd = ['cp'] + glob(P.join(self.workdir, 'libegm2008.*')) \
               + [P.join(self.env['INSTALL_DIR'], 'lib')]
@@ -335,7 +335,7 @@ class geoid(Package):
         geoidDir = P.join(self.env['INSTALL_DIR'], 'share/geoids')
         self.helper('mkdir', '-p', geoidDir)
         cmd = ['cp'] + glob(P.join(self.workdir, '*tif')) \
-        + glob(P.join(self.workdir, '*jp2')) + [geoidDir] 
+        + glob(P.join(self.workdir, '*jp2')) + [geoidDir]
         self.helper(*cmd)
 
 # Due to legal reasons ... we are not going to download a modified
@@ -360,7 +360,7 @@ class isis(Package):
         self.chksum = f.readline().strip()
         if self.chksum == "":
             raise PackageError(self, 'Could not find the ISIS version')
-        
+
     @stage
     def fetch(self, skip=False):
         if not P.exists(self.isis_localcopy) or \
@@ -404,7 +404,7 @@ class isis(Package):
     def configure(self):
         self.helper('./autogen')
 
-        pkgs = 'arbitrary_qt qwt boost protobuf tnt jama xercesc spice geos gsl \
+        pkgs = 'arbitrary_qt qwt boost protobuf tnt jama xercesc dsk spice geos gsl \
                 lapack superlu gmm tiff z jpeg suitesparse amd colamd cholmod curl xercesc'.split()
 
         w = [i + '=%(INSTALL_DIR)s' % self.env for i in pkgs]
@@ -431,6 +431,8 @@ class isis(Package):
             print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' % ' '.join(qt_cppflags), file=config)
             print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
             print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
+
+            print('PKG_SPICE_CPPFLAGS="-I%s/naif"' % includedir, file=config)
 
             print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')), file=config)
             print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')), file=config)
@@ -771,7 +773,7 @@ class cspice(Package):
             chksum = '45efcac7fb260401fcd2124dfe9d226d9f74211d', # N0065
             ),
         osx64   = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit//C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
+            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
             chksum = '1500a926f01a0bb04744ebe8af0149c7ae098a8f', # N0065
             ),
         )
@@ -799,6 +801,63 @@ class cspice(Package):
         d = P.join('%(INSTALL_DIR)s' % self.env, 'include', 'naif')
         self.helper('mkdir', '-p', d)
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [d]
+        self.helper(*cmd)
+
+        d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
+        self.helper('mkdir', '-p', d)
+        # Wipe the static libraries
+        cmd = ['rm' ] + glob(P.join(self.workdir,'lib', '*.a'))
+        self.helper(*cmd)
+        # Copy everything else, including the dynamic libraries
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'lib', '*')) + [d]
+        self.helper(*cmd)
+
+class dsk(Package):
+    # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
+    PLATFORM = dict(
+        linux64 = dict(
+            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/PC_Linux_GCC_64bit/packages/alpha_dsk_c.tar.Z',
+
+            chksum = '01f258d3233ba7cb7025df012b56b02a14611643',
+            ),
+        linux32 = dict(
+            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/PC_Linux_GCC_32bit/packages/alpha_dsk_c.tar.Z',
+            chksum = 'e5f6dc3f3bac96df650d307fa79146bd121479a3',
+            ),
+        osx32   = dict(
+            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/MacIntel_OSX_AppleC_32bit/packages/alpha_dsk_c.tar.Z',
+            chksum = 'not-tested',
+            ),
+        osx64   = dict(
+            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/MacIntel_OSX_AppleC_64bit/packages/alpha_dsk_c.tar.Z',
+            chksum = 'd574fe46fcb3a12c0c64d982503c383fd6f2b355',
+            ),
+        )
+
+    def __init__(self, env):
+        super(dsk, self).__init__(env)
+        self.pkgname += '_' + self.arch.osbits
+        self.src    = self.PLATFORM[self.arch.osbits]['src']
+        self.chksum = self.PLATFORM[self.arch.osbits]['chksum']
+        if self.arch.os == "osx":
+            self.patches = 'patches/dsk_osx'
+        else:
+            self.patches = 'patches/dsk_linux'
+    def configure(self): pass
+
+    @stage
+    def compile(self):
+        cmd = ['csh']
+        self.args = ['./makeall.csh']
+        cmd += self.args
+        self.helper(*cmd)
+
+    @stage
+    def install(self):
+        d = P.join('%(INSTALL_DIR)s' % self.env, 'include', 'naif')
+        self.helper('mkdir', '-p', d)
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'include', '*.h')) + [d]
+        cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src', 'dsklib_c', '*.h')) + [d]
         self.helper(*cmd)
 
         d = P.join('%(INSTALL_DIR)s' % self.env, 'lib')
@@ -911,13 +970,13 @@ class glog(Package):
             other_flags = ['CFLAGS=-m64', 'CXXFLAGS=-m64',]
         else:
             other_flags = []
-            
+
         super(glog, self).configure(
             enable=['shared',],
             disable = ['static'],
             other = other_flags
             )
-        
+
 class ceres(CMakePackage):
     src = 'https://ceres-solver.googlecode.com/files/ceres-solver-1.8.0.tar.gz'
     chksum = '8a67268d995b8351bd5ee5acf1eebff910028e7e'
@@ -990,6 +1049,6 @@ class binarybuilder(GITPackage):
 
     @stage
     def compile(self, cwd=None): pass
-            
+
     @stage
     def install(self): pass

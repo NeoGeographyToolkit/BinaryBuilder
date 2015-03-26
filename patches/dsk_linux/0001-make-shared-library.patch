@@ -1,8 +1,8 @@
-diff -crB cspice/src/cspice/mkprodct.csh cspice_mod/src/cspice/mkprodct.csh
-*** cspice/src/cspice/mkprodct.csh	2010-06-10 11:58:04.000000000 -0700
---- cspice_mod/src/cspice/mkprodct.csh	2012-06-17 04:59:36.000000000 -0700
+diff -crB alpha_dsk_c/src/dsklib_c/mkprodct.csh alpha_dsk_c/src_new/dsklib_c/mkprodct.csh
+*** alpha_dsk_c/src/dsklib_c/mkprodct.csh	2014-07-18 18:47:52.000000000 -0700
+--- alpha_dsk_c/src_new/dsklib_c/mkprodct.csh	2015-03-26 14:57:41.738345707 -0700
 ***************
-*** 229,236 ****
+*** 225,232 ****
      echo "      Inserting objects in the library $LIBRARY ..."
      ar  crv $LIBRARY.a *.o
      ranlib  $LIBRARY.a
@@ -11,14 +11,14 @@ diff -crB cspice/src/cspice/mkprodct.csh cspice_mod/src/cspice/mkprodct.csh
   
   endif
   
---- 229,239 ----
+--- 225,235 ----
      echo "      Inserting objects in the library $LIBRARY ..."
      ar  crv $LIBRARY.a *.o
      ranlib  $LIBRARY.a
      echo " "
 +    echo " Creating dynamic library "
 +    set SOFLAGS = `echo $TKCOMPILEOPTIONS | sed 's/-c / /g'`
-+    $TKCOMPILER $LDFLAGS $SOFLAGS -shared -Wl,-soname,libcspice.so -o ../../lib/libcspice.so *.o
++    $TKCOMPILER $LDFLAGS $SOFLAGS -shared -Wl,-soname,libcdsk.so -o ../../lib/libcdsk.so *.o
 +    \rm                *.o    
   
   endif
