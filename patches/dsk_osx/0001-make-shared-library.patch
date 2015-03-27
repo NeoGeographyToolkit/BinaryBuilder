@@ -19,16 +19,43 @@ diff -crB alpha_dsk_c/src/dsklib_c/mkprodct.csh alpha_dsk_c/src_new2/dsklib_c/mk
 --- alpha_dsk_c/src_new2/dsklib_c/mkprodct.csh	2015-03-26 15:07:51.693899174 -0700
 ***************
 *** 209,214 ****
---- 209,220 ----
+--- 209,219 ----
       echo "      Inserting objects in the library $LIBRARY ..."
       ar  crv $LIBRARY.a *.o
       ranlib  $LIBRARY.a
 +     echo "      Creating dynamic library ..."
 +     set SONAME = `basename $PWD`
 +     set SOFLAGS = `echo $TKCOMPILEOPTIONS  | sed 's/ -c / /g'`
-+     echo "$TKCOMPILER $LDFLAGS $SOFLAGS -shared -o ../../lib/libcsdsk.dylib *.o"
-+     $TKCOMPILER $LDFLAGS $SOFLAGS -shared -o ../../lib/libcsdsk.dylib *.o
++     $TKCOMPILER $LDFLAGS $SOFLAGS -shared -lcspice -o ../../lib/libcdsk.dylib *.o
 +     echo " "
       \rm                *.o
       echo " "
   
+diff -crB cspice/src/cspice/mkprodct.csh cspice_mod/src/cspice/mkprodct.csh
+*** cspice/src/cspice/mkprodct.csh	2010-06-10 11:48:24.000000000 -0700
+--- cspice_mod/src/cspice/mkprodct.csh	2012-06-17 03:49:26.000000000 -0700
+***************
+*** 208,216 ****
+      echo "      Inserting objects in the library $LIBRARY ..."
+      ar  crv $LIBRARY.a *.o
+      ranlib  $LIBRARY.a
+-     \rm                *.o
+      echo " "
+! 
+  endif
+  
+  #
+--- 208,220 ----
+      echo "      Inserting objects in the library $LIBRARY ..."
+      ar  crv $LIBRARY.a *.o
+      ranlib  $LIBRARY.a
+      echo " "
+!     echo "      Creating dynamic library ..."
+!     set SONAME = `basename $PWD`
+!     set SOFLAGS = `echo $TKCOMPILEOPTIONS  | sed 's/ -c / /g'`
+!     $TKCOMPILER $LDFLAGS $SOFLAGS -shared -o ../../lib/libcspice.dylib *.o
+!     echo " "
+!     \rm                *.o
+  endif
+  
+  #
