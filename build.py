@@ -134,11 +134,11 @@ if __name__ == '__main__':
     parser.set_defaults(mode='all')
 
     parser.add_option('--base',       action='append',      dest='base',         default=[],              help='Provide a tarball to use as a base system')
-    parser.add_option('--build-root',                       dest='build_root',   default=None,            help='Root of the build and install')
+    parser.add_option('--build-root',                       dest='build_root',   default='./build_asp',            help='Root of the build and install')
     parser.add_option('--cc',                               dest='cc',           default='gcc',           help='Explicitly state which C compiler to use. [gcc (default), clang, gcc-mp-4.7]')
     parser.add_option('--cxx',                              dest='cxx',          default='g++',           help='Explicitly state which C++ compiler to use. [g++ (default), clang++, g++-mp-4.7]')
     parser.add_option('--dev-env',    action='store_true',  dest='dev',          default=False,           help='Build everything but VW and ASP')
-    parser.add_option('--download-dir',                     dest='download_dir', default='/tmp/tarballs', help='Where to archive source files')
+    parser.add_option('--download-dir',                     dest='download_dir', default='./tarballs', help='Where to archive source files')
     parser.add_option('--f77',                              dest='f77',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
     parser.add_option('--libtoolize',                       dest='libtoolize',   default=None,            help='Value to set LIBTOOLIZE, use to override if system\'s default is bad.')
