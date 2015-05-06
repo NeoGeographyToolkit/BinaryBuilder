@@ -659,8 +659,8 @@ class gmm(Package):
         super(gmm,self).configure(with_=('blas=%s') % blas)
 
 class xercesc(Package):
-    src    = 'http://mirror.symnds.com/software/Apache//xerces/c/3/sources/xerces-c-3.1.1.tar.gz'
-    chksum = '177ec838c5119df57ec77eddec9a29f7e754c8b2'
+    src    = 'http://mirror.symnds.com/software/Apache//xerces/c/3/sources/xerces-c-3.1.2.tar.gz'
+    chksum = '3f9ecc4956df069c1d95b885fc687eb4e474a4ad'
 
     @stage
     def configure(self):
