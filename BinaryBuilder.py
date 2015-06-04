@@ -753,9 +753,9 @@ class Apps:
                  rmax2cahvor rmaxadjust stereogui'
     enable_apps = \
                 'bundle_adjust bundlevis dem_geoid dem_mosaic disparitydebug \
-                geodiff hsvmerge mapproject mer2camera orbitviz orthoproject \
-                point2dem point2las point2mesh pc_align stereo rpc_gen \
-                tif_mosaic wv_correct lronacjitreg'
+                geodiff hsvmerge lronacjitreg mapproject mer2camera orbitviz \
+                orthoproject point2dem point2las point2mesh pc_align rpc_gen \
+                sfs stereo tif_mosaic wv_correct '
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl    \
                  suitesparse amd colamd cholmod glog ceres flann dsk spice qwt gsl \
