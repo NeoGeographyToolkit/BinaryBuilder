@@ -27,7 +27,7 @@ releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
 virtualMachines="centos-32-5 centos-64-5"
-buildMachines="amos $virtualMachines"
+buildMachines="andey $virtualMachines"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -38,7 +38,7 @@ if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
 mailto="oleg.alexandrov@nasa.gov"
 if [ "$localMode" -eq 0 ]; then
-    mailto="$mailto z.m.moratto@nasa.gov" # "SMcMichael@sgt-inc.com"
+    mailto="$mailto scott.t.mcmichael@nasa.gov"
 fi
 
 cd $HOME
@@ -89,7 +89,7 @@ mkdir -p asp_tarballs
 if [ "$resumeRun" -eq 0 ]; then
     rm -fv dist-add/asp_book.pdf
 fi
-    
+
 # Start the builds. The build script will copy back the built tarballs
 # and status files.
 # The reason we build on $masterMachine here is to make the docs,
@@ -108,9 +108,9 @@ for buildMachine in $buildMachines $masterMachine; do
         echo Missing $HOME/$testDir/$configFile; exit 1;
     fi
     grep -i isis $HOME/$testDir/$configFile | grep export > $(isis_file)
-    
+
     # Make sure all scripts are up-to-date on $buildMachine
-    ./auto_build/push_code.sh $buildMachine $buildDir $filesList 
+    ./auto_build/push_code.sh $buildMachine $buildDir $filesList
     if [ "$?" -ne 0 ]; then exit 1; fi
 
     if [ "$resumeRun" -ne 0 ]; then
@@ -125,7 +125,7 @@ for buildMachine in $buildMachines $masterMachine; do
             continue
         fi
     fi
-    
+
     # Launch the build
     echo "NoTarballYet now_building" > $statusFile
     robust_ssh $buildMachine $buildDir/auto_build/build.sh \
@@ -148,7 +148,7 @@ fi
 while [ 1 ]; do
 
     allTestsAreDone=1
-    
+
     for buildMachine in $buildMachines; do
 
         statusFile=$(status_file $buildMachine)
@@ -156,7 +156,7 @@ while [ 1 ]; do
         tarBall=$(echo $statusLine | awk '{print $1}')
         progress=$(echo $statusLine | awk '{print $2}')
         testMachines=$(get_test_machines $buildMachine $masterMachine)
-        
+
         if [ "$progress" = "now_building" ]; then
             echo "Status for $buildMachine is $statusLine"
             allTestsAreDone=0
@@ -169,19 +169,19 @@ while [ 1 ]; do
             allTestsAreDone=0
             echo "$tarBall now_testing" > $statusFile
             for testMachine in $testMachines; do
-                
+
                 outputTestFile=$(output_test_file $buildDir $testMachine)
-                
+
                 echo "Will launch tests on $testMachine"
                 statusTestFile=$(status_test_file $testMachine)
                 echo "$tarBall now_testing" > $statusTestFile
-                
+
                 # Make sure all scripts are up-to-date on $testMachine
                 ./auto_build/push_code.sh $testMachine $buildDir $filesList
                 if [ "$?" -ne 0 ]; then exit 1; fi
 
                 # Copy the tarball to the test machine
-                ssh $testMachine "mkdir -p $buildDir/asp_tarballs" 2>/dev/null 
+                ssh $testMachine "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
                 rsync -avz $tarBall $testMachine:$buildDir/asp_tarballs \
                     2>/dev/null
 
@@ -190,9 +190,9 @@ while [ 1 ]; do
                     "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
                     $outputTestFile
             done
-            
+
         elif [ "$progress" = "now_testing" ]; then
-            
+
             # See if we finished testing the current build on all machines
             allDoneForCurrMachine=1
             statusForCurrMachine="Success"
@@ -208,7 +208,7 @@ while [ 1 ]; do
                     statusForCurrMachine="Fail"
                 fi
             done
-            
+
             if [ "$allDoneForCurrMachine" -eq 0 ]; then
                 allTestsAreDone=0
             else
@@ -223,16 +223,16 @@ while [ 1 ]; do
         else
             echo "Status for $buildMachine is $statusLine"
         fi
-        
+
     done
 
     # Stop if we finished testing on all machines
     if [ "$allTestsAreDone" -eq 1 ]; then break; fi
-    
+
     echo Will sleep for $sleepTime seconds
     sleep $sleepTime
     echo " "
-    
+
 done
 
 overallStatus="Success"
@@ -288,7 +288,7 @@ for buildMachine in $buildMachines; do
         echo "Error: Expecting the progress to be: test_done"
         status="Fail"
     fi
-    
+
     # Check the tarballs
     if [[ ! $tarBall =~ \.tar\.bz2$ ]]; then
         echo "Expecting '$tarBall' to be with .tar.bz2 extension"
@@ -372,4 +372,3 @@ echo Status is $overallStatus
 
 subject="ASP build $timestamp status is $overallStatus"
 cat status_master.txt | mailx -s "$subject" $mailto
-

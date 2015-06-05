@@ -9,8 +9,8 @@ Machines:
 lunokhod1:    Master machine on which the framework starts
 centos-64-5:  Linux, 64 bit
 centos-32-5:  Linux, 32 bit
-amos:         Mac OS X 10.6
 andey:        Mac OS X 10.8
+amos:         Mac OS X 10.9
 byss:         The machine storing the obtained builds
 
 The hosts centos-64-5 and centos-32-5 are virtual machines on
@@ -26,9 +26,9 @@ lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
 Builds are done on the following machines: centos-64-5, centos-32-5,
-and amos. Each build is being tested on the same machine. In addition,
-the centos-64-5 build is also tested on lunokhod1, while the amos
-build is also tested on andey.
+and andey. Each build is being tested on the same machine. In addition,
+the centos-64-5 build is also tested on lunokhod1, while the andey
+build is also tested on amos.
 
 The test process on lunokhod1 is the strictest, it will fail if any
 obtained results differ from the reference. The tests on other

@@ -1,11 +1,11 @@
 #!/bin/bash
 
 function set_system_paths () {
-    export PATH=/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/Users/oalexan1/projects/homebrew/bin:/Users/zmoratto/macports/bin:$HOME/projects/packages/bin/:$HOME/packages/local/bin/:$PATH
+    export PATH=/Users/smcmich1/usr/local/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/Users/oalexan1/projects/homebrew/bin:/Users/zmoratto/macports/bin:$HOME/projects/packages/bin/:$HOME/packages/local/bin/:$PATH
 }
 
 function machine_name() {
-    echo $(uname -n | perl -pi -e "s#\..*?\$##g")    
+    echo $(uname -n | perl -pi -e "s#\..*?\$##g")
 }
 
 function status_file () {
@@ -53,7 +53,7 @@ function start_vrts {
 
     virtualMachines=$*
 
-    for vrt in $virtualMachines; do 
+    for vrt in $virtualMachines; do
         virsh start $vrt 2>/dev/null
     done
 
@@ -75,15 +75,15 @@ function start_vrts {
         echo Sleeping for $sec seconds
         sleep $sec
     done
-        
+
 }
 
 function robust_ssh {
-    
+
     # Do several attempts to launch a job on a machine.
     # This is primarily needed for OSX, sometimes
     # a nohup job on it fails.
-    
+
     machine=$1
     prog=$2
     opts=$3
@@ -103,19 +103,19 @@ function robust_ssh {
         fi
         echo "Trying to start $name at $(date) on $machine in attempt $count"
     done
-    
+
 }
 
 function get_test_machines {
 
-    # Test the amos build on itself and andey.
+    # Test the andey build on itself and amos.
     # Test the centos-64-5 build on itself and $masterMachine.
-        
+
     buildMachine=$1
     masterMachine=$2
 
-    if [ "$buildMachine" = "amos" ]; then
-        testMachines="$buildMachine andey"
+    if [ "$buildMachine" = "andey" ]; then
+        testMachines="$buildMachine amos"
     elif [ "$buildMachine" = "centos-64-5" ]; then
         testMachines="$buildMachine $masterMachine"
     else
@@ -135,7 +135,7 @@ remotes_changed=0
 function check_if_remotes_changed() {
 
     remotes=('git@github.com:visionworkbench/visionworkbench.git' 'git@github.com:NeoGeographyToolkit/StereoPipeline.git' 'git@github.com:NeoGeographyToolkit/BinaryBuilder.git' 'git@github.com:NeoGeographyToolkit/StereoPipelineTest.git')
-    
+
     mkdir -p auto_build
     rm -f $curr_hash_file
     for repo in "${remotes[@]}"; do
@@ -150,8 +150,5 @@ function check_if_remotes_changed() {
         fi
         echo "$remote_hash $repo" >> $curr_hash_file
     done
-    
+
 }
-
-
-
