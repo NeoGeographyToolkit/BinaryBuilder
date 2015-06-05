@@ -257,7 +257,7 @@ if __name__ == '__main__':
         build_env.append('OSX_ARCH', osx_arch)
         build_env.append('OSX_TARGET', opt.osx_sdk)
 
-        build_env.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')]))
+        build_env.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')])) # OSX compiler extension
         build_env.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
         build_env.append_many(ALL_FLAGS, '-m64')
 
@@ -414,11 +414,12 @@ if __name__ == '__main__':
                 except Exception, e:
                     print("Failed to build %s in attempt %d %s" %
                           (name, i, str(e)))
-                    if i < num-1:
-                        print("Sleep for 60 seconds and try again")
-                        time.sleep(60)
-                    else:
-                        raise
+                    raise
+                    #if i < num-1:
+                    #    print("Sleep for 60 seconds and try again")
+                    #    time.sleep(60)
+                    #else:
+                    #    raise
 
     except Exception, e:
         die(e)
