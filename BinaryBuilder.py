@@ -836,8 +836,14 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
                 print('PKG_%s_LDFLAGS="-L%s -legm2008"' % (pkg.upper(), libdir), file=config)
                 cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids'])
 
+        # For as many packages as possible use 'yes' instead of '$BASE' to cut down on automake include path bloat.
+        # -Too much bloat makes ASP fail to compile!
+        pkg_needs_path_list = ['boost', 'spice', 'eigen', 'isis', 'libpointmatcher']
         for pkg in install_pkgs:
-            print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)
+            if pkg.lower() in pkg_needs_path_list:
+                print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)
+            else:
+                print('HAVE_PKG_%s=yes' % pkg.upper(), file=config)
 
         for pkg in vw_pkgs:
             print('HAVE_PKG_%s=$VW' % pkg.upper(), file=config)
