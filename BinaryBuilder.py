@@ -838,7 +838,7 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
 
         # For as many packages as possible use 'yes' instead of '$BASE' to cut down on automake include path bloat.
         # -Too much bloat makes ASP fail to compile!
-        pkg_needs_path_list = ['boost', 'spice', 'eigen', 'isis', 'libpointmatcher']
+        pkg_needs_path_list = ['boost', 'spice', 'eigen', 'isis', 'libpointmatcher', 'superlu', 'geoid', 'geos']
         for pkg in install_pkgs:
             if pkg.lower() in pkg_needs_path_list:
                 print('HAVE_PKG_%s=%s' % (pkg.upper(), base), file=config)
