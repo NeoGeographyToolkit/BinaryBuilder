@@ -76,11 +76,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship
-LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. libgomp. '''.split()
-if get_platform().os == 'linux':
-    LIB_SHIP_PREFIX.insert(0,'libstdc++.')
-else:
-    LIB_SYSTEM_LIST.append('libstdc++.6.dylib')
+LIB_SHIP_PREFIX = ''' libstdc++. libgfortran. libquadmath. libgcc_s. libgomp. '''.split()
 
 def tarball_name():
     arch = get_platform()
