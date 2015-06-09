@@ -879,7 +879,7 @@ class protobuf(Package):
         super(protobuf, self).configure(disable=('static'))
 
 class suitesparse(Package):
-    src = 'http://www.cise.ufl.edu/research/sparse/SuiteSparse/SuiteSparse-4.2.1.tar.gz'
+    src = 'http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.2.1.tar.gz'
     chksum = '2fec3bf93314bd14cbb7470c0a2c294988096ed6'
 
     # Note: Currently this is archive only. They don't have the option
