@@ -35,6 +35,10 @@ LIB_SYSTEM_LIST = '''
     Security.framework/Versions/A/Security
     SystemConfiguration.framework/Versions/A/SystemConfiguration
     vecLib.framework/Versions/A/vecLib
+    CoreMedia.framework/Versions/A/CoreMedia
+    AVFoundation.framework/Versions/A/AVFoundation
+    QuartzCore.framework/Versions/A/QuartzCore
+    CoreVideo.framework/Versions/A/CoreVideo
 
     libobjc.A.dylib
     libSystem.B.dylib
@@ -71,11 +75,10 @@ LIB_SYSTEM_LIST = '''
     libxcb-xlib.so.0
 '''.split()
 
-# prefixes of libs that we always ship (on linux, anyway)
-LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. '''.split()
+# prefixes of libs that we always ship
+LIB_SHIP_PREFIX = ''' libgfortran. libquadmath. libgcc_s. libgomp. '''.split()
 if get_platform().os == 'linux':
     LIB_SHIP_PREFIX.insert(0,'libstdc++.')
-    LIB_SHIP_PREFIX.append('libgomp.')
 else:
     LIB_SYSTEM_LIST.append('libstdc++.6.dylib')
 
@@ -143,8 +146,8 @@ if __name__ == '__main__':
     # Ensure installdir/bin is in the path, to be able to find chrpath, etc.
     if "PATH" not in os.environ: os.environ["PATH"] = ""
     os.environ["PATH"] = P.join(installdir, 'bin') + \
-                         os.pathsep + os.environ["PATH"] 
-    
+                         os.pathsep + os.environ["PATH"]
+
     logging.basicConfig(level=opt.loglevel)
 
     mgr = DistManager(tarball_name())
@@ -160,7 +163,7 @@ if __name__ == '__main__':
             if "LD_LIBRARY_PATH" not in os.environ:
                 os.environ["LD_LIBRARY_PATH"] = ""
             os.environ["LD_LIBRARY_PATH"] = INSTALLDIR.lib() + os.pathsep + os.environ["LD_LIBRARY_PATH"]
-            
+
         if opt.isisroot is not None:
             ISISROOT = opt.isisroot
 
@@ -234,7 +237,7 @@ if __name__ == '__main__':
                            copy = [INSTALLDIR.lib()])
         if mgr.deplist:
             raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
-        
+
         # We don't want to distribute with ASP any random files in
         # 'docs' installed by any of its deps. Distribute only
         # what we need.

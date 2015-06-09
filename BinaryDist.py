@@ -213,6 +213,10 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
         logger.debug('%8s %s -> %s' % ('copy', src, dst))
         shutil.copy2(src, dst)
 
+        # Bugfix, make it writeable
+        mode = os.stat(dst)[stat.ST_MODE]
+        os.chmod(dst, mode | stat.S_IWUSR)
+
 @doctest_on('linux')
 def readelf(filename):
     ''' Run readelf on a file
@@ -484,12 +488,12 @@ def fix_install_paths(installdir, arch):
                     glob(P.join(installdir,'bin','*'))             + \
                     glob(P.join(installdir,'mkspecs','*.pri'))     + \
                     list_recursively(P.join(installdir,'share'))
-    
+
     for control in control_files:
 
         if os.path.isdir(control): continue
         if is_binary(control): continue
-        
+
         print('  %s' % P.basename(control))
 
         # ensure we can read and write (some files have odd permissions)
@@ -501,7 +505,7 @@ def fix_install_paths(installdir, arch):
         with open(control,'r') as f:
             lines = f.readlines()
         with open(control,'w') as f:
-            for line in lines: 
+            for line in lines:
                 line = re.sub('[\/\.]+[\w\/\.\-]*?' + binary_builder_prefix() + '\w*[\w\/\.]*?/install', installdir, line)
                 f.write( line )
 
@@ -536,7 +540,7 @@ def fix_install_paths(installdir, arch):
     # Ensure installdir/bin is in the path, to be able to find chrpath, etc.
     if "PATH" not in os.environ: os.environ["PATH"] = ""
     os.environ["PATH"] = P.join(installdir, 'bin') + \
-                         os.pathsep + os.environ["PATH"] 
+                         os.pathsep + os.environ["PATH"]
 
     SEARCHPATH = [P.join(installdir,'lib'),
                   P.join(installdir,'lib','osgPlugins*')]
@@ -567,4 +571,3 @@ def fix_install_paths(installdir, arch):
 if __name__ == '__main__':
     import doctest
     doctest.testmod()
-
