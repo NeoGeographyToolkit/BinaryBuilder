@@ -17,7 +17,6 @@ bin/lronacjitreg
 bin/mer2camera
 bin/orbitviz
 bin/orthoproject
-bin/osgviewer
 bin/point2dem
 bin/point2las
 bin/point2mesh
@@ -32,6 +31,9 @@ bin/stereo_rfne
 bin/stereo_tri
 bin/pc_align
 bin/wv_correct
+bin/osgviewer
+bin/gdal_translate
+bin/gdalinfo
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
@@ -41,8 +43,6 @@ libexec/stereo_parse
 libexec/rpc_gen
 libexec/tif_mosaic
 libexec/stereo_utils.py
-libexec/gdal_translate
-libexec/gdalinfo
 libexec/parallel
 libexec/lasinfo
 share/gdal/*
