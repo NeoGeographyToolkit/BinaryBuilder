@@ -746,7 +746,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
 
 class Apps:
     disable_modules = 'controlnettk mpi'
-    enable_modules  = 'core spiceio isisio sessions'
+    enable_modules  = 'core spiceio isisio sessions gui'
 
     disable_apps = \
                  'demprofile plateorthoproject results \
