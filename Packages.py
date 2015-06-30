@@ -1058,3 +1058,7 @@ class binarybuilder(GITPackage):
 class opencv(CMakePackage):
     src     = 'https://github.com/Itseez/opencv/archive/2.4.11.tar.gz'
     chksum  = '310a8b0fdb9bf60c6346e9d073ed2409cd1e26b4'
+    def configure(self):
+        # Help OpenCV finds the libraries it needs to link to
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -ltiff -lpng' % self.env
+        super(opencv, self).configure( other=['-DBUILD_opencv_apps=OFF'] )
