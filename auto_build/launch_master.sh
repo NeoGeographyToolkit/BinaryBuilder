@@ -59,7 +59,7 @@ if [ "$localMode" -eq 0 ]; then
         # Bugfix: Sometimes the github server is down, so do multiple attempts.
         echo "Cloning BinaryBuilder in attempt $i"
 
-        ./build.py $(build_opts) binarybuilder
+        ./build.py binarybuilder
         failure="$?"
         if [ "$failure" -eq 0 ]; then break; fi
         sleep 60

@@ -68,7 +68,7 @@ fi
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
 echo "Building changed packages"
-./build.py $(build_opts)
+./build.py
 if [ "$?" -ne 0 ]; then
     ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
         2>/dev/null
@@ -133,4 +133,3 @@ rsync -avz $asp_tarball $masterMachine:$buildDir/asp_tarballs \
 ssh $masterMachine \
     "echo '$asp_tarball build_done Success' > $buildDir/$statusFile" \
     2>/dev/null
-
