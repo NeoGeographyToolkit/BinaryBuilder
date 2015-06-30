@@ -48,8 +48,8 @@ class automake(Package):
     chksum  = '0bb1714b78d70cab9907d2013082978a28f48a46'
 
 class cmake(Package):
-    src     = 'http://www.cmake.org/files/v2.8/cmake-2.8.11.2.tar.gz'
-    chksum  = '31f217c9305add433e77eff49a6eac0047b9e929'
+    src     = 'http://www.cmake.org/files/v3.2/cmake-3.2.3.tar.gz'
+    chksum  = 'fa176cc5b1ccf2e98196b50908432d0268323501'
     # cmake pollutes the doc folder
     @stage
     def install(self):
@@ -918,7 +918,7 @@ class osg3(CMakePackage):
 
     def configure(self):
         other_flags = ['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DOSG_USE_QT=OFF', '-DBUILD_DOCUMENTATION=OFF']
-        if self.arch.os == 'osx': 
+        if self.arch.os == 'osx':
             other_flags.extend(['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio','-DOSG_WINDOWING_SYSTEM=Cocoa'])
         super(osg3, self).configure(
             with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL'.split(),
@@ -1053,3 +1053,8 @@ class binarybuilder(GITPackage):
 
     @stage
     def install(self): pass
+
+# OpenCV 2.4, for creating new camera models
+class opencv(CMakePackage):
+    src     = 'https://github.com/Itseez/opencv/archive/2.4.11.tar.gz'
+    chksum  = '310a8b0fdb9bf60c6346e9d073ed2409cd1e26b4'

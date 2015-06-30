@@ -24,7 +24,7 @@ from Packages import *
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
      get_platform, findfile, run, get_prog_version, logger, warn, \
      binary_builder_prefix
-from BinaryDist import fix_install_paths
+from BinaryDist import fix_install_paths, which
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
@@ -210,6 +210,14 @@ if __name__ == '__main__':
     if opt.ld_library_path is not None:
         build_env['LD_LIBRARY_PATH'] = opt.ld_library_path
 
+    # Bugfix, add compiler's libraries to LD_LIBRARY_PATH.
+    comp_path = which(build_env['CC'])
+    libdir1 = P.join(P.dirname(P.dirname(comp_path)), "lib")
+    libdir2 = P.join(P.dirname(P.dirname(comp_path)), "lib64")
+    if 'LD_LIBRARY_PATH' not in build_env:
+        build_env['LD_LIBRARY_PATH'] = ""
+    build_env['LD_LIBRARY_PATH'] += ":" + libdir1 + ":" + libdir2
+
     arch = get_platform()
 
     # Check compiler version for compilers we hate
@@ -328,7 +336,7 @@ if __name__ == '__main__':
               jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
               ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
               jama, laszip, liblas, geoid, isis, yaml, eigen, glog, ceres,
-              libnabo, libpointmatcher]
+              libnabo, libpointmatcher, opencv]
 
     if len(args) == 0 or opt.dev:
         if arch.os == 'linux':
