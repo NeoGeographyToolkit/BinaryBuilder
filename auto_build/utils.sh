@@ -1,7 +1,8 @@
 #!/bin/bash
 
 function set_system_paths () {
-    export PATH=/Users/smcmich1/usr/local/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/Users/oalexan1/projects/homebrew/bin:/Users/zmoratto/macports/bin:$HOME/projects/packages/bin/:$HOME/packages/local/bin/:$PATH
+    # Must ensure reasonable versions of gcc, g++, gfortran, python, and git are somewhere in the paths below.
+    export PATH=/Users/smcmich1/usr/local/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/nasa/pkgsrc/2015Q1/gcc49/bin/:$HOME/projects/packages/bin/:$PATH
 }
 
 function machine_name() {
