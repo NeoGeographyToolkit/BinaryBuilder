@@ -50,6 +50,14 @@ class automake(Package):
 class cmake(Package):
     src     = 'http://www.cmake.org/files/v3.2/cmake-3.2.3.tar.gz'
     chksum  = 'fa176cc5b1ccf2e98196b50908432d0268323501'
+    def configure(self):
+        opts = []
+        if self.arch.os == 'osx':
+            opts = ['--system-curl']
+        super(cmake, self).configure(
+            other = opts
+            )
+
     # cmake pollutes the doc folder
     @stage
     def install(self):
@@ -1058,6 +1066,19 @@ class binarybuilder(GITPackage):
 class opencv(CMakePackage):
     src     = 'https://github.com/Itseez/opencv/archive/2.4.11.tar.gz'
     chksum  = '310a8b0fdb9bf60c6346e9d073ed2409cd1e26b4'
+
+    def __init__(self, env):
+        super(opencv, self).__init__(env)
+
+        # Cocoa bindings can't be built unless using an apple provided
+        # compiler. Using a homebrew or macports built GCC or hand
+        # built clang will be missing the required 'blocks'
+        # extension. The error will look something like "NSTask.h:
+        # error: expected unqualified-id before '^' token".
+        if self.arch.os == 'osx':
+            self.env['CXX'] = 'c++'
+            self.env['CC'] = 'cc'
+
     def configure(self):
         # Help OpenCV finds the libraries it needs to link to
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -ltiff -lpng' % self.env
