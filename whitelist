@@ -8,6 +8,7 @@ bin/dg_mosaic
 bin/disparitydebug
 bin/gdal_translate
 bin/gdalinfo
+bin/geodiff
 bin/hiedr2mosaic.py
 bin/hillshade
 bin/hsv_merge
