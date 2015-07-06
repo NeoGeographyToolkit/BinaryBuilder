@@ -745,7 +745,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
         print('', file=config) # newline
 
 class Apps:
-    disable_modules = 'controlnettk mpi'
+    disable_modules = ''
     enable_modules  = 'core spiceio isisio sessions gui'
 
     disable_apps = \
@@ -836,8 +836,8 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
                 print('PKG_%s_LDFLAGS="-L%s -legm2008"' % (pkg.upper(), libdir), file=config)
                 cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids'])
 
-        # For as many packages as possible use 'yes' instead of '$BASE' to cut down on automake include path bloat.
-        # -Too much bloat makes ASP fail to compile!
+        # For as many packages as possible use 'yes' instead of
+        # '$BASE' to cut down on the auto-generated compile commands.
         pkg_needs_path_list = ['boost', 'spice', 'eigen', 'isis', 'libpointmatcher', 'superlu', 'geoid', 'geos']
         for pkg in install_pkgs:
             if pkg.lower() in pkg_needs_path_list:
