@@ -37,6 +37,7 @@ bin/stereo_pprc
 bin/stereo_rfne
 bin/stereo_tri
 bin/wv_correct
+bin/image_calc
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*

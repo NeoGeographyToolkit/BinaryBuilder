@@ -755,7 +755,7 @@ class Apps:
                 'bundle_adjust bundlevis dem_geoid dem_mosaic disparitydebug \
                 geodiff hsvmerge lronacjitreg mapproject mer2camera orbitviz \
                 orthoproject point2dem point2las point2mesh pc_align rpc_gen \
-                sfs stereo tif_mosaic wv_correct '
+                sfs stereo tif_mosaic wv_correct image_calc'
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl    \
                  suitesparse amd colamd cholmod glog ceres flann dsk spice qwt gsl \
