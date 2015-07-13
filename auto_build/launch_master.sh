@@ -241,7 +241,11 @@ overallStatus="Success"
 # dist-add/asp_book.pdf. Need to reduce its size.
 # On the machine the doc was generated gs creates
 # non-searcheable pdfs, so need to reduce the size here.
-if [ ! -f "dist-add/asp_book.pdf" ]; then overallStatus="Fail"; fi
+if [ ! -f "dist-add/asp_book.pdf" ]; then
+    echo "Could not find the documentation: dist-add/asp_book.pdf"
+    overallStatus="Fail";
+fi
+
 if [ "$resumeRun" -eq 0 ]; then
     gs -dUseCIEColor -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer          \
         -dEmbedAllFonts=true -dSubsetFonts=true -dMaxSubsetPct=100            \
@@ -250,7 +254,10 @@ if [ "$resumeRun" -eq 0 ]; then
         -dColorImageDownsampleType=/Bicubic -dColorImageResolution=100        \
         -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=100          \
         -sOutputFile=output.pdf dist-add/asp_book.pdf
-    if [ "$?" -ne 0 ]; then overallStatus="Fail"; fi
+    if [ "$?" -ne 0 ]; then
+        echo "Could not reduce the size of the documentation"
+        overallStatus="Fail"
+    fi
     mv -fv output.pdf dist-add/asp_book.pdf
 fi
 
@@ -265,6 +272,7 @@ for buildMachine in $buildMachines; do
 done
 if [ "$version" = "" ]; then
     version="None" # A non-empty string
+    echo "Could not determine the ASP version"
     overallStatus="Fail"
 fi
 
