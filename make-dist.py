@@ -239,7 +239,7 @@ if __name__ == '__main__':
         # what we need.
         for f in glob(P.join(INSTALLDIR.doc(),'*')):
             base_f = os.path.basename(f)
-            if base_f not in ['AUTHORS', 'COPYING', 'INSTALL', 'LICENSE', 'NEWS',
+            if base_f not in ['AUTHORS', 'COPYING', 'INSTALLGUIDE', 'NEWS',
                               'README', 'THIRDPARTYLICENSES', 'examples']:
                 try:
                     os.remove(f)
