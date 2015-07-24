@@ -47,6 +47,7 @@ lib/osgPlugins-*/osgdb_*
 libexec/stereo_parse
 libexec/rpc_gen
 libexec/tif_mosaic
+libexec/mapproject_single
 libexec/stereo_utils.py
 libexec/asp*.py
 libexec/parallel
