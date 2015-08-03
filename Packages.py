@@ -523,8 +523,9 @@ class visionworkbench(GITPackage):
     @stage
     def compile(self, cwd=None):
         super(visionworkbench, self).compile(cwd)
-        #cmd = ('make', 'check') # TODO: Restore this!
-        #self.helper(*cmd)
+        # Run 'make check'
+        cmd = ('make', 'check')
+        self.helper(*cmd)
 
 class lapack(CMakePackage):
     src     = 'http://www.netlib.org/lapack/lapack-3.5.0.tgz'
