@@ -44,17 +44,21 @@ ulimit -u unlimited 2>/dev/null
 rm -fv ./BaseSystem*bz2
 rm -fv ./StereoPipeline*bz2
 
-# Set the ISIS env, needed for 'make check' in ASP
-isis=$(isis_file)
-if [ -f "$isis" ]; then
-    . "$isis"
-    env
-else
-    echo "Error: Cannot find $isis"
-    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
-        2>/dev/null
-    exit 1
+# Set the ISIS env, needed for 'make check' in ASP. Do this only
+# on the Mac, as on other platforms we lack
+# all the needed ISIS data.
+isMac=$(uname -a|grep Darwin)
+if [ "$isMac" != "" ]; then
+    isis=$(isis_file)
+    if [ -f "$isis" ]; then
+        . "$isis"
+    else
+        echo "Warning: Could not set up the ISIS environment."
+    fi
 fi
+
+# Dump the environmental variables
+env
 
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
