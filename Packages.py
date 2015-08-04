@@ -496,7 +496,8 @@ class stereopipeline(GITPackage):
     @stage
     def compile(self, cwd=None):
         super(stereopipeline, self).compile(cwd)
-        # Run 'make check'
+        # Run unit tests. If the ISIS env vars are not set,
+        # the ISIS-related tests will be skipped.
         cmd = ('make', 'check')
         self.helper(*cmd)
 
@@ -521,7 +522,7 @@ class visionworkbench(GITPackage):
     @stage
     def compile(self, cwd=None):
         super(visionworkbench, self).compile(cwd)
-        # Run 'make check'
+        # Run unit tests
         cmd = ('make', 'check')
         self.helper(*cmd)
 
