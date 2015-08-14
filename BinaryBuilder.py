@@ -828,11 +828,7 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
 
         print('\n# Dependencies', file=config)
         for pkg in install_pkgs:
-
-            if pkg == 'gdal':
-                print('PKG_%s_LDFLAGS="-L%s -lgeotiff -lproj -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
-
-            elif pkg == 'geoid':
+            if pkg == 'geoid':
                 cppflags.extend(['-DGEOID_PATH=' + base + '/share/geoids'])
 
         # For as many packages as possible use 'yes' instead of
