@@ -746,16 +746,16 @@ def write_vw_config(prefix, installdir, arch, config_file):
 
 class Apps:
     disable_modules = ''
-    enable_modules  = 'core spiceio isisio sessions gui'
+    enable_modules  = 'core camera spiceio isisio sessions gui'
 
     disable_apps = \
                  'demprofile plateorthoproject results \
                  rmax2cahvor rmaxadjust stereogui'
     enable_apps = \
-                'bundle_adjust bundlevis dem_geoid dem_mosaic disparitydebug \
+                'bundle_adjust bundlevis datum_convert dem_geoid dem_mosaic disparitydebug \
                 geodiff hsvmerge lronacjitreg mapproject mer2camera orbitviz \
                 orthoproject point2dem point2las point2mesh pc_align rpc_gen \
-                sfs stereo tif_mosaic wv_correct image_calc'
+                sfs stereo tif_mosaic wv_correct image_calc pc_merge pansharp'
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl    \
                  suitesparse amd colamd cholmod glog ceres flann dsk spice qwt gsl \
