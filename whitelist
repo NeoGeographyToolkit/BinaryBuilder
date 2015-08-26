@@ -41,6 +41,7 @@ bin/wv_correct
 bin/image_calc
 bin/pc_merge
 bin/pansharp
+bin/datum_convert
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
