@@ -39,6 +39,8 @@ bin/stereo_rfne
 bin/stereo_tri
 bin/wv_correct
 bin/image_calc
+bin/pc_merge
+bin/pansharp
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
