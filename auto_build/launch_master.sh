@@ -246,20 +246,23 @@ if [ ! -f "dist-add/asp_book.pdf" ]; then
     overallStatus="Fail";
 fi
 
-if [ "$resumeRun" -eq 0 ]; then
-    gs -dUseCIEColor -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer          \
-        -dEmbedAllFonts=true -dSubsetFonts=true -dMaxSubsetPct=100            \
-        -sDEVICE=pdfwrite -dNOPAUSE -dQUIET -dBATCH                           \
-        -dDownsampleColorImages -dDownsampleGrayImages -dDownsampleMonoImages \
-        -dColorImageDownsampleType=/Bicubic -dColorImageResolution=100        \
-        -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=100          \
-        -sOutputFile=output.pdf dist-add/asp_book.pdf
-    if [ "$?" -ne 0 ]; then
-        echo "Could not reduce the size of the documentation"
-        overallStatus="Fail"
-    fi
-    mv -fv output.pdf dist-add/asp_book.pdf
-fi
+# Turn off this optimization. It is pretty fragile, and works with
+# just a few versions of gs. The images have been downsized automatically
+# that this is not needed so much anymore.
+# if [ "$resumeRun" -eq 0 ]; then
+#     gs -dUseCIEColor -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer          \
+#         -dEmbedAllFonts=true -dSubsetFonts=true -dMaxSubsetPct=100            \
+#         -sDEVICE=pdfwrite -dNOPAUSE -dQUIET -dBATCH                           \
+#         -dDownsampleColorImages -dDownsampleGrayImages -dDownsampleMonoImages \
+#         -dColorImageDownsampleType=/Bicubic -dColorImageResolution=100        \
+#         -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=100          \
+#         -sOutputFile=output.pdf dist-add/asp_book.pdf
+#     if [ "$?" -ne 0 ]; then
+#         echo "Could not reduce the size of the documentation"
+#         overallStatus="Fail"
+#     fi
+#     mv -fv output.pdf dist-add/asp_book.pdf
+# fi
 
 # Get the ASP version. Hopefully some machine has it.
 version=""
