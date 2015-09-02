@@ -681,14 +681,14 @@ def write_vw_config(prefix, installdir, arch, config_file):
     # Enable
     enable_features = 'debug optimize rpath as_needed no_undefined'.split()
     enable_pkgs = ('jpeg png geotiff gdal proj4 z ilmbase openexr boost flapack ' +
-                  'protobuf flann qt arbitrary_qt').split()
+                  'protobuf flann').split()
     enable_modules  = ('camera mosaic interestpoint cartography hdr stereo ' +
-                       'geometry tools bundleadjustment gui').split()
+                       'geometry tools bundleadjustment').split()
 
     # Disable
     disable_features = 'pkg_paths_default static qt-qmake'.split()
     disable_pkgs = ('tiff hdr cairomm tcmalloc x11 clapack slapack opencv ' +
-                    'cg zeromq rabbitmq_c qt_qmake apple_qmake_qt '         +
+                    'cg zeromq rabbitmq_c qt arbitrary_qt qt_qmake apple_qmake_qt ' +
                     'linux_qmake_qt guess_qt').split()
     disable_modules = 'gpu plate python'.split()
 
@@ -728,7 +728,8 @@ def write_vw_config(prefix, installdir, arch, config_file):
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
         print('', file=config) # newline
 
-        print_qt_config(cppflags, config, bindir, includedir, libdir)
+        # Qt is disabled in VW
+        #print_qt_config(cppflags, config, bindir, includedir, libdir)
 
         # Specify executables we use
         print('PROTOC=%s' % (P.join(bindir, 'protoc')),file=config)
@@ -750,7 +751,7 @@ class Apps:
 
     disable_apps = \
                  'demprofile plateorthoproject results \
-                 rmax2cahvor rmaxadjust stereogui'
+                 rmax2cahvor rmaxadjust'
     enable_apps = \
                 'bundle_adjust bundlevis datum_convert dem_geoid dem_mosaic disparitydebug \
                 geodiff hsvmerge lronacjitreg mapproject mer2camera orbitviz \
