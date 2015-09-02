@@ -31,7 +31,6 @@ buildMachines="andey $virtualMachines"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
-timestamp=$(date +%Y-%m-%d)
 sleepTime=30
 localMode=0 # Run local copy of the code. Must not happen in production.
 if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
@@ -285,6 +284,7 @@ statusMasterFile="status_master.txt"
 rm -f $statusMasterFile
 echo "Machine and status" >> $statusMasterFile
 count=0
+timestamp=$(date +%Y-%m-%d)
 for buildMachine in $buildMachines; do
 
     # Check the status
