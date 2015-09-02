@@ -22,7 +22,7 @@ for tag in $tags; do
   for f in $(ls *$version*$timestamp*$tag*bz2 2>/dev/null); do
       size="$(ls -sh $f | awk '{print $1}')B"
       if [ "$(echo $f | grep -i OSX)" != "" ]; then
-          echo "<li><a href=\"$f\">Mac OS X 10.6+</a> ($size)</li>" >> $index
+          echo "<li><a href=\"$f\">Mac OS X 10.8+</a> ($size)</li>" >> $index
       fi
       if [ "$(echo $f | grep -i x86_64-Linux)" != "" ]; then
           echo "<li><a href=\"$f\">Linux-64bit</a> ($size)</li>" >> $index
@@ -51,4 +51,3 @@ Contact: stereo-pipeline-owner [at] lists [dot] nasa [dot] gov<br>
 </body>
 </hml>
 ' >> $index
-
