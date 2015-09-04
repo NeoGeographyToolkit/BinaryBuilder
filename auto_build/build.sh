@@ -64,7 +64,9 @@ env
 # whose checksum changed will get built.
 echo "Building changed packages"
 ./build.py
-if [ "$?" -ne 0 ]; then
+status="$?"
+echo "Build status is $status"
+if [ "$status" -ne 0 ]; then
     ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
         2>/dev/null
     exit 1

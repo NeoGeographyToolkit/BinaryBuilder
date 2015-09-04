@@ -498,6 +498,10 @@ class stereopipeline(GITPackage):
         super(stereopipeline, self).compile(cwd)
         # Run unit tests. If the ISIS env vars are not set,
         # the ISIS-related tests will be skipped.
+        # Make install must happen before 'make check',
+        # otherwise the old installed library is linked.
+        cmd = ('make', 'install')
+        self.helper(*cmd)
         cmd = ('make', 'check')
         self.helper(*cmd)
 
@@ -523,6 +527,10 @@ class visionworkbench(GITPackage):
     def compile(self, cwd=None):
         super(visionworkbench, self).compile(cwd)
         # Run unit tests
+        # Make install must happen before 'make check',
+        # otherwise the old installed library is linked.
+        cmd = ('make', 'install')
+        self.helper(*cmd)
         cmd = ('make', 'check')
         self.helper(*cmd)
 
