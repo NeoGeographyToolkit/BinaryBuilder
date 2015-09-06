@@ -475,6 +475,9 @@ class isis(Package):
 class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
+
+        if self.fast: return # skip configuring in fast mode
+
         self.helper('./autogen')
 
         use_env_flags = True
@@ -502,8 +505,11 @@ class stereopipeline(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        cmd = ('make', 'check')
-        self.helper(*cmd)
+        if self.fast:
+            print("Skipping tests in fast mode")
+        else:
+            cmd = ('make', 'check')
+            self.helper(*cmd)
 
 class visionworkbench(GITPackage):
     src     = 'https://github.com/visionworkbench/visionworkbench.git'
@@ -513,6 +519,9 @@ class visionworkbench(GITPackage):
 
     @stage
     def configure(self):
+
+        if self.fast: return # skip configuring in fast mode
+
         self.helper('./autogen')
 
         arch         = self.arch
@@ -531,8 +540,11 @@ class visionworkbench(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        cmd = ('make', 'check')
-        self.helper(*cmd)
+        if self.fast:
+            print("Skipping tests in fast mode")
+        else:
+            cmd = ('make', 'check')
+            self.helper(*cmd)
 
 class lapack(CMakePackage):
     src     = 'http://www.netlib.org/lapack/lapack-3.5.0.tgz'

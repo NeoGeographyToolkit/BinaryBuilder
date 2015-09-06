@@ -477,9 +477,13 @@ class Package(object):
 
 class GITPackage(Package):
     commit = None
+    fast = False
     def __init__(self, env):
         super(GITPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'git', self.pkgname)
+
+        if 'FAST' in env and int(env['FAST']) != 0:
+            self.fast = True
 
         if self.commit is None:
             # If the user did not specify which commit to fetch,
@@ -514,10 +518,13 @@ class GITPackage(Package):
     @stage
     def unpack(self):
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
-        self.remove_build(output_dir)
         self.workdir = P.join(output_dir, self.pkgname + '-git')
-        os.mkdir(self.workdir)
-        self.helper('git', 'clone', self.localcopy, self.workdir)
+        # If fast, update and build in existing directory
+        if not self.fast:
+            self.remove_build(output_dir)
+            os.mkdir(self.workdir)
+            self.helper('git', 'clone', self.localcopy, self.workdir)
+
         # Checkout a specific commit
         if self.commit is not None:
             cmd = ('git', 'checkout', self.commit)

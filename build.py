@@ -149,6 +149,7 @@ if __name__ == '__main__':
     parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
     parser.add_option('--threads',    type='int',           dest='threads',      default=get_cores(),     help='Build threads to use')
+    parser.add_option('--fast',                             action='store_true', dest='fast',      default=False,           help='For any git package, update and build in existing directory rather than stating from scratch (may fail)')
     parser.add_option('--add-ld-library-path',              dest='ld_library_path', default=None,          help='This is a hack for the supercomputer that uses libstdc++ in a non-standard location. Please don\'t use this option unless you truly needed. This has the ability to corrupt our builds if you put /usr/lib or /lib as an argument.')
 
     global opt
@@ -205,7 +206,9 @@ if __name__ == '__main__':
         INSTALL_DIR  = P.join(opt.build_root, 'install'),
         MISC_DIR = P.join(opt.build_root, 'misc'),
         PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
-        PATH = os.environ['PATH'] )
+        PATH = os.environ['PATH'],
+        FAST = str(int(opt.fast))
+        )
 
     if opt.ld_library_path is not None:
         build_env['LD_LIBRARY_PATH'] = opt.ld_library_path
