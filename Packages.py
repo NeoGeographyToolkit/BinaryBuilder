@@ -1030,7 +1030,7 @@ class libnabo(GITPackage, CMakePackage):
     def configure(self):
         # Remove python bindings, tests, and examples
         self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
-        super(libnabo, self).configure(other=[
+        options = [
             '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
@@ -1038,7 +1038,16 @@ class libnabo(GITPackage, CMakePackage):
             '-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DSHARED_LIBS=ON'
-            ])
+            ]
+        # Bugfix for worng boost dir being found
+        if self.arch.os == 'linux':
+            installDir = self.env['INSTALL_DIR']
+            options += [
+                '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
+                '-DMY_BOOST_VERSION=' + boost.version,
+                '-DMY_BOOST_DIR=' + installDir
+                ]        
+        super(libnabo, self).configure(other=options)
 
 class libpointmatcher(GITPackage, CMakePackage):
     # We are fetching a hacked version of this from GitHub. Need to upgdate
@@ -1097,9 +1106,43 @@ class opencv(CMakePackage):
         # error: expected unqualified-id before '^' token".
         if self.arch.os == 'osx':
             self.env['CXX'] = 'c++'
-            self.env['CC'] = 'cc'
+            self.env['CC' ] = 'cc'
 
     def configure(self):
         # Help OpenCV finds the libraries it needs to link to
+        # - Turn off a lot of OpenCV 3rd party stuff we don't need to cut down on the size.
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -ltiff -lpng' % self.env
-        super(opencv, self).configure( other=['-DBUILD_opencv_apps=OFF'] )
+        super(opencv, self).configure( other=['-DBUILD_opencv_apps=OFF',
+                                              '-DBUILD_opencv_gpu=OFF',
+                                              '-DBUILD_opencv_video=OFF',
+                                              '-DBUILD_opencv_ts=OFF',
+                                              '-DBUILD_opencv_videostab=OFF',
+                                              '-DBUILD_opencv_java=OFF',
+                                              '-DBUILD_opencv_python=OFF',
+                                              '-DBUILD_opencv_legacy=OFF',
+                                              '-DBUILD_opencv_highgui=OFF',
+                                              # There is useful stuff (SIFT, SURF) in nonfree but they are patented
+                                              '-DBUILD_opencv_nonfree=OFF', 
+                                              '-DWITH_FFMPEG=OFF', 
+                                              '-DWITH_DSHOW=OFF', 
+                                              '-DWITH_GSTREAMER=OFF',
+                                              '-DBUILD_ANDROID_EXAMPLES=OFF',
+                                              '-DBUILD_DOCS=OFF',
+                                              '-DBUILD_TESTS=OFF',
+                                              '-DBUILD_PERF_TESTS=OFF',
+                                              '-DBUILD_EXAMPLES=OFF',
+                                              '-DBUILD_WITH_DEBUG_INFO=OFF',
+                                              '-DWITH_JASPER=OFF',
+                                              '-DWITH_JPEG=OFF',
+                                              '-DWITH_PNG=OFF',
+                                              '-DWITH_QT=OFF',
+                                              '-DWITH_TIFF=OFF',
+                                              '-DWITH_OPENEXR=OFF',
+                                              '-DWITH_IMAGEIO=OFF',
+                                              '-DWITH_OPENGL=OFF'] )
+
+
+
+
+
+
