@@ -693,7 +693,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
                        'geometry tools bundleadjustment').split()
 
     # Disable
-    disable_features = 'pkg_paths_default static qt-qmake'.split()
+    disable_features = 'pkg_paths_default static qt_qmake'.split()
     disable_pkgs = ('tiff hdr cairomm tcmalloc x11 clapack slapack opencv ' +
                     'cg zeromq rabbitmq_c qt arbitrary_qt qt_qmake apple_qmake_qt ' +
                     'linux_qmake_qt guess_qt').split()
