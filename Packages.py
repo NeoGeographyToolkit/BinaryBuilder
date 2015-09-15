@@ -1025,7 +1025,7 @@ class ceres(CMakePackage):
 class libnabo(GITPackage, CMakePackage):
     src = 'https://github.com/ethz-asl/libnabo.git'
     patches = 'patches/libnabo'
-    commit = '4cda228'
+    commit = '2df86e0'
 
     def configure(self):
         # Remove python bindings, tests, and examples
@@ -1039,21 +1039,22 @@ class libnabo(GITPackage, CMakePackage):
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DSHARED_LIBS=ON'
             ]
-        # Bugfix for worng boost dir being found
+        # Bugfix for wrong boost dir being found
         if self.arch.os == 'linux':
             installDir = self.env['INSTALL_DIR']
             options += [
                 '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
                 '-DMY_BOOST_VERSION=' + boost.version,
                 '-DMY_BOOST_DIR=' + installDir
-                ]        
+                ]
         super(libnabo, self).configure(other=options)
 
 class libpointmatcher(GITPackage, CMakePackage):
-    # We are fetching a hacked version of this from GitHub. Need to upgdate
-    # at some point to the master version.
-    src   = 'https://github.com/oleg-alexandrov/libpointmatcher'
-    chksum = '0e8e2a8'
+    src   = 'https://github.com/ethz-asl/libpointmatcher'
+    chksum = 'c257fe2'
+    # We apply a non-trivial patch to libpointmatcher to make
+    # it a bit more efficient. These changes seem to be custom
+    # enough that would not make sense to be merged upstream.
     patches = 'patches/libpointmatcher'
 
     def configure(self):
@@ -1122,9 +1123,9 @@ class opencv(CMakePackage):
                                               '-DBUILD_opencv_legacy=OFF',
                                               '-DBUILD_opencv_highgui=OFF',
                                               # There is useful stuff (SIFT, SURF) in nonfree but they are patented
-                                              '-DBUILD_opencv_nonfree=OFF', 
-                                              '-DWITH_FFMPEG=OFF', 
-                                              '-DWITH_DSHOW=OFF', 
+                                              '-DBUILD_opencv_nonfree=OFF',
+                                              '-DWITH_FFMPEG=OFF',
+                                              '-DWITH_DSHOW=OFF',
                                               '-DWITH_GSTREAMER=OFF',
                                               '-DBUILD_ANDROID_EXAMPLES=OFF',
                                               '-DBUILD_DOCS=OFF',
@@ -1140,9 +1141,3 @@ class opencv(CMakePackage):
                                               '-DWITH_OPENEXR=OFF',
                                               '-DWITH_IMAGEIO=OFF',
                                               '-DWITH_OPENGL=OFF'] )
-
-
-
-
-
-
