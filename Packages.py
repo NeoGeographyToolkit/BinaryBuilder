@@ -1059,12 +1059,22 @@ class libpointmatcher(GITPackage, CMakePackage):
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']
-        boost_include = P.join(installDir,'include','boost-'+boost.version)
-        self.env['CXXFLAGS'] += ' -I="' + boost_include + '"' # bugfix for lunokhod2
+
+        # Ensure we use the header files from the just fetched code,
+        # rather than its older version in the install dir.
+        curr_include = '-I' + self.workdir + '/pointmatcher'
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+
+        # bugfix for lunokhod2
+        boost_dir = P.join(installDir,'include','boost-'+boost.version)
+        self.env['CXXFLAGS'] += ' -I' + boost_dir
+
+        # Use OpenMP to speed up a bit the calculation.
+        self.env['CPPFLAGS'] += ' -fopenmp'
 
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_include,
-            '-DBoost_INCLUDE_DIR=' + boost_include,
+            '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_dir,
+            '-DBoost_INCLUDE_DIR=' + boost_dir,
             '-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
             '-DEIGEN_INCLUDE_DIR=' + P.join(installDir,'include/eigen3'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
