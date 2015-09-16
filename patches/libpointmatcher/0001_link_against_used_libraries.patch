@@ -58,6 +58,25 @@ index 43b7210..7da1326 100644
  				( "knn", "determined how many points are used to compute the normals. Direct link with the rapidity of the computation (large = fast). Technically, limit over which a box is splitted in two", "7", "3", "2147483647", &P::Comp<unsigned> )
  				( "samplingMethod", "if set to 0, random subsampling using the parameter ratio. If set to 1, bin subsampling with the resulting number of points being 1/knn.", "0", "0", "1", &P::Comp<unsigned> )
  				( "maxBoxDim", "maximum length of a box above which the box is discarded", "inf" )
+diff --git pointmatcher/ErrorMinimizersImpl.cpp pointmatcher/ErrorMinimizersImpl.cpp
+index 4e3aef1..feff9bf 100644
+--- libpointmatcher/pointmatcher/ErrorMinimizersImpl.cpp
++++ libpointmatcher/pointmatcher/ErrorMinimizersImpl.cpp
+@@ -241,6 +241,14 @@ typename PointMatcher<T>::TransformationParameters ErrorMinimizersImpl<T>::Point
+ 		std::cerr << "d angles" << x(0) - roll << ", " << x(1) - pitch << "," << x(2) - yaw << std::endl;*/
+ 		transform.translation() = x.segment(3, 3);
+ 		mOut = transform.matrix();
++
++		if (mOut != mOut) 
++		{
++			// Degenerate situation. This can happen when the source and reading clouds
++			// are identical, and then b and x above are 0, and the rotation matrix cannot
++			// be determined, it comes out full of NaNs. The correct transform is the identity.
++			mOut = Matrix::Identity(dim, dim);
++		}	
+ 	}
+ 	else
+ 	{
 diff --git pointmatcher/ICP.cpp pointmatcher/ICP.cpp
 index 285e460..b09bc97 100644
 --- libpointmatcher/pointmatcher/ICP.cpp
