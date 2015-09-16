@@ -1064,6 +1064,8 @@ class libpointmatcher(GITPackage, CMakePackage):
         # rather than its older version in the install dir.
         curr_include = '-I' + self.workdir + '/pointmatcher'
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+        curr_include = '-I' + self.workdir
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
         # bugfix for lunokhod2
         boost_dir = P.join(installDir,'include','boost-'+boost.version)
