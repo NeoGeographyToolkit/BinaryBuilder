@@ -78,10 +78,10 @@ index 4e3aef1..feff9bf 100644
  	else
  	{
 diff --git pointmatcher/ICP.cpp pointmatcher/ICP.cpp
-index 285e460..b09bc97 100644
+index 285e460..9312537 100644
 --- libpointmatcher/pointmatcher/ICP.cpp
 +++ libpointmatcher/pointmatcher/ICP.cpp
-@@ -81,7 +81,7 @@ void PointMatcher<T>::ICPChainBase::cleanup()
+@@ -81,18 +81,96 @@ void PointMatcher<T>::ICPChainBase::cleanup()
  	readingDataPointsFilters.clear();
  	readingStepDataPointsFilters.clear();
  	referenceDataPointsFilters.clear();
@@ -90,10 +90,17 @@ index 285e460..b09bc97 100644
  	outlierFilters.clear();
  	errorMinimizer.reset();
  	transformationCheckers.clear();
-@@ -94,6 +94,82 @@ void PointMatcher<T>::ICPChainBase::loadAdditionalYAMLContent(YAML::Node& doc)
- {
+ 	inspector.reset();
  }
  
++#if 0
+ //! Hook to load addition subclass-specific content from the YAML file
+ template<typename T>
+ void PointMatcher<T>::ICPChainBase::loadAdditionalYAMLContent(YAML::Node& doc)
+ {
+ }
++#endif
++
 +template<typename T>
 +void PointMatcher<T>::ICPChainBase::initRefTree // new oleg
 +(DataPoints& reference, std::string alignment_method,
@@ -169,11 +176,10 @@ index 285e460..b09bc97 100644
 +    logger.reset(new FileLogger());
 +}
 +
-+
+ 
  //! Construct an ICP algorithm that works in most of the cases
  template<typename T>
- void PointMatcher<T>::ICPChainBase::setDefault()
-@@ -111,6 +187,60 @@ void PointMatcher<T>::ICPChainBase::setDefault()
+@@ -111,6 +189,60 @@ void PointMatcher<T>::ICPChainBase::setDefault()
  	this->inspector.reset(new typename InspectorsImpl<T>::NullInspector);
  }
  
@@ -234,7 +240,7 @@ index 285e460..b09bc97 100644
  //! Construct an ICP algorithm from a YAML file
  template<typename T>
  void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
-@@ -138,7 +268,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
+@@ -138,7 +270,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
  	usedModuleTypes.insert(createModulesFromRegistrar("referenceDataPointsFilters", doc, pm.REG(DataPointsFilter), referenceDataPointsFilters));
  	//usedModuleTypes.insert(createModulesFromRegistrar("transformations", doc, pm.REG(Transformation), transformations));
  	this->transformations.push_back(new typename TransformationsImpl<T>::RigidTransformation());
@@ -243,7 +249,7 @@ index 285e460..b09bc97 100644
  	usedModuleTypes.insert(createModulesFromRegistrar("outlierFilters", doc, pm.REG(OutlierFilter), outlierFilters));
  	usedModuleTypes.insert(createModuleFromRegistrar("errorMinimizer", doc, pm.REG(ErrorMinimizer), errorMinimizer));
  	usedModuleTypes.insert(createModulesFromRegistrar("transformationCheckers", doc, pm.REG(TransformationChecker), transformationCheckers));
-@@ -153,7 +283,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
+@@ -153,7 +285,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
  	{
  		string moduleType;
  		moduleTypeIt.first() >> moduleType;
@@ -252,7 +258,7 @@ index 285e460..b09bc97 100644
  			throw InvalidModuleType(
  				(boost::format("Module type %1% does not exist") % moduleType).str()
  			);
-@@ -220,7 +350,7 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::operato
+@@ -220,7 +352,7 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::operato
  {
  	const int dim = readingIn.features.rows();
  	const TransformationParameters identity = TransformationParameters::Identity(dim, dim);
@@ -261,7 +267,7 @@ index 285e460..b09bc97 100644
  }
  
  //! Perform ICP from initial guess and return optimised transformation matrix
-@@ -228,9 +358,11 @@ template<typename T>
+@@ -228,9 +360,11 @@ template<typename T>
  typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::operator ()(
  	const DataPoints& readingIn,
  	const DataPoints& referenceIn,
@@ -275,7 +281,7 @@ index 285e460..b09bc97 100644
  }
  
  //! Perform ICP from initial guess and return optimised transformation matrix
-@@ -238,7 +370,7 @@ template<typename T>
+@@ -238,7 +372,7 @@ template<typename T>
  typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute(
  	const DataPoints& readingIn,
  	const DataPoints& referenceIn,
@@ -284,7 +290,7 @@ index 285e460..b09bc97 100644
  {
  	// Ensuring minimum definition of components
  	if (!this->matcher)
-@@ -255,43 +387,45 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
+@@ -255,43 +389,45 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
  	
  	// Apply reference filters
  	// reference is express in frame <refIn>
@@ -351,7 +357,7 @@ index 285e460..b09bc97 100644
  {
  	timer t; // Print how long take the algo
  	
-@@ -384,7 +518,48 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
+@@ -384,7 +520,48 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
  	
  		++iterationCount;
  	}
@@ -401,7 +407,7 @@ index 285e460..b09bc97 100644
  	this->inspector->addStat("IterationsCount", iterationCount);
  	this->inspector->addStat("PointCountTouched", this->matcher->getVisitCount());
  	this->matcher->resetVisitCount();
-@@ -530,8 +705,8 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICPSequence:
+@@ -530,8 +707,8 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICPSequence:
  	this->referenceDataPointsFilters.apply(reference);
  	
  	this->matcher->init(reference);
@@ -413,7 +419,7 @@ index 285e460..b09bc97 100644
  
  template struct PointMatcher<float>::ICPSequence;
 diff --git pointmatcher/PointMatcher.h pointmatcher/PointMatcher.h
-index f203505..f2a539d 100644
+index f203505..2f04c97 100644
 --- libpointmatcher/pointmatcher/PointMatcher.h
 +++ libpointmatcher/pointmatcher/PointMatcher.h
 @@ -594,8 +594,22 @@ struct PointMatcher
@@ -441,6 +447,15 @@ index f203505..f2a539d 100644
  		void loadFromYaml(std::istream& in);
  		unsigned getPrefilteredReadingPtsCount() const;
  		unsigned getPrefilteredReferencePtsCount() const;
+@@ -608,7 +622,7 @@ struct PointMatcher
+ 		
+ 		void cleanup();
+ 		
+-        virtual void loadAdditionalYAMLContent(PointMatcherSupport::YAML::Node& doc);
++        //virtual void loadAdditionalYAMLContent(PointMatcherSupport::YAML::Node& doc);
+ 		
+ 		template<typename R>
+         const std::string& createModulesFromRegistrar(const std::string& regName, const PointMatcherSupport::YAML::Node& doc, const R& registrar, PointMatcherSupport::SharedPtrVector<typename R::TargetType>& modules);
 @@ -630,20 +644,19 @@ struct PointMatcher
  		TransformationParameters operator()(
  			const DataPoints& readingIn,
