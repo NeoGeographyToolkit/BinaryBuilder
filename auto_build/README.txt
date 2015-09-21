@@ -8,13 +8,11 @@ https://byss.arc.nasa.gov/stereopipeline/daily_build
 Machines:
 lunokhod1:    Master machine on which the framework starts
 centos-64-5:  Linux, 64 bit
-centos-32-5:  Linux, 32 bit
 andey:        Mac OS X 10.8
 amos:         Mac OS X 10.9
 byss:         The machine storing the obtained builds
 
-The hosts centos-64-5 and centos-32-5 are virtual machines on
-lunokhod1.
+The host centos-64-5 is a virtual machine on lunokhod1.
 
 ssh must be configured so that ssh connections from each machine to
 lunokhod1 and back, and to itself (both using its name and using
@@ -25,10 +23,9 @@ The main script is auto_build/launch_master.sh. It gets started on
 lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on the following machines: centos-64-5, centos-32-5,
-and andey. Each build is being tested on the same machine. In addition,
-the centos-64-5 build is also tested on lunokhod1, while the andey
-build is also tested on amos.
+Builds are done on centos-64-5 and andey. Each build is being tested
+on the same machine. In addition, the centos-64-5 build is also tested
+on lunokhod1, while the andey build is also tested on amos.
 
 The test process on lunokhod1 is the strictest, it will fail if any
 obtained results differ from the reference. The tests on other
@@ -38,10 +35,10 @@ architecture being different, etc.), and those tests are allowed to
 deviate somewhat from the reference results for lunokhod1.
 
 The obtained builds include the latest pdf documentation, generated on
-centos-64-5 (as other machines lack LaTeX). The builds are renamed
-according to the release convention, and copied to byss at
-/byss/docroot/stereopipeline/daily_build (the internal location of the
-public link from above).
+lunokhod1 (as other machines lack LaTeX), and later copied to each
+build. The builds are renamed according to the release convention, and
+copied to byss at /byss/docroot/stereopipeline/daily_build (the
+internal location of the public link from above).
 
 Each time the automated builds are started, a fresh copy is fetched
 not only of VisionWorkbench and StereoPipeline, but also of
@@ -50,5 +47,6 @@ must be up-to-date before the builds happen.
 
 We assume that all machines have the needed supporting executables,
 such as compilers, Python, git, etc. The complete list of needed
-software is in StereoPipeline/INSTALLGUIDE.
-
+software is in StereoPipeline/INSTALLGUIDE. The paths to these tools
+is set via set_system_paths() in utils.sh, in case they are not in a
+standard location.
