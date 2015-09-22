@@ -1051,7 +1051,7 @@ class libnabo(GITPackage, CMakePackage):
 
 class libpointmatcher(GITPackage, CMakePackage):
     src   = 'https://github.com/ethz-asl/libpointmatcher'
-    chksum = 'c257fe2'
+    commit = 'c257fe2'
     # We apply a non-trivial patch to libpointmatcher to make
     # it a bit more efficient. These changes seem to be custom
     # enough that would not make sense to be merged upstream.
