@@ -1135,9 +1135,9 @@ class opencv(CMakePackage):
                                               '-DBUILD_opencv_legacy=OFF',
                                               '-DBUILD_opencv_highgui=OFF',
                                               # There is useful stuff (SIFT, SURF) in nonfree but they are patented
-                                              '-DBUILD_opencv_nonfree=OFF',
-                                              '-DWITH_FFMPEG=OFF',
-                                              '-DWITH_DSHOW=OFF',
+                                              '-DBUILD_opencv_nonfree=ON', 
+                                              '-DWITH_FFMPEG=OFF', 
+                                              '-DWITH_DSHOW=OFF', 
                                               '-DWITH_GSTREAMER=OFF',
                                               '-DBUILD_ANDROID_EXAMPLES=OFF',
                                               '-DBUILD_DOCS=OFF',
