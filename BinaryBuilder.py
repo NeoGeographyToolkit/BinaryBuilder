@@ -476,7 +476,11 @@ class Package(object):
         os.makedirs(output_dir)
 
 class GITPackage(Package):
-    commit = None
+    # A git package does not have a checksum. Here we interpret
+    # this variable as the commit id. This is a bit confusing.
+    # The goal here is to not re-build a git package if
+    # we already built it with given commit id.
+    chksum = None
     fast = False
     def __init__(self, env):
         super(GITPackage, self).__init__(env)
@@ -485,21 +489,14 @@ class GITPackage(Package):
         if 'FAST' in env and int(env['FAST']) != 0:
             self.fast = True
 
-        if self.commit is None:
+        if self.chksum is None:
             # If the user did not specify which commit to fetch,
             # we'll fetch the latest. Store its commit hash.
             for line in self.helper('git', 'ls-remote', '--heads', self.src,
                                     stdout=subprocess.PIPE)[0].split('\n'):
                 tokens = line.split()
                 if len(tokens) > 1 and tokens[1] == 'refs/heads/master':
-                    self.commit = tokens[0]
-
-        # For git packages we don't have a chksum as we do for
-        # tarballs.  We will use instead the commit hash. This helps
-        # during building in deciding if the current version of the
-        # software was built already.
-        if self.chksum is None:
-            self.chksum = self.commit
+                    self.chksum = tokens[0]
 
     def _git(self, *args):
         cmd = ['git', '--git-dir', self.localcopy]
@@ -526,8 +523,8 @@ class GITPackage(Package):
             self.helper('git', 'clone', self.localcopy, self.workdir)
 
         # Checkout a specific commit
-        if self.commit is not None:
-            cmd = ('git', 'checkout', self.commit)
+        if self.chksum is not None:
+            cmd = ('git', 'checkout', self.chksum)
             self.helper(*cmd, cwd=self.workdir)
         self._apply_patches()
 

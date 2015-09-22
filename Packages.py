@@ -1025,7 +1025,7 @@ class ceres(CMakePackage):
 class libnabo(GITPackage, CMakePackage):
     src = 'https://github.com/ethz-asl/libnabo.git'
     patches = 'patches/libnabo'
-    commit = '2df86e0'
+    chksum = '2df86e0'
 
     def configure(self):
         # Remove python bindings, tests, and examples
@@ -1051,7 +1051,7 @@ class libnabo(GITPackage, CMakePackage):
 
 class libpointmatcher(GITPackage, CMakePackage):
     src   = 'https://github.com/ethz-asl/libpointmatcher'
-    commit = 'c257fe2'
+    chksum = 'c257fe2'
     # We apply a non-trivial patch to libpointmatcher to make
     # it a bit more efficient. These changes seem to be custom
     # enough that would not make sense to be merged upstream.
@@ -1135,9 +1135,9 @@ class opencv(CMakePackage):
                                               '-DBUILD_opencv_legacy=OFF',
                                               '-DBUILD_opencv_highgui=OFF',
                                               # There is useful stuff (SIFT, SURF) in nonfree but they are patented
-                                              '-DBUILD_opencv_nonfree=ON', 
-                                              '-DWITH_FFMPEG=OFF', 
-                                              '-DWITH_DSHOW=OFF', 
+                                              '-DBUILD_opencv_nonfree=OFF',
+                                              '-DWITH_FFMPEG=OFF',
+                                              '-DWITH_DSHOW=OFF',
                                               '-DWITH_GSTREAMER=OFF',
                                               '-DBUILD_ANDROID_EXAMPLES=OFF',
                                               '-DBUILD_DOCS=OFF',
