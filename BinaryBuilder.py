@@ -685,13 +685,13 @@ def write_vw_config(prefix, installdir, arch, config_file):
     # Enable
     enable_features = 'debug optimize rpath as_needed no_undefined'.split()
     enable_pkgs = ('jpeg png geotiff gdal proj4 z ilmbase openexr boost flapack ' +
-                  'protobuf flann').split()
+                  'protobuf flann opencv').split()
     enable_modules  = ('camera mosaic interestpoint cartography hdr stereo ' +
                        'geometry tools bundleadjustment').split()
 
     # Disable
     disable_features = 'pkg_paths_default static qt_qmake'.split()
-    disable_pkgs = ('tiff hdr cairomm tcmalloc x11 clapack slapack opencv ' +
+    disable_pkgs = ('tiff hdr cairomm tcmalloc x11 clapack slapack ' +
                     'cg zeromq rabbitmq_c qt arbitrary_qt qt_qmake apple_qmake_qt ' +
                     'linux_qmake_qt guess_qt').split()
     disable_modules = 'gpu plate python'.split()
