@@ -32,8 +32,8 @@ if [ ! -d "$buildDir" ]; then
 fi
 cd $buildDir
 
-. $HOME/$buildDir/auto_build/utils.sh # load utilities
-set_system_paths
+# Set path and load utilities
+. $HOME/$buildDir/auto_build/utils.sh
 
 # These are needed primarily for pfe
 ulimit -s unlimited 2>/dev/null

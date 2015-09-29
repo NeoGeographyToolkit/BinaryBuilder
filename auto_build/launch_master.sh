@@ -45,7 +45,8 @@ mkdir -p $buildDir
 cd $buildDir
 echo "Work directory: $(pwd)"
 
-. $HOME/$buildDir/auto_build/utils.sh # load utilities
+# Set system paths and load utilities
+source $HOME/$buildDir/auto_build/utils.sh
 
 # Unless running in local mode for test purposes, fetch from github
 # the latest version of BinaryBuilder, including this very script.
@@ -80,7 +81,6 @@ if [ "$currMachine" != "$masterMachine" ]; then
     exit 1
 fi
 
-set_system_paths
 start_vrts $virtualMachines
 mkdir -p asp_tarballs
 

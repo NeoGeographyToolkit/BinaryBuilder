@@ -48,5 +48,6 @@ must be up-to-date before the builds happen.
 We assume that all machines have the needed supporting executables,
 such as compilers, Python, git, etc. The complete list of needed
 software is in StereoPipeline/INSTALLGUIDE. The paths to these tools
-is set via set_system_paths() in utils.sh, in case they are not in a
-standard location.
+is set via:
+
+ source auto_build/utils.sh

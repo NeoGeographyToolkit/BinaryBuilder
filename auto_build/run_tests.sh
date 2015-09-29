@@ -14,8 +14,8 @@ testDir=$3
 statusFile=$4
 masterMachine=$5
 
-. $HOME/$buildDir/auto_build/utils.sh # load utilities
-set_system_paths
+# Set system paths and load utilities
+source $HOME/$buildDir/auto_build/utils.sh
 
 status="Fail"
 
@@ -114,5 +114,3 @@ if [ "$failures" = "" ]; then
 fi
 ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
     2>/dev/null
-
-
