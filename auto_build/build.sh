@@ -33,7 +33,7 @@ fi
 cd $buildDir
 
 # Set path and load utilities
-. $HOME/$buildDir/auto_build/utils.sh
+source $HOME/$buildDir/auto_build/utils.sh
 
 # These are needed primarily for pfe
 ulimit -s unlimited 2>/dev/null
