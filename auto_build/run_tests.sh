@@ -63,6 +63,7 @@ if [ "$failure" -ne 0 ]; then
         2>/dev/null
     exit 1
 fi
+
 cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 
 # Set up the config file
@@ -78,9 +79,12 @@ fi
 perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFile
 
 # Run the tests. Let the verbose output go to a file.
-outputFile=output_test_"$machine".txt
-echo "Launching the tests. Output goes to: $(pwd)/$outputFile"
-bin/run_tests.pl $configFile > $outputFile 2>&1
+#outputFile=output_test_"$machine".txt
+echo "Launching the tests. Output goes to: $(pwd)/$reportFile"
+num_cpus=$(ncpus)
+if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
+#bin/run_tests.pl $configFile > $outputFile 2>&1
+py.test -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
 if [ "$?" -ne 0 ]; then
     ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\

@@ -35,6 +35,12 @@ function isis_file (){
     echo "auto_build/isis.sh"
 }
 
+function ncpus(){
+    ncpu=$(cat /proc/cpuinfo 2>/dev/null |grep processor |wc | awk '{print $1}')
+    if [ "$ncpu" = "0" ]; then ncpu=2; fi # For OSX
+    echo $ncpu
+}
+
 # To do: Make this consistent with the above, so
 # remove the buildDir from here
 function output_file () {
