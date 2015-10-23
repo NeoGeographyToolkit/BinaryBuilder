@@ -954,9 +954,9 @@ class osg3(CMakePackage):
             other=other_flags)
 
 
-class flann(CMakePackage):
-    src = 'http://people.cs.ubc.ca/~mariusm/uploads/FLANN/flann-1.8.4-src.zip'
-    chksum = 'e03d9d458757f70f6af1d330ff453e3621550a4f'
+class flann(GITPackage, CMakePackage):
+    src = 'https://github.com/mariusmuja/flann.git'
+    chksum = 'b8a442f'
 
     @stage
     def configure(self):
@@ -1108,6 +1108,7 @@ class binarybuilder(GITPackage):
 class opencv(CMakePackage):
     src     = 'https://github.com/Itseez/opencv/archive/2.4.11.tar.gz'
     chksum  = '310a8b0fdb9bf60c6346e9d073ed2409cd1e26b4'
+    patches = 'patches/opencv'
 
     def __init__(self, env):
         super(opencv, self).__init__(env)
@@ -1134,6 +1135,7 @@ class opencv(CMakePackage):
                                               '-DBUILD_opencv_python=OFF',
                                               '-DBUILD_opencv_legacy=OFF',
                                               '-DBUILD_opencv_highgui=OFF',
+                                              '-DBUILD_opencv_ocl=OFF',
                                               # There is useful stuff (SIFT, SURF) in nonfree but they are patented
                                               '-DBUILD_opencv_nonfree=ON',
                                               '-DWITH_FFMPEG=OFF',
@@ -1152,4 +1154,9 @@ class opencv(CMakePackage):
                                               '-DWITH_TIFF=OFF',
                                               '-DWITH_OPENEXR=OFF',
                                               '-DWITH_IMAGEIO=OFF',
-                                              '-DWITH_OPENGL=OFF'] )
+                                              '-DWITH_CUDA=OFF',
+                                              '-DWITH_OPENGL=OFF',
+                                              '-DHAVE_opencv_ocl=OFF',
+                                              '-DWITH_OPENCLAMDFFT=OFF',
+                                              '-DWITH_OPENCLAMDBLAS=OFF',
+                                              '-DWITH_OPENCL=OFF'] )

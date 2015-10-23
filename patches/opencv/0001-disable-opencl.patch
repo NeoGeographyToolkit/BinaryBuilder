@@ -1,0 +1,10 @@
+--- opencv-2.4.11/modules/nonfree/src/precomp.hpp	2015-10-20 17:24:06.147905368 -0700
++++ opencv-2.4.11/modules/nonfree/src/precomp_new.hpp	2015-10-20 17:23:56.192303333 -0700
+@@ -61,6 +61,7 @@
+     static inline void throw_nogpu() { CV_Error(CV_GpuNotSupported, "The library is compiled without GPU support"); }
+ #endif
+ 
++#undef HAVE_OPENCV_OCL // Why does this keep getting defined?
+ #ifdef HAVE_OPENCV_OCL
+ #  include "opencv2/nonfree/ocl.hpp"
+ #  include "opencv2/ocl/private/util.hpp"

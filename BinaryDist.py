@@ -11,14 +11,20 @@ from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
 from functools import partial, wraps
 
+''' Code for creating the downloadable binary distribution
+'''
+
+
 global logger
 logger = logging.getLogger()
 
 def is_binary(filename):
+    '''Use the linux "file" tool to deterimen if a given file is a binary file'''
     ret = run('file', filename, output=True)
     return (ret.find('ELF') != -1) or (ret.find('Mach-O') != -1)
 
 def doctest_on(os):
+    '''Set up a function wrapper with a warning __doc__ if the provided os does not match?'''
     def outer(f):
         @wraps(f)
         def inner(*args, **kw): return f(*args, **kw)
@@ -28,12 +34,14 @@ def doctest_on(os):
     return outer
 
 def default_baker(filename, distdir, searchpath):
-    if not is_binary(filename): return
+    '''Updates a files rpath to be relative to distdir and strips it of symbols'''
+    if not is_binary(filename): 
+        return
     set_rpath(filename, distdir, searchpath)
     strip(filename)
 
-# Find if a program is in the path
 def which(program):
+    '''Find if a program is in the PATH'''
     def is_exe(fpath):
         return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
 
@@ -51,13 +59,13 @@ def which(program):
     return None
 
 class DistManager(object):
-
+    '''Main class for creating a StereoPipeline binary distribution'''
     def __init__(self, tarname):
         self.tarname = tarname
         self.tempdir = mkdtemp(prefix='dist')
         self.distdir = Prefix(P.join(self.tempdir, self.tarname))
-        self.distlist = set()
-        self.deplist  = dict()
+        self.distlist = set()  # List of files to be distributed
+        self.deplist  = dict() # List of file dependencies
         mkdir_f(self.distdir)
 
     def remove_tempdir(self):
@@ -146,20 +154,26 @@ class DistManager(object):
         self.remove_deps(found)
 
     def create_file(self, relpath, mode='w'):
+        '''Create a new file in self.distdir and open it'''
         return file(self.distdir.base(relpath), mode)
 
     def bake(self, searchpath, baker = default_baker):
+        '''Updates all files' rpath to be relative to distdir and strips it of symbols.
+           Also cleans up some junk in self.distdir and sets file permissions.'''
         logger.debug('Baking list------------------------------------------')
         for filename in self.distlist:
             logger.debug('  %s' % filename)
         for filename in self.distlist:
             baker(filename, self.distdir, searchpath)
 
+        # Delete all hidden files from the self.distdir folder
         [remove(i) for i in run('find', self.distdir, '-name', '.*', '-print0').split('\0') if len(i) > 0 and i != '.' and i != '..']
+        # Enable read/execute on all files in libexec and bin
         [chmod(file, 0755) for file in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*'))]
 
     def make_tarball(self, include = (), exclude = (), name = None):
-        ''' exclude takes priority over include '''
+        '''Tar up all the files we have written to self.distdir. 
+           exclude takes priority over include '''
 
         if name is None: name = '%s.tar.bz2' % self.tarname
         if isinstance(include, basestring):
@@ -181,6 +195,7 @@ class DistManager(object):
         run(*cmd)
 
     def find_filter(self, *filter, **kw):
+        '''Call "find" with a filter argument and write results to an opened temporary file'''
         dir = kw.get('dir', self.tarname)
         cwd = kw.get('cwd', P.dirname(self.distdir))
         cmd = ['find', dir] + list(filter)
@@ -191,6 +206,7 @@ class DistManager(object):
         return files
 
     def _add_file(self, src, dst, hardlink=False, keep_symlink=True, add_deps=True):
+        '''Add a file to the list of distribution files'''
         dst = P.abspath(dst)
 
         assert not P.relpath(dst, self.distdir).startswith('..'), \
@@ -204,6 +220,7 @@ class DistManager(object):
             self.deplist.update(required_libs(dst))
 
 def copy(src, dst, hardlink=False, keep_symlink=True):
+    '''Copy a file to another location with a bunch of link handling'''
     assert not P.isdir(src), 'Source path must not be a dir'
     assert not P.isdir(dst), 'Destination path must not be a dir'
 
@@ -327,6 +344,7 @@ def required_libs(filename):
     return locals()[get_platform().os]()
 
 def grep(regex, filename):
+    '''Run a regular expression search inside a file'''
     ret = []
     rx = re.compile(regex)
     with file(filename, 'r') as f:
@@ -337,6 +355,7 @@ def grep(regex, filename):
     return ret
 
 class Prefix(str):
+    '''???'''
     def __new__(cls, directory):
         return str.__new__(cls, P.normpath(directory))
     def base(self, *args):
@@ -393,6 +412,7 @@ def mergetree(src, dst, copyfunc):
         raise shutil.Error, errors
 
 def strip(filename):
+    '''Discard all symbols from this object file with OS specific flags'''
     flags = None
 
     def linux():
@@ -408,12 +428,14 @@ def strip(filename):
     def osx():
         return ['-S']
 
+    # Get flags from one of the two functions above then run the strip command.
     flags = locals()[get_platform().os]()
     flags.append(filename)
     run('strip', *flags)
 
 
 def save_elf_debug(filename):
+    '''Copy the debug information from an ELF file'''
     debug = '%s.debug' % filename
     try:
         run('objcopy', '--only-keep-debug', filename, debug)
@@ -424,6 +446,8 @@ def save_elf_debug(filename):
             remove(debug)
 
 def set_rpath(filename, toplevel, searchpath, relative_name=True):
+    '''For each input file, set the rpath to contain all the input 
+       search paths to be relative to the top level.'''
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     def linux():
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
@@ -485,18 +509,19 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
                        raise_on_failure = False) is None:
                     logger.warn('Failed to add rpath on %s' % filename)
 
+    # Call one of the two functions above depending on the OS
     locals()[get_platform().os]()
 
 def snap_symlinks(src):
+    '''Build a list of chained symlink files until we reacha non-link file.'''
     assert not P.isdir(src), 'Cannot chase symlinks on a directory'
     if not P.islink(src):
         return [src]
     return [src] + snap_symlinks(P.join(P.dirname(src), readlink(src)))
 
 def fix_install_paths(installdir, arch):
-
-    # After unpacking a set of pre-built binaries, in given directory,
-    # fix any paths to point to the current directory.
+    ''' After unpacking a set of pre-built binaries, in given directory,
+        fix any paths to point to the current directory. '''
 
     print('Fixing paths in libtool control files, etc.')
     control_files = glob(P.join(installdir,'include','*config.h')) + \
@@ -509,6 +534,7 @@ def fix_install_paths(installdir, arch):
 
     for control in control_files:
 
+        # Skip folders and binaries
         if os.path.isdir(control): continue
         if is_binary(control): continue
 
@@ -518,7 +544,7 @@ def fix_install_paths(installdir, arch):
         st = os.stat(control)
         os.chmod(control, st.st_mode | stat.S_IREAD | stat.S_IWRITE)
 
-        # replace the temporary install directory with the one we're deploying to.
+        # replace the temporary install directory with the one we're deploying to. (Modify file in-place)
         lines = []
         with open(control,'r') as f:
             lines = f.readlines()
@@ -530,8 +556,7 @@ def fix_install_paths(installdir, arch):
     # Create libblas.la (out of existing libsuperlu.la). We need
     # libblas.la to force blas to show up before superlu when linking
     # on Linux to avoid a bug with corruption when invoking lapack in
-    # a multi-threaded environment.  A better long-term solution is
-    # needed.
+    # a multi-threaded environment.  A better long-term solution is needed.
     superlu_la = installdir + '/lib/libsuperlu.la'
     blas_la = installdir + '/lib/libblas.la'
     if arch.os == 'linux' and os.path.exists(superlu_la):

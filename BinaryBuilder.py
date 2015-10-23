@@ -86,6 +86,7 @@ def hash_file(filename):
         return sha1(f.read()).hexdigest()
 
 def run(*args, **kw):
+    '''Try to execute a command line command'''
     need_output      = kw.pop('output', False)
     raise_on_failure = kw.pop('raise_on_failure', True)
     want_stderr      = kw.pop('want_stderr', False)
@@ -116,6 +117,7 @@ except ImportError:
         return value
 
 def _message(*args, **kw):
+    '''Print a message color coded according to a severity flag'''
     severity = kw.get('severity', 'info')
     del kw['severity']
 
@@ -130,14 +132,20 @@ def _message(*args, **kw):
     else:
         raise Exception('Unknown severity')
 
+# Set up three output print functions with the color-coding built in.
 info  = partial(_message, severity='info')
 warn  = partial(_message, severity='warn')
 error = partial(_message, severity='error')
+
+
 def die(*args, **kw):
+    '''Quit, printing the provided error message.'''
     error(*args, **kw)
     sys.exit(kw.get('code', -1))
 
 def stage(f):
+    '''Wraps a function to provide some standard output formatting.
+       Only compatible with the Package class!'''
     @wraps(f)
     def wrapper(self, *args, **kw):
         stage = f.__name__
@@ -149,7 +157,9 @@ def stage(f):
     return wrapper
 
 class Environment(dict):
+    '''Dictionary object containing the required environment info'''
     def __init__(self, **kw):
+        '''Constructor requires several directory paths to be specified'''
         self.update(dict(
             HOME           = kw['BUILD_DIR'],
             DOWNLOAD_DIR   = kw['DOWNLOAD_DIR'],
@@ -164,6 +174,7 @@ class Environment(dict):
         self.create_dirs()
 
     def create_dirs(self):
+        '''Create all required directories'''
         for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR'):
             try:
                 os.makedirs(self[d])
@@ -172,23 +183,27 @@ class Environment(dict):
                     raise
 
     def copy_set_default(self, **kw):
-        e = Environment(**self)
+        '''Create a copy of this object with default values provided in case they are missing'''
+        e = Environment(**self) # Create copy of this object
         for k,v in kw.iteritems():
             if k not in e:
                 e[k] = v
         return e
 
     def append(self, key, value):
+        '''Safely append the value to a list of entries with the given key'''
         if key in self:
             self[key] += ' ' + value
         else:
             self[key] = value
 
     def append_many(self, key_seq, value):
+        '''Call append() with the same value for multiple keys.'''
         for k in key_seq:
             self.append(k, value)
 
 def unique_compiler_flags(iflags):
+    '''Prune duplicate flags from a list'''
     #This is used instead of a set to preserve flag order
 
     oflags = []
@@ -200,12 +215,16 @@ def unique_compiler_flags(iflags):
     return " ".join(oflags)
 
 def get(url, output=None):
+    '''Fetch a file from a url and write to "output"'''
+    # Provide a default output path
     if output is None:
         output = P.basename(urlparse(url).path)
         base = output
     else:
         base = P.basename(output)
 
+    # Read from the URL and write to the output file in blocks
+    BLOCK_SIZE = 16384
     with file(output, 'wb') as f:
         try:
             r = urllib2.urlopen(url)
@@ -215,25 +234,29 @@ def get(url, output=None):
         current = 0
         size = int(r.info().get('Content-Length', -1))
 
-        while True:
-            block = r.read(16384)
+        while True: # Download until we run out of data
+            block = r.read(BLOCK_SIZE)
             if not block:
-                break
+                break # Block read failed or completed
             current += len(block)
-            if size < 0:
+            if size < 0: # Unknown size
                 info('\rDownloading %s: %i kB' % (base, current/1024.), end='')
-            else:
+            else: # Known size
                 info('\rDownloading %s: %i / %i kB (%0.2f%%)' % (base, current/1024., size/1024., current*100./size), end='')
-            f.write(block)
+            f.write(block) # Write to disk
         info('\nDone')
 
 class Package(object):
+    '''Class to represent a single package that needs to be built.
+       This class assumes the code for the package is posted online as a compressed file
+       and it can be built with configure -> make -> make install.'''
     src     = None
     chksum  = None
     patches = []
     patch_level = None
 
     def __init__(self, env):
+        '''Construct with the environment info'''
         self.pkgname = self.__class__.__name__
 
         # Yes, it is possible to get a / into a class name.
@@ -259,8 +282,8 @@ class Package(object):
         # Remove repeated entries in CPPFLAGS, CXXFLAGS, LDFLAGS
         self.env['CPPFLAGS'] = unique_compiler_flags(self.env['CPPFLAGS'])
         self.env['CXXFLAGS'] = unique_compiler_flags(self.env['CXXFLAGS'])
-        self.env['CFLAGS']   = unique_compiler_flags(self.env['CFLAGS'])
-        self.env['LDFLAGS']  = unique_compiler_flags(self.env['LDFLAGS'])
+        self.env['CFLAGS'  ] = unique_compiler_flags(self.env['CFLAGS'  ])
+        self.env['LDFLAGS' ] = unique_compiler_flags(self.env['LDFLAGS' ])
 
     @stage
     def fetch(self, skip=False):
@@ -284,15 +307,16 @@ class Package(object):
 
             for src, chksum in zip(self.src, self.chksum):
 
+                # Get the tarball path and if we don't have it, download it from the url (src)
                 self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(src).path))
-
                 if not P.isfile(self.tarball):
                     if skip: raise PackageError(self, 'Fetch is skipped and no src available')
                     get(src, self.tarball)
 
+                # See if we got the expected checksum
                 curr_chksum = hash_file(self.tarball)
                 if curr_chksum != chksum:
-                    os.remove(self.tarball)
+                    os.remove(self.tarball) # Remove the bad tarball so we fetch it on the second pass
                 else:
                     is_good = True
 
@@ -307,10 +331,11 @@ class Package(object):
 
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
 
-        self.remove_build(output_dir)
+        self.remove_build(output_dir) # Throw out the old content
 
         ext = P.splitext(self.tarball)[-1]
 
+        # Call the appropriate tool to unpack the code into the build directory
         if ext == '.zip':
             self.helper('unzip', '-d', output_dir, self.tarball)
         elif ext.endswith('xz'):
@@ -321,7 +346,6 @@ class Package(object):
                 flags = 'z' + flags
             elif ext.endswith('bz2'):
                 flags = 'j' + flags
-
             self.helper('tar', flags, self.tarball, '-C',  output_dir)
 
         # If the user didn't provide a work directory define it as the
@@ -350,22 +374,25 @@ class Package(object):
     def configure(self, other=(), with_=(), without=(), enable=(), disable=(), configure='./configure'):
         '''After configure, the source code should be ready to build.'''
 
+        # Generate a list of "enable-X", "without-Y" etc strings according to the inputs
         args = list(other)
         for flag in 'enable', 'disable', 'with', 'without':
-            if flag == 'with':
+            # Set "value" equal to the corresponding input argument
+            if flag == 'with': # Could not use "with" as a variable name because it is a Python word.
                 value = locals()['with_']
             else:
                 value = locals()[flag]
 
             if isinstance(value, basestring):
                 args += ['--%s-%s' % (flag, value)]
-            else:
+            else: # Value is a list of strings
                 args += ['--%s-%s'  % (flag, feature) for feature in value]
 
         # Did they pass a prefix? If not, add one.
         if len([True for a in args if a[:9] == '--prefix=']) == 0:
             args.append('--prefix=%(INSTALL_DIR)s' % self.env)
 
+        # Call the package's configure script with the parsed arguments
         self.helper('./configure', *args)
 
     @stage
@@ -390,6 +417,7 @@ class Package(object):
 
     @staticmethod
     def build(pkg, skip_fetch=False):
+        '''Shortcut to call all steps for a package with no arguments'''
         # If it's a type, we instantiate it. Otherwise, we just use whatever it is.
         assert isinstance(pkg, Package)
         pkg.fetch(skip=skip_fetch)
@@ -406,6 +434,7 @@ class Package(object):
         if self.patches is None:
             return
         elif isinstance(self.patches, basestring):
+            # Grab all of the patch file paths out of the provided directory
             full = P.join(self.pkgdir, self.patches)
 
             if P.exists(full):
@@ -419,10 +448,11 @@ class Package(object):
                 patches = sorted(glob(P.join(full, '*')))
             else:
                 patches = [full]
-        else:
+        else: # Input is already a list of patch files
             patches = self.patches
 
         def _apply(patch):
+            '''Helper function to apply a patch with a custom self.patch_level'''
             if self.patch_level is None:
                 self.helper('patch', '-p1', '-i', patch)
             else:
@@ -430,14 +460,15 @@ class Package(object):
 
         # We have a list of patches now, but we can't trust they're all there
         for p in patches:
-            if p.endswith('~') or p.endswith('#'):
+            if p.endswith('~') or p.endswith('#'): # Skip junk file paths
                 continue
             if not P.isfile(p):
                 raise PackageError(self, 'Unknown patch: %s' % p)
-            _apply(p)
+            _apply(p) # The patch file is there, apply it!
 
 
     def helper(self, *args, **kw):
+        '''Run a command line command with some extra argument handling'''
         info(' '.join(args))
         kw['stdout'] = kw.get('stdout', sys.stdout)
         kw['stderr'] = kw.get('stderr', kw['stdout'])
@@ -462,6 +493,7 @@ class Package(object):
             raise HelperError(args[0], kw['env'], e)
 
     def copytree(self, src, dest, args=(), delete=True):
+        '''rsync wrapper to duplicate a directory to a new location'''
         call = ['rsync', '-a']
         if delete:
             call.append('--delete')
@@ -470,16 +502,17 @@ class Package(object):
         self.helper(*call)
 
     def remove_build(self, output_dir):
+        '''Make output_dir into an empty directory, deleting everything that is inside.'''
         if P.isdir(output_dir):
             info("Removing old build dir")
             rmtree(output_dir, False)
         os.makedirs(output_dir)
 
 class GITPackage(Package):
-    # A git package does not have a checksum. Here we interpret
-    # this variable as the commit id. This is a bit confusing.
-    # The goal here is to not re-build a git package if
-    # we already built it with given commit id.
+    ''' A git package does not have a checksum. Here we interpret
+        this variable as the commit id. This is a bit confusing.
+        The goal here is to not re-build a git package if
+        we already built it with given commit id.'''
     chksum = None
     fast = False
     def __init__(self, env):
@@ -499,12 +532,14 @@ class GITPackage(Package):
                     self.chksum = tokens[0]
 
     def _git(self, *args):
+        '''Call a git command from the local folder we are using for this package.'''
         cmd = ['git', '--git-dir', self.localcopy]
         cmd.extend(args)
         self.helper(*cmd)
 
     @stage
     def fetch(self, skip=False):
+        '''Override the fetch function to call git fetch or git clone'''
         if P.exists(self.localcopy):
             if skip: return
             self._git('fetch', 'origin')
@@ -514,9 +549,12 @@ class GITPackage(Package):
 
     @stage
     def unpack(self):
+        '''Go from the location we cloned into to a different working directory 
+           containing the desired commit'''
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.workdir = P.join(output_dir, self.pkgname + '-git')
         # If fast, update and build in existing directory
+        #   Otherwise, delete the existing build and start over.
         if not self.fast:
             self.remove_build(output_dir)
             os.mkdir(self.workdir)
@@ -529,12 +567,14 @@ class GITPackage(Package):
         self._apply_patches()
 
 class SVNPackage(Package):
+    '''Package class for handling SVN repos'''
 
     def __init__(self, env):
         super(SVNPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'svn', self.pkgname)
 
     def _get_current_url(self, path):
+        ''''''
         for line in self.helper('svn', 'info', path, stdout=subprocess.PIPE)[0].split('\n'):
             tokens = line.split()
             if tokens[0] == 'URL:':
@@ -542,6 +582,7 @@ class SVNPackage(Package):
 
     @stage
     def fetch(self, skip=False):
+        '''Call SVN update or checkout to download the code'''
         try:
             if P.exists(self.localcopy):
                 if skip: return
@@ -560,6 +601,7 @@ class SVNPackage(Package):
 
     @stage
     def unpack(self):
+        '''Go from the location we checked out into to a different working directory'''
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.remove_build(output_dir)
         self.workdir = P.join(output_dir, self.pkgname + '-svn')
@@ -570,6 +612,7 @@ class SVNPackage(Package):
         self._apply_patches()
 
 def findfile(filename, path=None):
+    '''Search for a file in the system PATH or provided path string'''
     if path is None: path = os.environ.get('PATH', [])
     for dirname in path.split(':'):
         possible = P.join(dirname, filename)
@@ -578,6 +621,8 @@ def findfile(filename, path=None):
     raise Exception('Could not find file %s in path[%s]' % (filename, path))
 
 class CMakePackage(Package):
+    '''Package variant that must be built using CMake'''
+    # Don't allow these to be specified by the user, we need control over these.
     BLACKLIST_VARS = (
             'CMAKE_BUILD_TYPE',
             'CMAKE_INSTALL_PREFIX',
@@ -594,19 +639,22 @@ class CMakePackage(Package):
         self.builddir = P.join(self.workdir, 'build')
 
         def remove_danger(files, dirname, fnames):
+            '''Function to find all CMakeLists.txt files in a set of files'''
             files.extend([P.join(dirname,f) for f in fnames if f == 'CMakeLists.txt'])
 
+        # Generate a custom "sed" command to remove all blacklisted CMake 
+        # variables from the existing CMakeLists.txt files
         files = []
-        P.walk(self.workdir, remove_danger, files)
+        P.walk(self.workdir, remove_danger, files) # Find all CMakeLists files
         cmd = ['sed', '-ibak']
         # strip out vars we must control from every CMakeLists.txt
         for var in self.BLACKLIST_VARS:
             cmd.append('-e')
             cmd.append('s/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*%s.*)/#BINARY BUILDER IGNORE /g' % var)
-
         cmd.extend(files)
         self.helper(*cmd)
 
+        # Write out a custom cmake rules file
         build_rules = P.join(self.env['BUILD_DIR'], 'my_rules.cmake')
         with file(build_rules, 'w') as f:
             print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (findfile(self.env['CC'], self.env['PATH'])), file=f)
@@ -615,6 +663,7 @@ class CMakePackage(Package):
             print('SET (CMAKE_Fortran_COMPILER "%s" CACHE FILEPATH "Fortran compiler" FORCE)' % (findfile(self.env['F77'], self.env['PATH'])), file=f)
             print('SET (CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
 
+        # Build up the main cmake command using our environment variables
         cmd = ['cmake']
         args = [
             '-DCMAKE_INSTALL_PREFIX=%(INSTALL_DIR)s' % self.env,
@@ -629,6 +678,7 @@ class CMakePackage(Package):
             args.append('-DCMAKE_OSX_SYSROOT=%s' % self.env['OSX_SYSROOT'])
             args.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=%s' % self.env['OSX_TARGET'])
 
+        # Include commands for the input enable/disable commands
         for arg in disable:
             args.append('-DENABLE_%s=OFF' % arg)
         for arg in enable:
@@ -649,19 +699,22 @@ class CMakePackage(Package):
 
         cmd = cmd + args + [self.workdir]
 
+        # Finally, run the cmake command!
         self.helper(*cmd, cwd=self.builddir)
 
     @stage
     def compile(self):
+        '''Compile works the same as the base class'''
         super(CMakePackage, self).compile(cwd=self.builddir)
 
     @stage
     def install(self):
+        '''Install works the same as the base class'''
         super(CMakePackage, self).install(cwd=self.builddir)
 
 def print_qt_config(cppflags, config, bindir, includedir, libdir):
-    qt_pkgs = \
-            'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+    '''Print out a bunch of QT stuff'''
+    qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
     print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
     qt_cppflags=[]
     qt_libs=['-L%s' % libdir]
@@ -674,6 +727,7 @@ def print_qt_config(cppflags, config, bindir, includedir, libdir):
     cppflags.extend(qt_cppflags)
 
 def write_vw_config(prefix, installdir, arch, config_file):
+    '''Generate a config file required by Vision Workbench'''
 
     print('Writing ' + config_file)
     base       = '$BASE'
@@ -776,7 +830,7 @@ class Apps:
 
 def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
                      geoid, config_file):
-
+    '''Generate a config file required by Stereo Pipeline'''
     print('Writing ' + config_file)
 
     disable_apps = Apps.disable_apps.split()
