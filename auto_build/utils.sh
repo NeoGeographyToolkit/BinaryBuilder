@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Must ensure reasonable versions of gcc, g++, gfortran, python, and
-# git are somewhere in the paths below.
-export PATH=/home/oalexan1/projects/zack_packages/local/bin/:/home/oalexan1/projects/packages/bin/:/home/pipeline/projects/packages/bin/:/Users/smcmich1/usr/local/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/nasa/pkgsrc/2015Q1/gcc49/bin/:/Users/oalexan1/projects/packages/bin/:/Users/oalexan1/Library/Python/2.7/bin:/home/oalexan1/.local/bin:$PATH
+# git are somewhere in the paths below. Note: we put /usr/bin below
+# to access the correct libtool on the Mac.
+export PATH=/home/oalexan1/projects/zack_packages/local/bin/:/home/oalexan1/projects/packages/bin/:/home/pipeline/projects/packages/bin/:/Users/smcmich1/usr/local/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/nasa/pkgsrc/2015Q1/gcc49/bin/:/Users/oalexan1/projects/packages/bin/:/Users/oalexan1/Library/Python/2.7/bin:/home/oalexan1/.local/bin:/usr/bin:$PATH
 
 # This is needed for new gcc
 export LD_LIBRARY_PATH=/home/oalexan1/projects/zack_packages/local/lib:/home/oalexan1/projects/zack_packages/local/lib64:$LD_LIBRARY_PATH
