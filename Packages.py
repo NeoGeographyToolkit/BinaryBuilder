@@ -1113,14 +1113,14 @@ class opencv(CMakePackage):
     def __init__(self, env):
         super(opencv, self).__init__(env)
 
-        # Cocoa bindings can't be built unless using an apple provided
-        # compiler. Using a homebrew or macports built GCC or hand
-        # built clang will be missing the required 'blocks'
-        # extension. The error will look something like "NSTask.h:
-        # error: expected unqualified-id before '^' token".
-        if self.arch.os == 'osx':
-            self.env['CXX'] = 'c++'
-            self.env['CC' ] = 'cc'
+#         # Cocoa bindings can't be built unless using an apple provided
+#         # compiler. Using a homebrew or macports built GCC or hand
+#         # built clang will be missing the required 'blocks'
+#         # extension. The error will look something like "NSTask.h:
+#         # error: expected unqualified-id before '^' token".
+#         if self.arch.os == 'osx':
+#             self.env['CXX'] = 'c++'
+#             self.env['CC' ] = 'cc'
 
     def configure(self):
         # Help OpenCV finds the libraries it needs to link to
