@@ -1,23 +1,15 @@
 *************************************************************************
 1. INTRODUCTION
 
-A. Neo-Geography Toolkit
+A. Stereo Pipeline
 
-The Neo-Geography Toolkit (NGT) is a collection of tools for automated
-processing of geospatial data, including images and maps. It is capable
-of processing raw raster data from remote sensing instruments and
-transforming it into useful cartographic products, such as visible image
-base maps, topographic models, etc. Additionally, components of the NGT
-can perform data processing on extremely large geospatial data sets (up
-to several tens of terabytes) via parallel processing pipelines.
-Finally, it can also transform raw metadata (i.e.  SPICE kernels and PDS
-image labels), vector data (e.g., 2D/3D shape files), and geo-tagged
-data sets into standard NeoGeography data formats, such as KML.  NGT is
-an evolving collection of loosely connected open-source modules designed
-by the NASA Ames Intelligent Robotics Group. Modules of the NGT will be
-released one at a time, as they reach maturity. To date, we have
-completed only one module: the NASA Ames Stereo Pipeline, but more will
-soon follow. Check this website for the latest updates.
+The NASA Ames Stereo Pipeline (ASP) is a suite of free and open source
+automated geodesy and stereogrammetry tools designed for processing
+planetary and Earth imagery captured from satellites and robotic
+rovers. It produces cartographic products, including digital elevation
+models (DEMs), ortho-projected imagery, and 3D models. These data
+products are suitable for science analysis, mission planning, and
+public outreach.
 
 B. Binary Builder
 
@@ -34,39 +26,24 @@ URL changes, build system changes, and just generally unsupported
 environments. You use this software at your own risk.
 
 ************************************************************************
-2. LICENSE (see COPYING for the full text)
+2. LICENSE
 
 A. Copyright and License Summary
 
-Copyright (C) 2006-2011 United States Government as represented by the
-Administrator of the National Aeronautics and Space Administration
-(NASA).  All Rights Reserved.
+Copyright (c) 2009-2012, United States Government as represented by
+the Administrator of the National Aeronautics and Space
+Administration. All rights reserved.
 
-This software is distributed under the NASA Open Source Agreement
-(NOSA), version 1.3.  The NOSA has been approved by the Open Source
-Initiative.  See the file "COPYING" at the top of the distribution
-directory tree for the complete NOSA document.
+ASP is licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License. You
+may obtain a copy of the License at
+http://www.apache.org/licenses/LICENSE-2.0
 
-THE SUBJECT SOFTWARE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY OF ANY
-KIND, EITHER EXPRESSED, IMPLIED, OR STATUTORY, INCLUDING, BUT NOT
-LIMITED TO, ANY WARRANTY THAT THE SUBJECT SOFTWARE WILL CONFORM TO
-SPECIFICATIONS, ANY IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR
-A PARTICULAR PURPOSE, OR FREEDOM FROM INFRINGEMENT, ANY WARRANTY THAT
-THE SUBJECT SOFTWARE WILL BE ERROR FREE, OR ANY WARRANTY THAT
-DOCUMENTATION, IF PROVIDED, WILL CONFORM TO THE SUBJECT SOFTWARE.
-
-B. Third-Party Libraries
-
-This distribution may include some bundled third-party software as a
-convenience to the user.  This software, located in the "thirdparty/"
-directory of the source code release, is not covered by the
-above-mentioned distribution agreement or copyright. Binary releases
-distribute third party software in both the "bin" and "lib"
-directories. See the included documentation for detailed copyright
-and license information for any third-party software or check the
-THIRDPARTYLICENSES file.  In addition, various pieces of the NGT
-depend on additional third-party libraries that the user is expected
-to have installed.
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+implied. See the License for the specific language governing
+permissions and limitations under the License.
 
 ************************************************************************
 3. DOCUMENTATION
@@ -128,19 +105,4 @@ rebuilt in either case if the hash tag changes.
 
 To avoid building a package even if it was not built yet, invoke
 build.py with the option _<package name>, i.e., ./build.py _isis.
-
-************************************************************************
-5. CREDITS
-
-The NGT was developed within the Autonomous Systems and
-Robotics area of the Intelligent Systems Division at NASA's Ames
-Research Center.  It leverages the Intelligent Robotics Group's (IRG)
-extensive experience developing surface reconstruction and tools for
-planetary exploration---e.g. the Mars Pathfinder and Mars Exploration
-Rover missions---and rover autonomy.  It has also been developed in
-collaboration with the Adaptive Control and Evolvable Systems (ACES)
-group, and draws on their experience developing computer vision
-techniques for autonomous vehicle control systems.
-
-See the AUTHORS file for a complete list of developers.
 
