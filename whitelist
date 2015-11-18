@@ -1,4 +1,6 @@
 IsisPreferences
+bin/extract_features
+bin/build_reconstruction
 bin/bundle_adjust
 bin/cam2map4stereo.py
 bin/colormap

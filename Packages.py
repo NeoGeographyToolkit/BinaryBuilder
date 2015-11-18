@@ -981,8 +981,8 @@ class yaml(CMakePackage):
             ])
 
 class eigen(CMakePackage):
-    src = 'http://bitbucket.org/eigen/eigen/get/3.1.3.tar.bz2'
-    chksum = '07e248deaaa5d2a8822a0581a606151127fce450'
+    src = 'http://bitbucket.org/eigen/eigen/get/3.2.6.tar.bz2'
+    chksum = '90d221459e2e09aac67610bd3e3dfc9cb413ddd7'
 
     def configure(self):
         super(eigen, self).configure(other=[
@@ -1007,12 +1007,12 @@ class glog(Package):
             )
 
 class ceres(CMakePackage):
-    src = 'https://ceres-solver.googlecode.com/files/ceres-solver-1.8.0.tar.gz'
-    chksum = '8a67268d995b8351bd5ee5acf1eebff910028e7e'
+    src = 'http://ceres-solver.org/ceres-solver-1.11.0.tar.gz'
+    chksum = '5e8683bfb410b1ba8b8204eeb0ec1fba009fb2d0'
 
     def configure(self):
-        # Remove warnings as errors. They don't pass newest compilers.
-        self.helper('sed', '-ibak', '-e', 's/-Werror//g', 'CMakeLists.txt')
+        ## Remove warnings as errors. They don't pass newest compilers.
+        #self.helper('sed', '-ibak', '-e', 's/-Werror//g', 'CMakeLists.txt')
         super(ceres, self).configure(other=[
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
@@ -1160,3 +1160,14 @@ class opencv(CMakePackage):
                                               '-DWITH_OPENCLAMDFFT=OFF',
                                               '-DWITH_OPENCLAMDBLAS=OFF',
                                               '-DWITH_OPENCL=OFF'] )
+
+class gflags(CMakePackage):
+    src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
+    chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
+                                              
+class theia(CMakePackage):
+    src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0,.4.tar.gz'
+    chksum  = '04fcad8726dfd4cd4558e58119d7d1d1ef2aaaeb'
+    
+    
+    

@@ -820,7 +820,7 @@ class Apps:
                  suitesparse amd colamd cholmod glog ceres flann dsk spice qwt gsl \
                  geos xercesc protobuf z ilmbase openexr jpeg  \
                  laszip liblas geoid isis superlu geotiff gdal yaml libnabo \
-                 eigen libpointmatcher proj4'
+                 eigen libpointmatcher proj4 gflags theia'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \
              vw_stereo vw_cartography vw_interest_point'

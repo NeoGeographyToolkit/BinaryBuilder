@@ -539,7 +539,8 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
     locals()[get_platform().os]()
 
 def snap_symlinks(src):
-    '''Build a list of chained symlink files until we reacha non-link file.'''
+    '''Build a list of chained symlink files until we reach a non-link file.'''
+    assert src, 'Cannot snap symlink which is NONE'
     assert not P.isdir(src), 'Cannot chase symlinks on a directory'
     if not P.islink(src):
         return [src]
