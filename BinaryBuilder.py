@@ -501,10 +501,12 @@ class Package(object):
         call += [src, dest]
         self.helper(*call)
 
+    # TODO: Delete the installed files!
     def remove_build(self, output_dir):
         '''Make output_dir into an empty directory, deleting everything that is inside.'''
         if P.isdir(output_dir):
             info("Removing old build dir")
+            info("R: install dir = " + self.env['INSTALL_DIR'])
             rmtree(output_dir, False)
         os.makedirs(output_dir)
 

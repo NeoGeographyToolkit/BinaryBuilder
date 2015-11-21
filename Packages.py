@@ -981,8 +981,10 @@ class yaml(CMakePackage):
             ])
 
 class eigen(CMakePackage):
-    src = 'http://bitbucket.org/eigen/eigen/get/3.2.6.tar.bz2'
-    chksum = '90d221459e2e09aac67610bd3e3dfc9cb413ddd7'
+    src = 'http://bitbucket.org/eigen/eigen/get/3.2.5.tar.bz2'
+    chksum = 'aa4667f0b134f5688c5dff5f03335d9a19aa9b3d'
+    #src = 'http://bitbucket.org/eigen/eigen/get/3.2.6.tar.bz2'
+    #chksum = '90d221459e2e09aac67610bd3e3dfc9cb413ddd7'
 
     def configure(self):
         super(eigen, self).configure(other=[
@@ -1166,8 +1168,8 @@ class gflags(CMakePackage):
     chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
                                               
 class theia(CMakePackage):
-    src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0,.4.tar.gz'
-    chksum  = '04fcad8726dfd4cd4558e58119d7d1d1ef2aaaeb'
+    src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0.5.tar.gz'
+    chksum  = '47fc49bc9907f31bdf9077743affe13f680f651f'
     
     
     
