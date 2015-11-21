@@ -1166,7 +1166,11 @@ class opencv(CMakePackage):
 class gflags(CMakePackage):
     src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
     chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
-                                              
+
+class imagemagick(Package):
+    src     = 'http://www.imagemagick.org/download/ImageMagick-6.9.2-6.tar.gz'
+    chksum  = '2ecab7863f3d6325ab42ef35dcdda52bd4ed928a'
+
 class theia(CMakePackage):
     src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0.5.tar.gz'
     chksum  = '47fc49bc9907f31bdf9077743affe13f680f651f'
