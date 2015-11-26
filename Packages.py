@@ -1174,6 +1174,7 @@ class imagemagick(Package):
 class theia(CMakePackage):
     src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0.5.tar.gz'
     chksum  = '47fc49bc9907f31bdf9077743affe13f680f651f'
-    
+    patches = 'patches/theia'
+
     
     

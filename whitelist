@@ -1,6 +1,7 @@
 IsisPreferences
-bin/extract_features
 bin/build_reconstruction
+bin/view_reconstruction
+bin/export_reconstruction_to_vw
 bin/bundle_adjust
 bin/cam2map4stereo.py
 bin/colormap
