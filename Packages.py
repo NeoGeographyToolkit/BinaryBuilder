@@ -78,7 +78,11 @@ class chrpath(Package):
 class bzip2(Package):
     src     = 'http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz'
     chksum  = '3f89f861209ce81a6bab1fd1998c0ef311712002'
-    def configure(self): pass
+
+    def configure(self):# pass
+        # Not doing anything here so add this option (required for ImageMagick) while we are here
+        self.env['MAKEOPTS'] += ''' CFLAGS="-fPIC"'''
+
     @stage
     def install(self):
         # Copy just the things we need.
@@ -1168,8 +1172,8 @@ class gflags(CMakePackage):
     chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
 
 class imagemagick(Package):
-    src     = 'http://www.imagemagick.org/download/ImageMagick-6.9.2-6.tar.gz'
-    chksum  = '2ecab7863f3d6325ab42ef35dcdda52bd4ed928a'
+    src     = 'http://www.imagemagick.org/download/ImageMagick-6.9.2-8.tar.gz'
+    chksum  = '478ea27e578e679da26e15687145f67b95d11ccb'
 
 class theia(CMakePackage):
     src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0.5.tar.gz'

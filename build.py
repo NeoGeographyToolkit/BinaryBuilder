@@ -200,7 +200,7 @@ if __name__ == '__main__':
         CFLAGS   = '-O3 -g',
         CXXFLAGS = '-O3 -g',
         LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
-        MAKEOPTS='-j%s' % opt.threads,
+        MAKEOPTS = '-j%s' % opt.threads,
         DOWNLOAD_DIR = opt.download_dir,
         BUILD_DIR    = P.join(opt.build_root, 'build'),
         INSTALL_DIR  = P.join(opt.build_root, 'install'),
@@ -339,7 +339,7 @@ if __name__ == '__main__':
               jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
               ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
               jama, laszip, liblas, geoid, isis, yaml, eigen, glog, ceres,
-              libnabo, libpointmatcher, opencv]
+              libnabo, libpointmatcher, opencv, gflags, imagemagick, theia]
 
     if len(args) == 0 or opt.dev:
         if arch.os == 'linux':

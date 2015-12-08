@@ -401,7 +401,7 @@ class Package(object):
 
         cmd = ('make', )
         if 'MAKEOPTS' in self.env:
-            cmd += (self.env['MAKEOPTS'],)
+            cmd += tuple(self.env['MAKEOPTS'].split(' '))
 
         e = self.env.copy_set_default(prefix = self.env['INSTALL_DIR'])
         self.helper(*cmd, env=e, cwd=cwd)
