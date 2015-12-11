@@ -1180,5 +1180,12 @@ class theia(CMakePackage):
     chksum  = '47fc49bc9907f31bdf9077743affe13f680f651f'
     patches = 'patches/theia'
 
+    @stage
+    def configure(self):
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
+        super(theia, self).configure()
+
+    
+    
     
     
