@@ -35,6 +35,11 @@ class m4(Package):
     src     = 'http://ftp.gnu.org/gnu/m4/m4-1.4.17.tar.gz'
     chksum  = '4f80aed6d8ae3dacf97a0cb6e989845269e342f0'
 
+    def configure(self):
+        self.env['CPPFLAGS'] += ' -fgnu89-inline' # Needed for CentOS 5
+        super(m4, self).configure()
+
+
 class libtool(Package):
     src     = 'http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz'
     chksum  = '22b71a8b5ce3ad86e1094e7285981cae10e6ff88'
@@ -721,7 +726,7 @@ class qt(Package):
     def configure(self):
         # The default confs override our compiler choices.
         self.helper('sed','-ibak','-e','s# g++# %s#g' % self.env['CXX'], '-e', 's# gcc# %s#g' % self.env['CC'], 'mkspecs/common/g++-base.conf')
-        cmd = './configure -opensource -fast -confirm-license -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools -no-openssl -no-libjpeg -no-libmng -no-libpng -no-libtiff -no-cups -no-nis -no-opengl -no-openvg -no-phonon -no-phonon-backend -no-sql-psql -no-dbus' % self.env
+        cmd = './configure -opensource -fast -confirm-license -nomake tools -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools -no-openssl -no-libjpeg -no-libmng -no-libpng -no-libtiff -no-cups -no-nis -no-opengl -no-openvg -no-phonon -no-phonon-backend -no-sql-psql -no-dbus' % self.env
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
@@ -751,6 +756,14 @@ class qwt(Package):
         else:
             cmd.append(P.join(installDir,'mkspecs','linux-g++'))
         self.helper(*cmd)
+
+        # Turn of designer option in config file
+        config_path = 'qwtconfig.pri'
+        self.helper('sed', '-ibak', '-e', 
+                    's/QWT_CONFIG     += QwtDesigner/#QWT_CONFIG     += QwtDesigner/g', 
+                    config_path)
+
+
 
     # Qwt pollutes the doc folder
     @stage
@@ -1173,8 +1186,8 @@ class gflags(CMakePackage):
     chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
 
 class imagemagick(Package):
-    src     = 'http://www.imagemagick.org/download/ImageMagick-6.9.2-8.tar.gz'
-    chksum  = '478ea27e578e679da26e15687145f67b95d11ccb'
+    src     = 'http://downloads.sourceforge.net/project/imagemagick/old-sources/6.x/6.8/ImageMagick-6.8.6-10.tar.gz'
+    chksum  = '6ea9dfc1042bb2057f8aa08e81e18c0c83451109'
 
 class theia(CMakePackage):
     src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0.5.tar.gz'
