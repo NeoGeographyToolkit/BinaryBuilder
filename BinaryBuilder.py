@@ -821,7 +821,7 @@ class Apps:
                  'boost openscenegraph flapack arbitrary_qt curl    \
                  suitesparse amd colamd cholmod glog ceres flann dsk spice qwt gsl \
                  geos xercesc protobuf z ilmbase openexr jpeg  \
-                 laszip liblas geoid isis superlu geotiff gdal yaml libnabo \
+                 laszip liblas geoid isis superlu geotiff gdal libnabo \
                  eigen libpointmatcher proj4 gflags theia'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \
