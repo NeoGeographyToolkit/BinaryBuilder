@@ -972,17 +972,17 @@ class flann(GITPackage, CMakePackage):
         cmd = ['rm' ] +glob(P.join(self.env['INSTALL_DIR'], 'lib', 'libflann*.a'))
         self.helper(*cmd)
 
-class yaml(CMakePackage):
-    src = 'http://yaml-cpp.googlecode.com/files/yaml-cpp-0.3.0.tar.gz'
-    chksum = '28766efa95f1b0f697c4b4a1580a9972be7c9c41'
+#class yaml(CMakePackage):
+#    src = 'http://yaml-cpp.googlecode.com/files/yaml-cpp-0.3.0.tar.gz'
+#    chksum = '28766efa95f1b0f697c4b4a1580a9972be7c9c41'
 
-    def configure(self):
-        super(yaml, self).configure(other=[
-            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
-            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
-            '-DBUILD_SHARED_LIBS=ON'
-            ])
+#    def configure(self):
+#        super(yaml, self).configure(other=[
+#            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+#            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+#            '-DCMAKE_BUILD_TYPE=RelWithDebInfo',
+#            '-DBUILD_SHARED_LIBS=ON'
+#            ])
 
 class eigen(CMakePackage):
     src = 'http://bitbucket.org/eigen/eigen/get/3.2.5.tar.bz2'
@@ -1087,7 +1087,8 @@ class libpointmatcher(GITPackage, CMakePackage):
             '-DEIGEN_INCLUDE_DIR=' + P.join(installDir,'include/eigen3'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir,
-            '-DSHARED_LIBS=ON'
+            '-DSHARED_LIBS=ON',
+            '-DUSE_SYSTEM_YAML_CPP=OFF' # Use the yaml code included with LPM
             ]
         # Bugfix for lunokhod2. This has problems on Mac OSX 10.6.
         if self.arch.os == 'linux':
