@@ -1,0 +1,12 @@
+--- gdal-1.10.1/gcore/gdalpamdataset.cpp	2013-08-26 13:01:10.000000000 -0700
++++ gdal-1.10.1/gcore/gdalpamdataset.cpp.new	2016-01-07 15:45:25.163485208 -0800
+@@ -911,7 +911,8 @@
+             psPam->pszPamFilename = CPLStrdup(pszNewPam);
+             eErr = TrySaveXML();
+         }
+-        else
++        /* Disabling this warning because it can gum up log files for no reason */
++        else if( strncmp(psPam->pszPamFilename, "/vsisubfile", strlen("/vsisubfile")) != 0 )
+         {
+             CPLError( CE_Warning, CPLE_AppDefined, 
+                       "Unable to save auxilary information in %s.",
