@@ -7,8 +7,8 @@
 # On success, copy back to the master machine the built tarball and
 # set the status.
 
-if [ "$#" -lt 3 ]; then
-    echo Usage: $0 buildDir statusFile masterMachine
+if [ "$#" -lt 4 ]; then
+    echo Usage: $0 buildDir statusFile masterMachine userName
     exit 1
 fi
 
@@ -22,6 +22,7 @@ fi
 buildDir=$1
 statusFile=$2
 masterMachine=$3
+userName=$4
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then
@@ -93,6 +94,7 @@ fi
 versionFile=$(version_file $buildMachine)
 build_asp/install/bin/stereo -v 2>/dev/null | grep "NASA Ames Stereo Pipeline" | awk '{print $5}' >  $versionFile
 
+echo "Making the distribution..."
 ./make-dist.py last-completed-run/install
 if [ "$?" -ne 0 ]; then
     ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
@@ -101,6 +103,7 @@ if [ "$?" -ne 0 ]; then
 fi
 
 # Copy the build to asp_tarballs
+echo "Moving to asp_tarballs..."
 asp_tarball=$(ls -trd StereoPipeline*bz2 | grep -i -v debug | tail -n 1)
 if [ "$asp_tarball" = "" ]; then
     ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
@@ -112,6 +115,7 @@ mv $asp_tarball asp_tarballs
 asp_tarball=asp_tarballs/$asp_tarball
 
 # Wipe old builds on the build machine
+echo "Cleaning old builds..."
 numKeep=8
 if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
     numKeep=24 # keep more builds on master machine
@@ -121,12 +125,18 @@ $HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
 rm -f StereoPipeline*debug.tar.bz2
 
 # Copy the build to the master machine
+echo "Copying back to lunokhod1..."
 rsync -avz $asp_tarball $masterMachine:$buildDir/asp_tarballs \
         2>/dev/null
 
 # Mark the build as finished. This must happen at the very end,
-# otherwise the parent script will take over before this script
-# finished.
-ssh $masterMachine \
-    "echo '$asp_tarball build_done Success' > $buildDir/$statusFile" \
-    2>/dev/null
+# otherwise the parent script will take over before this script finished.
+# - We need to make sure we SSH back as the correct user!
+echo "Sending status to lunokhod1..."
+ssh -v $userName@$masterMachine \
+    "echo '$asp_tarball build_done Success' > $buildDir/$statusFile" # \
+#    2>/dev/null
+echo "ssh $userName@$masterMachine echo '$asp_tarball build_done Success' > $buildDir/$statusFile 2>/dev/null"
+
+
+echo "Finished running build.sh locally!"

@@ -13,6 +13,7 @@ tarBall=$2
 testDir=$3
 statusFile=$4
 masterMachine=$5
+userName=$6
 
 # Set system paths and load utilities
 source $HOME/$buildDir/auto_build/utils.sh
@@ -86,19 +87,25 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 #bin/run_tests.pl $configFile > $outputFile 2>&1
 py.test -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
+# Tests are finished running, make sure all maintainers can access the files.
+chown -R  :ar-gg-ti-asp-maintain $HOME/$testDir
+chmod -R g+rw $HOME/$testDir
+
 if [ "$?" -ne 0 ]; then
-    ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
+    echo "Last command failed, sending status and early quit."
+    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
         2>/dev/null
     exit 1
 fi
 if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
-    ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
+    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
         2>/dev/null
     exit 1
 fi
 
 # Wipe old builds on the test machine
+echo "Wiping old builds..."
 numKeep=8
 if [ "$(echo $machine | grep $masterMachine)" != "" ]; then
     numKeep=24 # keep more builds on master machine
@@ -112,9 +119,11 @@ cat $reportFile
 bin/print_allowed_error.pl $reportFile
 
 # Mark tests as done
+echo "Reporting test results..."
 failures=$(grep -i fail $reportFile)
 if [ "$failures" = "" ]; then
     status="Success"
 fi
-ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
+ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
     2>/dev/null
+echo "Finished running tests locally!"

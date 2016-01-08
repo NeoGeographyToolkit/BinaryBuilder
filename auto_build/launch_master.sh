@@ -26,8 +26,13 @@ releaseMachine="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
-virtualMachines="centos-64-5"
+virtualMachines="big-centos-64-5"
 buildMachines="andey $virtualMachines"
+#buildMachines="$virtualMachines"
+#buildMachines="andey"
+userName=$USER
+
+# TODO: Reenable the tests!
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -35,9 +40,16 @@ sleepTime=30
 localMode=0 # Run local copy of the code. Must not happen in production.
 if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
-mailto="oleg.alexandrov@nasa.gov"
-if [ "$localMode" -eq 0 ]; then
+if [ "$userName" == "smcmich1" ]; then
     mailto="$mailto scott.t.mcmichael@nasa.gov"
+#    if [ "$localMode" -eq 0 ]; then
+#        mailto="oleg.alexandrov@nasa.gov"
+#    fi
+else
+    mailto="oleg.alexandrov@nasa.gov"
+    if [ "$localMode" -eq 0 ]; then
+        mailto="$mailto scott.t.mcmichael@nasa.gov"
+    fi
 fi
 
 cd $HOME
@@ -96,6 +108,8 @@ fi
 # we'll test on $masterMachine the build from centos-64-5.
 for buildMachine in $buildMachines $masterMachine; do
 
+    echo "Setting up and launching: $buildMachine"
+
     statusFile=$(status_file $buildMachine)
     outputFile=$(output_file $buildDir $buildMachine)
 
@@ -109,6 +123,7 @@ for buildMachine in $buildMachines $masterMachine; do
     grep -i isis $HOME/$testDir/$configFile | grep export > $(isis_file)
 
     # Make sure all scripts are up-to-date on $buildMachine
+    echo "Pushing code to: $buildMachine"
     ./auto_build/push_code.sh $buildMachine $buildDir $filesList
     if [ "$?" -ne 0 ]; then exit 1; fi
 
@@ -128,7 +143,7 @@ for buildMachine in $buildMachines $masterMachine; do
     # Launch the build
     echo "NoTarballYet now_building" > $statusFile
     robust_ssh $buildMachine $buildDir/auto_build/build.sh \
-        "$buildDir $statusFile $masterMachine" $outputFile
+        "$buildDir $statusFile $masterMachine $userName" $outputFile
 done
 
 # Wipe all status test files before we start with testing.
@@ -186,7 +201,7 @@ while [ 1 ]; do
 
                 sleep 5; # Give the filesystem enough time to react
                 robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
-                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
+                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine $userName" \
                     $outputTestFile
             done
 
