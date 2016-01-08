@@ -1196,6 +1196,19 @@ class theia(CMakePackage):
 
     @stage
     def configure(self):
+        # Theia requires a data file with consumer camera info in it, so 
+        #  copy it to the share folder and point Theia to it.
+        # - Note that the any Theia tool that asks for this data file HAS to be run from
+        #   a first level subfolder in the ASP install directory!
+        oldPath   = os.path.join(self.workdir, 'data/camera_sensor_database.txt')
+        newFolder = os.path.join(self.env['INSTALL_DIR'], 'share/theia/')
+        newPath   = os.path.join(newFolder, 'camera_sensor_database.txt')
+        if not (os.path.exists(newFolder)):
+            os.mkdir(newFolder)
+        shutil.copyfile(oldPath, newPath)
+        # Change the data path in the CMakeLists.txt file
+        self.helper('sed', '-ibak', '-e', 's/"\${CMAKE_SOURCE_DIR}\/data"/"\.\.\/share\/theia"/g', 'CMakeLists.txt')
+
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
         super(theia, self).configure()
 
