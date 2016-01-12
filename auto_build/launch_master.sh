@@ -28,11 +28,8 @@ link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
 virtualMachines="big-centos-64-5"
 buildMachines="andey $virtualMachines"
-#buildMachines="$virtualMachines"
-#buildMachines="andey"
 userName=$USER
 
-# TODO: Reenable the tests!
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi

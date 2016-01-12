@@ -74,6 +74,9 @@ if [ "$status" -ne 0 ]; then
 fi
 
 buildMachine=$(machine_name)
+if [ "$buildMachine" = "centos-64-5" ]; then
+  buildMachine="big-centos-64-5" # VM image name is different from internal machine name!
+fi
 if [ "$buildMachine" = "lunokhod1" ]; then
     # Build the documentation on the machine which has LaTeX
     echo "Will build the documentation"
@@ -92,6 +95,7 @@ fi
 
 # Dump the ASP version
 versionFile=$(version_file $buildMachine)
+echo "Dumping the version to file: $versionFile"
 build_asp/install/bin/stereo -v 2>/dev/null | grep "NASA Ames Stereo Pipeline" | awk '{print $5}' >  $versionFile
 
 echo "Making the distribution..."

@@ -88,19 +88,20 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 py.test -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
 # Tests are finished running, make sure all maintainers can access the files.
+# - These commands fail on the VM but that is OK because we don't need them to work on that machine.
 chown -R  :ar-gg-ti-asp-maintain $HOME/$testDir
 chmod -R g+rw $HOME/$testDir
 
 if [ "$?" -ne 0 ]; then
     echo "Last command failed, sending status and early quit."
-    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
-        2>/dev/null
+    ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
+        #2>/dev/null
     exit 1
 fi
 if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
-    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
-        2>/dev/null
+    ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
+        #2>/dev/null
     exit 1
 fi
 
@@ -124,6 +125,6 @@ failures=$(grep -i fail $reportFile)
 if [ "$failures" = "" ]; then
     status="Success"
 fi
-ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
-    2>/dev/null
+ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
+    #2>/dev/null
 echo "Finished running tests locally!"
