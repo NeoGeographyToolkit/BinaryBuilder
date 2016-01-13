@@ -39,9 +39,9 @@ if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
 if [ "$userName" == "smcmich1" ]; then
     mailto="$mailto scott.t.mcmichael@nasa.gov"
-#    if [ "$localMode" -eq 0 ]; then
-#        mailto="oleg.alexandrov@nasa.gov"
-#    fi
+    if [ "$localMode" -eq 0 ]; then
+        mailto="oleg.alexandrov@nasa.gov"
+    fi
 else
     mailto="oleg.alexandrov@nasa.gov"
     if [ "$localMode" -eq 0 ]; then

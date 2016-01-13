@@ -6,13 +6,13 @@ the obtained builds to the release area and updates the link at:
 https://byss.arc.nasa.gov/stereopipeline/daily_build
 
 Machines:
-lunokhod1:    Master machine on which the framework starts
-centos-64-5:  Linux, 64 bit
-andey:        Mac OS X 10.8
-amos:         Mac OS X 10.9
-byss:         The machine storing the obtained builds
+lunokhod1:        Master machine on which the framework starts
+big-centos-64-5:  Linux, 64 bit
+andey:            Mac OS X 10.8
+amos:             Mac OS X 10.9
+byss:             The machine storing the obtained builds
 
-The host centos-64-5 is a virtual machine on lunokhod1.
+The host big-centos-64-5 is a virtual machine on lunokhod1.
 
 ssh must be configured so that ssh connections from each machine to
 lunokhod1 and back, and to itself (both using its name and using
@@ -23,8 +23,8 @@ The main script is auto_build/launch_master.sh. It gets started on
 lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on centos-64-5 and andey. Each build is being tested
-on the same machine. In addition, the centos-64-5 build is also tested
+Builds are done on big-centos-64-5 and andey. Each build is being tested
+on the same machine. In addition, the big-centos-64-5 build is also tested
 on lunokhod1, while the andey build is also tested on amos.
 
 The test process on lunokhod1 is the strictest, it will fail if any
@@ -51,3 +51,6 @@ software is in StereoPipeline/INSTALLGUIDE. The paths to these tools
 is set via:
 
  source auto_build/utils.sh
+
+Additional setup information can be found on the internal IRG wiki:
+https://babelfish.arc.nasa.gov/trac/irg/wiki/AspBuildSystem
