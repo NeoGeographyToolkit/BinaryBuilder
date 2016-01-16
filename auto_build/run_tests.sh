@@ -87,12 +87,14 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 #bin/run_tests.pl $configFile > $outputFile 2>&1
 py.test -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
+test_status="$?"
+
 # Tests are finished running, make sure all maintainers can access the files.
 # - These commands fail on the VM but that is OK because we don't need them to work on that machine.
 chown -R  :ar-gg-ti-asp-maintain $HOME/$testDir
 chmod -R g+rw $HOME/$testDir
 
-if [ "$?" -ne 0 ]; then
+if [ test_status -ne 0 ]; then
     echo "Last command failed, sending status and early quit."
     ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
         #2>/dev/null
