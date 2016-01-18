@@ -94,7 +94,7 @@ test_status="$?"
 chown -R  :ar-gg-ti-asp-maintain $HOME/$testDir
 chmod -R g+rw $HOME/$testDir
 
-if [ test_status -ne 0 ]; then
+if [ $test_status -ne 0 ]; then
     echo "Last command failed, sending status and early quit."
     ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
         #2>/dev/null
