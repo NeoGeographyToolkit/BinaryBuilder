@@ -1,5 +1,5 @@
---- samples/cpp/calibration.cpp	2015-02-25 04:10:31.000000000 -0800
-+++ /home/smcmich1/repo/BinaryBuilder/calibration_new.cpp	2016-01-18 14:36:36.967476787 -0800
+--- opencv-2.4.11/samples/cpp/calibration.cpp	2015-02-25 04:10:31.000000000 -0800
++++ opencv-2.4.11/samples/cpp/calibration_new.cpp	2016-01-18 14:36:36.967476787 -0800
 @@ -7,6 +7,7 @@
  #include <stdio.h>
  #include <string.h>
