@@ -1136,106 +1136,42 @@ class opencv(CMakePackage):
         # - We had to turn some of it back on to get the calibration sample to compile.
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -ltiff -lpng' % self.env
 
-        if self.arch.os == 'osx':
-            # OpenCV has a hard time compiling on OSX with the samples, so we disable them.
-            options_list = ['-DBUILD_opencv_apps=OFF',
-                            '-DBUILD_opencv_gpu=OFF',
-                            '-DBUILD_opencv_video=OFF',
-                            '-DBUILD_opencv_ts=OFF',
-                            '-DBUILD_opencv_videostab=OFF',
-		            '-DBUILD_opencv_java=OFF',
-			    '-DBUILD_opencv_python=OFF',
-			    '-DBUILD_opencv_legacy=OFF',
-			    '-DBUILD_opencv_highgui=OFF',
-			    '-DBUILD_opencv_ocl=OFF',
-                            # There is useful stuff (SIFT, SURF) in nonfree but they are patented
-                            '-DBUILD_opencv_nonfree=ON',
-                            '-DWITH_FFMPEG=OFF',
-                            '-DWITH_DSHOW=OFF',
-                            '-DWITH_GSTREAMER=OFF',
-                            '-DBUILD_ANDROID_EXAMPLES=OFF',
-                            '-DBUILD_DOCS=OFF',
-                            '-DBUILD_TESTS=OFF',
-                            '-DBUILD_PERF_TESTS=OFF',
-                            '-DBUILD_EXAMPLES=OFF',
-                            '-DBUILD_WITH_DEBUG_INFO=OFF',
-                            '-DWITH_JASPER=OFF',
-                            '-DWITH_JPEG=OFF',
-                            '-DWITH_PNG=OFF',
-                            '-DWITH_QT=OFF',
-                            '-DWITH_TIFF=OFF',
-                            '-DWITH_OPENEXR=OFF',
-                            '-DWITH_IMAGEIO=OFF',
-                            '-DWITH_CUDA=OFF',
-                            '-DWITH_OPENGL=OFF',
-                            '-DHAVE_opencv_ocl=OFF',
-                            '-DWITH_OPENCLAMDFFT=OFF',
-                            '-DWITH_OPENCLAMDBLAS=OFF',
-                            '-DWITH_OPENCL=OFF']
-        else:
-            options_list = ['-DBUILD_opencv_apps=OFF',
-                            '-DBUILD_opencv_gpu=OFF',
-                            '-DBUILD_opencv_video=ON',
-                            '-DBUILD_opencv_ts=OFF',
-                            '-DBUILD_opencv_videostab=ON',
-                            '-DBUILD_opencv_java=OFF',
-                            '-DBUILD_opencv_python=OFF',
-                            '-DBUILD_opencv_legacy=ON',
-                            '-DBUILD_opencv_highgui=ON',
-                            '-DBUILD_opencv_ocl=OFF',
-                            # There is useful stuff (SIFT, SURF) in nonfree but they are patented
-                            '-DBUILD_opencv_nonfree=ON',
-                            '-DWITH_FFMPEG=OFF',
-                            '-DWITH_DSHOW=OFF',
-                            '-DWITH_GSTREAMER=OFF',
-                            '-DBUILD_ANDROID_EXAMPLES=OFF',
-                            '-DBUILD_DOCS=OFF',
-                            '-DBUILD_TESTS=OFF',
-                            '-DBUILD_PERF_TESTS=OFF',
-                            '-DBUILD_EXAMPLES=ON',
-                            '-DBUILD_WITH_DEBUG_INFO=OFF',
-                            '-DWITH_JASPER=OFF',
-                            '-DWITH_JPEG=ON',
-                            '-DWITH_PNG=ON',
-                            '-DWITH_QT=OFF',
-                            '-DWITH_TIFF=ON',
-                            '-DWITH_OPENEXR=OFF',
-                            '-DWITH_IMAGEIO=ON',
-                            '-DWITH_CUDA=OFF',
-                            '-DWITH_OPENGL=OFF',
-                            '-DHAVE_opencv_ocl=OFF',
-                            '-DWITH_OPENCLAMDFFT=OFF',
-                            '-DWITH_OPENCLAMDBLAS=OFF',
-                            '-DWITH_OPENCL=OFF']
+        options_list = ['-DBUILD_opencv_apps=OFF',
+                        '-DBUILD_opencv_gpu=OFF',
+                        '-DBUILD_opencv_video=OFF',
+                        '-DBUILD_opencv_ts=OFF',
+                        '-DBUILD_opencv_videostab=OFF',
+                        '-DBUILD_opencv_java=OFF',
+                        '-DBUILD_opencv_python=OFF',
+                        '-DBUILD_opencv_legacy=OFF',
+                        '-DBUILD_opencv_highgui=OFF',
+                        '-DBUILD_opencv_ocl=OFF',
+                        # There is useful stuff (SIFT, SURF) in nonfree but they are patented
+                        '-DBUILD_opencv_nonfree=ON',
+                        '-DWITH_FFMPEG=OFF',
+                        '-DWITH_DSHOW=OFF',
+                        '-DWITH_GSTREAMER=OFF',
+                        '-DBUILD_ANDROID_EXAMPLES=OFF',
+                        '-DBUILD_DOCS=OFF',
+                        '-DBUILD_TESTS=OFF',
+                        '-DBUILD_PERF_TESTS=OFF',
+                        '-DBUILD_EXAMPLES=OFF',
+                        '-DBUILD_WITH_DEBUG_INFO=OFF',
+                        '-DWITH_JASPER=OFF',
+                        '-DWITH_JPEG=OFF',
+                        '-DWITH_PNG=OFF',
+                        '-DWITH_QT=OFF',
+                        '-DWITH_TIFF=OFF',
+                        '-DWITH_OPENEXR=OFF',
+                        '-DWITH_IMAGEIO=OFF',
+                        '-DWITH_CUDA=OFF',
+                        '-DWITH_OPENGL=OFF',
+                        '-DHAVE_opencv_ocl=OFF',
+                        '-DWITH_OPENCLAMDFFT=OFF',
+                        '-DWITH_OPENCLAMDBLAS=OFF',
+                        '-DWITH_OPENCL=OFF']
 
-        super(opencv, self).configure( other=options_list )
-
-
-    @stage
-    def install(self):
-        super(opencv, self).install()
-
-        if self.arch.os == 'osx':
-            # Put in dummy versions of the programs to satisfy the install script
-            dest_path = os.path.join(self.env['INSTALL_DIR'], 'libexec/opencv_calibrate_camera' )
-            cmd = ['touch', dest_path]
-            self.helper(*cmd)
-            dest_path = os.path.join(self.env['INSTALL_DIR'], 'libexec/opencv_imagelist_creator' )
-            cmd = ['touch', dest_path]
-            self.helper(*cmd)
-        else:
-            # Copy the sample program calibrate to the install directory
-            # - The binary goes to libexec, ASP will provide a python script which makes use of the binary.
-            tool_path = os.path.join(self.workdir, 'build/bin/cpp-example-calibration')
-            dest_path = os.path.join(self.env['INSTALL_DIR'], 'libexec/opencv_calibrate_camera' )
-            cmd = ['cp', tool_path, dest_path]
-            self.helper(*cmd)
-            # Also need this helper tool
-            tool_path = os.path.join(self.workdir, 'build/bin/cpp-example-imagelist_creator')
-            dest_path = os.path.join(self.env['INSTALL_DIR'], 'libexec/opencv_imagelist_creator' )
-            cmd = ['cp', tool_path, dest_path]
-            self.helper(*cmd)        
-      
+        super(opencv, self).configure( other=options_list )  
 
 class gflags(CMakePackage):
     src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
