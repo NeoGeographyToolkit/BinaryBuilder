@@ -69,6 +69,9 @@ cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 
 # Set up the config file
 machine=$(machine_name)
+if [ "$machine" = "centos-64-5" ]; then
+  machine="big-centos-64-5" # VM image name is different from internal machine name!
+fi
 configFile=$(release_conf_file $machine)
 
 if [ ! -e $configFile ]; then
