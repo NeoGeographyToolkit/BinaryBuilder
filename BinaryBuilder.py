@@ -746,11 +746,9 @@ def write_vw_config(prefix, installdir, arch, config_file):
                        'geometry tools bundleadjustment').split()
 
     # Disable
-    disable_features = 'pkg_paths_default static qt_qmake'.split()
-    disable_pkgs = ('tiff hdr cairomm tcmalloc x11 clapack slapack ' +
-                    'cg zeromq rabbitmq_c qt arbitrary_qt qt_qmake apple_qmake_qt ' +
-                    'linux_qmake_qt guess_qt').split()
-    disable_modules = 'gpu plate python'.split()
+    disable_features = 'pkg_paths_default static'.split()
+    disable_pkgs = ('tiff hdr tcmalloc clapack slapack ').split()
+    disable_modules = 'python'.split() # Python is needed for the googlenasa project
 
     with file(config_file, 'w') as config:
 
@@ -788,9 +786,6 @@ def write_vw_config(prefix, installdir, arch, config_file):
             print('HAVE_PKG_%s=no' % pkg.upper(), file=config)
         print('', file=config) # newline
 
-        # Qt is disabled in VW
-        #print_qt_config(cppflags, config, bindir, includedir, libdir)
-
         # Specify executables we use
         print('PROTOC=%s' % (P.join(bindir, 'protoc')),file=config)
         print('', file=config) # newline
@@ -811,11 +806,11 @@ class Apps:
 
     disable_apps = \
                  'demprofile plateorthoproject results \
-                 rmax2cahvor rmaxadjust'
+                 rmax2cahvor rmaxadjust orthoproject'
     enable_apps = \
                 'bundle_adjust bundlevis datum_convert dem_geoid dem_mosaic disparitydebug \
                 geodiff hsvmerge lronacjitreg mapproject mer2camera orbitviz \
-                orthoproject point2dem point2las point2mesh pc_align rpc_gen \
+                point2dem point2las point2mesh pc_align rpc_gen \
                 sfs stereo tif_mosaic wv_correct image_calc pc_merge pansharp'
     install_pkgs = \
                  'boost openscenegraph flapack arbitrary_qt curl    \
@@ -827,8 +822,7 @@ class Apps:
             'vw_core vw_math vw_image vw_fileio vw_camera \
              vw_stereo vw_cartography vw_interest_point'
     off_pkgs    = \
-             'zeromq rabbitmq_c qt_qmake clapack slapack vw_plate \
-             kakadu gsl_hasblas apple_qwt'
+             'qt_qmake clapack slapack kakadu gsl_hasblas apple_qwt'
 
 def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
                      geoid, config_file):

@@ -2,6 +2,7 @@ IsisPreferences
 bin/convert
 bin/camera_solve
 bin/camera_calibrate
+bin/undistort_camera
 bin/build_reconstruction
 bin/view_reconstruction
 bin/export_reconstruction_to_vw
@@ -27,7 +28,6 @@ bin/lronacjitreg
 bin/mapproject
 bin/mer2camera
 bin/orbitviz
-bin/orthoproject
 bin/osgviewer
 bin/parallel_stereo
 bin/pc_align
