@@ -1181,9 +1181,9 @@ class imagemagick(Package):
     src     = 'http://downloads.sourceforge.net/project/imagemagick/old-sources/6.x/6.8/ImageMagick-6.8.6-10.tar.gz'
     chksum  = '6ea9dfc1042bb2057f8aa08e81e18c0c83451109'
 
-class theia(CMakePackage):
-    src     = 'https://github.com/sweeneychris/TheiaSfM/archive/v0.5.tar.gz'
-    chksum  = '47fc49bc9907f31bdf9077743affe13f680f651f'
+class theia(GITPackage, CMakePackage):
+    src     = 'https://github.com/sweeneychris/TheiaSfM.git'
+    chksum  = '501261f'
     patches = 'patches/theia'
 
     @stage

@@ -169,7 +169,7 @@ diff -uN TheiaSfM-0.5/applications/export_reconstruction_to_vw.cc TheiaSfM-0.5/a
 +    ofs << "C = " << camera.GetPosition().format(unaligned) << std::endl;
 +    
 +    // Rotation matrix R
-+    ofs << "R = " << camera.GetOrientationAsRotationMatrix().format(unaligned) << std::endl;
++    ofs << "R = " << camera.GetOrientationAsRotationMatrix().transpose().format(unaligned) << std::endl;
 +    
 +    // Distortion parameters
 +    ofs << "k1 = " << camera.RadialDistortion1() << std::endl;
