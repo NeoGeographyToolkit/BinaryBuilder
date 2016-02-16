@@ -2,7 +2,7 @@ IsisPreferences
 bin/convert
 bin/camera_solve
 bin/camera_calibrate
-bin/undistort_camera
+bin/undistort_image
 bin/build_reconstruction
 bin/view_reconstruction
 bin/export_reconstruction_to_vw
