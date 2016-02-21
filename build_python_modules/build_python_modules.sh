@@ -1,21 +1,21 @@
 #!/bin/bash
 
 function is_version_less() {
-    
+
     # Return 1 if version1 is less than version2.
     # Return 0 otherwise.
     [ "$1" == "$2" ] && return 0
-    
+
     ver1front=`echo $1 | cut -d "." -f -1`
     ver1back=`echo $1 | cut -d "." -f 2-`
-    
+
     ver2front=`echo $2 | cut -d "." -f -1`
     ver2back=`echo $2 | cut -d "." -f 2-`
-    
+
     if [ "$ver1front" != "$1" ] || [ "$ver2front" != "$2" ]; then
         [ "$ver1front" -gt "$ver2front" ] && return 0
         [ "$ver1front" -lt "$ver2front" ] && return 1
-        
+
         [ "$ver1front" == "$1" ] || [ -z "$ver1back" ] && ver1back=0
         [ "$ver2front" == "$2" ] || [ -z "$ver2back" ] && ver2back=0
         is_version_less "$ver1back" "$ver2back"
@@ -23,7 +23,7 @@ function is_version_less() {
     else
         [ "$1" -gt "$2" ] && return 0 || return 1
     fi
-}    
+}
 
 function compute_python_path () {
     installDir=$1
@@ -54,6 +54,8 @@ cd $installDir
 installDir=$(pwd)
 cd $currDir
 
+export LD_LIBRARY_PATH=$installDir/lib:$LD_LIBRARY_PATH # for some .so files
+
 n_cpu=$(grep -c ^processor /proc/cpuinfo 2>/dev/null)
 if [ "$n_cpu" = "" ]; then n_cpu=2; fi
 echo Will use $n_cpu processes
@@ -73,7 +75,7 @@ done
 
 # Find gfortran
 gfortran=$(which gfortran)
-if [ "$gfortran" = "" ]; then 
+if [ "$gfortran" = "" ]; then
     dirs=$(echo $PATH | perl -pi -e "s#:# #g")
     for dir in $dirs; do
         val=$(ls $dir/gfortran* 2>/dev/null | head -n 1)
@@ -83,7 +85,7 @@ if [ "$gfortran" = "" ]; then
         fi
     done
 fi
-if [ "$gfortran" = "" ]; then 
+if [ "$gfortran" = "" ]; then
     echo "ERROR: Cannot find gfortran"
     exit 1
 fi
@@ -101,7 +103,7 @@ fi
 # Check python version
 py_ver0="2.6"
 python --version; ans=$? # Will return non-zero for Python 2.4
-if [ "$ans" -eq 0 ]; then 
+if [ "$ans" -eq 0 ]; then
     py_ver=$(python --version 2>&1 | awk '{print $2}')
     is_version_less $py_ver $py_ver0; ans=$?
 fi
@@ -132,6 +134,8 @@ make install
 if [ "$?" -ne 0 ]; then exit 1; fi
 
 # Install numpy
+p=$(compute_python_path $installDir)
+export PYTHONPATH=$p # refresh the python path
 cd $buildDir
 rm -rf numpy-1.7.0
 file=numpy-1.7.0.tar.gz
