@@ -97,15 +97,21 @@ test_status="$?"
 chown -R  :ar-gg-ti-asp-maintain $HOME/$testDir
 chmod -R g+rw $HOME/$testDir
 
-if [ $test_status -ne 0 ]; then
-    echo "Last command failed, sending status and early quit."
-    ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
+if [ ! -f "$reportFile" ]; then
+    echo "Error: Final report file does not exist"
+    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
         #2>/dev/null
     exit 1
 fi
-if [ ! -f "$reportFile" ]; then
-    echo "Error: Final report file does not exist"
-    ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
+
+# Append the result of tests to the logfile
+echo "###### Contents of the report file ######"
+cat $reportFile
+echo "###### End of the report file ######"
+
+if [ $test_status -ne 0 ]; then
+    echo "py.test command failed, sending status and early quit."
+    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
         #2>/dev/null
     exit 1
 fi
@@ -118,9 +124,6 @@ if [ "$(echo $machine | grep $masterMachine)" != "" ]; then
 fi
 $HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
 
-# Append the result of tests to the logfile
-cat $reportFile
-
 # Display the allowed error (actual error with extra tolerance) for each run
 bin/print_allowed_error.pl $reportFile
 
@@ -130,6 +133,6 @@ failures=$(grep -i fail $reportFile)
 if [ "$failures" = "" ]; then
     status="Success"
 fi
-ssh -v $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
+ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
     #2>/dev/null
 echo "Finished running tests locally!"
