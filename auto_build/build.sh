@@ -137,9 +137,9 @@ rsync -avz $asp_tarball $masterMachine:$buildDir/asp_tarballs \
 # otherwise the parent script will take over before this script finished.
 # - We need to make sure we SSH back as the correct user!
 echo "Sending status to lunokhod1..."
-ssh -v $userName@$masterMachine \
-    "echo '$asp_tarball build_done Success' > $buildDir/$statusFile" # \
-#    2>/dev/null
+ssh  $userName@$masterMachine \
+    "echo '$asp_tarball build_done Success' > $buildDir/$statusFile"  \
+    2>/dev/null
 echo "ssh $userName@$masterMachine echo '$asp_tarball build_done Success' > $buildDir/$statusFile 2>/dev/null"
 
 

@@ -99,8 +99,8 @@ chmod -R g+rw $HOME/$testDir
 
 if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
-    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
-        #2>/dev/null
+    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" \
+        2>/dev/null
     exit 1
 fi
 
@@ -111,8 +111,8 @@ echo "###### End of the report file ######"
 
 if [ $test_status -ne 0 ]; then
     echo "py.test command failed, sending status and early quit."
-    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
-        #2>/dev/null
+    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" \
+        2>/dev/null
     exit 1
 fi
 
@@ -133,6 +133,6 @@ failures=$(grep -i fail $reportFile)
 if [ "$failures" = "" ]; then
     status="Success"
 fi
-ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" #\
-    #2>/dev/null
+ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" \
+    2>/dev/null
 echo "Finished running tests locally!"
