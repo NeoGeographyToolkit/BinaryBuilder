@@ -3,6 +3,8 @@ bin/convert
 bin/camera_solve
 bin/camera_calibrate
 bin/undistort_image
+bin/icebridge_kmz_to_csv
+bin/lvis2kml
 bin/build_reconstruction
 bin/view_reconstruction
 bin/export_reconstruction_to_vw

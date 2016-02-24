@@ -230,6 +230,23 @@ cd swig/python
 python setup.py install --prefix=$installDir
 if [ "$?" -ne 0 ]; then exit 1; fi
 
+# Install simplekml
+cd $buildDir
+p=$(compute_python_path $installDir)
+export PYTHONPATH=$p # refresh the python path
+rm -rf simplekml-1.2.8
+file=simplekml-1.2.8.zip
+if [ ! -f "$file" ]; then
+    wget https://pypi.python.org/packages/source/s/simplekml/$file
+fi
+unzip $file
+cd simplekml-1.2.8
+python setup.py build
+if [ "$?" -ne 0 ]; then exit 1; fi
+python setup.py install --prefix=$installDir
+if [ "$?" -ne 0 ]; then exit 1; fi
+
+
 p=$(compute_python_path $installDir)
 export PYTHONPATH=$p # refresh the python path
 

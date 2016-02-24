@@ -15,4 +15,13 @@ Required software:
  - cmake, version >= 2.8.7
  - Python, version >= 2.6
  - python-devel
+ 
+Installed packages:
+ - blas/lapack
+ - numpy
+ - scipy
+ - geos
+ - proj4
+ - gdal
+ - simplekml
 
