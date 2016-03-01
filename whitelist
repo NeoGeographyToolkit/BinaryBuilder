@@ -8,6 +8,7 @@ bin/lvis2kml
 bin/build_reconstruction
 bin/view_reconstruction
 bin/export_reconstruction_to_vw
+bin/export_matches_file_to_vw
 bin/bundle_adjust
 bin/cam2map4stereo.py
 bin/colormap
