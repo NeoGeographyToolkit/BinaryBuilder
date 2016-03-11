@@ -759,8 +759,8 @@ class qwt(Package):
 
         # Turn of designer option in config file
         config_path = 'qwtconfig.pri'
-        self.helper('sed', '-ibak', '-e', 
-                    's/QWT_CONFIG     += QwtDesigner/#QWT_CONFIG     += QwtDesigner/g', 
+        self.helper('sed', '-ibak', '-e',
+                    's/QWT_CONFIG     += QwtDesigner/#QWT_CONFIG     += QwtDesigner/g',
                     config_path)
 
 
@@ -1057,8 +1057,9 @@ class libnabo(GITPackage, CMakePackage):
         super(libnabo, self).configure(other=options)
 
 class libpointmatcher(GITPackage, CMakePackage):
-    src   = 'https://github.com/ethz-asl/libpointmatcher'
-    chksum = 'c257fe2'
+    #src   = 'https://github.com/ethz-asl/libpointmatcher'
+    src   = 'https://github.com/oleg-alexandrov/libpointmatcher.git'
+    chksum = 'a1f7e5c'
     # We apply a non-trivial patch to libpointmatcher to make
     # it a bit more efficient. These changes seem to be custom
     # enough that would not make sense to be merged upstream.
@@ -1089,7 +1090,8 @@ class libpointmatcher(GITPackage, CMakePackage):
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DSHARED_LIBS=ON',
-            '-DUSE_SYSTEM_YAML_CPP=OFF' # Use the yaml code included with LPM
+            '-DUSE_SYSTEM_YAML_CPP=OFF', # Use the yaml code included with LPM
+            '-DCMAKE_BUILD_TYPE=Release'
             ]
         # Bugfix for lunokhod2. This has problems on Mac OSX 10.6.
         if self.arch.os == 'linux':
@@ -1171,7 +1173,7 @@ class opencv(CMakePackage):
                         '-DWITH_OPENCLAMDBLAS=OFF',
                         '-DWITH_OPENCL=OFF']
 
-        super(opencv, self).configure( other=options_list )  
+        super(opencv, self).configure( other=options_list )
 
 class gflags(CMakePackage):
     src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
@@ -1188,7 +1190,7 @@ class theia(GITPackage, CMakePackage):
 
     @stage
     def configure(self):
-        # Theia requires a data file with consumer camera info in it, so 
+        # Theia requires a data file with consumer camera info in it, so
         #  copy it to the share folder and point Theia to it.
         # - Note that the any Theia tool that asks for this data file HAS to be run from
         #   a first level subfolder in the ASP install directory!
@@ -1203,8 +1205,3 @@ class theia(GITPackage, CMakePackage):
 
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
         super(theia, self).configure()
-
-    
-    
-    
-    

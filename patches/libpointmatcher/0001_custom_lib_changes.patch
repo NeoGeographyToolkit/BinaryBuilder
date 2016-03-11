@@ -1,8 +1,8 @@
 diff --git pointmatcher/DataPointsFiltersImpl.cpp pointmatcher/DataPointsFiltersImpl.cpp
-index 39d4ce5..b167b1b 100644
+index 2f65356..51eed54 100644
 --- libpointmatcher/pointmatcher/DataPointsFiltersImpl.cpp
 +++ libpointmatcher/pointmatcher/DataPointsFiltersImpl.cpp
-@@ -45,6 +45,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+@@ -46,6 +46,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  #include "Eigen/QR"
  #include "Eigen/Eigenvalues"
  
@@ -13,7 +13,7 @@ index 39d4ce5..b167b1b 100644
  using namespace std;
  using namespace PointMatcherSupport;
  
-@@ -532,6 +536,7 @@ void DataPointsFiltersImpl<T>::SurfaceNormalDataPointsFilter::inPlaceFilter(
+@@ -533,6 +537,7 @@ void DataPointsFiltersImpl<T>::SurfaceNormalDataPointsFilter::inPlaceFilter(
  
  	// Search for surrounding points and compute descriptors
  	int degenerateCount(0);
@@ -21,76 +21,35 @@ index 39d4ce5..b167b1b 100644
  	for (int i = 0; i < pointsCount; ++i)
  	{
  		// Mean of nearest neighbors (NN)
-@@ -558,7 +563,10 @@ void DataPointsFiltersImpl<T>::SurfaceNormalDataPointsFilter::inPlaceFilter(
- 				eigenVe = solver.eigenvectors().real();
+@@ -560,6 +565,9 @@ void DataPointsFiltersImpl<T>::SurfaceNormalDataPointsFilter::inPlaceFilter(
  			}
  			else
--			{
-+                          {
+ 			{
 +#ifdef _OPENMP
-+                            boost::unique_lock<boost::mutex> w_lock(WriteLock);
++				boost::unique_lock<boost::mutex> w_lock(WriteLock);
 +#endif
  				//std::cout << "WARNING: Matrix C needed for eigen decomposition is degenerated. Expected cause: no noise in data" << std::endl;
  				++degenerateCount;
  			}
-diff --git pointmatcher/DataPointsFiltersImpl.h pointmatcher/DataPointsFiltersImpl.h
-index 43b7210..7da1326 100644
---- libpointmatcher/pointmatcher/DataPointsFiltersImpl.h
-+++ libpointmatcher/pointmatcher/DataPointsFiltersImpl.h
-@@ -265,7 +265,7 @@ struct DataPointsFiltersImpl
- 		inline static const ParametersDoc availableParameters()
- 		{
- 			return boost::assign::list_of<ParameterDoc>
--				( "ratio", "ratio of points to keep with random subsampling. Matrix (normal, density, etc.) will be associated to all points in the same bin.", "0.5", "0.0000001", "0.9999999", &P::Comp<T> )
-+				( "ratio", "ratio of points to keep with random subsampling. Matrix (normal, density, etc.) will be associated to all points in the same bin.", "0.5", "0.0000001", "1", &P::Comp<T> )
- 				( "knn", "determined how many points are used to compute the normals. Direct link with the rapidity of the computation (large = fast). Technically, limit over which a box is splitted in two", "7", "3", "2147483647", &P::Comp<unsigned> )
- 				( "samplingMethod", "if set to 0, random subsampling using the parameter ratio. If set to 1, bin subsampling with the resulting number of points being 1/knn.", "0", "0", "1", &P::Comp<unsigned> )
- 				( "maxBoxDim", "maximum length of a box above which the box is discarded", "inf" )
-diff --git pointmatcher/ErrorMinimizersImpl.cpp pointmatcher/ErrorMinimizersImpl.cpp
-index 4e3aef1..feff9bf 100644
---- libpointmatcher/pointmatcher/ErrorMinimizersImpl.cpp
-+++ libpointmatcher/pointmatcher/ErrorMinimizersImpl.cpp
-@@ -241,6 +241,14 @@ typename PointMatcher<T>::TransformationParameters ErrorMinimizersImpl<T>::Point
- 		std::cerr << "d angles" << x(0) - roll << ", " << x(1) - pitch << "," << x(2) - yaw << std::endl;*/
- 		transform.translation() = x.segment(3, 3);
- 		mOut = transform.matrix();
-+
-+		if (mOut != mOut) 
-+		{
-+			// Degenerate situation. This can happen when the source and reading clouds
-+			// are identical, and then b and x above are 0, and the rotation matrix cannot
-+			// be determined, it comes out full of NaNs. The correct transform is the identity.
-+			mOut = Matrix::Identity(dim, dim);
-+		}	
- 	}
- 	else
- 	{
 diff --git pointmatcher/ICP.cpp pointmatcher/ICP.cpp
-index 285e460..9312537 100644
+index 5e25ed0..e0187bf 100644
 --- libpointmatcher/pointmatcher/ICP.cpp
 +++ libpointmatcher/pointmatcher/ICP.cpp
-@@ -81,18 +81,96 @@ void PointMatcher<T>::ICPChainBase::cleanup()
+@@ -81,7 +81,7 @@ void PointMatcher<T>::ICPChainBase::cleanup()
  	readingDataPointsFilters.clear();
  	readingStepDataPointsFilters.clear();
  	referenceDataPointsFilters.clear();
 -	matcher.reset();
-+	//matcher.reset(); // don't destroy the already created tree oleg
++	//matcher.reset(); // don't destroy the already created tree
  	outlierFilters.clear();
  	errorMinimizer.reset();
  	transformationCheckers.clear();
- 	inspector.reset();
- }
- 
-+#if 0
- //! Hook to load addition subclass-specific content from the YAML file
- template<typename T>
- void PointMatcher<T>::ICPChainBase::loadAdditionalYAMLContent(YAML::Node& doc)
+@@ -94,6 +94,89 @@ void PointMatcher<T>::ICPChainBase::loadAdditionalYAMLContent(YAML::Node& doc)
  {
  }
-+#endif
-+
+ 
 +template<typename T>
-+void PointMatcher<T>::ICPChainBase::initRefTree // new oleg
++void PointMatcher<T>::ICPChainBase::initRefTree
 +(DataPoints& reference, std::string alignment_method,
 + bool highest_accuracy, bool verbose){
 +
@@ -141,16 +100,23 @@ index 285e460..9312537 100644
 +
 +  this->cleanup();
 +
-+  this->transformations.push_back(new typename TransformationsImpl<T>::RigidTransformation());
++  if (alignment_method != "similarity-point-to-point")
++    this->transformations.push_back(new typename TransformationsImpl<T>::RigidTransformation());
++  else
++    this->transformations.push_back(new typename TransformationsImpl<T>::SimilarityTransformation());
++  
 +  this->readingDataPointsFilters.push_back(new typename DataPointsFiltersImpl<T>::RandomSamplingDataPointsFilter(p1));
 +  this->outlierFilters.push_back(new typename OutlierFiltersImpl<T>::TrimmedDistOutlierFilter(p2));
 +
-+  if (alignment_method == "point-to-plane"){
++  if (alignment_method == "point-to-plane")
 +    this->errorMinimizer.reset(new typename ErrorMinimizersImpl<T>::PointToPlaneErrorMinimizer());
-+  }else{
++  else if (alignment_method == "point-to-point")
 +    this->errorMinimizer.reset(new typename ErrorMinimizersImpl<T>::PointToPointErrorMinimizer());
-+  }
-+
++  else if (alignment_method == "similarity-point-to-point")
++    this->errorMinimizer.reset(new typename ErrorMinimizersImpl<T>::PointToPointSimilarityErrorMinimizer());
++  else
++    throw runtime_error("Unsupported alignment method: " + alignment_method);
++  
 +  this->transformationCheckers.push_back(new typename TransformationCheckersImpl<T>::CounterTransformationChecker(p3));
 +  this->transformationCheckers.push_back(new typename TransformationCheckersImpl<T>::DifferentialTransformationChecker(p4));
 +
@@ -164,21 +130,22 @@ index 285e460..9312537 100644
 +    logger.reset(new FileLogger());
 +}
 +
- 
++
  //! Construct an ICP algorithm that works in most of the cases
  template<typename T>
-@@ -111,6 +189,60 @@ void PointMatcher<T>::ICPChainBase::setDefault()
+ void PointMatcher<T>::ICPChainBase::setDefault()
+@@ -111,6 +194,60 @@ void PointMatcher<T>::ICPChainBase::setDefault()
  	this->inspector.reset(new typename InspectorsImpl<T>::NullInspector);
  }
  
 +template<typename T>
-+void PointMatcher<T>::ICPChainBase::initICP(){ // new oleg
++void PointMatcher<T>::ICPChainBase::initICP(){
 +
 +        this->cleanup();
 +
 +	this->transformations.push_back(new typename TransformationsImpl<T>::RigidTransformation());
-+	this->readingDataPointsFilters.push_back(new typename DataPointsFiltersImpl<T>::IdentityDataPointsFilter()); // changed here
-+	this->referenceDataPointsFilters.push_back(new typename DataPointsFiltersImpl<T>::IdentityDataPointsFilter()); // changed here
++	this->readingDataPointsFilters.push_back(new typename DataPointsFiltersImpl<T>::IdentityDataPointsFilter()); 
++	this->referenceDataPointsFilters.push_back(new typename DataPointsFiltersImpl<T>::IdentityDataPointsFilter());
 +
 +	this->errorMinimizer.reset(new typename ErrorMinimizersImpl<T>::PointToPlaneErrorMinimizer());
 +	this->transformationCheckers.push_back(new typename TransformationCheckersImpl<T>::CounterTransformationChecker());
@@ -188,7 +155,7 @@ index 285e460..9312537 100644
 +}
 +
 +template<typename T>
-+void PointMatcher<T>::ICPChainBase::filterGrossOutliersAndCalcErrors // new oleg
++void PointMatcher<T>::ICPChainBase::filterGrossOutliersAndCalcErrors
 +(const DataPoints& referenceIn, double maxDistSq,
 + DataPoints& reading, Matrix & errors // in-out
 + ){
@@ -228,57 +195,57 @@ index 285e460..9312537 100644
  //! Construct an ICP algorithm from a YAML file
  template<typename T>
  void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
-@@ -138,7 +270,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
+@@ -136,7 +273,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
+ 	usedModuleTypes.insert(createModulesFromRegistrar("readingStepDataPointsFilters", doc, pm.REG(DataPointsFilter), readingStepDataPointsFilters));
  	usedModuleTypes.insert(createModulesFromRegistrar("referenceDataPointsFilters", doc, pm.REG(DataPointsFilter), referenceDataPointsFilters));
  	//usedModuleTypes.insert(createModulesFromRegistrar("transformations", doc, pm.REG(Transformation), transformations));
- 	this->transformations.push_back(new typename TransformationsImpl<T>::RigidTransformation());
 -	usedModuleTypes.insert(createModuleFromRegistrar("matcher", doc, pm.REG(Matcher), matcher));
-+	//usedModuleTypes.insert(createModuleFromRegistrar("matcher", doc, pm.REG(Matcher), matcher)); // don't destroy the already created tree // oleg
++	//usedModuleTypes.insert(createModuleFromRegistrar("matcher", doc, pm.REG(Matcher), matcher)); // don't destroy the already created tree
  	usedModuleTypes.insert(createModulesFromRegistrar("outlierFilters", doc, pm.REG(OutlierFilter), outlierFilters));
  	usedModuleTypes.insert(createModuleFromRegistrar("errorMinimizer", doc, pm.REG(ErrorMinimizer), errorMinimizer));
- 	usedModuleTypes.insert(createModulesFromRegistrar("transformationCheckers", doc, pm.REG(TransformationChecker), transformationCheckers));
-@@ -153,7 +285,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
+ 
+@@ -158,7 +295,7 @@ void PointMatcher<T>::ICPChainBase::loadFromYaml(std::istream& in)
  	{
  		string moduleType;
  		moduleTypeIt.first() >> moduleType;
 -		if (usedModuleTypes.find(moduleType) == usedModuleTypes.end())
-+		if (moduleType != "matcher" && usedModuleTypes.find(moduleType) == usedModuleTypes.end()) // oleg
++		if (moduleType != "matcher" && usedModuleTypes.find(moduleType) == usedModuleTypes.end())
  			throw InvalidModuleType(
  				(boost::format("Module type %1% does not exist") % moduleType).str()
  			);
-@@ -220,7 +352,7 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::operato
+@@ -239,7 +376,7 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::operato
  {
  	const int dim = readingIn.features.rows();
  	const TransformationParameters identity = TransformationParameters::Identity(dim, dim);
 -	return this->compute(readingIn, referenceIn, identity);
-+	return this->compute(readingIn, referenceIn, identity, false);// oleg
++	return this->compute(readingIn, referenceIn, identity, false);
  }
  
  //! Perform ICP from initial guess and return optimised transformation matrix
-@@ -228,9 +360,11 @@ template<typename T>
+@@ -247,9 +384,11 @@ template<typename T>
  typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::operator ()(
  	const DataPoints& readingIn,
  	const DataPoints& referenceIn,
 -	const TransformationParameters& initialTransformationParameters)
 +	const TransformationParameters& initialTransformationParameters,
-+        bool computeTranslationOnly// oleg
++        bool computeTranslationOnly
 +        )
  {
 -	return this->compute(readingIn, referenceIn, initialTransformationParameters);
-+  return this->compute(readingIn, referenceIn, initialTransformationParameters, computeTranslationOnly);//oleg
++	return this->compute(readingIn, referenceIn, initialTransformationParameters, computeTranslationOnly);
  }
  
  //! Perform ICP from initial guess and return optimised transformation matrix
-@@ -238,7 +372,7 @@ template<typename T>
+@@ -257,7 +396,7 @@ template<typename T>
  typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute(
  	const DataPoints& readingIn,
  	const DataPoints& referenceIn,
 -	const TransformationParameters& T_refIn_dataIn)
-+	const TransformationParameters& T_refIn_dataIn, bool computeTranslationOnly)//oleg
++	const TransformationParameters& T_refIn_dataIn, bool computeTranslationOnly)
  {
  	// Ensuring minimum definition of components
  	if (!this->matcher)
-@@ -255,43 +389,45 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
+@@ -274,43 +413,45 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
  	
  	// Apply reference filters
  	// reference is express in frame <refIn>
@@ -286,47 +253,47 @@ index 285e460..9312537 100644
 -	this->referenceDataPointsFilters.init();
 -	this->referenceDataPointsFilters.apply(reference);
 -	
-+        //DataPoints reference(referenceIn); // oleg
-+	//this->referenceDataPointsFilters.init(); // oleg
-+	//this->referenceDataPointsFilters.apply(reference); // oleg
++        //DataPoints reference(referenceIn);
++	//this->referenceDataPointsFilters.init();
++	//this->referenceDataPointsFilters.apply(reference);
 +
  	// Create intermediate frame at the center of mass of reference pts cloud
  	//  this help to solve for rotations
--	const int nbPtsReference = referenceIn.features.cols();
--	const Vector meanReference = referenceIn.features.rowwise().sum() / nbPtsReference;
-+	//const int nbPtsReference = referenceIn.features.cols(); // oleg
-+	//const Vector meanReference = referenceIn.features.rowwise().sum() / nbPtsReference; // oleg
+-	const int nbPtsReference = reference.features.cols();
+-	const Vector meanReference = reference.features.rowwise().sum() / nbPtsReference;
++	//const int nbPtsReference = referenceIn.features.cols();
++	//const Vector meanReference = referenceIn.features.rowwise().sum() / nbPtsReference;
  	TransformationParameters T_refIn_refMean(Matrix::Identity(dim, dim));
 -	T_refIn_refMean.block(0,dim-1, dim-1, 1) = meanReference.head(dim-1);
 -	
 -	// Reajust reference position: 
-+        //T_refIn_refMean.block(0,dim-1, dim-1, 1) = meanReference.head(dim-1); //oleg
++        //T_refIn_refMean.block(0,dim-1, dim-1, 1) = meanReference.head(dim-1);
 +
 +	// Reajust reference position:
  	// from here reference is express in frame <refMean>
  	// Shortcut to do T_refIn_refMean.inverse() * reference
 -	reference.features.topRows(dim-1).colwise() -= meanReference.head(dim-1);
 -	
-+        //reference.features.topRows(dim-1).colwise() -= meanReference.head(dim-1);//oleg
++        //reference.features.topRows(dim-1).colwise() -= meanReference.head(dim-1);
 +
  	// Init matcher with reference points center on its mean
 -	this->matcher->init(reference);
 -	
-+	this->matcher->init(referenceIn); //oleg
++	this->matcher->init(referenceIn);
 +
  	// statistics on last step
  	this->inspector->addStat("ReferencePreprocessingDuration", t.elapsed());
  	this->inspector->addStat("ReferenceInPointCount", referenceIn.features.cols());
 -	this->inspector->addStat("ReferencePointCount", reference.features.cols());
-+	this->inspector->addStat("ReferencePointCount", referenceIn.features.cols());//oleg
++	this->inspector->addStat("ReferencePointCount", referenceIn.features.cols());
  	LOG_INFO_STREAM("PointMatcher::icp - reference pre-processing took " << t.elapsed() << " [s]");
 -	this->prefilteredReferencePtsCount = reference.features.cols();
 -	
 -	return computeWithTransformedReference(readingIn, reference, T_refIn_refMean, T_refIn_dataIn);
 -	
-+	this->prefilteredReferencePtsCount = referenceIn.features.cols();//oleg
++	this->prefilteredReferencePtsCount = referenceIn.features.cols();
 +
-+	return computeWithTransformedReference(readingIn, referenceIn, T_refIn_refMean, T_refIn_dataIn, computeTranslationOnly);//oleg
++	return computeWithTransformedReference(readingIn, referenceIn, T_refIn_refMean, T_refIn_dataIn, computeTranslationOnly);
 +
  }
  
@@ -340,18 +307,18 @@ index 285e460..9312537 100644
  	const TransformationParameters& T_refIn_refMean,
 -	const TransformationParameters& T_refIn_dataIn)
 +	const TransformationParameters& T_refIn_dataIn,
-+        bool computeTranslationOnly//oleg
++        bool computeTranslationOnly
 +        )
  {
  	timer t; // Print how long take the algo
  	
-@@ -384,7 +520,48 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
+@@ -403,7 +544,48 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICP::compute
  	
  		++iterationCount;
  	}
 -	
 +
-+        if (computeTranslationOnly){//oleg
++        if (computeTranslationOnly){
 +
 +                // Find the best translation which approximates T_iter
 +
@@ -395,22 +362,22 @@ index 285e460..9312537 100644
  	this->inspector->addStat("IterationsCount", iterationCount);
  	this->inspector->addStat("PointCountTouched", this->matcher->getVisitCount());
  	this->matcher->resetVisitCount();
-@@ -530,8 +707,8 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICPSequence:
+@@ -549,8 +731,8 @@ typename PointMatcher<T>::TransformationParameters PointMatcher<T>::ICPSequence:
  	this->referenceDataPointsFilters.apply(reference);
  	
  	this->matcher->init(reference);
 -	
 -	return this->computeWithTransformedReference(cloudIn, reference, T_refIn_refMean, T_refIn_dataIn);
 +
-+	return this->computeWithTransformedReference(cloudIn, reference, T_refIn_refMean, T_refIn_dataIn, false);// oleg
++	return this->computeWithTransformedReference(cloudIn, reference, T_refIn_refMean, T_refIn_dataIn, false);
  }
  
  template struct PointMatcher<float>::ICPSequence;
 diff --git pointmatcher/PointMatcher.h pointmatcher/PointMatcher.h
-index f203505..2f04c97 100644
+index 1949f18..27ed20a 100644
 --- libpointmatcher/pointmatcher/PointMatcher.h
 +++ libpointmatcher/pointmatcher/PointMatcher.h
-@@ -594,8 +594,22 @@ struct PointMatcher
+@@ -645,8 +645,22 @@ struct PointMatcher
  		
  		virtual ~ICPChainBase();
  
@@ -435,16 +402,7 @@ index f203505..2f04c97 100644
  		void loadFromYaml(std::istream& in);
  		unsigned getPrefilteredReadingPtsCount() const;
  		unsigned getPrefilteredReferencePtsCount() const;
-@@ -608,7 +622,7 @@ struct PointMatcher
- 		
- 		void cleanup();
- 		
--        virtual void loadAdditionalYAMLContent(PointMatcherSupport::YAML::Node& doc);
-+        //virtual void loadAdditionalYAMLContent(PointMatcherSupport::YAML::Node& doc);
- 		
- 		template<typename R>
-         const std::string& createModulesFromRegistrar(const std::string& regName, const PointMatcherSupport::YAML::Node& doc, const R& registrar, PointMatcherSupport::SharedPtrVector<typename R::TargetType>& modules);
-@@ -630,20 +644,19 @@ struct PointMatcher
+@@ -683,12 +697,12 @@ struct PointMatcher
  		TransformationParameters operator()(
  			const DataPoints& readingIn,
  			const DataPoints& referenceIn,
@@ -456,18 +414,16 @@ index f203505..2f04c97 100644
  			const DataPoints& readingIn,
  			const DataPoints& referenceIn,
 -			const TransformationParameters& initialTransformationParameters);
--			const DataPoints& getReadingFiltered() const { return readingFiltered; }
 +			const TransformationParameters& initialTransformationParameters, bool computeTranslationOnly);
  
- 	protected:
- 		TransformationParameters computeWithTransformedReference(
--			const DataPoints& readingIn, 
--			const DataPoints& reference, 
-+			const DataPoints& readingIn,
-+			const DataPoints& reference,
+ 		//! Return the filtered point cloud reading used in the ICP chain
+ 		const DataPoints& getReadingFiltered() const { return readingFiltered; }
+@@ -698,7 +712,7 @@ struct PointMatcher
+ 			const DataPoints& readingIn, 
+ 			const DataPoints& reference, 
  			const TransformationParameters& T_refIn_refMean,
 -			const TransformationParameters& initialTransformationParameters);
 +			const TransformationParameters& initialTransformationParameters, bool computeTranslationOnly);
  
- 		DataPoints readingFiltered;
+ 		DataPoints readingFiltered; //!< reading point cloud after the filters were applied
  	};
