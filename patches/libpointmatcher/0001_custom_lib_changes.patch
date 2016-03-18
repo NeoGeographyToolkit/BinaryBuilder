@@ -374,7 +374,7 @@ index 5e25ed0..e0187bf 100644
  
  template struct PointMatcher<float>::ICPSequence;
 diff --git pointmatcher/PointMatcher.h pointmatcher/PointMatcher.h
-index 1949f18..27ed20a 100644
+index 3ba8a59..0bfb426 100644
 --- libpointmatcher/pointmatcher/PointMatcher.h
 +++ libpointmatcher/pointmatcher/PointMatcher.h
 @@ -645,8 +645,22 @@ struct PointMatcher

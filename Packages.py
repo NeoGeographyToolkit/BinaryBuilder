@@ -355,6 +355,14 @@ class geoid(Package):
         + glob(P.join(self.workdir, '*jp2')) + [geoidDir]
         self.helper(*cmd)
 
+class hd5(Package):
+    src     = 'http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.16.tar.bz2'
+    chksum  = 'a7b631778cb289edec670f665d2c3265983a0d53'
+    def configure(self):
+        super(hd5, self).configure(
+            enable=('cxx'),
+            disable = ['static'])
+
 # Due to legal reasons ... we are not going to download a modified
 # version of ISIS from some NASA Ames server. Instead, we will
 # download ISIS and then download the repo for editing ISIS. We apply
@@ -1057,13 +1065,20 @@ class libnabo(GITPackage, CMakePackage):
         super(libnabo, self).configure(other=options)
 
 class libpointmatcher(GITPackage, CMakePackage):
-    #src   = 'https://github.com/ethz-asl/libpointmatcher'
-    src   = 'https://github.com/oleg-alexandrov/libpointmatcher.git'
-    chksum = 'a1f7e5c'
+    src   = 'https://github.com/ethz-asl/libpointmatcher'
+    #src   = 'https://github.com/oleg-alexandrov/libpointmatcher.git'
+    chksum = '1a0fb60'
     # We apply a non-trivial patch to libpointmatcher to make
     # it a bit more efficient. These changes seem to be custom
     # enough that would not make sense to be merged upstream.
     patches = 'patches/libpointmatcher'
+
+    # A patch can be re-generated with
+    # f=patches/libpointmatcher/0001_custom_lib_changes.patch 
+    # git diff hash1 hash2 > $f 
+    # perl -pi -e "s# (a|b)/# #g" $f
+    # perl -pi -e "s#--- pointmatcher#--- libpointmatcher/pointmatcher#g" $f
+    # perl -pi -e "s#\+\+\+ pointmatcher#+++ libpointmatcher/pointmatcher#g" $f
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']
