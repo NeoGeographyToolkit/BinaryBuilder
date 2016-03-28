@@ -122,8 +122,8 @@ class pbzip2(Package):
         self.helper(*cmd)
 
 class parallel(Package):
-    src     = 'http://ftp.gnu.org/gnu/parallel/parallel-20130722.tar.bz2'
-    chksum  = 'd794ac9c2c0a73d430b9ae2ebbbd07e4eb2fcaf0'
+    src     = 'http://ftp.gnu.org/gnu/parallel/parallel-20130822.tar.bz2'
+    chksum  = 'd493a8982837d49806fd05d9d474aa8e9afbddf3'
 
     @stage
     def install(self):
