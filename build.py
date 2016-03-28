@@ -227,14 +227,8 @@ if __name__ == '__main__':
     output = run(build_env['CC'],'--version')
     if 'gcc' in build_env['CC']:
         output = output.lower()
-        if "llvm-gcc" in output:
+        if "llvm" in output or "clang" in output:
             die('Your compiler is an LLVM-GCC hybrid. It is our experience that these tools can not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
-    elif 'clang' in build_env['CC']:
-        output = output.lower()
-        keywords = output.split()
-        version_string = keywords[keywords.index('version')+1]
-        if version.StrictVersion(version_string) < "3.1":
-            die('Your Clang compiler is older than 3.1. It is our experience that older versions of clang could not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
 
     if arch.os == 'linux':
         ver1 = get_prog_version(build_env['CC'])
