@@ -51,6 +51,7 @@ bin/image_calc
 bin/pc_merge
 bin/pansharp
 bin/datum_convert
+bin/aster2asp
 lib/*.plugin
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
