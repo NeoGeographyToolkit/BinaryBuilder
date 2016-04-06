@@ -28,8 +28,6 @@ link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
 virtualMachines="big-centos-64-5"
 buildMachines="andey $virtualMachines"
-userName=$USER
-
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -37,7 +35,7 @@ sleepTime=30
 localMode=0 # Run local copy of the code. Must not happen in production.
 if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
-if [ "$userName" == "smcmich1" ]; then
+if [ "$USER" == "smcmich1" ]; then
     mailto="scott.t.mcmichael@nasa.gov"
     if [ "$localMode" -eq 0 ]; then
         mailto="$mailto oleg.alexandrov@nasa.gov"
@@ -61,7 +59,7 @@ source $HOME/$buildDir/auto_build/utils.sh
 # the latest version of BinaryBuilder, including this very script.
 filesList=auto_build/filesToCopy.txt
 if [ "$localMode" -eq 0 ]; then
-
+    echo "Updating from github..."
     # Update itself from github
     failure=1
     for ((i = 0; i < 600; i++)); do
@@ -90,19 +88,23 @@ if [ "$currMachine" != "$masterMachine" ]; then
     exit 1
 fi
 
+echo "Making sure virtual machines are running..."
 start_vrts $virtualMachines
 mkdir -p asp_tarballs
 
 # Wipe the doc before regenerating it
+echo "Wiping the doc..."
 if [ "$resumeRun" -eq 0 ]; then
     rm -fv dist-add/asp_book.pdf
 fi
+
 
 # Start the builds. The build script will copy back the built tarballs
 # and status files.
 # The reason we build on $masterMachine here is to make the docs,
 # which fails on other machines. When it comes to testing though,
 # we'll test on $masterMachine the build from centos-64-5.
+echo "Starting up the builds..."
 for buildMachine in $buildMachines $masterMachine; do
 
     echo "Setting up and launching: $buildMachine"
@@ -140,9 +142,11 @@ for buildMachine in $buildMachines $masterMachine; do
     # Launch the build
     echo "NoTarballYet now_building" > $statusFile
     robust_ssh $buildMachine $buildDir/auto_build/build.sh \
-        "$buildDir $statusFile $masterMachine $userName" $outputFile
+        "$buildDir $statusFile $masterMachine" $outputFile
 done
 
+# TODO: Wipe logs too?
+# TODO: Do this before launching?
 # Wipe all status test files before we start with testing.
 if [ "$resumeRun" -eq 0 ]; then
     for buildMachine in $buildMachines; do
@@ -162,19 +166,43 @@ while [ 1 ]; do
 
     for buildMachine in $buildMachines; do
 
+        # Parse the current status for this build machine
         statusFile=$(status_file $buildMachine)
+        statusLine=$(cat $statusFile)
+        progress=$(echo $statusLine | awk '{print $2}')
+
+        if [ "$progress" = "now_building" ]; then
+            # Update status from the build machine to see if build finished
+            # - It is important that we don't update this after the build is finished 
+            #   because we modify this file locally and if overwrite it we won't
+            #   make it to the correct if statement below!
+            echo "Reading status from $statusFile"
+            scp $buildMachine:$buildDir/$statusFile . &> /dev/null
+        fi
+
+        # Parse the file
         statusLine=$(cat $statusFile)
         tarBall=$(echo $statusLine | awk '{print $1}')
         progress=$(echo $statusLine | awk '{print $2}')
+
+        echo "Read in progress: $statusLine"
+
         testMachines=$(get_test_machines $buildMachine $masterMachine)
 
         if [ "$progress" = "now_building" ]; then
+            # Keep waiting
             echo "Status for $buildMachine is $statusLine"
             allTestsAreDone=0
         elif [ "$progress" = "build_failed" ]; then
             # Nothing can be done for this machine
             echo "Status for $buildMachine is $statusLine"
         elif [ "$progress" = "build_done" ]; then
+
+            echo "Fetching the completed build"
+            # Grab the build file from the build machine
+            echo "rsync -avz  $buildMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"
+            rsync -avz  $buildMachine:$buildDir/$tarBall \
+                        $HOME/$buildDir/asp_tarballs/    2>/dev/null
 
             # Build for current machine is done, need to test it
             allTestsAreDone=0
@@ -198,7 +226,7 @@ while [ 1 ]; do
 
                 sleep 5; # Give the filesystem enough time to react
                 robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
-                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine $userName" \
+                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
                     $outputTestFile
             done
 
@@ -208,10 +236,16 @@ while [ 1 ]; do
             allDoneForCurrMachine=1
             statusForCurrMachine="Success"
             for testMachine in $testMachines; do
+
+                # Grab the test status file for this machine.
                 statusTestFile=$(status_test_file $testMachine)
+                scp $testMachine:$buildDir/$statusTestFile . &> /dev/null
+
+                # Parse the file
                 statusTestLine=$(cat $statusTestFile)
                 testProgress=$(echo $statusTestLine | awk '{print $2}')
                 testStatus=$(echo $statusTestLine | awk '{print $3}')
+
                 echo "Status for $testMachine is $statusTestLine"
                 if [ "$testProgress" != "test_done" ]; then
                     allDoneForCurrMachine=0
@@ -257,23 +291,6 @@ if [ ! -f "dist-add/asp_book.pdf" ]; then
     overallStatus="Fail";
 fi
 
-# Turn off this optimization. It is pretty fragile, and works with
-# just a few versions of gs. The images have been downsized automatically
-# that this is not needed so much anymore.
-# if [ "$resumeRun" -eq 0 ]; then
-#     gs -dUseCIEColor -dCompatibilityLevel=1.4 -dPDFSETTINGS=/printer          \
-#         -dEmbedAllFonts=true -dSubsetFonts=true -dMaxSubsetPct=100            \
-#         -sDEVICE=pdfwrite -dNOPAUSE -dQUIET -dBATCH                           \
-#         -dDownsampleColorImages -dDownsampleGrayImages -dDownsampleMonoImages \
-#         -dColorImageDownsampleType=/Bicubic -dColorImageResolution=100        \
-#         -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=100          \
-#         -sOutputFile=output.pdf dist-add/asp_book.pdf
-#     if [ "$?" -ne 0 ]; then
-#         echo "Could not reduce the size of the documentation"
-#         overallStatus="Fail"
-#     fi
-#     mv -fv output.pdf dist-add/asp_book.pdf
-# fi
 
 # Get the ASP version. Hopefully some machine has it.
 version=""
@@ -305,7 +322,7 @@ for buildMachine in $buildMachines; do
     tarBall=$( echo $statusLine | awk '{print $1}' )
     progress=$( echo $statusLine | awk '{print $2}' )
     status=$( echo $statusLine | awk '{print $3}' )
-    echo $(date) Status for $buildMachine is $tarBall $progress $status
+    echo "$(date) Status for $buildMachine is $tarBall $progress $status"
     if [ "$status" != "Success" ]; then status="Fail"; fi
     if [ "$progress" != "test_done" ]; then
         echo "Error: Expecting the progress to be: test_done"

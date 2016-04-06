@@ -7,8 +7,8 @@
 # On success, copy back to the master machine the built tarball and
 # set the status.
 
-if [ "$#" -lt 4 ]; then
-    echo Usage: $0 buildDir statusFile masterMachine userName
+if [ "$#" -lt 3 ]; then
+    echo Usage: $0 buildDir statusFile masterMachine
     exit 1
 fi
 
@@ -22,13 +22,11 @@ fi
 buildDir=$1
 statusFile=$2
 masterMachine=$3
-userName=$4
 
 cd $HOME
 if [ ! -d "$buildDir" ]; then
     echo "Error: Directory: $buildDir does not exist"
-    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
-        2>/dev/null
+    echo "Fail build_failed" > $buildDir/$statusFile
     exit 1
 fi
 cd $buildDir
@@ -61,6 +59,9 @@ fi
 # Dump the environmental variables
 env
 
+# Init the status file
+echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
+
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
 echo "Building changed packages"
@@ -68,8 +69,7 @@ echo "Building changed packages"
 status="$?"
 echo "Build status is $status"
 if [ "$status" -ne 0 ]; then
-    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
-        2>/dev/null
+    echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
@@ -101,8 +101,7 @@ build_asp/install/bin/stereo -v 2>/dev/null | grep "NASA Ames Stereo Pipeline" |
 echo "Making the distribution..."
 ./make-dist.py last-completed-run/install
 if [ "$?" -ne 0 ]; then
-    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
-        2>/dev/null
+    echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
@@ -110,8 +109,7 @@ fi
 echo "Moving to asp_tarballs..."
 asp_tarball=$(ls -trd StereoPipeline*bz2 | grep -i -v debug | tail -n 1)
 if [ "$asp_tarball" = "" ]; then
-    ssh $masterMachine "echo 'Fail build_failed' > $buildDir/$statusFile" \
-        2>/dev/null
+    echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 mkdir -p asp_tarballs
@@ -128,19 +126,8 @@ $HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
 
 rm -f StereoPipeline*debug.tar.bz2
 
-# Copy the build to the master machine
-echo "Copying back to lunokhod1..."
-rsync -avz $asp_tarball $masterMachine:$buildDir/asp_tarballs \
-        2>/dev/null
-
 # Mark the build as finished. This must happen at the very end,
 # otherwise the parent script will take over before this script finished.
-# - We need to make sure we SSH back as the correct user!
-echo "Sending status to lunokhod1..."
-ssh  $userName@$masterMachine \
-    "echo '$asp_tarball build_done Success' > $buildDir/$statusFile"  \
-    2>/dev/null
-echo "ssh $userName@$masterMachine echo '$asp_tarball build_done Success' > $buildDir/$statusFile 2>/dev/null"
-
+echo "$asp_tarball build_done Success" > $HOME/$buildDir/$statusFile
 
 echo "Finished running build.sh locally!"

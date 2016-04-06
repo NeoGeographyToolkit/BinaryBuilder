@@ -100,9 +100,12 @@ function robust_ssh {
     name=$(basename $prog)
 
     for ((count = 0; count < 50; count++)); do
+        # Start the process on the remote machine
         cmd="nohup nice -19 $prog $opts > $outfile 2>&1&"
         echo ssh $machine \"$cmd\"
         ssh $machine "$cmd" 2>/dev/null &
+
+        # Wait a while and then look for the process name
         sleep 20
         out=$(ssh $machine "ps ux | grep $name | grep -v grep" \
             2>/dev/null)

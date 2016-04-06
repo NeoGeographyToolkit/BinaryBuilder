@@ -13,18 +13,19 @@ tarBall=$2
 testDir=$3
 statusFile=$4
 masterMachine=$5
-userName=$6
 
 # Set system paths and load utilities
 source $HOME/$buildDir/auto_build/utils.sh
 
 status="Fail"
 
+# Init the status file
+echo "$tarBall now_testing" > $HOME/$buildDir/$statusFile
+
 # Unpack the tarball
 if [ ! -e "$HOME/$buildDir/$tarBall" ]; then
     echo "Error: File: $HOME/$buildDir/$tarBall does not exist"
-    ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
-        2>/dev/null
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 tarBallDir=$(dirname $HOME/$buildDir/$tarBall)
@@ -35,8 +36,7 @@ binDir=$HOME/$buildDir/$tarBall
 binDir=${binDir/.tar.bz2/}
 if [ ! -e "$binDir" ]; then
     echo "Error: Directory: $binDir does not exist"
-    ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
-        2>/dev/null
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
@@ -60,8 +60,7 @@ for ((i = 0; i < 600; i++)); do
     sleep 60
 done
 if [ "$failure" -ne 0 ]; then
-    ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
-        2>/dev/null
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
@@ -76,8 +75,7 @@ configFile=$(release_conf_file $machine)
 
 if [ ! -e $configFile ]; then
     echo "Error: File $configFile does not exist"
-    ssh $masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile"\
-        2>/dev/null
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFile
@@ -99,8 +97,7 @@ chmod -R g+rw $HOME/$testDir
 
 if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
-    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" \
-        2>/dev/null
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
@@ -111,8 +108,7 @@ echo "###### End of the report file ######"
 
 if [ $test_status -ne 0 ]; then
     echo "py.test command failed, sending status and early quit."
-    ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" \
-        2>/dev/null
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
@@ -133,6 +129,5 @@ failures=$(grep -i fail $reportFile)
 if [ "$failures" = "" ]; then
     status="Success"
 fi
-ssh $userName@$masterMachine "echo '$tarBall test_done $status' > $buildDir/$statusFile" \
-    2>/dev/null
+echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
 echo "Finished running tests locally!"
