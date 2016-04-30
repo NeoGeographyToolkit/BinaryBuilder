@@ -200,8 +200,8 @@ class libgeotiff(CMakePackage):
                                                   '-DBUILD_STATIC_LIBS=OFF'] )
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/1.10.1/gdal-1.10.1.tar.gz'
-    chksum  = 'b4df76e2c0854625d2bedce70cc1eaf4205594ae'
+    src     = 'http://download.osgeo.org/gdal/2.0.2/gdal202.zip'
+    chksum  = '91c1ce0e5156ab0e2671ae9133324e52f12c73b8'
     patches = 'patches/gdal'
 
     @stage
@@ -330,7 +330,6 @@ class laszip(CMakePackage):
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
 
 class geoid(Package):
-
     src     = 'https://byss.arc.nasa.gov/asp_packages/geoids.tgz'
     chksum  = 'e6e3961d6a84e10b4c49039b9a84098d57bd2206'
 
@@ -578,9 +577,9 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_58' # variable is used in class liblas, libnabo, etc.
+    version = '1_60' # variable is used in class liblas, libnabo, etc.
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = '2fc96c1651ac6fe9859b678b165bd78dc211e881'
+    chksum  = '7f56ab507d3258610391b47fef6b11635861175a'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -633,18 +632,6 @@ class boost(Package):
         self.env['BOOST_ROOT'] = self.workdir
         cmd = ['./bjam'] + self.args + ['install']
         self.helper(*cmd)
-
-class HeaderPackage(Package):
-    def configure(self, *args, **kw):
-        kw['other'] = kw.get('other', []) + ['--prefix=%(NOINSTALL_DIR)s' % self.env,]
-        super(HeaderPackage, self).configure(*args, **kw)
-
-    @stage
-    def compile(self): pass
-
-    @stage
-    def install(self):
-        self.helper('make', 'install-data')
 
 class gsl(Package):
     src = 'ftp://ftp.gnu.org/gnu/gsl/gsl-1.15.tar.gz',
