@@ -200,8 +200,8 @@ class libgeotiff(CMakePackage):
                                                   '-DBUILD_STATIC_LIBS=OFF'] )
 
 class gdal(Package):
-    src     = 'http://download.osgeo.org/gdal/2.0.2/gdal202.zip'
-    chksum  = '91c1ce0e5156ab0e2671ae9133324e52f12c73b8'
+    src     = 'http://download.osgeo.org/gdal/1.10.1/gdal-1.10.1.tar.gz'
+    chksum  = 'b4df76e2c0854625d2bedce70cc1eaf4205594ae'
     patches = 'patches/gdal'
 
     @stage
