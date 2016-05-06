@@ -1,0 +1,30 @@
+diff -ur gdal-2.0.2/alg/gdalgrid.cpp gdal-2.0.2_mod/alg/gdalgrid.cpp 
+--- gdal-2.0.2/alg/gdalgrid.cpp	2016-05-03 13:40:11.000000000 -0700
++++ gdal-2.0.2_mod/alg/gdalgrid.cpp	2016-05-03 13:39:59.000000000 -0700
+@@ -2078,7 +2078,7 @@
+ #define BIT_XMM_STATE           (1 << 1)
+ #define BIT_YMM_STATE           (2 << 1)
+ 
+-#if defined(__GNUC__) && (defined(__i386__) ||defined(__x86_64))
++#if defined(__GNUC__) && (defined(__i386__) ||defined(__x86_64)) && (!__APPLE__)
+ 
+ int CPLHaveRuntimeAVX()
+ {
+
+diff -ur gdal-2.0.2/alg/gdalgridavx.cpp gdal-2.0.2_mod/alg/gdalgridavx.cpp
+--- gdal-2.0.2/alg/gdalgridavx.cpp	2016-05-03 14:02:33.000000000 -0700
++++ gdal-2.0.2_mod/alg/gdalgridavx.cpp	2016-05-03 14:02:17.000000000 -0700
+@@ -30,6 +30,7 @@
+ #include "gdalgrid.h"
+ #include "gdalgrid_priv.h"
+ 
++#if (!__APPLE__)
+ #ifdef HAVE_AVX_AT_COMPILE_TIME
+ #include <immintrin.h>
+ 
+@@ -184,3 +185,5 @@
+ 
+ #endif
+ #endif
++#endif
++
