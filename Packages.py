@@ -1030,20 +1030,27 @@ class libnabo(GITPackage, CMakePackage):
     chksum = '2df86e0'
 
     def configure(self):
+
+        installDir = self.env['INSTALL_DIR']
+        
         # Remove python bindings, tests, and examples
         self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
         options = [
             '-DCMAKE_CXX_FLAGS=-g -O3',
+            '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
-            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include',
+                                            'boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
-            '-DSHARED_LIBS=ON'
+            '-DSHARED_LIBS=ON',
+            '-DCMAKE_BUILD_TYPE=Release',
+            '-DCMAKE_PREFIX_PATH=' + installDir,
             ]
+        
         # Bugfix for wrong boost dir being found
         if self.arch.os == 'linux':
-            installDir = self.env['INSTALL_DIR']
             options += [
                 '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
                 '-DMY_BOOST_VERSION=' + boost.version,
