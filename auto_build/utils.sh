@@ -60,6 +60,11 @@ function output_test_file () {
 
 function start_vrts {
 
+    if [ "$(whoami)" = "oalexan1" ]; then
+	echo User oalexan1 cannot start the vrts
+	return 0
+    fi
+    
     virtualMachines=$*
 
     for vrt in $virtualMachines; do

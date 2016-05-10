@@ -213,11 +213,13 @@ if __name__ == '__main__':
         found_and_to_be_removed = []
         for copy_lib in LIB_SHIP_PREFIX:
             for soname in mgr.deplist.keys():
+                print("---dealing with ", soname)
                 if soname.startswith(copy_lib):
                     # Bugfix: Do an exhaustive search, as same prefix can
                     # refer to multiple libraries, e.g., libgfortran.so.3 and
                     # libgfortran.so.1, and sometimes the wrong one is picked.
                     if mgr.deplist[soname] in found_set: continue
+                    print("now deal with ", soname, mgr.deplist[soname])
                     found_set.add(mgr.deplist[soname])
                     mgr.add_library(mgr.deplist[soname])
                     found_and_to_be_removed.append( soname )

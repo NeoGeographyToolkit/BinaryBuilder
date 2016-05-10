@@ -89,6 +89,7 @@ class DistManager(object):
             to. 'add_deps' means scan the library and add its required dependencies
             to deplist.'''
         logger.debug('attempting to add %s' % inpath)
+        print("dealing with ", inpath)
         for p in snap_symlinks(inpath) if symlinks_too else [inpath]:
             # This pulls out only the filename for the library. We
             # don't preserve the subdirs underneath 'lib'. This make
