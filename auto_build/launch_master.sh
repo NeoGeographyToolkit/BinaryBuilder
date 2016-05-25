@@ -98,6 +98,23 @@ if [ "$resumeRun" -eq 0 ]; then
     rm -fv dist-add/asp_book.pdf
 fi
 
+# Wipe the logs and status files of previous tests. We do it before the builds start,
+# as we won't get to the tests if the builds fail.
+if [ "$resumeRun" -eq 0 ]; then
+    for buildMachine in $buildMachines; do
+        testMachines=$(get_test_machines $buildMachine $masterMachine)
+        for testMachine in $testMachines; do
+
+            outputTestFile=$(output_test_file $buildDir $testMachine)
+            echo "" > $HOME/$outputTestFile
+            scp $HOME/$outputTestFile $testMachine:$outputTestFile  2> /dev/null
+
+            statusTestFile=$(status_test_file $testMachine)
+            rm -fv $statusTestFile
+            
+        done
+    done
+fi
 
 # Start the builds. The build script will copy back the built tarballs
 # and status files.
@@ -138,25 +155,12 @@ for buildMachine in $buildMachines $masterMachine; do
             continue
         fi
     fi
-
+    
     # Launch the build
     echo "NoTarballYet now_building" > $statusFile
     robust_ssh $buildMachine $buildDir/auto_build/build.sh \
         "$buildDir $statusFile $masterMachine" $outputFile
 done
-
-# TODO: Wipe logs too?
-# TODO: Do this before launching?
-# Wipe all status test files before we start with testing.
-if [ "$resumeRun" -eq 0 ]; then
-    for buildMachine in $buildMachines; do
-        testMachines=$(get_test_machines $buildMachine $masterMachine)
-        for testMachine in $testMachines; do
-            statusTestFile=$(status_test_file $testMachine)
-            rm -fv $statusTestFile
-        done
-    done
-fi
 
 # Whenever a build is done, launch tests for it. For some
 # builds, tests are launched on more than one machine.
