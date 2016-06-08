@@ -556,8 +556,9 @@ class GITPackage(Package):
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.workdir = P.join(output_dir, self.pkgname + '-git')
         # If fast, update and build in existing directory
+        # (assuming it exists).
         #   Otherwise, delete the existing build and start over.
-        if not self.fast:
+        if not self.fast or not os.path.isdir(output_dir):
             self.remove_build(output_dir)
             os.mkdir(self.workdir)
             self.helper('git', 'clone', self.localcopy, self.workdir)

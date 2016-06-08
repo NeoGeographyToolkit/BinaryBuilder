@@ -179,6 +179,8 @@ class openjpeg2(CMakePackage):
 
     @stage
     def configure(self):
+        curr_include = '-I' + self.workdir + '/src/bin/common'
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
         super(openjpeg2, self).configure(other=['-DBUILD_SHARED_LIBS=ON'])
 
 class tiff(Package):
@@ -258,10 +260,13 @@ class openexr(Package):
     @stage
     def configure(self):
         self.env['AUTOHEADER'] = 'true'
-        # XCode in snow leopard removed this flag entirely (way to go, guys)
+        # XCode in snow leopard removed this flag entirely
         self.helper('sed', '-ibak', '-e', 's/-Wno-long-double//g', 'configure.ac')
         self.helper('autoupdate', 'configure.ac')
         self.helper('autoreconf', '-fvi')
+        # The line below was an experimental fix for mac. It appears to not
+        # be needed for now. This may be revisited.
+        #self.helper('sed', '-ibak', '-e', 's#echo \"    ILMBASE_LDFLAGS#export TEST_LDFLAGS=\"-L/Users/smcmich1/usr/local/lib/gcc/4.8 -lgcc_s.1 -lstdc++ \$TEST_LDFLAGS\"; echo \"    ILMBASE_LDFLAGS#g', 'configure')
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
                                       disable=('ilmbasetest', 'imfexamples', 'static'))
 
@@ -492,7 +497,9 @@ class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
 
-        if self.fast: return # skip configuring in fast mode
+        # Skip config in fast mode if config file exists
+        config_file = P.join(self.workdir, 'config.options')
+        if self.fast and os.path.isfile(config_file): return
 
         self.helper('./autogen')
 
@@ -501,7 +508,6 @@ class stereopipeline(GITPackage):
         installdir    = prefix
         vw_build      = prefix
         arch          = self.arch
-        config_file   = P.join(self.workdir, 'config.options')
         write_asp_config(use_env_flags, prefix, installdir, vw_build,
                          arch, geoid, config_file)
 
@@ -536,14 +542,15 @@ class visionworkbench(GITPackage):
     @stage
     def configure(self):
 
-        if self.fast: return # skip configuring in fast mode
+        # Skip config in fast mode if config file exists
+        config_file  = P.join(self.workdir, 'config.options')
+        if self.fast and os.path.isfile(config_file): return
 
         self.helper('./autogen')
 
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
         prefix       = installdir
-        config_file  = P.join(self.workdir, 'config.options')
         write_vw_config(prefix, installdir, arch, config_file)
         fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
         super(visionworkbench, self).configure()
