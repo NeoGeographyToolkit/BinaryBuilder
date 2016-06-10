@@ -1,13 +1,9 @@
 diff -uN TheiaSfM-0.5/applications/CMakeLists.txt TheiaSfM-0.5/applications_new/CMakeLists.txt
 --- TheiaSfM-0.5/applications/CMakeLists.txt	2015-11-25 16:53:06.000000000 -0800
 +++ TheiaSfM-0.5/applications_new/CMakeLists.txt	2015-11-25 16:56:41.000000000 -0800
-@@ -68,4 +68,9 @@
- TARGET_LINK_LIBRARIES(upgrade_matches_file theia ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES})
- 
- ADD_EXECUTABLE(upgrade_reconstruction_file upgrade_reconstruction_file.cc)
--TARGET_LINK_LIBRARIES(upgrade_reconstruction_file theia ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES})
-\ No newline at end of file
-+TARGET_LINK_LIBRARIES(upgrade_reconstruction_file theia ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES})
+@@ -90,2 +90,7 @@
+  add_executable(create_reconstruction_from_strecha_dataset create_reconstruction_from_strecha_dataset.cc)
+  target_link_libraries(create_reconstruction_from_strecha_dataset theia ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES})
 +
 +ADD_EXECUTABLE(export_reconstruction_to_vw export_reconstruction_to_vw.cc)
 +TARGET_LINK_LIBRARIES(export_reconstruction_to_vw theia ${GFLAGS_LIBRARIES} ${GLOG_LIBRARIES})
@@ -109,7 +105,7 @@ diff -uN TheiaSfM-0.5/applications/export_reconstruction_to_vw.cc TheiaSfM-0.5/a
 +
 +void CreateDirectoryIfDoesNotExist(const std::string& directory) {
 +  if (!theia::DirectoryExists(directory)) {
-+    CHECK(theia::CreateDirectory(directory))
++    CHECK(theia::CreateNewDirectory(directory))
 +        << "Could not create the directory: " << directory;
 +  }
 +}

@@ -67,7 +67,6 @@ libexec/stereo_utils.py
 libexec/asp*.py
 libexec/parallel
 libexec/lasinfo
-share/theia/*
 share/gdal/*
 share/geoids*
 share/proj/*
