@@ -1,0 +1,14 @@
+--- theia-git/src/theia/sfm/exif_reader.cc	2016-06-13 13:05:25.692643313 -0700
++++ theia-git/src/theia/sfm_new/exif_reader.cc	2016-06-13 13:05:09.894769792 -0700
+@@ -94,8 +94,9 @@
+ 
+   std::ifstream ifs(sensor_width_file.c_str(), std::ios::in);
+   if (!ifs.is_open()) {
+-    LOG(FATAL) << "Cannot read the sensor width file from "
+-               << sensor_width_file;
++    //LOG(FATAL) << "Cannot read the sensor width file from "
++    //           << sensor_width_file;
++    return; // We can run fine without the sensor width file, suppress this error.
+   }
+ 
+   while (!ifs.eof()) {
