@@ -291,7 +291,7 @@ class curl(Package):
     @stage
     def configure(self):
         w = ['zlib=%(INSTALL_DIR)s' % self.env]
-        wo = 'ssl libidn'.split()
+        wo = 'libidn'.split()
         super(curl,self).configure(
             with_=w, without=wo, disable=['static','ldap','ldaps'])
 
@@ -360,7 +360,7 @@ class geoid(Package):
         self.helper(*cmd)
 
 class hd5(Package):
-    src     = 'http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.16.tar.bz2'
+    src     = 'http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.16/src/hdf5-1.8.16.tar.bz2'
     chksum  = 'a7b631778cb289edec670f665d2c3265983a0d53'
     def configure(self):
         super(hd5, self).configure(
