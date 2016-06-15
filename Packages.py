@@ -1204,3 +1204,11 @@ class theia(GITPackage, CMakePackage):
     src     = 'https://github.com/sweeneychris/TheiaSfM.git'
     chksum  = '231f597'
     patches = 'patches/theia'
+
+    @stage
+    def configure(self):
+        # Need this to avoid looking into the old installed version of
+        # theia's include in build_asp/install/include
+        curr_include = '-I' + self.workdir + '/src -I' + self.workdir + '/include '
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+        super(theia, self).configure()
