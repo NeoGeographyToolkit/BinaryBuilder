@@ -174,8 +174,8 @@ class jama(Package):
         self.helper(*cmd)
 
 class openjpeg2(CMakePackage):
-    src     = 'http://openjpeg.googlecode.com/files/openjpeg-2.0.0.tar.gz'
-    chksum  = '0af78ab2283b43421458f80373422d8029a9f7a7'
+    src     = 'https://github.com/uclouvain/openjpeg/archive/v2.1.1.tar.gz'
+    chksum  = 'b995742c41abe58828d72ffec52404ec91111194'
 
     @stage
     def configure(self):
@@ -730,7 +730,7 @@ class qt(Package):
     def configure(self):
         # The default confs override our compiler choices.
         self.helper('sed','-ibak','-e','s# g++# %s#g' % self.env['CXX'], '-e', 's# gcc# %s#g' % self.env['CC'], 'mkspecs/common/g++-base.conf')
-        cmd = './configure -opensource -fast -confirm-license -nomake tools -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools -no-openssl -no-libjpeg -no-libmng -no-libpng -no-libtiff -no-cups -no-nis -no-opengl -no-openvg -no-phonon -no-phonon-backend -no-sql-psql -no-dbus' % self.env
+        cmd = './configure -opensource -fast -confirm-license -xmlpatterns -nomake tools -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools -no-openssl -no-libjpeg -no-libmng -no-libpng -no-libtiff -no-cups -no-nis -no-opengl -no-openvg -no-phonon -no-phonon-backend -no-sql-psql -no-dbus' % self.env
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
@@ -919,8 +919,8 @@ class dsk(Package):
         self.helper(*cmd)
 
 class protobuf(Package):
-    src = 'http://protobuf.googlecode.com/files/protobuf-2.4.1.tar.bz2'
-    chksum = 'df5867e37a4b51fb69f53a8baf5b994938691d6d'
+    src = 'https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2'
+    chksum = '6421ee86d8fb4e39f21f56991daa892a3e8d314b'
 
     @stage
     def configure(self):

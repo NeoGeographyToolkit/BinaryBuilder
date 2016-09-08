@@ -54,6 +54,7 @@ If you would like Binary Builder to create a tarball of all Stereo
 Pipeline binaries and dependencies, you can use the following
 commands:
 
+  source ./auto_build/utils.sh
  ./build.py
  ./make-dist.py last-completed-run/install
 
