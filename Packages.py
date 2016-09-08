@@ -1003,8 +1003,8 @@ class eigen(CMakePackage):
             ])
 
 class glog(Package):
-    src     = 'https://google-glog.googlecode.com/files/glog-0.3.3.tar.gz'
-    chksum  = 'ed40c26ecffc5ad47c618684415799ebaaa30d65'
+    src     = 'https://github.com/google/glog/archive/v0.3.4.tar.gz'
+    chksum  = '69f91cd5a1de35ead0bc4103ea87294b0206a456'
     def configure(self):
         if self.arch.os == 'osx':
             other_flags = ['CFLAGS=-m64', 'CXXFLAGS=-m64',]
