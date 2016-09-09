@@ -98,6 +98,11 @@ versionFile=$(version_file $buildMachine)
 echo "Dumping the version to file: $versionFile"
 build_asp/install/bin/stereo -v 2>/dev/null | grep "NASA Ames Stereo Pipeline" | awk '{print $5}' >  $versionFile
 
+# Make sure all maintainers can access the files.
+# - These commands fail on the VM but that is OK because we don't need them to work on that machine.
+chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
+chmod -R g+rw $HOME/$buildDir
+
 echo "Making the distribution..."
 ./make-dist.py last-completed-run/install
 if [ "$?" -ne 0 ]; then
