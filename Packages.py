@@ -174,8 +174,11 @@ class jama(Package):
         self.helper(*cmd)
 
 class openjpeg2(CMakePackage):
-    src     = 'https://github.com/uclouvain/openjpeg/archive/v2.1.1.tar.gz'
-    chksum  = 'b995742c41abe58828d72ffec52404ec91111194'
+    # Note: Upgrading to a newer openjpeg causes problems with dem_geoid.
+    # The solution may be to convert the old jp2 geoid to the new
+    # jp2 format perhaps.
+    src     = 'https://github.com/uclouvain/openjpeg/archive/version.2.0.tar.gz'
+    chksum  = 'a2e65326289a5836b82ed8567a2de8a283d722cd'
 
     @stage
     def configure(self):
