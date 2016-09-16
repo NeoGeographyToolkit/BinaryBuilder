@@ -1216,3 +1216,8 @@ class theia(GITPackage, CMakePackage):
         curr_include = '-I' + self.workdir + '/src -I' + self.workdir + '/include '
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
         super(theia, self).configure()
+
+class xz(Package):
+    src     = 'http://tukaani.org/xz/xz-5.2.2.tar.gz'
+    chksum  = '14663612422ab61386673be78fbb2556f50a1f08'
+
