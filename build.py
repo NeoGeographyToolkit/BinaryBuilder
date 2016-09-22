@@ -263,7 +263,7 @@ if __name__ == '__main__':
         build_env.append('OSX_TARGET', opt.osx_sdk)
 
         build_env.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')])) # OSX compiler extension
-        build_env.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
+        #build_env.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
         build_env.append_many(ALL_FLAGS, '-m64')
 
         # # Resolve a bug with -mmacosx-version-min on 10.6 (see
