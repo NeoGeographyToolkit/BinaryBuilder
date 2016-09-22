@@ -597,7 +597,9 @@ class boost(Package):
     def __init__(self, env):
         super(boost, self).__init__(env)
         self.env['NO_BZIP2'] = '1'
-#        self.env['NO_ZLIB']  = '1'
+        #self.env['NO_ZLIB']  = '1'
+        if self.arch.os == 'osx':
+            self.env['PATH'] = '/usr/bin:' + self.env['PATH'] # to use the right libtool
 
     @stage
     def configure(self):

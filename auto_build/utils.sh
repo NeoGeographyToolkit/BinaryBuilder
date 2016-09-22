@@ -6,9 +6,19 @@
 # - To clarify, this line contains the correct values for each different 
 #   build machine all jammed together in one big line.  Same for LD_LIBRARY_PATH below.
 # - Don't forget to include the paths for building the PDF with Latex
-export HOMEBREW_PREFIX=$HOME/usr/local
+export HOMEBREW_PREFIX=/Users/oalexan1/usr/local
 export PATH=$HOMEBREW_PREFIX/bin:/Users/oalexan1/projects/packages/bin:/home/smcmich1/programs/latexmk/bin:/byss/smcmich1/programs/tkdiff-unix/:/Users/smcmich1/Library/Python/2.7/bin/:/home/pipeline/projects/gcc-4.9.3-install/bin:/home/oalexan1/projects/zack_packages/local/bin/:/home/oalexan1/projects/packages/bin/:/home/pipeline/projects/packages/bin/:/Users/smcmich1/usr/local/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/nasa/pkgsrc/2014Q3/gcc49/bin/:/Users/oalexan1/projects/packages/bin/:/Users/oalexan1/Library/Python/2.7/bin:/home/oalexan1/.local/bin:$PATH
 
+# For the mac
+for f in gcc g++ gfortran; do
+    in=$(/bin/ls $HOMEBREW_PREFIX/bin/$f-* | grep -i $f | head -n 1)
+    out="$HOMEBREW_PREFIX/bin/$f"
+    if [ -f "$in" ] && [ ! -f "$out" ]; then
+        echo Linking "$in to $out"
+        ln -s $in $out
+    fi
+done    
+  
 # This is needed for new gcc
 export LD_LIBRARY_PATH=/home/pipeline/projects/gcc-4.9.3-install/lib:/home/pipeline/projects/gcc-4.9.3-install/lib64:/home/oalexan1/projects/zack_packages/local/lib:/home/oalexan1/projects/zack_packages/local/lib64:$LD_LIBRARY_PATH
 export DYLD_LIBRARY_PATH=/Users/oalexan1/projects/packages/lib/gcc/4.8/:$DYLD_LIBRARY_PATH
@@ -127,14 +137,15 @@ function robust_ssh {
 
 function get_test_machines {
 
-    # Test the andey build on itself and amos.
+    # Test the amos build on itself and andey.
     # Test the centos-64-5 build on itself and $masterMachine.
 
     buildMachine=$1
     masterMachine=$2
 
-    if [ "$buildMachine" = "andey" ]; then
-        testMachines="$buildMachine amos"
+    if [ "$buildMachine" = "amos" ]; then
+        testMachines="$buildMachine"
+        #testMachines="$buildMachine andey" # temporarily off
     elif [ "$buildMachine" = "big-centos-64-5" ]; then
         testMachines="$buildMachine $masterMachine"
     else
