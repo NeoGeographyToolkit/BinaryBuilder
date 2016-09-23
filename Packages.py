@@ -1201,6 +1201,9 @@ class opencv(CMakePackage):
 class gflags(CMakePackage):
     src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
     chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
+    def configure(self):
+        options = ['-DCMAKE_CXX_FLAGS=-fPIC']
+        super(gflags, self).configure(other=options)
 
 class imagemagick(Package):
     src     = 'http://downloads.sourceforge.net/project/imagemagick/old-sources/6.x/6.8/ImageMagick-6.8.6-10.tar.gz'
