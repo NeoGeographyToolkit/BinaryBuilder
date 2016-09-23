@@ -231,7 +231,7 @@ if __name__ == '__main__':
         print('\tFinding deps in search path')
         sys.stdout.flush()
         mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
-                           copy = [INSTALLDIR.lib(), '/opt/X11/lib', '/usr/lib', '/usr/lib64', '/lib64'])
+                           copy = [INSTALLDIR.lib(), '/opt/X11/lib', '/usr/lib', '/usr/lib64', '/lib64', '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:
             raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
