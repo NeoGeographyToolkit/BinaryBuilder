@@ -145,7 +145,6 @@ class DistManager(object):
         for lib in self.deplist:
             for searchdir in search:
                 checklib = P.join(searchdir, lib)
-                print("search " + checklib)
                 if P.exists(checklib):
                     found.add(lib)
                     logger.debug('\tFound: %s' % checklib)
