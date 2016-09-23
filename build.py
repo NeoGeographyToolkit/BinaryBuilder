@@ -332,7 +332,7 @@ if __name__ == '__main__':
     build0 = [parallel, gsl, geos, zlib, curl, xercesc, dsk, cspice, protobuf, png,
               jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
               ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
-              jama, laszip, liblas, geoid, hd5, isis, eigen, glog, gflags, ceres,
+              jama, laszip, liblas, geoid, hd5, isis, eigen, gflags, glog, ceres,
               libnabo, libpointmatcher, opencv, imagemagick, theia]
 
     if len(args) == 0 or opt.dev:
