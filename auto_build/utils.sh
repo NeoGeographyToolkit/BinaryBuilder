@@ -11,7 +11,7 @@ export PATH=$HOMEBREW_PREFIX/bin:/Users/oalexan1/projects/packages/bin:/home/smc
 
 # For the mac
 for f in gcc g++ gfortran; do
-    in=$(/bin/ls $HOMEBREW_PREFIX/bin/$f-* | grep -i $f | head -n 1)
+    in=$(/bin/ls $HOMEBREW_PREFIX/bin/$f-* 2>/dev/null | grep -i $f | head -n 1)
     out="$HOMEBREW_PREFIX/bin/$f"
     if [ -f "$in" ] && [ ! -f "$out" ]; then
         echo Linking "$in to $out"
