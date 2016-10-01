@@ -1007,14 +1007,20 @@ class eigen(CMakePackage):
             '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
             ])
 
-class glog(Package):
-    src     = 'https://github.com/google/glog/archive/v0.3.4.tar.gz'
-    chksum  = '69f91cd5a1de35ead0bc4103ea87294b0206a456'
+class glog(GITPackage, CMakePackage):
+    #src     = 'https://github.com/google/glog/archive/v0.3.4.tar.gz'
+    #chksum  = '69f91cd5a1de35ead0bc4103ea87294b0206a456'
+    src     = 'https://github.com/google/glog.git'
+    chksum  = '0472b91' 
     def configure(self):
         if self.arch.os == 'osx':
             other_flags = ['CFLAGS=-m64', 'CXXFLAGS=-m64',]
         else:
             other_flags = []
+
+        other_flags += ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
+                        '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags.so'),
+                        '-DBUILD_SHARED_LIBS=ON']
 
         super(glog, self).configure(
             enable=['shared',],
@@ -1033,6 +1039,10 @@ class ceres(CMakePackage):
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
+            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags.so'),
+            '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
+            '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog.so'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=OFF',
             '-DSUITESPARSE=ON', '-DLAPACK=ON',
             '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
@@ -1202,7 +1212,11 @@ class gflags(CMakePackage):
     src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
     chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
     def configure(self):
-        options = ['-DCMAKE_CXX_FLAGS=-fPIC']
+        options = ['-DCMAKE_CXX_FLAGS=-fPIC', 
+                   '-DBUILD_SHARED_LIBS=ON',
+                   '-DBUILD_STATIC_LIBS=OFF',
+                   '-DINSTALL_HEADERS=ON'
+                   '-DGFLAGS_BUILD_SHARED_LIBS=ON']
         super(gflags, self).configure(other=options)
 
 class imagemagick(Package):
@@ -1220,7 +1234,15 @@ class theia(GITPackage, CMakePackage):
         # theia's include in build_asp/install/include
         curr_include = '-I' + self.workdir + '/src -I' + self.workdir + '/include '
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
-        super(theia, self).configure()
+
+        options = ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
+                   '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags.so'),
+                   '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
+                   '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog.so'),
+                   '-DENABLE_TESTING=OFF',
+                   '-DBUILD_DOCUMENTATION=OFF']
+
+        super(theia, self).configure(other=options)
 
 class xz(Package):
     src     = 'http://tukaani.org/xz/xz-5.2.2.tar.gz'
