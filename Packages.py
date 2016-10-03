@@ -1008,25 +1008,21 @@ class eigen(CMakePackage):
             ])
 
 class glog(GITPackage, CMakePackage):
-    #src     = 'https://github.com/google/glog/archive/v0.3.4.tar.gz'
-    #chksum  = '69f91cd5a1de35ead0bc4103ea87294b0206a456'
     src     = 'https://github.com/google/glog.git'
     chksum  = '0472b91' 
     def configure(self):
         if self.arch.os == 'osx':
-            other_flags = ['CFLAGS=-m64', 'CXXFLAGS=-m64',]
+            other_flags = []#'CFLAGS=-m64', 'CXXFLAGS=-m64',]
+            lib_ext = '.dylib'
         else:
             other_flags = []
+            lib_ext = '.so'
 
         other_flags += ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-                        '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags.so'),
+                        '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+lib_ext),
                         '-DBUILD_SHARED_LIBS=ON']
 
-        super(glog, self).configure(
-            enable=['shared',],
-            disable = ['static'],
-            other = other_flags
-            )
+        super(glog, self).configure(other = other_flags)
 
 class ceres(CMakePackage):
     src = 'http://ceres-solver.org/ceres-solver-1.11.0.tar.gz'
@@ -1035,14 +1031,20 @@ class ceres(CMakePackage):
     def configure(self):
         ## Remove warnings as errors. They don't pass newest compilers.
         #self.helper('sed', '-ibak', '-e', 's/-Werror//g', 'CMakeLists.txt')
+
+        if self.arch.os == 'osx':
+            lib_ext = '.dylib'
+        else:
+            lib_ext = '.so'
+
         super(ceres, self).configure(other=[
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags.so'),
+            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+lib_ext),
             '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog.so'),
+            '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+lib_ext),
             '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=OFF',
             '-DSUITESPARSE=ON', '-DLAPACK=ON',
             '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
