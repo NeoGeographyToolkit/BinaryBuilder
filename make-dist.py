@@ -195,7 +195,9 @@ if __name__ == '__main__':
             print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
             print('BAKED_LIBC_VERSION="%s"' % libc_version(), file=f)
             print('\tFound ISIS version %s' % isis_version(ISISROOT))
-            print('\tFound GLIBC version %s' % libc_version())
+            if get_platform().os == 'linux':
+                # glibc is for Linux only
+                print('\tFound GLIBC version %s' % libc_version())
 
         print('Adding libraries')
 
