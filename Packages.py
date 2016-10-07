@@ -637,6 +637,9 @@ class boost(Package):
             '-d+2' # Show commands as they are executed
             ]
 
+        if self.arch.os == 'osx':
+            self.args += ['cxxflags="-stdlib=libstdc++"', 'linkflags="-stdlib=libstdc++"']
+
         cmd += self.args
         self.helper(*cmd)
 
@@ -1232,15 +1235,22 @@ class theia(GITPackage, CMakePackage):
 
     @stage
     def configure(self):
+
+        if self.arch.os == 'osx':
+            lib_ext = '.dylib'
+        else:
+            lib_ext = '.so'
+
+
         # Need this to avoid looking into the old installed version of
         # theia's include in build_asp/install/include
         curr_include = '-I' + self.workdir + '/src -I' + self.workdir + '/include '
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
         options = ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-                   '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags.so'),
+                   '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+lib_ext),
                    '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-                   '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog.so'),
+                   '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+lib_ext),
                    '-DENABLE_TESTING=OFF',
                    '-DBUILD_DOCUMENTATION=OFF']
 

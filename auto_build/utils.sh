@@ -21,7 +21,7 @@ done
   
 # This is needed for new gcc
 export LD_LIBRARY_PATH=/home/pipeline/projects/gcc-4.9.3-install/lib:/home/pipeline/projects/gcc-4.9.3-install/lib64:/home/oalexan1/projects/zack_packages/local/lib:/home/oalexan1/projects/zack_packages/local/lib64:$LD_LIBRARY_PATH
-export DYLD_LIBRARY_PATH=/Users/oalexan1/projects/packages/lib/gcc/4.8/:$DYLD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.8/:$DYLD_LIBRARY_PATH
 
 function machine_name() {
     echo $(uname -n | perl -pi -e "s#\..*?\$##g")
