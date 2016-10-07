@@ -8,24 +8,7 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config
-from BinaryDist import fix_install_paths
-
-def strip_flag(flag, key, env):
-    ret = []
-    hit = None
-    if not key in env:
-        return
-    for test in env[key].split():
-        m = re.search(flag, test)
-        if m:
-            hit = m
-        else:
-            ret.append(test)
-    if ret:
-        env[key] = ' '.join(ret).strip()
-    else:
-        del env[key]
-    return hit, env
+from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
     src     = 'http://samba.org/ftp/ccache/ccache-3.1.9.tar.bz2'
@@ -38,7 +21,6 @@ class m4(Package):
     def configure(self):
         self.env['CPPFLAGS'] += ' -fgnu89-inline' # Needed for CentOS 5
         super(m4, self).configure()
-
 
 class libtool(Package):
     src     = 'http://ftpmirror.gnu.org/libtool/libtool-2.4.2.tar.gz'
@@ -1014,15 +996,14 @@ class glog(GITPackage, CMakePackage):
     src     = 'https://github.com/google/glog.git'
     chksum  = '0472b91' 
     def configure(self):
+        ext = lib_ext(self.arch.os)
         if self.arch.os == 'osx':
             other_flags = []#'CFLAGS=-m64', 'CXXFLAGS=-m64',]
-            lib_ext = '.dylib'
         else:
             other_flags = []
-            lib_ext = '.so'
 
         other_flags += ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-                        '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+lib_ext),
+                        '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
                         '-DBUILD_SHARED_LIBS=ON']
 
         super(glog, self).configure(other = other_flags)
@@ -1035,19 +1016,15 @@ class ceres(CMakePackage):
         ## Remove warnings as errors. They don't pass newest compilers.
         #self.helper('sed', '-ibak', '-e', 's/-Werror//g', 'CMakeLists.txt')
 
-        if self.arch.os == 'osx':
-            lib_ext = '.dylib'
-        else:
-            lib_ext = '.so'
-
+        ext = lib_ext(self.arch.os)
         super(ceres, self).configure(other=[
             '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+lib_ext),
+            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
             '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+lib_ext),
+            '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
             '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=OFF',
             '-DSUITESPARSE=ON', '-DLAPACK=ON',
             '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
@@ -1236,21 +1213,16 @@ class theia(GITPackage, CMakePackage):
     @stage
     def configure(self):
 
-        if self.arch.os == 'osx':
-            lib_ext = '.dylib'
-        else:
-            lib_ext = '.so'
-
-
         # Need this to avoid looking into the old installed version of
         # theia's include in build_asp/install/include
         curr_include = '-I' + self.workdir + '/src -I' + self.workdir + '/include '
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
+        ext = lib_ext(self.arch.os)
         options = ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-                   '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+lib_ext),
+                   '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
                    '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-                   '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+lib_ext),
+                   '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
                    '-DENABLE_TESTING=OFF',
                    '-DBUILD_DOCUMENTATION=OFF']
 

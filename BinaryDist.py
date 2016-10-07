@@ -18,6 +18,32 @@ from functools import partial, wraps
 global logger
 logger = logging.getLogger()
 
+def lib_ext(arch):
+    if arch == 'osx':
+        lib_ext = '.dylib'
+    else:
+        lib_ext = '.so'
+    return lib_ext
+    
+# What does this one do?
+def strip_flag(flag, key, env):
+    ret = []
+    hit = None
+    if not key in env:
+        return
+    for test in env[key].split():
+        m = re.search(flag, test)
+        if m:
+            hit = m
+        else:
+            ret.append(test)
+    if ret:
+        env[key] = ' '.join(ret).strip()
+    else:
+        del env[key]
+    return hit, env
+
+
 def is_binary(filename):
     '''Use the linux "file" tool to deterimen if a given file is a binary file'''
     ret = run('file', filename, output=True)
