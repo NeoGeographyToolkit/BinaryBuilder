@@ -8,7 +8,7 @@ https://byss.arc.nasa.gov/stereopipeline/daily_build
 Machines:
 lunokhod1:        Master machine on which the framework starts
 big-centos-64-5:  Linux, 64 bit
-andey:            Mac OS X 10.8
+andey:            Mac OS X 10.11
 amos:             Mac OS X 10.9
 byss:             The machine storing the obtained builds
 
@@ -23,9 +23,9 @@ The main script is auto_build/launch_master.sh. It gets started on
 lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on big-centos-64-5 and andey. Each build is being tested
+Builds are done on big-centos-64-5 and amos. Each build is being tested
 on the same machine. In addition, the big-centos-64-5 build is also tested
-on lunokhod1, while the andey build is also tested on amos.
+on lunokhod1, while the amos build is also tested on andey.
 
 The test process on lunokhod1 is the strictest, it will fail if any
 obtained results differ from the reference. The tests on other

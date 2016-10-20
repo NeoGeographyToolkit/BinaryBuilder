@@ -144,8 +144,7 @@ function get_test_machines {
     masterMachine=$2
 
     if [ "$buildMachine" = "amos" ]; then
-        testMachines="$buildMachine"
-        #testMachines="$buildMachine andey" # temporarily off
+        testMachines="$buildMachine andey"
     elif [ "$buildMachine" = "big-centos-64-5" ]; then
         testMachines="$buildMachine $masterMachine"
     else
