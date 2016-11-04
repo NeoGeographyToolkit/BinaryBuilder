@@ -7,7 +7,8 @@ import re, sys
 from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
-     PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config
+     PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
+     replace_line_in_file
 from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
@@ -671,6 +672,17 @@ class superlu(Package):
             blas = '"-framework vecLib"'
         else:
             blas = glob(P.join(self.env['INSTALL_DIR'],'lib','libblas.so*'))[0]
+
+        if self.arch.os == 'linux':
+            # This is a bugfix, that took long to investigate. For some versions of Linux,
+            # the FLIBS in configure contains the -R option, which confuses the compiler.
+            # This value is determined dynamically. So we really have no choice but
+            # to edit configure to modify this value before being used.
+            line_in  = 'FLIBS="$ac_cv_f77_libs"'
+            line_out = 'FLIBS=$(echo "$ac_cv_f77_libs" | perl -pi -e "s/ -R/ -Wl,-R/g")'
+            configure_file = P.join(self.workdir, 'configure')
+            replace_line_in_file(configure_file, line_in, line_out)
+            
         super(superlu,self).configure(with_=('blas=%s') % blas,
                                       disable=('static'))
 

@@ -11,6 +11,7 @@ export PATH=$HOMEBREW_PREFIX/bin:/Users/oalexan1/projects/packages/bin:/home/smc
 
 # For the mac
 for f in gcc g++ gfortran; do
+    if [ ! -d "$HOMEBREW_PREFIX" ]; then continue; fi
     in=$(/bin/ls $HOMEBREW_PREFIX/bin/$f-* 2>/dev/null | grep -i $HOMEBREW_PREFIX | grep -i $f | head -n 1)
     out="$HOMEBREW_PREFIX/bin/$f"
     if [ -f "$in" ] && [ ! -f "$out" ]; then

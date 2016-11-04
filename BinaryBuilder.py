@@ -23,8 +23,21 @@ from urlparse import urlparse
 global logger
 logger = logging.getLogger()
 
+# Replace a line in a file with another
+def replace_line_in_file(filename, line_in, line_out):
+    lines = []
+    with open(filename,'r') as f:
+        lines = f.readlines()
+    with open(filename,'w') as f:
+        for line in lines:
+            line = line.rstrip('\n')
+            if line == line_in:
+                print("replace " + line_in + " with " + line_out)
+                line = line_out
+            f.write( line + '\n')
+
+# List resursively all files in given directory
 def list_recursively(dir):
-    # List resursively all files in given directory
     matches = []
     for root, dirnames, filenames in os.walk(dir):
         for filename in filenames:
