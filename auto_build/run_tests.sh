@@ -98,8 +98,10 @@ chmod -R g+rw $HOME/$testDir
 # Trying these again, for some reason the above does not work, but
 # this apparently does.  I think it is because $HOME/$testDir is a
 # symlink and now we are modifying the internals of the actual dir.
-chown -R :ar-gg-ti-asp-maintain .
-chmod -R g+rw .
+for d in . *; do 
+    chown -R :ar-gg-ti-asp-maintain $d;
+    chmod -R g+rw $d;
+done
 
 if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
