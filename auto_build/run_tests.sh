@@ -92,8 +92,14 @@ test_status="$?"
 
 # Tests are finished running, make sure all maintainers can access the files.
 # - These commands fail on the VM but that is OK because we don't need them to work on that machine.
-chown -R  :ar-gg-ti-asp-maintain $HOME/$testDir
+chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
 chmod -R g+rw $HOME/$testDir
+
+# Trying these again, for some reason the above does not work, but
+# this apparently does.  I think it is because $HOME/$testDir is a
+# symlink and now we are modifying the internals of the actual dir.
+chown -R :ar-gg-ti-asp-maintain .
+chmod -R g+rw .
 
 if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
