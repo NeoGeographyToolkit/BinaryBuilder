@@ -30,6 +30,12 @@ CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
 ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
 
+# List of codes for build types
+BUILD_GOAL_ASP     = 0 # Build everything (the default)
+BUILD_GOAL_ASP_DEV = 1 # Build a full development environment
+BUILD_GOAL_VW      = 2 # Build VW
+BUILD_GOAL_VW_DEV  = 3 # Build a VW development environment
+
 def get_cores():
     try:
         n = os.sysconf('SC_NPROCESSORS_ONLN')
@@ -137,7 +143,7 @@ if __name__ == '__main__':
     parser.add_option('--build-root',                       dest='build_root',   default='./build_asp',            help='Root of the build and install')
     parser.add_option('--cc',                               dest='cc',           default='gcc',           help='Explicitly state which C compiler to use. [gcc (default), clang, gcc-mp-4.7]')
     parser.add_option('--cxx',                              dest='cxx',          default='g++',           help='Explicitly state which C++ compiler to use. [g++ (default), clang++, g++-mp-4.7]')
-    parser.add_option('--dev-env',    action='store_true',  dest='dev',          default=False,           help='Build everything but VW and ASP')
+    parser.add_option('--build-goal', type='int',           dest='build_goal',   default=BUILD_GOAL_ASP,  help='Select the goal of the build.  Increasing numbers are smaller builds: [0 = Full ASP build, 1 = ASP/VW development build, 2 = VW build, 3 = VW development build]')
     parser.add_option('--download-dir',                     dest='download_dir', default='./tarballs', help='Where to archive source files')
     parser.add_option('--f77',                              dest='f77',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
@@ -329,20 +335,46 @@ if __name__ == '__main__':
         die('Missing required executables for building. You need to install %s.' % missing_exec)
 
     build = []
-    build0 = [parallel, gsl, geos, zlib, curl, xercesc, dsk, cspice, protobuf, png,
-              jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
-              ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
-              jama, laszip, liblas, geoid, hd5, isis, eigen, gflags, glog, ceres,
-              libnabo, libpointmatcher, opencv, imagemagick, theia]
+    
+    LINUX_DEPS1 = [m4, libtool, autoconf, automake]
+    CORE_DEPS   = [cmake, bzip2, pbzip2] # For some reason these are inserted in the linux deps
+    LINUX_DEPS2 = [chrpath, lapack]
+    VW_DEPS     = [zlib, curl, dsk, png,
+              jpeg, tiff, proj, openjpeg2, libgeotiff, gdal,
+              ilmbase, openexr, boost, flann,
+              hd5, 
+              opencv]
+    ASP_DEPS    = [parallel, gsl, geos, xercesc, cspice, protobuf, 
+              superlu, gmm, 
+              osg3, qt, qwt, suitesparse, tnt,
+              jama, laszip, liblas, geoid,isis, eigen, gflags, glog, ceres,
+              libnabo, libpointmatcher, imagemagick, theia]
 
-    if len(args) == 0 or opt.dev:
+#    ALL_DEPS    = [parallel, gsl, geos, zlib, curl, xercesc, dsk, cspice, protobuf, png,
+#              jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
+#              ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
+#              jama, laszip, liblas, geoid, hd5, isis, eigen, gflags, glog, ceres,
+#              libnabo, libpointmatcher, opencv, imagemagick, theia]
+
+    if (len(args) == 0):
+        # Specific package not specified, set packages according to the build goal.
+        
+        # These packages are always needed.
         if arch.os == 'linux':
-            build.extend([m4, libtool, autoconf, automake])
-        build.extend([cmake, bzip2, pbzip2])
+            build.extend(LINUX_DEPS1)
+        build.extend(CORE_DEPS)
         if arch.os == 'linux':
-            build.extend([chrpath, lapack])
-        build.extend(build0)
-        if not opt.dev:
+            build.extend(LINUX_DEPS2)
+        build.extend(VW_DEPS)
+
+        # Add ASP dependencies if needed
+        if (opt.build_goal == BUILD_GOAL_ASP) or (opt.build_goal == BUILD_GOAL_ASP_DEV):
+            build.extend(ASP_DEPS)
+        
+        # Add VW/ASP if not building a dev environment
+        if (opt.build_goal == BUILD_GOAL_VW):
+            build.extend([visionworkbench])
+        if (opt.build_goal == BUILD_GOAL_ASP):
             build.extend([visionworkbench, stereopipeline])
 
     # Now handle the arguments the user supplied to us! This might be

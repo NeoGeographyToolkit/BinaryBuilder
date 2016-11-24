@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     if not len(args) == 2:
         usage('Missing required argument: installdir', code)
-    tarball = P.realpath(args[0])
+    tarball    = P.realpath(args[0])
     installdir = P.realpath(args[1])
     if not P.exists(tarball):
         usage('Invalid tarball %s (does not exist)' % tarball, code)
@@ -74,7 +74,8 @@ if __name__ == '__main__':
     use_env_flags = False
     prefix       = '$PWD/build'
     vw_build     = '$HOME/projects/visionworkbench/build'
-    config_file  = P.join(installdir, 'config.options.asp')
-    write_asp_config(use_env_flags,
-                     prefix, vardir, vw_build, arch, geoid, config_file)
+    if 'VisionWorkbench' not in tarball:
+        config_file  = P.join(installdir, 'config.options.asp')
+        write_asp_config(use_env_flags,
+                         prefix, vardir, vw_build, arch, geoid, config_file)
 

@@ -117,6 +117,7 @@ if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
     parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
     parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
+    parser.add_option('--vw-build',    dest='vwBuild',   default=False, action='store_true', help='Set to true when packaging a non-ASP build.')
     parser.add_option('--keep-temp',   dest='keeptemp',  default=False, action='store_true', help='Keep tmp distdir around for debugging')
     parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
     parser.add_option('--set-name',    dest='name',      default='StereoPipeline', help='Tarball name for this dist')
@@ -132,6 +133,14 @@ if __name__ == '__main__':
 
     if not args:
         usage('Missing required argument: installdir')
+
+    # If the user specified a VW build, update some default options.
+    if opt.vwBuild:
+        if opt.include == './whitelist':
+            opt.include = './whitelist_vw'
+        if opt.name == 'StereoPipeline':
+            opt.name = 'VisionWorkbench'
+
     installdir = P.realpath(args[0])
     if not (P.exists(installdir) and P.isdir(installdir)):
         usage('Invalid installdir %s (not a directory)' % installdir)
@@ -141,8 +150,7 @@ if __name__ == '__main__':
 
     # Ensure installdir/bin is in the path, to be able to find chrpath, etc.
     if "PATH" not in os.environ: os.environ["PATH"] = ""
-    os.environ["PATH"] = P.join(installdir, 'bin') + \
-                         os.pathsep + os.environ["PATH"]
+    os.environ["PATH"] = P.join(installdir, 'bin') + os.pathsep + os.environ["PATH"]
 
     logging.basicConfig(level=opt.loglevel)
 
@@ -175,26 +183,28 @@ if __name__ == '__main__':
                 for line in f:
                     mgr.add_glob(line.strip(), INSTALLDIR)
 
-        print('Adding Libraries referred to by ISIS Plugins')
-        sys.stdout.flush()
-        isis_secondary_set = set()
-        for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
-            with open(plugin,'r') as f:
-                for line in f:
-                    line = line.split()
-                    if not len( line ):
-                        continue
-                    if line[0] == 'Library':
-                        isis_secondary_set.add("lib/lib"+line[2]+"*")
-        for library in isis_secondary_set:
-            mgr.add_glob( library, INSTALLDIR )
+        if not opt.vwBuild:
+            print('Adding Libraries referred to by ISIS Plugins')
+            sys.stdout.flush()
+            isis_secondary_set = set()
+            for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
+                with open(plugin,'r') as f:
+                    for line in f:
+                        line = line.split()
+                        if not len( line ):
+                            continue
+                        if line[0] == 'Library':
+                            isis_secondary_set.add("lib/lib"+line[2]+"*")
+            for library in isis_secondary_set:
+                mgr.add_glob( library, INSTALLDIR )
 
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
         with mgr.create_file('libexec/constants.sh') as f:
-            print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
+            if not opt.vwBuild:
+                print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
+                print('\tFound ISIS version %s' % isis_version(ISISROOT))
             print('BAKED_LIBC_VERSION="%s"' % libc_version(), file=f)
-            print('\tFound ISIS version %s' % isis_version(ISISROOT))
             if get_platform().os == 'linux':
                 # glibc is for Linux only
                 print('\tFound GLIBC version %s' % libc_version())
@@ -220,7 +230,8 @@ if __name__ == '__main__':
                     # Bugfix: Do an exhaustive search, as same prefix can
                     # refer to multiple libraries, e.g., libgfortran.so.3 and
                     # libgfortran.so.1, and sometimes the wrong one is picked.
-                    if mgr.deplist[soname] in found_set: continue
+                    if mgr.deplist[soname] in found_set: 
+                        continue
                     found_set.add(mgr.deplist[soname])
                     mgr.add_library(mgr.deplist[soname])
                     found_and_to_be_removed.append( soname )
@@ -233,18 +244,19 @@ if __name__ == '__main__':
         print('\tFinding deps in search path')
         sys.stdout.flush()
         mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
-                           copy = [INSTALLDIR.lib(), '/opt/X11/lib', '/usr/lib', '/usr/lib64', '/lib64', '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
+                           copy = [INSTALLDIR.lib(), '/opt/X11/lib', '/usr/lib', '/usr/lib64', '/lib64', 
+                                   '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:
             raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
 
         # We don't want to distribute with ASP any random files in
-        # 'docs' installed by any of its deps. Distribute only
-        # what we need.
+        # 'docs' installed by any of its deps. Distribute only what we need.
+        # - In the VW build clean out docs completely because we still get junk
         for f in glob(P.join(INSTALLDIR.doc(),'*')):
             base_f = os.path.basename(f)
-            if base_f not in ['AUTHORS', 'COPYING', 'INSTALLGUIDE', 'NEWS',
-                              'README', 'THIRDPARTYLICENSES', 'examples']:
+            if (base_f not in ['AUTHORS', 'COPYING', 'INSTALLGUIDE', 'NEWS',
+                              'README', 'THIRDPARTYLICENSES', 'examples']) or opt.vwBuild:
                 try:
                     os.remove(f)
                 except Exception:
