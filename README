@@ -75,7 +75,7 @@ We usually like to build the dependencies once and then build the
 release binaries with every ASP release. Here's how to build the
 dependencies as an archive tarball:
 
- ./build.py --dev-env
+ ./build.py --build-goal 1
  ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
 
 Then, when you are ready to build the ASP release tarballs:
@@ -94,6 +94,20 @@ party libraries. You will also find example config.option files for VW
 and ASP. Copy those files into your respective directories for VW and
 ASP. Then you can build VW. Modify the config.options for ASP so that
 it points to where VW is.
+
+C. Produce a VW only build
+
+BinaryBuilder now supports the option to build only for Vision Workbench,
+saving the time of building the extensive libraries needed only for ASP.
+These options work similarly to the ASP methods described above.
+
+For a complete VW build, run build.py with the argument: --build-goal 2
+
+For a VW only development environment, run build.py with the argument: --build-goal 3
+
+Other than using these flag values you can use the make-dist.py and deplop-base.py tools
+in the same manner as if building ASP.
+
 
 ************************************************************************
 4. ADDITIONAL BUILD OPTIONS
