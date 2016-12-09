@@ -1,0 +1,12 @@
+bin/undistort_image
+bin/colormap
+bin/gdal_translate
+bin/gdalinfo
+bin/gdalbuildvrt
+bin/hillshade
+bin/image2qtree
+bin/ipfind
+bin/ipmatch
+lib/libvw*.[so,dylib]*
+share/gdal/*
+share/proj/*
