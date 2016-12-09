@@ -521,13 +521,16 @@ class stereopipeline(GITPackage):
             self.helper(*cmd)
 
 class visionworkbench(GITPackage):
-    src     = 'https://github.com/visionworkbench/visionworkbench.git'
+    #src     = 'https://github.com/visionworkbench/visionworkbench.git'
+    src = 'https://github.com/ScottMcMichael/visionworkbench.git'
 
     def __init__(self,env):
         super(visionworkbench,self).__init__(env)
 
     @stage
     def configure(self):
+
+        self.helper('git', 'checkout', 'flood_detect')
 
         # Skip config in fast mode if config file exists
         config_file  = P.join(self.workdir, 'config.options')
@@ -539,6 +542,14 @@ class visionworkbench(GITPackage):
         installdir   = self.env['INSTALL_DIR']
         prefix       = installdir
         write_vw_config(prefix, installdir, arch, config_file)
+        
+        self.helper('sed', '-i', 's/ENABLE_MODULE_INTERESTPOINT=yes/ENABLE_MODULE_INTERESTPOINT=no/', 'config.options')
+        self.helper('sed', '-i', 's/ENABLE_MODULE_STEREO=yes/ENABLE_MODULE_STEREO=no/', 'config.options')
+        self.helper('sed', '-i', 's/ENABLE_MODULE_HDR=yes/ENABLE_MODULE_HDR=no/', 'config.options')
+        self.helper('sed', '-i', 's/ENABLE_MODULE_BUNDLEADJUSTMENT=yes/ENABLE_MODULE_BUNDLEADJUSTMENT=no/', 'config.options')
+        self.helper('sed', '-i', 's/ENABLE_SSE=yes/ENABLE_MODULE_FLOODDETECT=yes/', 'config.options')
+
+        
         fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
         super(visionworkbench, self).configure()
 

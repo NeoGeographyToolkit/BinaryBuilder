@@ -154,7 +154,10 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=opt.loglevel)
 
-    mgr = DistManager(tarball_name())
+    wrapper_file = 'libexec-helper.sh'
+    if (opt.vwBuild):
+        wrapper_file = 'libexec-helper_vw.sh'
+    mgr = DistManager(tarball_name(), wrapper_file)
 
     try:
         INSTALLDIR = Prefix(installdir)
@@ -200,7 +203,7 @@ if __name__ == '__main__':
 
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
-        with mgr.create_file('libexec/constants.sh') as f:
+        with mgr.create_file('libexec/constants.sh') as f: # Create constants file
             if not opt.vwBuild:
                 print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
                 print('\tFound ISIS version %s' % isis_version(ISISROOT))

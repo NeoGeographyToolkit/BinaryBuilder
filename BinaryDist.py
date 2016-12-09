@@ -86,7 +86,8 @@ def which(program):
 
 class DistManager(object):
     '''Main class for creating a StereoPipeline binary distribution'''
-    def __init__(self, tarname):
+    def __init__(self, tarname, exec_wrapper_file):
+        self.wrapper_file = exec_wrapper_file
         self.tarname = tarname
         self.tempdir = mkdtemp(prefix='dist')
         self.distdir = Prefix(P.join(self.tempdir, self.tarname))
@@ -97,7 +98,7 @@ class DistManager(object):
     def remove_tempdir(self):
         shutil.rmtree(self.tempdir, True)
 
-    def add_executable(self, inpath, wrapper_file='libexec-helper.sh', keep_symlink=True):
+    def add_executable(self, inpath, keep_symlink=True):
         ''' 'inpath' should be a file. This will add the executable to libexec/
             and the wrapper script to bin/ (with the basename of the exe) '''
         logger.debug('attempting to add %s' % inpath)
@@ -108,7 +109,7 @@ class DistManager(object):
             self._add_file(inpath, self.distdir.bin(base))
         else:
             self._add_file(inpath, self.distdir.libexec(base))
-            self._add_file(wrapper_file, self.distdir.bin(base))
+            self._add_file(self.wrapper_file, self.distdir.bin(base))
 
     def add_library(self, inpath, symlinks_too=True, add_deps=True):
         ''' 'symlinks_too' means follow all symlinks, and add what they point
