@@ -321,7 +321,7 @@ class laszip(CMakePackage):
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
 
 class geoid(Package):
-    src     = 'http://byss.arc.nasa.gov/asp_packages/geoids.tgz'
+    src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline/releases/download/geoid1.0/geoids.tgz'
     chksum  = 'e6e3961d6a84e10b4c49039b9a84098d57bd2206'
 
     @stage
