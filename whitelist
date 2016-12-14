@@ -18,6 +18,8 @@ bin/disparitydebug
 bin/gdal_translate
 bin/gdalinfo
 bin/gdalbuildvrt
+bin/gdaldem
+bin/gdalwarp
 bin/geodiff
 bin/hiedr2mosaic.py
 bin/hillshade
