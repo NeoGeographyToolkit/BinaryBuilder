@@ -340,21 +340,12 @@ if __name__ == '__main__':
     CORE_DEPS   = [cmake, bzip2, pbzip2] # For some reason these are inserted in the linux deps
     LINUX_DEPS2 = [chrpath, lapack]
     VW_DEPS     = [zlib, curl, dsk, png,
-              jpeg, tiff, proj, openjpeg2, libgeotiff, gdal,
-              ilmbase, openexr, boost, flann,
-              hd5, 
-              opencv]
+                   jpeg, tiff, proj, openjpeg2, libgeotiff, gdal,
+                   ilmbase, openexr, boost, flann, hdf5, opencv]
     ASP_DEPS    = [parallel, gsl, geos, xercesc, cspice, protobuf, 
-              superlu, gmm, 
-              osg3, qt, qwt, suitesparse, tnt,
-              jama, laszip, liblas, geoid,isis, eigen, gflags, glog, ceres,
-              libnabo, libpointmatcher, imagemagick, theia]
-
-#    ALL_DEPS    = [parallel, gsl, geos, zlib, curl, xercesc, dsk, cspice, protobuf, png,
-#              jpeg, tiff, superlu, gmm, proj, openjpeg2, libgeotiff, gdal,
-#              ilmbase, openexr, boost, osg3, flann, qt, qwt, suitesparse, tnt,
-#              jama, laszip, liblas, geoid, hd5, isis, eigen, gflags, glog, ceres,
-#              libnabo, libpointmatcher, opencv, imagemagick, theia]
+                   superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
+                   jama, laszip, liblas, geoid, isis, eigen, gflags, glog, ceres,
+                   libnabo, libpointmatcher, imagemagick, theia]
 
     if (len(args) == 0):
         # Specific package not specified, set packages according to the build goal.

@@ -345,13 +345,11 @@ class geoid(Package):
         + glob(P.join(self.workdir, '*jp2')) + [geoidDir]
         self.helper(*cmd)
 
-class hd5(Package):
+class hdf5(Package):
     src     = 'http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.16/src/hdf5-1.8.16.tar.bz2'
     chksum  = 'a7b631778cb289edec670f665d2c3265983a0d53'
     def configure(self):
-        super(hd5, self).configure(
-            enable=('cxx'),
-            disable = ['static'])
+        super(hdf5, self).configure(enable=('cxx'), disable = ['static'])
 
 # Due to legal reasons ... we are not going to download a modified
 # version of ISIS from some NASA Ames server. Instead, we will
@@ -1216,6 +1214,11 @@ class gflags(CMakePackage):
 class imagemagick(Package):
     src     = 'http://downloads.sourceforge.net/project/imagemagick/old-sources/6.x/6.8/ImageMagick-6.8.6-10.tar.gz'
     chksum  = '6ea9dfc1042bb2057f8aa08e81e18c0c83451109'
+
+    # Turn off lzma to simplify linking
+    def configure(self):
+        super(imagemagick, self).configure(without = ['lzma'])
+
 
 class theia(GITPackage, CMakePackage):
     src     = 'https://github.com/sweeneychris/TheiaSfM.git'
