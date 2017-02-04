@@ -1,0 +1,276 @@
+diff -ruN /home/smcmich1/repo/IsisCMake/cmake/AddIsisModule.cmake /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/cmake/AddIsisModule.cmake
+--- isis-git/cmake/AddIsisModule.cmake	2017-02-03 14:17:00.921561896 -0800
++++ isis-git-new/cmake/AddIsisModule.cmake	2017-02-03 14:13:36.593284331 -0800
+@@ -293,7 +293,7 @@
+     foreach(val RANGE ${numTests})
+       list(GET unitTestFiles ${val} testFile )
+       list(GET truthFiles    ${val} truthFile)
+-      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
++      #make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
+     endforeach()
+ 
+   endif()
+@@ -301,7 +301,7 @@
+   # Process the apps
+   foreach(f ${appFolders})
+     # Apps always require the core library
+-    add_isis_app(${f} "${reqLibs}")
++    #add_isis_app(${f} "${reqLibs}")
+   endforeach()
+   
+   # Process the tests
+diff -ruN /home/smcmich1/repo/IsisCMake/cmake/FindAllDependencies.cmake /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/cmake/FindAllDependencies.cmake
+--- isis-git/cmake/FindAllDependencies.cmake	2017-02-03 14:17:00.922561956 -0800
++++ isis-git-new/cmake/FindAllDependencies.cmake	2017-02-03 13:09:58.371743976 -0800
+@@ -6,7 +6,8 @@
+ 
+ # TODO: Indent all!
+ 
+-set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
++#set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
++set(thirdPartyDir "/home/smcmich1/repo/BinaryBuilder/build_asp/install") # TODO
+ 
+ set(INCLUDE_DIR "${thirdPartyDir}/include")
+ set(LIB_DIR     "${thirdPartyDir}/lib")
+@@ -23,7 +24,8 @@
+ # Set up for Qt
+ #---------------------------------------------------------------------------
+ # *Most* of the folders in the main QT folder are needed as an include directory
+-set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
++#set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
++set(qtDir "${INCLUDE_DIR}") # TODO: ASP build option?
+ set(qtIncludes  Qt
+                 QtCore
+                 QtAssistant
+@@ -44,9 +46,9 @@
+                 QtSql
+                 QtSvg
+                 QtTest
+-                QtWebChannel
+-                QtWebEngine
+-                QtWebEngineWidgets
++                #QtWebChannel
++                #QtWebEngine
++                #QtWebEngineWidgets
+                 QtWidgets
+                 QtXml
+                 QtXmlPatterns)
+@@ -57,7 +59,8 @@
+ #message("QTINCDIR = ${QTINCDIR}")
+ 
+ set(QTLIBDIR ${LIB_DIR})
+-set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
++set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
++#-lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets
+ 
+ set(QT_DYNAMIC_LIBS)
+ set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
+@@ -76,10 +79,10 @@
+                    ${LIB_DIR}/libQt5Sql.so
+                    ${LIB_DIR}/libQt5Svg.so
+                    ${LIB_DIR}/libQt5Test.so
+-                   ${LIB_DIR}/libQt5WebChannel.so
+-                   ${LIB_DIR}/libQt5WebEngineCore.so
+-                   ${LIB_DIR}/libQt5WebEngine.so
+-                   ${LIB_DIR}/libQt5WebEngineWidgets.so
++                   #${LIB_DIR}/libQt5WebChannel.so
++                   #${LIB_DIR}/libQt5WebEngineCore.so
++                   #${LIB_DIR}/libQt5WebEngine.so
++                   #${LIB_DIR}/libQt5WebEngineWidgets.so
+                    ${LIB_DIR}/libQt5Widgets.so
+                    ${LIB_DIR}/libQt5XcbQpa.so
+                    ${LIB_DIR}/libQt5Xml.so
+@@ -136,12 +139,13 @@
+ #---------------------------------------------------------------------------
+ set(NAIFINCDIR "${INCLUDE_DIR}/naif")
+ set(NAIFLIBDIR "${LIB_DIR}")
+-set(NAIFLIB    "-ldsk -lcspice")
++#set(NAIFLIB    "-ldsk -lcspice")
++set(NAIFLIB    "-lcdsk -lcspice")
+ 
+ #---------------------------------------------------------------------------
+ # Set up for TNT
+ #---------------------------------------------------------------------------
+-set(TNTINCDIR ${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt)
++set(TNTINCDIR ${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt ${INCLUDE_DIR}/tnt)
+ set(TNTLIBDIR)
+ set(TNTLIB)
+ 
+@@ -155,9 +159,11 @@
+ #---------------------------------------------------------------------------
+ # Set up for GEOS
+ #---------------------------------------------------------------------------
+-set(GEOSINCDIR "${INCLUDE_DIR}/geos/geos3.5.0")
++set(GEOSINCDIR "${INCLUDE_DIR}/geos/geos3.5.0" "${INCLUDE_DIR}/geos/")
+ set(GEOSLIBDIR "${LIB_DIR}")
+-set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
++#set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
++set(GEOSLIB    "-lgeos-3.5.1 -lgeos_c")
++
+ 
+ #---------------------------------------------------------------------------
+ # Set up for the GNU Scientific Library (GSL).  Note that this setup
+@@ -191,9 +197,10 @@
+ #---------------------------------------------------------------------------
+ # Set up for SuperLU
+ #---------------------------------------------------------------------------
+-set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3")
++set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3" "${INCLUDE_DIR}/superlu")
+ set(SUPERLULIBDIR "${LIB_DIR}")
+-set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
++#set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
++set(SUPERLULIB    -lsuperlu -lblas -lgfortran) # Must install packages libblas-dev and gfortran
+ 
+ #---------------------------------------------------------------------------
+ # Set up for Google Protocol Buffers (ProtoBuf)
+@@ -355,7 +362,8 @@
+ # Consolidate information
+ #---------------------------------------------------------------------------
+ 
+-set(ALLINCDIRS  ${XTRAINCDIRS}
++set(ALLINCDIRS  ${INCLUDE_DIR}
++                ${XTRAINCDIRS}
+                 ${ISISINCDIR}
+                 ${CWDINCDIR}
+                 ${QTINCDIR}
+@@ -379,7 +387,8 @@
+                 ${DEFAULTINCDIR}
+                 ${GMMINCDIR})
+ 
+-set(ALLLIBDIRS  ${XTRALIBDIRS}
++set(ALLLIBDIRS  ${LIB_DIR}
++                ${XTRALIBDIRS}
+                 ${ISISLIBDIR}
+                 ${QTLIBDIR}
+                 ${QWTLIBDIR}
+diff -ruN /home/smcmich1/repo/IsisCMake/CMakeLists.txt /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/CMakeLists.txt
+--- isis-git/CMakeLists.txt	2017-02-03 14:17:00.921561896 -0800
++++ isis-git-new/CMakeLists.txt	2017-02-03 15:16:10.343905482 -0800
+@@ -14,7 +14,7 @@
+ include(AddIsisModule)
+ include(Utilities)
+ include(TestSetup)
+-include(BuildDocs)
++#include(BuildDocs)
+ 
+ #===============================================================================
+ # Project information
+@@ -82,7 +82,7 @@
+ # Allow linking to output dir
+ link_directories(${CMAKE_INSTALL_PREFIX}/lib)
+ 
+-set(CORE_LIB_NAME isis)
++set(CORE_LIB_NAME isis3)
+ 
+ set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
+ set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
+@@ -92,7 +92,8 @@
+ # - Copy 3rd party libs to install dir?
+ 
+ # Have binaries use a relative rpath to the lib folder
+-SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
++#SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
++SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+ 
+ #set(THIRD_PARTY_LIB_DIR    "${CMAKE_SOURCE_DIR}/3rdParty/lib")
+ #set(THIRD_PARTY_PLUGIN_DIR "${CMAKE_SOURCE_DIR}/3rdParty/plugins")
+@@ -108,7 +109,7 @@
+ #enable_testing()
+ include(CTest)
+ 
+-# Delete any existing plugin files in the instal folder
++# Delete any existing plugin files in the install folder
+ #  so that we don't get any duplication.
+ file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
+ if(installedPlugins)
+@@ -119,7 +120,8 @@
+ configure_file("IsisPreferences" "${CMAKE_INSTALL_PREFIX}/IsisPreferences" COPYONLY)
+ 
+ # Add a config file to the bin directory so that QT can find the plugin libraries.
+-file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
++#file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
++file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib/plugins/\n")
+ 
+ ## TODO: Is this required????!?!?!?!
+ ## Copy the template folder to the install folder.
+@@ -132,6 +134,6 @@
+ 
+ 
+ # All of the source code is in here.
+-#add_subdirectory(src)
++add_subdirectory(src)
+
+
+diff -ruN /home/smcmich1/repo/IsisCMake/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp
+--- isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-02-03 14:17:03.651725964 -0800
++++ isis-git-new/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-02-03 12:33:12.557067274 -0800
+@@ -18,10 +18,11 @@
+ #include <QPushButton>
+ #include <QSettings>
+ #if defined(__APPLE__)
+-#include <QtWebEngineWidgets/QWebEngineView>
++//#include <QtWebEngineWidgets/QWebEngineView>
+ #else
+-#include <QWebEngineView>
++//#include <QWebEngineView>
+ #endif
++#include <QPainter>
+ 
+ #include <geos/geom/Coordinate.h>
+ #include <geos/geom/CoordinateSequence.h>
+@@ -849,7 +850,7 @@
+    */
+   void FeatureNomenclatureTool::showFeatureWebsite(
+       FeatureNomenclature::Feature feature) {
+-    QDesktopServices::openUrl(feature.referenceUrl());
++    //QDesktopServices::openUrl(feature.referenceUrl());
+   }
+ 
+ 
+@@ -1754,14 +1755,14 @@
+             tool->showFeatureDetails(feature);
+           }
+           else if (selectedAction == website) {
+-            tool->showFeatureWebsite(feature);
++            //tool->showFeatureWebsite(feature);
+           }
+           else if (selectedAction == center) {
+             tool->centerOnFeature(m_sourceViewport, feature);
+           }
+           else if (selectedAction == copyUrl) {
+-            QApplication::clipboard()->setText(
+-                feature.referenceUrl().toString());
++            //QApplication::clipboard()->setText(
++            //    feature.referenceUrl().toString());
+           }
+         }
+       }
+diff -ruN /home/smcmich1/repo/IsisCMake/src/qisis/objs/QIsisApplication/QIsisApplication.cpp /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp
+--- isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-02-03 14:17:03.681727768 -0800
++++ isis-git-new/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-02-03 12:13:15.357159076 -0800
+@@ -7,9 +7,9 @@
+ #include <QMessageBox>
+ #include <QUrl>
+ #if defined(__APPLE__)
+-#include <QtWebEngineWidgets/QWebEngineView>
++//#include <QtWebEngineWidgets/QWebEngineView>
+ #else
+-#include <QWebEngineView>
++//#include <QWebEngineView>
+ #endif
+ 
+ #include "FileName.h"
+@@ -65,9 +65,9 @@
+    * Open a URL in the browser specified by Isis.
+    */
+   void QIsisApplication::openUrl(QUrl url) {
+-     QWebEngineView *view = new QWebEngineView(NULL);
+-     view->setAttribute(Qt::WA_DeleteOnClose);
+-     view->load(url);
+-     view->show();
++     //QWebEngineView *view = new QWebEngineView(NULL);
++     //view->setAttribute(Qt::WA_DeleteOnClose);
++     //view->load(url);
++     //view->show();
+   }
+ }

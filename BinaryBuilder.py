@@ -728,15 +728,17 @@ class CMakePackage(Package):
         '''Install works the same as the base class'''
         super(CMakePackage, self).install(cwd=self.builddir)
 
+# TODO: Duplicated in Packages.py!
 def print_qt_config(cppflags, config, bindir, includedir, libdir):
     '''Print out a bunch of QT stuff'''
-    qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
+    qt_pkgs = ('QtConcurrent QtCore QtGui QtNetwork QtSql QtSvg QtWidgets QtXml QtXmlPatterns QtPrintSupport QtTest'
+               + ' QtPositioning QtQml QtQuick QtSensors QtOpenGL QtMultimedia QtMultimediaWidgets QtDBus')
     print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
     qt_cppflags=[]
     qt_libs=['-L%s' % libdir]
     for module in qt_pkgs.split():
         qt_cppflags.append('-I%s/%s' % (includedir, module))
-        qt_libs.append('-l%s' % module)
+        qt_libs.append('-l%s' % module.replace('Qt','Qt5'))
     print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
     print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
     print('MOC=%s' % (P.join(bindir, 'moc')),file=config)

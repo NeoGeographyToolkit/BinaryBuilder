@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env pythonc
 
 from __future__ import print_function
 import os, shutil
@@ -8,7 +8,7 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
-     replace_line_in_file
+     replace_line_in_file, run
 from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
@@ -351,131 +351,13 @@ class hdf5(Package):
     def configure(self):
         super(hdf5, self).configure(enable=('cxx'), disable = ['static'])
 
-# Due to legal reasons ... we are not going to download a modified
-# version of ISIS from some NASA Ames server. Instead, we will
-# download ISIS and then download the repo for editing ISIS. We apply
-# the patch locally and then build away.
-class isis(Package):
-    def __init__(self, env):
-        super(isis, self).__init__(env)
-        self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
-        self.isisautotools_localcopy = P.join(env['DOWNLOAD_DIR'], 'git', 'AutotoolsForISIS')
-        # We download the source code from the OSX branch, should be same code
-        # as on the Linux side.
-        self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX10.8/isis/"
-        self.isisautotools_src = "https://github.com/NeoGeographyToolkit/AutotoolsForISIS.git"
+# Build our copy of the ISIS code...
+class isis(GITPackage, CMakePackage):
+    src = 'https://github.com/NeoGeographyToolkit/IsisCMake.git'
+    chksum = 'e12f4e0'
+    patches = 'patches/isis'
 
-        # Fetch the ISIS version. We will rebuild it each time
-        # the version changes.
-        cmd = ['rsync', self.isis_src +'version', '.']
-        self.helper(*cmd)
-        f = open('version','r')
-        self.chksum = f.readline().strip()
-        if self.chksum == "":
-            raise PackageError(self, 'Could not find the ISIS version')
-
-    @stage
-    def fetch(self, skip=False):
-        if not P.exists(self.isis_localcopy) or \
-                not P.exists(self.isisautotools_localcopy):
-            if skip: raise PackageError(self, 'Fetch is skipped and no src available')
-            os.makedirs(self.isis_localcopy)
-        if skip: return
-
-        self.copytree(self.isis_src, self.isis_localcopy + '/', ['-zv', '--exclude', 'doc/*', '--exclude', '*/doc/*', '--exclude', 'bin/*', '--exclude', '3rdParty/*', '--exclude', 'lib/*'])
-        if not P.exists(self.isisautotools_localcopy):
-            self.helper('git', 'clone', '--mirror', self.isisautotools_src, self.isisautotools_localcopy)
-        else:
-            self.helper('git', '--git-dir', self.isisautotools_localcopy, 'fetch', 'origin')
-
-    @stage
-    def unpack(self):
-        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
-        self.remove_build(output_dir)
-        self.workdir = output_dir
-        if P.exists(P.join(self.workdir, self.pkgname)):
-            self.helper('rm','-rf',self.pkgname);
-        if not P.exists(P.join(output_dir, 'isis_original')):
-            os.makedirs(P.join(output_dir, 'isis_original'))
-        self.copytree(self.isis_localcopy + '/', P.join(output_dir, 'isis_original'),
-                      ['--link-dest=%s' % self.isis_localcopy])
-        autotools_dir = P.join(output_dir, 'AutotoolsForISIS-git')
-        os.mkdir(autotools_dir )
-        self.helper('git', 'clone', self.isisautotools_localcopy, autotools_dir)
-
-        # Delete the patch that applies to applications we are not building
-        os.remove(os.path.join(autotools_dir, 'patches/00005-fix_variable_length_array.patch'))
-
-        # Now we actually run commands that patch ISIS with a build system
-        self.helper(sys.executable,"AutotoolsForISIS-git/reformat_isis.py","--destination",
-                    self.pkgname,"--isisroot","isis_original","--dont-build-apps")
-        self.workdir = P.join(output_dir,self.pkgname)
-
-        self._apply_patches()
-
-    @stage
-    def configure(self):
-        self.helper('./autogen')
-
-        pkgs = 'arbitrary_qt qwt boost protobuf tnt jama xercesc dsk spice geos gsl \
-                lapack superlu gmm tiff z jpeg suitesparse amd colamd cholmod curl xercesc'.split()
-
-        w = [i + '=%(INSTALL_DIR)s' % self.env for i in pkgs]
-        includedir = P.join(self.env['INSTALL_DIR'], 'include')
-
-        with file(P.join(self.workdir, 'config.options'), 'w') as config:
-            for pkg in pkgs:
-                ldflags = []
-                ldflags.append('-L%s' % P.join(self.env['INSTALL_DIR'], 'lib'))
-                if self.arch.os == 'osx':
-                    ldflags.append('-F%s' % P.join(self.env['INSTALL_DIR'], 'lib'))
-                print('PKG_%s_LDFLAGS="%s"' % (pkg.upper(), ' '.join(ldflags)), file=config)
-
-            qt_pkgs = 'QtCore QtGui QtNetwork QtSql QtSvg QtXml QtXmlPatterns'
-            print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
-
-            qt_cppflags=['-I%s' % includedir]
-            qt_libs=['-L%s' % P.join(self.env['INSTALL_DIR'], 'lib')]
-
-            for module in qt_pkgs.split():
-                qt_cppflags.append('-I%s/%s' % (includedir, module))
-                qt_libs.append('-l%s' % module)
-
-            print('PKG_ARBITRARY_QT_CPPFLAGS="%s"' % ' '.join(qt_cppflags), file=config)
-            print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
-            print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
-
-            print('PKG_SPICE_CPPFLAGS="-I%s/naif"' % includedir, file=config)
-
-            print('PROTOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'protoc')), file=config)
-            print('MOC=%s' % (P.join(self.env['INSTALL_DIR'], 'bin', 'moc')), file=config)
-            print('HAVE_PKG_APPLE_QWT=no', file=config)
-            print('HAVE_PKG_KAKADU=no', file=config)
-            print('HAVE_PKG_GSL_HASBLAS=no', file=config)
-
-        # Force the linker to do a thorough job at finding dependencies.
-        # If older linkers don't like the provided flags, try again
-        # without them.
-        ldflag_attempts = []
-        ldflag_attempts.append( self.env['LDFLAGS'] )
-        if self.arch.os == 'linux':
-            ld_flags1 = ' -Wl,--copy-dt-needed-entries  -Wl,--no-as-needed'
-            ld_flags2 = ' -Wl,-rpath=%(INSTALL_DIR)s/lib -L%(INSTALL_DIR)s/lib -lblas -lQtXml' % self.env
-            ldflag_attempts.append( ldflag_attempts[0] + ld_flags2 )
-            ldflag_attempts.append( ldflag_attempts[0] + ld_flags1)
-            ldflag_attempts.append( ldflag_attempts[0] )
-            ldflag_attempts[0] = ldflag_attempts[0] + ld_flags1 + ld_flags2
-
-        for ld_flags in ldflag_attempts:
-            self.env['LDFLAGS'] = ld_flags
-            try:
-                super(isis, self).configure(
-                    with_ = w,
-                    without = ['clapack', 'slapack'],
-                    disable = ['pkg_paths_default', 'static', 'qt-qmake'] )
-                break
-            except:
-                print ("Unexpected error in attempt: ", ld_flags, sys.exc_info()[0])
+    # TODO: Fix!
 
 class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
@@ -570,9 +452,9 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_60' # variable is used in class liblas, libnabo, etc.
+    version = '1_59' # variable is used in class liblas, libnabo, etc.
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = '7f56ab507d3258610391b47fef6b11635861175a'
+    chksum  = 'b94de47108b2cdb0f931833a7a9834c2dd3ca46e'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -639,8 +521,8 @@ class gsl(Package):
         super(gsl, self).configure(disable=('static'))
 
 class geos(Package):
-    src = 'http://download.osgeo.org/geos/geos-3.3.9.tar.bz2'
-    chksum = '1523f000b69523dfbaf008c7407b98217470e7a3'
+    src = 'http://download.osgeo.org/geos/geos-3.5.1.tar.bz2'
+    chksum = '83373542335c2f20c22d5420ba01d99f645f0c61'
 
     def __init__(self, env):
         super(geos, self).__init__(env)
@@ -710,8 +592,8 @@ class xercesc(Package):
                                       disable = ['static', 'msgloader-iconv', 'msgloader-icu', 'network'])
 
 class qt(Package):
-    src     = 'http://download.qt-project.org/official_releases/qt/4.8/4.8.6/qt-everywhere-opensource-src-4.8.6.tar.gz'
-    chksum  = 'ddf9c20ca8309a116e0466c42984238009525da6' #SHA-1 Hash
+    src     = 'http://download.qt-project.org/official_releases/qt/5.6/5.6.2/single/qt-everywhere-opensource-src-5.6.2.tar.gz'
+    chksum  = '4385b53f78665ac340ea2a709ebecf1e776efdc2' #SHA-1 Hash
     patches = 'patches/qt'
     patch_level = '-p0'
 
@@ -728,9 +610,9 @@ class qt(Package):
 
     @stage
     def configure(self):
-        # The default confs override our compiler choices.
-        self.helper('sed','-ibak','-e','s# g++# %s#g' % self.env['CXX'], '-e', 's# gcc# %s#g' % self.env['CC'], 'mkspecs/common/g++-base.conf')
-        cmd = './configure -opensource -fast -confirm-license -xmlpatterns -nomake tools -nomake demos -nomake examples -nomake docs -nomake translations -no-webkit -prefix %(INSTALL_DIR)s -no-script -no-scripttools -no-openssl -no-libjpeg -no-libmng -no-libpng -no-libtiff -no-cups -no-nis -no-opengl -no-openvg -no-phonon -no-phonon-backend -no-sql-psql -no-dbus' % self.env
+        ## The default confs override our compiler choices.
+        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -qt-xcb -skip webengine' % self.env
+
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
@@ -743,8 +625,8 @@ class qt(Package):
         super(qt, self).install()
 
 class qwt(Package):
-    src     = 'http://downloads.sourceforge.net/qwt/qwt-6.1.0.tar.bz2',
-    chksum  = '48a967038f7aa9a9c87c64bcb2eb07c5df375565',
+    src     = 'http://downloads.sourceforge.net/qwt/qwt-6.1.3.tar.bz2',
+    chksum  = '90ec21bc42f7fae270482e1a0df3bc79cb10e5c7',
     patches = 'patches/qwt'
 
     def configure(self):
@@ -919,8 +801,8 @@ class dsk(Package):
         self.helper(*cmd)
 
 class protobuf(Package):
-    src = 'https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2'
-    chksum = '6421ee86d8fb4e39f21f56991daa892a3e8d314b'
+    src = 'https://github.com/google/protobuf/archive/v3.1.0.tar.gz'
+    chksum = 'e5f59dc4202fd59894f5cb9310b3d6cb2f0a2ef7'
 
     @stage
     def configure(self):
@@ -1139,11 +1021,10 @@ class binarybuilder(GITPackage):
     @stage
     def install(self): pass
 
-# OpenCV 2.4, for creating new camera models
 class opencv(CMakePackage):
-    src     = 'https://github.com/Itseez/opencv/archive/2.4.11.tar.gz'
-    chksum  = '310a8b0fdb9bf60c6346e9d073ed2409cd1e26b4'
-    patches = 'patches/opencv'
+    src     = 'https://github.com/opencv/opencv/archive/3.1.0.tar.gz'
+    chksum  = '6bbe804d2b5de17cff73a5f56aa025e8b1e7f1fd'
+    #patches = 'patches/opencv'
 
     def __init__(self, env):
         super(opencv, self).__init__(env)
@@ -1163,18 +1044,32 @@ class opencv(CMakePackage):
         # - We had to turn some of it back on to get the calibration sample to compile.
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -ltiff -lpng' % self.env
 
+        # Manually fetch the contributor tarball - Needed for SIFT etc
+        print(self.env['BUILD_DIR'])
+        tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib.tar.gz')
+        contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib-3.1.0/modules')
+        cmd = 'wget https://github.com/opencv/opencv_contrib/archive/3.1.0.tar.gz -O ' + tar_path
+        os.system(cmd)
+        # Unpack the contributor tarball
+        cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0')
+        os.system(cmd)
+
+        ## Manually fetch this required file        
+        #print(self.env['BUILD_DIR'])
+        #ipp_tar_path = os.path.join(self.env['BUILD_DIR'], 
+        #  'opencv/opencv-3.1.0/3rdparty/ippicv/downloads/linux-808b791a6eac9ed78d32a7666804320e/ippicv_linux_20151201.tgz')
+        #print(ipp_tar_path)
+        #cmd = 'wget https://github.com/opencv/opencv_3rdparty/blob/ippicv/master_20151201/ippicv/ippicv_linux_20151201.tgz ' +                ipp_tar_path
+        #self.helper(cmd)
+
         options_list = ['-DBUILD_opencv_apps=OFF',
-                        '-DBUILD_opencv_gpu=OFF',
                         '-DBUILD_opencv_video=OFF',
                         '-DBUILD_opencv_ts=OFF',
                         '-DBUILD_opencv_videostab=OFF',
                         '-DBUILD_opencv_java=OFF',
-                        '-DBUILD_opencv_python=OFF',
-                        '-DBUILD_opencv_legacy=OFF',
-                        '-DBUILD_opencv_highgui=OFF',
-                        '-DBUILD_opencv_ocl=OFF',
-                        # There is useful stuff (SIFT, SURF) in nonfree but they are patented
-                        '-DBUILD_opencv_nonfree=ON',
+                        '-DBUILD_opencv_highgui=ON',
+                        '-DINSTALL_C_EXAMPLES=OFF',
+                        '-DINSTALL_PYTHON_EXAMPLES=OFF',
                         '-DWITH_FFMPEG=OFF',
                         '-DWITH_DSHOW=OFF',
                         '-DWITH_GSTREAMER=OFF',
@@ -1190,13 +1085,14 @@ class opencv(CMakePackage):
                         '-DWITH_QT=OFF',
                         '-DWITH_TIFF=OFF',
                         '-DWITH_OPENEXR=OFF',
-                        '-DWITH_IMAGEIO=OFF',
                         '-DWITH_CUDA=OFF',
                         '-DWITH_OPENGL=OFF',
-                        '-DHAVE_opencv_ocl=OFF',
                         '-DWITH_OPENCLAMDFFT=OFF',
                         '-DWITH_OPENCLAMDBLAS=OFF',
-                        '-DWITH_OPENCL=OFF']
+                        '-DWITH_OPENCL=OFF',
+                        '-DWITH_GPHOTO2=OFF',
+                        '-DOPENCV_EXTRA_MODULES_PATH='+contrib_path,
+                        '-DWITH_IPP=OFF'] # TODO: Re-enable this to get more speed!  Needs some help installing.
 
         super(opencv, self).configure( other=options_list )
 
