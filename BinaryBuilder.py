@@ -923,7 +923,9 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
         print('PROTOC=%s' % (P.join(bindir, 'protoc')),file=config)
         print('', file=config) # newline
 
+        # Add include directories for some modules that put their includes in a sub-folder.
         cppflags.extend(["-I%s/eigen3" % includedir])
+        cppflags.extend(["-I%s/isis3"  % includedir])
 
         if not use_env_flags:
             print('CFLAGS="'   + ' '.join(cflags)   + '"', file=config)

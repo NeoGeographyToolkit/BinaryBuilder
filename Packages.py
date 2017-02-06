@@ -1063,7 +1063,7 @@ class opencv(CMakePackage):
         #self.helper(cmd)
 
         options_list = ['-DBUILD_opencv_apps=OFF',
-                        '-DBUILD_opencv_video=OFF',
+                        '-DBUILD_opencv_video=ON',
                         '-DBUILD_opencv_ts=OFF',
                         '-DBUILD_opencv_videostab=OFF',
                         '-DBUILD_opencv_java=OFF',
