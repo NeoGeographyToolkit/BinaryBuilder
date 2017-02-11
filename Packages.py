@@ -12,8 +12,8 @@ from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
 from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
-    src     = 'http://samba.org/ftp/ccache/ccache-3.1.9.tar.bz2'
-    chksum  = 'e80a5cb7301e72f675097246d722505ae56e3cd3'
+    src     = 'https://www.samba.org/ftp/ccache/ccache-3.1.12.tar.bz2'
+    chksum  = '64c4bbe08187a448bc3526b1e657f1cbd1aff855'
 
 class m4(Package):
     src     = 'http://ftp.gnu.org/gnu/m4/m4-1.4.17.tar.gz'
@@ -611,12 +611,13 @@ class qt(Package):
     @stage
     def configure(self):
         ## The default confs override our compiler choices.
-        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -qt-xcb -skip webengine' % self.env
+        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -no-xcb -skip webengine -xplatform macx-ios-clang ' % self.env
 
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
             args.extend(['-arch',self.env['OSX_ARCH']])
+
         self.helper(*args)
 
     @stage
@@ -629,6 +630,17 @@ class qwt(Package):
     chksum  = '90ec21bc42f7fae270482e1a0df3bc79cb10e5c7',
     patches = 'patches/qwt'
 
+    def __init__(self, env):
+        super(qwt, self).__init__(env)
+
+        # Qt can only be built on OSX with an Apple Compiler. If the
+        # user overwrote the compiler choice, we must revert here. The
+        # problem is -fconstant-cfstrings. Macports also gives up in
+        # this situation and blacks lists all Macport built compilers.
+        if self.arch.os == 'osx':
+            self.env['CXX']='c++'
+            self.env['CC']='cc'
+
     def configure(self):
         installDir = self.env['INSTALL_DIR']
 
@@ -638,7 +650,7 @@ class qwt(Package):
 
         cmd = [installDir + '/bin/qmake','-spec']
         if self.arch.os == 'osx':
-            cmd.append(P.join(installDir,'mkspecs','macx-g++'))
+            cmd.append(P.join(installDir,'mkspecs','macx-clang'))
         else:
             cmd.append(P.join(installDir,'mkspecs','linux-g++'))
         self.helper(*cmd)
