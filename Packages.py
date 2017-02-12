@@ -611,7 +611,7 @@ class qt(Package):
     @stage
     def configure(self):
         ## The default confs override our compiler choices.
-        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -no-xcb -skip webengine -xplatform macx-ios-clang ' % self.env
+        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -no-xcb -skip webengine ' % self.env
 
         args = cmd.split()
         if self.arch.os == 'osx':
@@ -1080,6 +1080,29 @@ class opencv(CMakePackage):
                         '-DBUILD_opencv_videostab=OFF',
                         '-DBUILD_opencv_java=OFF',
                         '-DBUILD_opencv_highgui=ON',
+                        '-DBUILD_opencv_adas=OFF',
+                        '-DBUILD_opencv_bgsegm=OFF',
+                        '-DBUILD_opencv_bioinspired=OFF',
+                        '-DBUILD_opencv_ccalib=OFF',
+                        '-DBUILD_opencv_cvv=OFF',
+                        '-DBUILD_opencv_datasets=OFF',
+                        '-DBUILD_opencv_datasettools=OFF',
+                        '-DBUILD_opencv_face=OFF',
+                        '-DBUILD_opencv_latentsvm=OFF',
+                        '-DBUILD_opencv_line_descriptor=OFF',
+                        '-DBUILD_opencv_matlab=OFF',
+                        '-DBUILD_opencv_optflow=OFF',
+                        '-DBUILD_opencv_reg=ON',
+                        '-DBUILD_opencv_rgbd=OFF',
+                        '-DBUILD_opencv_saliency=OFF',
+                        '-DBUILD_opencv_surface_matching=ON',
+                        '-DBUILD_opencv_text=OFF',
+                        '-DBUILD_opencv_tracking=OFF',
+                        '-DBUILD_opencv_ximgproc=ON',
+                        '-DBUILD_opencv_xobjdetect=ON',
+                        '-DBUILD_opencv_xphoto=ON',
+                        '-DBUILD_opencv_fuzzy=OFF',
+                        '-DBUILD_opencv_dnn=OFF',
                         '-DINSTALL_C_EXAMPLES=OFF',
                         '-DINSTALL_PYTHON_EXAMPLES=OFF',
                         '-DWITH_FFMPEG=OFF',
