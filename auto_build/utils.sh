@@ -148,6 +148,8 @@ function get_test_machines {
         testMachines="$buildMachine andey"
     elif [ "$buildMachine" = "big-centos-64-5" ]; then
         testMachines="$buildMachine $masterMachine"
+    elif [ "$buildMachine" = "lunokhod2" ]; then
+        testMachines="$masterMachine"
     else
         testMachines=$buildMachine
     fi

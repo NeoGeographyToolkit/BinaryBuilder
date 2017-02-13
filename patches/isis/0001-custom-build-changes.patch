@@ -28,7 +28,7 @@ diff -ruN /home/smcmich1/repo/IsisCMake/cmake/FindAllDependencies.cmake /home/sm
  
 -set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
 +#set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
-+set(thirdPartyDir "/home/smcmich1/repo/BinaryBuilder/build_asp/install") # TODO
++set(thirdPartyDir "${CMAKE_SOURCE_DIR}/../../../install") # TODO
  
  set(INCLUDE_DIR "${thirdPartyDir}/include")
  set(LIB_DIR     "${thirdPartyDir}/lib")

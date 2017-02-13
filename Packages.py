@@ -357,7 +357,29 @@ class isis(GITPackage, CMakePackage):
     chksum = 'e12f4e0'
     patches = 'patches/isis'
 
-    # TODO: Fix!
+    # For now we are using our CMake copy of the ISIS code but this will
+    #  change some time in the future.
+
+    #def __init__(self, env):
+    #    super(isis, self).__init__(env)
+    #    self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
+    #    # We download the source code from the OSX branch, should be same code
+    #    # as on the Linux side.
+    #    self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX/isis/"
+
+    #    # Fetch the ISIS version. We will rebuild it each time
+    #    # the version changes.
+    #    cmd = ['rsync', self.isis_src +'version', '.']
+    #    self.helper(*cmd)
+    #    f = open('version','r')
+    #    self.chksum = f.readline().strip()
+    #    if self.chksum == "":
+    #        raise PackageError(self, 'Could not find the ISIS version')
+
+    @stage
+    def configure(self):
+        # Copy the version file to the install folder
+        cmd = ['cp', P.join(self.workdir, 'version'), self.env['INSTALL_DIR']]
 
 class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
@@ -611,13 +633,16 @@ class qt(Package):
     @stage
     def configure(self):
         ## The default confs override our compiler choices.
-        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -no-xcb -skip webengine ' % self.env
+        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -skip webengine' % self.env
 
+        # TODO: Make sure static libraries are not built!  Causes linker error in ASP in OSX. 
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
+            args.append('-no-xcb')
             args.extend(['-arch',self.env['OSX_ARCH']])
-
+        else:
+            args.append('-qt-xcb') # Not needed on OSX
         self.helper(*args)
 
     @stage
@@ -815,6 +840,9 @@ class dsk(Package):
 class protobuf(Package):
     src = 'https://github.com/google/protobuf/archive/v3.1.0.tar.gz'
     chksum = 'e5f59dc4202fd59894f5cb9310b3d6cb2f0a2ef7'
+
+    # As of v3.1 this has to be built manually on CentOS 5 due to a problem
+    #  calling curl from the autogen script.  Running it manually seems to work fine.
 
     @stage
     def configure(self):

@@ -39,6 +39,9 @@ LIB_SYSTEM_LIST = '''
     AVFoundation.framework/Versions/A/AVFoundation
     QuartzCore.framework/Versions/A/QuartzCore
     CoreVideo.framework/Versions/A/CoreVideo
+    IOKit.framework/Versions/A/IOKit
+	  XCTest.framework/Versions/A/XCTest
+  	DiskArbitration.framework/Versions/A/DiskArbitration
 
     libobjc.A.dylib
     libSystem.B.dylib
@@ -96,17 +99,19 @@ def sibling_to(dir, name):
 def isis_version(isisroot):
     # Check if this is versioning the ISIS3.3.0 way
     if P.isfile(P.join(isisroot,'version')):
-        f = open(P.join(isisroot,'version'),'r')
+        f       = open(P.join(isisroot,'version'),'r')
         version = f.readline().strip().split('.')
         return ".".join(version[0:3])
     header = P.join(isisroot, 'src/base/objs/Constants/Constants.h')
-    m = grep('version\("(.*?)"', header)
+    m      = grep('version\("(.*?)"', header)
     if not m:
-        raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT (%s) is incorrect?' % (header, isisroot))
+        raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT (%s) is incorrect?' 
+                        % (header, isisroot))
     return m[0].group(1)
 
 def libc_version():
-    locations=['/lib/x86_64-linux-gnu/libc.so.6','/lib/i386-linux-gnu/libc.so.6','/lib/i686-linux-gnu/libc.so.6','/lib/libc.so.6','/lib64/libc.so.6','/lib32/libc.so.6']
+    locations=['/lib/x86_64-linux-gnu/libc.so.6', '/lib/i386-linux-gnu/libc.so.6',
+               '/lib/i686-linux-gnu/libc.so.6', '/lib/libc.so.6', '/lib64/libc.so.6', '/lib32/libc.so.6']
     for library in locations:
         if P.isfile(library):
             output = run(library).split('\n')[0]
