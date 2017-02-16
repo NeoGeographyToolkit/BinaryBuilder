@@ -381,6 +381,9 @@ class isis(GITPackage, CMakePackage):
         # Copy the version file to the install folder
         cmd = ['cp', P.join(self.workdir, 'version'), self.env['INSTALL_DIR']]
 
+        # Run the default configure process
+        super(isis, self).configure()
+
 class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
