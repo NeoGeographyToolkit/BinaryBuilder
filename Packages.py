@@ -270,13 +270,27 @@ class proj(Package):
     def configure(self):
         super(proj,self).configure(disable='static', without='jni')
 
+class openssl(Package):
+    src = 'https://github.com/openssl/openssl/archive/OpenSSL_1_1_0e.tar.gz'
+    chksum = '14eaed8edc7e48fe1f01924fa4561c1865c9c8ac'
+
+    @stage
+    def configure(self):
+        cmd = ('./config --prefix=%s --openssldir=%s --with-zlib-include=%s --with-zlib-lib=%s' 
+               % (self.env['INSTALL_DIR'], self.env['BUILD_DIR'], 
+                  self.env['INSTALL_DIR']+'/include', self.env['INSTALL_DIR']+'/lib'))
+
+        args = cmd.split()
+        self.helper(*args)
+
+
 class curl(Package):
     src     = 'http://curl.haxx.se/download/curl-7.33.0.tar.bz2'
     chksum  = 'b0dc79066f31a000190fd8a15277738e8c1940aa'
 
     @stage
     def configure(self):
-        w = ['zlib=%(INSTALL_DIR)s' % self.env]
+        w = ['zlib='+self.env['INSTALL_DIR'], 'ssl='+self.env['INSTALL_DIR']]
         wo = 'libidn'.split()
         super(curl,self).configure(
             with_=w, without=wo, disable=['static','ldap','ldaps'])
@@ -895,8 +909,8 @@ class osg3(CMakePackage):
         if self.arch.os == 'osx':
             other_flags.extend(['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio','-DOSG_WINDOWING_SYSTEM=Cocoa'])
         super(osg3, self).configure(
-            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB CURL'.split(),
-            without='QuickTime CoreVideo QTKit COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
+            with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
+            without='CURL QuickTime CoreVideo QTKit COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
             other=other_flags)
 
 
