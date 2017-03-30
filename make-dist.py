@@ -79,7 +79,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship
-LIB_SHIP_PREFIX = ''' libstdc++. libgfortran. libquadmath. libgcc_s. libgomp. '''.split()
+LIB_SHIP_PREFIX = '''libstdc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394.'''.split()
 
 def tarball_name():
     arch = get_platform()
@@ -120,13 +120,14 @@ def libc_version():
 
 if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
-    parser.add_option('--debug',       dest='loglevel',  default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
-    parser.add_option('--include',     dest='include',   default='./whitelist', help='A file that lists the binaries for the dist')
-    parser.add_option('--vw-build',    dest='vwBuild',   default=False, action='store_true', help='Set to true when packaging a non-ASP build.')
-    parser.add_option('--keep-temp',   dest='keeptemp',  default=False, action='store_true', help='Keep tmp distdir around for debugging')
-    parser.add_option('--set-version', dest='version',   default=None, help='Set the version number to use for the generated tarball')
-    parser.add_option('--set-name',    dest='name',      default='StereoPipeline', help='Tarball name for this dist')
-    parser.add_option('--isisroot',    dest='isisroot',  default=None, help='Use a locally-installed isis at this root')
+    parser.add_option('--debug',       dest='loglevel',    default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
+    parser.add_option('--include',     dest='include',     default='./whitelist', help='A file that lists the binaries for the dist')
+    parser.add_option('--debug-build', dest='debug_build', default=False, action='store_true', help='Create a build having debug symbols')
+    parser.add_option('--vw-build',    dest='vw_build',    default=False, action='store_true', help='Set to true when packaging a non-ASP build')
+    parser.add_option('--keep-temp',   dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
+    parser.add_option('--set-version', dest='version',     default=None, help='Set the version number to use for the generated tarball')
+    parser.add_option('--set-name',    dest='name',        default='StereoPipeline', help='Tarball name for this dist')
+    parser.add_option('--isisroot',    dest='isisroot',    default=None, help='Use a locally-installed isis at this root')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -140,7 +141,7 @@ if __name__ == '__main__':
         usage('Missing required argument: installdir')
 
     # If the user specified a VW build, update some default options.
-    if opt.vwBuild:
+    if opt.vw_build:
         if opt.include == './whitelist':
             opt.include = './whitelist_vw'
         if opt.name == 'StereoPipeline':
@@ -160,7 +161,7 @@ if __name__ == '__main__':
     logging.basicConfig(level=opt.loglevel)
 
     wrapper_file = 'libexec-helper.sh'
-    if (opt.vwBuild):
+    if (opt.vw_build):
         wrapper_file = 'libexec-helper_vw.sh'
     mgr = DistManager(tarball_name(), wrapper_file)
 
@@ -191,7 +192,7 @@ if __name__ == '__main__':
                 for line in f:
                     mgr.add_glob(line.strip(), INSTALLDIR)
 
-        if not opt.vwBuild:
+        if not opt.vw_build:
             print('Adding Libraries referred to by ISIS Plugins')
             sys.stdout.flush()
             isis_secondary_set = set()
@@ -209,7 +210,7 @@ if __name__ == '__main__':
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
         with mgr.create_file('libexec/constants.sh') as f: # Create constants file
-            if not opt.vwBuild:
+            if not opt.vw_build:
                 print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
                 print('\tFound ISIS version %s' % isis_version(ISISROOT))
             print('BAKED_LIBC_VERSION="%s"' % libc_version(), file=f)
@@ -264,7 +265,7 @@ if __name__ == '__main__':
         for f in glob(P.join(INSTALLDIR.doc(),'*')):
             base_f = os.path.basename(f)
             if (base_f not in ['AUTHORS', 'COPYING', 'INSTALLGUIDE', 'NEWS',
-                              'README', 'THIRDPARTYLICENSES', 'examples']) or opt.vwBuild:
+                              'README', 'THIRDPARTYLICENSES', 'examples']) or opt.vw_build:
                 try:
                     os.remove(f)
                 except Exception:
@@ -283,7 +284,7 @@ if __name__ == '__main__':
         debuglist = mgr.find_filter('-name', '*.debug')
 
         mgr.make_tarball(exclude = [debuglist.name])
-        if P.getsize(debuglist.name) > 0:
+        if P.getsize(debuglist.name) > 0 and opt.debug_build:
             mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.bz2' % mgr.tarname)
     finally:
         if not opt.keeptemp:
