@@ -394,6 +394,9 @@ class isis(GITPackage, CMakePackage):
         # Copy the version file to the install folder
         cmd = ['cp', P.join(self.workdir, 'version'), self.env['INSTALL_DIR']]
 
+        curr_include = '-I' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version)
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+
         # Run the default configure process
         super(isis, self).configure()
 
