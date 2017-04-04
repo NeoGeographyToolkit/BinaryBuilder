@@ -67,7 +67,7 @@ class bzip2(Package):
     src     = 'http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz'
     chksum  = '3f89f861209ce81a6bab1fd1998c0ef311712002'
 
-    def configure(self):# pass
+    def configure(self):
         # Not doing anything here so add this option (required for ImageMagick) while we are here
         self.env['MAKEOPTS'] += ''' CFLAGS="-fPIC"'''
 
@@ -282,7 +282,6 @@ class openssl(Package):
 
         args = cmd.split()
         self.helper(*args)
-
 
 class curl(Package):
     src     = 'http://curl.haxx.se/download/curl-7.33.0.tar.bz2'
@@ -661,6 +660,29 @@ class qt(Package):
         else:
             args.append('-qt-xcb') # Not needed on OSX
         self.helper(*args)
+
+        if self.arch.os == 'osx':
+            # Create a script to do a mass edit of all .pro files
+            # to make them compile. Add some flags, and the -lc++ library.
+            # Then execute the script.
+            script = self.workdir + '/edit_pro.sh'
+            print("script is ", script)
+            f = open(script, 'w')
+            f.write('#!/bin/bash\n'                                     + \
+                    'cd ' + self.workdir + '\n'                         + \
+                    'for f in $(find . -name \*pro); do\n'              + \
+                    '  echo Editing $f\n'                               + \
+                    '  cat $f > tmp.txt\n'                              + \
+                    '  echo "CONFIG += c++11" > $f\n'                   + \
+                    '  echo "QMAKE_CXXFLAGS += -stdlib=libc++" >> $f\n' + \
+                    '  cat tmp.txt >> $f\n'                             + \
+                    '  perl -pi -e \'s#(QMAKE_LIBS\s+\+=\s)#$1 -lc++ #g\' $f\n' + \
+                    'done\n')
+            f.close()
+            cmd = ['chmod', 'u+x', script]
+            self.helper(*cmd)
+            cmd=[script]
+            self.helper(*cmd)
 
     @stage
     def install(self):
