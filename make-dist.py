@@ -193,12 +193,17 @@ if __name__ == '__main__':
                 for line in f:
                     mgr.add_glob(line.strip(), INSTALLDIR)
 
-        # Force-add this library on Linux, it may not be auto-detected
+        # Add some architecture-specific files, that may not
+        # auto-detected. 
+        print('Adding Qt libraries and plugins')
         if get_platform().os == 'linux':
             mgr.add_glob("lib/libQt5XcbQpa.*", INSTALLDIR)
+            mgr.add_glob("plugins", INSTALLDIR)
+        else:
+            mgr.add_glob("plugins/platforms", INSTALLDIR)
                                 
         if not opt.vw_build:
-            print('Adding Libraries referred to by ISIS Plugins')
+            print('Adding Libraries referred to by ISIS plugins')
             sys.stdout.flush()
             isis_secondary_set = set()
             for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
