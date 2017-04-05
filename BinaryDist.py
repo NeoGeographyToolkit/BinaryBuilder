@@ -243,6 +243,7 @@ class DistManager(object):
         copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
         self.distlist.add(dst)
 
+        #print("dst and deps, ", dst, required_libs(dst))
         if add_deps and is_binary(dst):
             self.deplist.update(required_libs(dst))
 

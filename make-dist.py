@@ -128,6 +128,7 @@ if __name__ == '__main__':
     parser.add_option('--set-version', dest='version',     default=None, help='Set the version number to use for the generated tarball')
     parser.add_option('--set-name',    dest='name',        default='StereoPipeline', help='Tarball name for this dist')
     parser.add_option('--isisroot',    dest='isisroot',    default=None, help='Use a locally-installed isis at this root')
+    parser.add_option('--force-continue', dest='force_continue', default=False, action='store_true', help='Continue despite errors. Not recommended.')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -192,6 +193,10 @@ if __name__ == '__main__':
                 for line in f:
                     mgr.add_glob(line.strip(), INSTALLDIR)
 
+        # Force-add this library on Linux, it may not be auto-detected
+        if get_platform().os == 'linux':
+            mgr.add_glob("lib/libQt5XcbQpa.*", INSTALLDIR)
+                                
         if not opt.vw_build:
             print('Adding Libraries referred to by ISIS Plugins')
             sys.stdout.flush()
@@ -257,8 +262,11 @@ if __name__ == '__main__':
                                    '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:
-            raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
-
+            if not opt.force_continue:
+                raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
+            else:
+                print("Warning: missing libs: " + '\n\t'.join(mgr.deplist.keys()) + "\n")
+                
         # We don't want to distribute with ASP any random files in
         # 'docs' installed by any of its deps. Distribute only what we need.
         # - In the VW build clean out docs completely because we still get junk

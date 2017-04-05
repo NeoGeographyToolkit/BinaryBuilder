@@ -81,3 +81,4 @@ share/gdal/*
 share/geoids*
 share/proj/*
 version
+plugins

@@ -652,7 +652,7 @@ class qt(Package):
     @stage
     def configure(self):
         ## The default confs override our compiler choices.
-        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -skip webengine' % self.env
+        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s -c++std c++11 -no-openssl -no-libpng -no-cups -no-openvg -no-sql-psql -no-sql-mysql -no-pulseaudio -no-securetransport -skip webengine' % self.env
 
         # TODO: Make sure static libraries are not built!  Causes linker error in ASP in OSX. 
         args = cmd.split()
@@ -664,7 +664,7 @@ class qt(Package):
             args.append('-qt-xcb') # Not needed on OSX
         self.helper(*args)
 
-        if self.arch.os == 'osx':
+        if self.arch.os == 'osxxxx':
             # Create a script to do a mass edit of all .pro files
             # to make them compile. Add some flags, and the -lc++ library.
             # Then execute the script.
