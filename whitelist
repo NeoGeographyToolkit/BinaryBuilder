@@ -62,6 +62,7 @@ bin/extract_icebridge_ATM_points
 bin/lvis2kml
 bin/ortho2pinhole
 lib/*.plugin
+plugins/platforms
 lib/libasp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
 lib/libvw*.[so,dylib]*
