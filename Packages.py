@@ -664,7 +664,7 @@ class qt(Package):
             args.append('-qt-xcb') # Not needed on OSX
         self.helper(*args)
 
-        if self.arch.os == 'osxxxx':
+        if self.arch.os == 'osx' and False: # Turn off for a little while
             # Create a script to do a mass edit of all .pro files
             # to make them compile. Add some flags, and the -lc++ library.
             # Then execute the script.
