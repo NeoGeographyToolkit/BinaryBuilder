@@ -139,15 +139,15 @@ function robust_ssh {
 function get_test_machines {
 
     # Test the amos build on itself and andey.
-    # Test the centos-64-5 build on itself and $masterMachine.
+    # Test the centos-6 build on $masterMachine.
 
     buildMachine=$1
     masterMachine=$2
 
     if [ "$buildMachine" = "amos" ]; then
         testMachines="$buildMachine andey"
-    elif [ "$buildMachine" = "big-centos-64-5" ]; then
-        testMachines="$buildMachine $masterMachine"
+    elif [ "$buildMachine" = "centos-6" ]; then
+        testMachines="$masterMachine"
     elif [ "$buildMachine" = "lunokhod2" ]; then
         testMachines="$masterMachine"
     else

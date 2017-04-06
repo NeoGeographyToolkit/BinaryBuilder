@@ -79,7 +79,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship
-LIB_SHIP_PREFIX = '''libstdc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394.'''.split()
+LIB_SHIP_PREFIX = '''libstdc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
 
 def tarball_name():
     arch = get_platform()

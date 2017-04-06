@@ -26,8 +26,8 @@ releaseMachine="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
-virtualMachines=""
-buildMachines="lunokhod2 amos $virtualMachines"
+virtualMachines="centos-6"
+buildMachines="amos $virtualMachines"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -120,7 +120,7 @@ fi
 # and status files.
 # The reason we build on $masterMachine here is to make the docs,
 # which fails on other machines. When it comes to testing though,
-# we'll test on $masterMachine the build from centos-64-5.
+# we'll test on $masterMachine the build from centos-6.
 echo "Starting up the builds..."
 for buildMachine in $buildMachines $masterMachine; do
 
@@ -188,9 +188,6 @@ while [ 1 ]; do
         statusLine=$(cat $statusFile)
         tarBall=$(echo $statusLine | awk '{print $1}')
         progress=$(echo $statusLine | awk '{print $2}')
-
-        echo "Read in progress: $statusLine"
-
         testMachines=$(get_test_machines $buildMachine $masterMachine)
 
         if [ "$progress" = "now_building" ]; then

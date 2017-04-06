@@ -7,25 +7,25 @@ https://byss.arc.nasa.gov/stereopipeline/daily_build
 
 Machines:
 lunokhod1:        Master machine on which the framework starts
-big-centos-64-5:  Linux, 64 bit
-andey:            Mac OS X 10.11
+centos-6:         Linux, 64 bit
 amos:             Mac OS X 10.9
+andey:            Mac OS X 10.11
 byss:             The machine storing the obtained builds
 
-The host big-centos-64-5 is a virtual machine on lunokhod1.
+The host centos-6 is a virtual machine on lunokhod1.
 
 ssh must be configured so that ssh connections from each machine to
 lunokhod1 and back, and to itself (both using its name and using
 'localhost') work without specifying a user name or password (user
-names, ports, etc., can be specified in .ssh/config).
+names, ports, etc., can be specified in .ssh/config). For more details,
+see the file StereoPipeline/VIRTMACHINES.
 
 The main script is auto_build/launch_master.sh. It gets started on
 lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on big-centos-64-5 and amos. Each build is being tested
-on the same machine. In addition, the big-centos-64-5 build is also tested
-on lunokhod1, while the amos build is also tested on andey.
+Builds are done on centos-6 and amos. The amos build is tested on amos
+and andey. The centos-6 build is tested on lunokhod1.
 
 The test process on lunokhod1 is the strictest, it will fail if any
 obtained results differ from the reference. The tests on other
