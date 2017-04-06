@@ -12,7 +12,7 @@ export PATH=/opt/rh/devtoolset-3/root/usr/bin:$HOMEBREW_PREFIX/bin:/home/smcmich
 # For the mac
 for f in gcc g++ gfortran; do
     if [ ! -d "$HOMEBREW_PREFIX" ]; then continue; fi
-    in=$(/bin/ls $HOMEBREW_PREFIX/bin/$f-* 2>/dev/null | grep -i $HOMEBREW_PREFIX | grep -i $f | head -n 1)
+    in=$(/bin/ls $HOMEBREW_PREFIX/bin/$f-* 2>/dev/null | grep -i $HOMEBREW_PREFIX | grep -i $f | tail -n 1)
     out="$HOMEBREW_PREFIX/bin/$f"
     if [ -f "$in" ] && [ ! -f "$out" ]; then
         echo Linking "$in to $out"
@@ -22,7 +22,7 @@ done
   
 # This is needed for new gcc
 export LD_LIBRARY_PATH=/opt/rh/devtoolset-3/root/usr/lib64:/opt/rh/devtoolset-3/root/usr/lib:/home/pipeline/projects/gcc-4.9.3-install/lib:/home/pipeline/projects/gcc-4.9.3-install/lib64:/home/oalexan1/projects/zack_packages/local/lib:/home/oalexan1/projects/zack_packages/local/lib64:$LD_LIBRARY_PATH
-export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.8/:$DYLD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.9/:$DYLD_LIBRARY_PATH
 
 function machine_name() {
     echo $(uname -n | perl -pi -e "s#\..*?\$##g")

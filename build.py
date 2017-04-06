@@ -196,7 +196,7 @@ if __name__ == '__main__':
     os.environ["PATH"] = P.join(opt.build_root, 'install/bin') + \
                          os.pathsep + os.environ["PATH"]
 
-    MIN_CC_VERSION = 4.4
+    MIN_CC_VERSION = 4.9
 
     # -Wl,-z,now ?
     build_env = Environment(
@@ -236,12 +236,12 @@ if __name__ == '__main__':
         if "llvm" in output or "clang" in output:
             die('Your compiler is an LLVM-GCC hybrid. It is our experience that these tools can not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
 
-    if arch.os == 'linux':
-        ver1 = get_prog_version(build_env['CC'])
-        ver2 = get_prog_version(build_env['CXX'])
-        if ver1 < MIN_CC_VERSION or ver2 < MIN_CC_VERSION:
-            die('Expecting gcc and g++ version >= ' + str(MIN_CC_VERSION))
-
+    #if arch.os == 'linux':
+    ver1 = get_prog_version(build_env['CC'])
+    ver2 = get_prog_version(build_env['CXX'])
+    if ver1 < MIN_CC_VERSION or ver2 < MIN_CC_VERSION:
+        die('Expecting gcc and g++ version >= ' + str(MIN_CC_VERSION))
+        
     if arch.os == 'linux':
         build_env.append('LDFLAGS', '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both')
         build_env.append_many(ALL_FLAGS, '-m%i' % arch.bits)
@@ -317,7 +317,7 @@ if __name__ == '__main__':
         build_env['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify we have the executables we need
-    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn"]
+    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", "wget"]
     compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['F77'] ]
     if arch.os == 'linux':
         common_exec.extend( ["libtool"] )
