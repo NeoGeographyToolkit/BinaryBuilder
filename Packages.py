@@ -8,7 +8,7 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
-     replace_line_in_file, run
+     replace_line_in_file, run, get
 from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
@@ -645,9 +645,12 @@ class qt(Package):
         # user overwrote the compiler choice, we must revert here. The
         # problem is -fconstant-cfstrings. Macports also gives up in
         # this situation and blacks lists all Macport built compilers.
-        if self.arch.os == 'osx':
-            self.env['CXX']='c++'
-            self.env['CC']='cc'
+        #if self.arch.os == 'osx':
+        #    self.env['CXX']='c++'
+        #    self.env['CC']='cc'
+
+        #self.env['MAKEOPTS'] += ''' CFLAGS="-stdlib=libc++" CXXFLAGS="-stdlib=libc++" LDFLAGS="-stdlib=libc++"'''
+        self.env['MAKEOPTS'] += ''' CXXFLAGS="-std=c++11"'''
 
     @stage
     def configure(self):
@@ -659,7 +662,7 @@ class qt(Package):
         if self.arch.os == 'osx':
             args.append('-no-framework')
             args.append('-no-xcb')
-            args.extend(['-arch',self.env['OSX_ARCH']])
+            #args.extend(['-arch',self.env['OSX_ARCH']])
         else:
             args.append('-qt-xcb') # Not needed on OSX
         self.helper(*args)
@@ -1138,8 +1141,7 @@ class opencv(CMakePackage):
         print(self.env['BUILD_DIR'])
         tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib.tar.gz')
         contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib-3.1.0/modules')
-        cmd = 'wget https://github.com/opencv/opencv_contrib/archive/3.1.0.tar.gz -O ' + tar_path
-        os.system(cmd)
+        get('https://github.com/opencv/opencv_contrib/archive/3.1.0.tar.gz', tar_path)
         # Unpack the contributor tarball
         cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0')
         os.system(cmd)
