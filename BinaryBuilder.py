@@ -150,6 +150,30 @@ info  = partial(_message, severity='info')
 warn  = partial(_message, severity='warn')
 error = partial(_message, severity='error')
 
+# Return a list of paths where this program is present
+def program_paths(program, check_help=False):
+    def is_exec(fpath):
+        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+    def has_help(fpath):
+        try:
+            FNULL = open(os.devnull,'w')
+            subprocess.check_call([fpath,"--help"],stdout=FNULL,stderr=FNULL)
+            return True
+        except subprocess.CalledProcessError:
+            return False
+
+    paths=[]
+    for path in os.environ["PATH"].split(os.pathsep):
+        exec_file = os.path.join( path, program )
+        if is_exec(exec_file):
+            if not check_help or has_help(exec_file):
+                paths.append(exec_file)
+                                    
+    return paths
+
+def program_exists(program,check_help=False):
+    return len(program_paths(program, check_help))
 
 def die(*args, **kw):
     '''Quit, printing the provided error message.'''
@@ -280,7 +304,7 @@ class Package(object):
         #info(self.pkgdir)
         self.tarball = None
         self.workdir = None
-        self.env = copy.deepcopy(env)
+        self.env = copy.deepcopy(env) # local copy of the environment, not affecting other packages
         self.arch = get_platform(self)
 
         self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env

@@ -8,7 +8,7 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
-     replace_line_in_file, run, get
+     replace_line_in_file, run, get, program_paths
 from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
@@ -893,15 +893,30 @@ class dsk(Package):
 class protobuf(Package):
     src = 'https://github.com/google/protobuf/archive/v3.1.0.tar.gz'
     chksum = 'e5f59dc4202fd59894f5cb9310b3d6cb2f0a2ef7'
-
-    # As of v3.1 this has to be built manually on CentOS 5 due to a problem
-    #  calling curl from the autogen script.  Running it manually seems to work fine.
-
     @stage
     def configure(self):
-        self.helper('./autogen.sh')
-        super(protobuf, self).configure(disable=('static'))
+        
+        # Our builtin curl, which we need for xerces, does not have
+        # ssl and cannot be used here.  So try every curl we can find
+        # in the path, hoping one works.
+        success = False
+        curl_paths = program_paths("curl")
+        for curl_path in curl_paths:
+            curl_dir=os.path.dirname(curl_path)
+            self.env['PATH'] = curl_dir + ':' + self.env['PATH']  # change the path for this package
+            try:
+                print("Trying to use: " + curl_path)
+                self.helper('./autogen.sh')
+                super(protobuf, self).configure(disable=('static'))
+                success=True
+                break
+            except Exception, e:
+                print("Bad version of curl.")
+                print(str(e))
 
+        if not success:
+            raise PackageError(self, 'Could not find a good curl to use.')
+            
 class suitesparse(Package):
     src = 'http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.2.1.tar.gz'
     chksum = '2fec3bf93314bd14cbb7470c0a2c294988096ed6'

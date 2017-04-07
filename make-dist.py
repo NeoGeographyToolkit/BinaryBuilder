@@ -263,6 +263,10 @@ if __name__ == '__main__':
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:
             if not opt.force_continue:
+                # For each lib, print who uses it:
+                for lib in mgr.deplist.keys():
+                    if lib in mgr.parentlib.keys():
+                        print("Library " + lib + " is not found, and is needed by " + " ".join(mgr.parentlib[lib]) + "\n" )
                 raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
             else:
                 print("Warning: missing libs: " + '\n\t'.join(mgr.deplist.keys()) + "\n")

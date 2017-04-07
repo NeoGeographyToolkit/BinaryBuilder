@@ -91,8 +91,10 @@ class DistManager(object):
         self.tarname = tarname
         self.tempdir = mkdtemp(prefix='dist')
         self.distdir = Prefix(P.join(self.tempdir, self.tarname))
-        self.distlist = set()  # List of files to be distributed
-        self.deplist  = dict() # List of file dependencies
+        self.distlist  = set()  # List of files to be distributed
+        self.deplist   = dict() # List of file dependencies
+        self.parentlib = dict() # library k is used by parentlib[k]
+        
         mkdir_f(self.distdir)
 
     def remove_tempdir(self):
@@ -245,7 +247,15 @@ class DistManager(object):
 
         #print("dst and deps, ", dst, required_libs(dst))
         if add_deps and is_binary(dst):
-            self.deplist.update(required_libs(dst))
+            req = required_libs(dst)
+            self.deplist.update(req)
+            
+            # Keep track for later which library needs the current library
+            for lib in req.keys():
+                if not lib in self.parentlib.keys():
+                    self.parentlib[lib] = [dst]
+                else:
+                    self.parentlib[lib].append(dst)
 
 def copy(src, dst, hardlink=False, keep_symlink=True):
     '''Copy a file to another location with a bunch of link handling'''

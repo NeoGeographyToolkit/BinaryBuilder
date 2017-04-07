@@ -23,7 +23,7 @@ from Packages import *
 
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
      get_platform, findfile, run, get_prog_version, logger, warn, \
-     binary_builder_prefix
+     binary_builder_prefix, program_exists
 from BinaryDist import fix_install_paths, which
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
@@ -60,28 +60,6 @@ def grablink(dst):
     if not P.exists(ret):
         raise Exception('Cannot resume, link target %s for link %s doesn\'t exist' % (ret, dst))
     return ret
-
-def verify(program,check_help=False):
-    def is_exec(fpath):
-        return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-    def has_help(fpath):
-        try:
-            FNULL = open(os.devnull,'w')
-            subprocess.check_call([fpath,"--help"],stdout=FNULL,stderr=FNULL)
-            return True
-        except subprocess.CalledProcessError:
-            return False
-
-    for path in os.environ["PATH"].split(os.pathsep):
-        exec_file = os.path.join( path, program )
-        if is_exec( exec_file):
-            if check_help:
-                if has_help(exec_file):
-                    return True
-            else:
-                return True
-    return False;
 
 def summary(env_dict):
     print('===== Environment =====')
@@ -317,7 +295,7 @@ if __name__ == '__main__':
         build_env['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify we have the executables we need
-    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", "wget"]
+    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", "wget", "curl"]
     compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['F77'] ]
     if arch.os == 'linux':
         common_exec.extend( ["libtool"] )
@@ -326,10 +304,11 @@ if __name__ == '__main__':
 
     missing_exec = []
     for program in common_exec:
-        if not verify( program ):
+        if not program_exists(program):
             missing_exec.append(program)
     for program in compiler_exec:
-        if not verify( program, True ):
+        check_help = True
+        if not program_exists(program, check_help):
             missing_exec.append(program)
     if missing_exec:
         die('Missing required executables for building. You need to install %s.' % missing_exec)
@@ -342,7 +321,7 @@ if __name__ == '__main__':
     VW_DEPS     = [zlib, openssl, dsk, png,
                    jpeg, tiff, proj, openjpeg2, libgeotiff, gdal,
                    ilmbase, openexr, boost, flann, hdf5, opencv]
-    ASP_DEPS    = [parallel, gsl, geos, xercesc, cspice, protobuf, 
+    ASP_DEPS    = [parallel, gsl, geos, curl, xercesc, cspice, protobuf, 
                    superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
                    jama, laszip, liblas, geoid, isis, eigen, gflags, glog, ceres,
                    libnabo, libpointmatcher, imagemagick, theia]
