@@ -339,7 +339,7 @@ if __name__ == '__main__':
     LINUX_DEPS1 = [m4, libtool, autoconf, automake]
     CORE_DEPS   = [cmake, bzip2, pbzip2] # For some reason these are inserted in the linux deps
     LINUX_DEPS2 = [chrpath, lapack]
-    VW_DEPS     = [zlib, openssl, curl, dsk, png,
+    VW_DEPS     = [zlib, openssl, dsk, png,
                    jpeg, tiff, proj, openjpeg2, libgeotiff, gdal,
                    ilmbase, openexr, boost, flann, hdf5, opencv]
     ASP_DEPS    = [parallel, gsl, geos, xercesc, cspice, protobuf, 
