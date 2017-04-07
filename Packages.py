@@ -650,7 +650,8 @@ class qt(Package):
         #    self.env['CC']='cc'
 
         #self.env['MAKEOPTS'] += ''' CFLAGS="-stdlib=libc++" CXXFLAGS="-stdlib=libc++" LDFLAGS="-stdlib=libc++"'''
-        self.env['MAKEOPTS'] += ''' CXXFLAGS="-std=c++11"'''
+        if self.arch.os == 'osx':
+            self.env['MAKEOPTS'] += ''' CXXFLAGS="-std=c++11"'''
 
     @stage
     def configure(self):
