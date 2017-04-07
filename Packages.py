@@ -645,12 +645,12 @@ class qt(Package):
         # user overwrote the compiler choice, we must revert here. The
         # problem is -fconstant-cfstrings. Macports also gives up in
         # this situation and blacks lists all Macport built compilers.
-        #if self.arch.os == 'osx':
-        #    self.env['CXX']='c++'
-        #    self.env['CC']='cc'
+        if self.arch.os == 'osx':
+            self.env['CXX']='c++'
+            self.env['CC']='cc'
+            #self.env['MAKEOPTS'] += ''' CXXFLAGS="-std=c++11"'''
 
         #self.env['MAKEOPTS'] += ''' CFLAGS="-stdlib=libc++" CXXFLAGS="-stdlib=libc++" LDFLAGS="-stdlib=libc++"'''
-        #self.env['MAKEOPTS'] += ''' CXXFLAGS="-std=c++11"'''
 
     @stage
     def configure(self):
