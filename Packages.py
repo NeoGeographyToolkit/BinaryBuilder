@@ -367,7 +367,7 @@ class hdf5(Package):
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
     src = 'https://github.com/NeoGeographyToolkit/IsisCMake.git'
-    chksum = 'e12f4e0'
+    chksum = '2eee0ec'
     patches = 'patches/isis'
 
     # For now we are using our CMake copy of the ISIS code but this will
@@ -392,13 +392,14 @@ class isis(GITPackage, CMakePackage):
     @stage
     def configure(self):
         # Copy the version file to the install folder
-        cmd = ['cp', P.join(self.workdir, 'version'), self.env['INSTALL_DIR']]
+        #cmd = ['cp', P.join(self.workdir, 'version'), self.env['INSTALL_DIR']]
 
-        curr_include = '-I' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version)
-        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+        #curr_include = '-I' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version)
+        #self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
         # Run the default configure process
-        super(isis, self).configure()
+        
+        super(isis, self).configure(other=['-DbuildMissions=OFF','-DbuildTests=OFF','-DbuildApps=OFF'])
 
 class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
@@ -771,12 +772,15 @@ class jpeg(Package):
     def configure(self):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
-class png(Package):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.7.tar.gz'
-    chksum = '22fcd1aaab3d8f4b98f43e5b301cc4fd7cc15722'
+class png(CMakePackage):
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.29.tar.gz'
+    chksum = '012c842e6454dc38c6390623ed31ec4005c00584'
 
     def configure(self):
-        super(png,self).configure(disable='static')
+    
+        super(png,self).configure(disable='static', 
+                                  other=['-DPNG_BUILD_ZLIB=OFF', '-DPNG_TESTS=OFF', 
+                                         '-DZLIB_ROOT='+self.env['INSTALL_DIR']])
 
 class cspice(Package):
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.

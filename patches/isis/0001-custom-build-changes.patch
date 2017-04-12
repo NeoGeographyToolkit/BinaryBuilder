@@ -1,48 +1,67 @@
-diff -ruN /home/smcmich1/repo/IsisCMake/cmake/AddIsisModule.cmake /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/cmake/AddIsisModule.cmake
---- isis-git/cmake/AddIsisModule.cmake	2017-02-03 14:17:00.921561896 -0800
-+++ isis-git-new/cmake/AddIsisModule.cmake	2017-02-03 14:13:36.593284331 -0800
-@@ -293,7 +293,7 @@
-     foreach(val RANGE ${numTests})
-       list(GET unitTestFiles ${val} testFile )
-       list(GET truthFiles    ${val} truthFile)
--      make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
-+      #make_obj_unit_test(${name} ${testFile} ${truthFile} "${reqLibs}" "${pluginLibs}")
-     endforeach()
- 
+diff -ruN IsisCMake/cmake/AddIsisModule.cmake isis-git/cmake/AddIsisModule.cmake
+--- IsisCMake/cmake/AddIsisModule.cmake	2017-04-11 20:53:04.637440015 -0700
++++ isis-git/cmake/AddIsisModule.cmake	2017-04-11 15:23:01.257496002 -0700
+@@ -273,10 +273,12 @@
+     
    endif()
-@@ -301,7 +301,7 @@
-   # Process the apps
-   foreach(f ${appFolders})
-     # Apps always require the core library
+  
+-  # Process the apps (core library always required)
+-  foreach(f ${appFolders})
 -    add_isis_app(${f} "${reqLibs}")
-+    #add_isis_app(${f} "${reqLibs}")
-   endforeach()
-   
-   # Process the tests
-diff -ruN /home/smcmich1/repo/IsisCMake/cmake/FindAllDependencies.cmake /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/cmake/FindAllDependencies.cmake
---- isis-git/cmake/FindAllDependencies.cmake	2017-02-03 14:17:00.922561956 -0800
-+++ isis-git-new/cmake/FindAllDependencies.cmake	2017-02-03 13:09:58.371743976 -0800
-@@ -6,7 +6,8 @@
+-  endforeach()
++  if(${buildApps})
++    # Process the apps (core library always required)
++    foreach(f ${appFolders})
++      add_isis_app(${f} "${reqLibs}")
++    endforeach()
++  endif()
  
- # TODO: Indent all!
+   if(${buildTests})  
+     # Process the tests
+diff -ruN IsisCMake/cmake/CMakeLists.txt isis-git/cmake/CMakeLists.txt
+--- IsisCMake/cmake/CMakeLists.txt	2017-04-11 20:53:04.637440015 -0700
++++ isis-git/cmake/CMakeLists.txt	2017-04-11 18:03:57.076638117 -0700
+@@ -11,7 +11,7 @@
+ 
+ # On OSX, need to correct all the paths encoded in each of the distributed library files so
+ #  that they properly find the distruted files using relative paths.
+-if (APPLE)
++if (OFF)
+   # Call the correction script on each folder containing libraries
+   install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/lib)")
+   install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/3rdParty/lib resetRpath)")
+diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDependencies.cmake
+--- IsisCMake/cmake/FindAllDependencies.cmake	2017-04-11 20:53:04.637440015 -0700
++++ isis-git/cmake/FindAllDependencies.cmake	2017-04-11 15:24:48.763468105 -0700
+@@ -6,7 +6,7 @@
+ 
+ # Specify top level directories
  
 -set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
-+#set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
-+set(thirdPartyDir "${CMAKE_SOURCE_DIR}/../../../install") # TODO
++set(thirdPartyDir "${CMAKE_SOURCE_DIR}/../../../install")
  
  set(INCLUDE_DIR "${thirdPartyDir}/include")
  set(LIB_DIR     "${thirdPartyDir}/lib")
-@@ -23,7 +24,8 @@
+@@ -28,7 +28,7 @@
+ #set(LATEX   "/usr/bin/latex") # MISSING
+ # Also need the DOT tool for doxygen.
+ 
+-verify_file_exists(${XALAN})
++#verify_file_exists(${XALAN})
+ #verify_file_exists(${LATEX})
+ #verify_file_exists(${DOXYGEN})
+ 
+@@ -39,7 +39,8 @@
  # Set up for Qt
  #---------------------------------------------------------------------------
  # *Most* of the folders in the main QT folder are needed as an include directory
 -set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
 +#set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
-+set(qtDir "${INCLUDE_DIR}") # TODO: ASP build option?
++set(qtDir "${INCLUDE_DIR}")
  set(qtIncludes  Qt
                  QtCore
                  QtAssistant
-@@ -44,9 +46,9 @@
+@@ -60,9 +61,9 @@
                  QtSql
                  QtSvg
                  QtTest
@@ -55,156 +74,182 @@ diff -ruN /home/smcmich1/repo/IsisCMake/cmake/FindAllDependencies.cmake /home/sm
                  QtWidgets
                  QtXml
                  QtXmlPatterns)
-@@ -57,7 +59,8 @@
- #message("QTINCDIR = ${QTINCDIR}")
+@@ -91,7 +92,8 @@
+                  QtQuickTest QtQuickWidgets QtScript 
+                  QtScriptTools QtSensors QtSerialPort 
+                  QtWebKitWidgets QtWebSockets QtWidgets 
+-                 QtTest QtWebChannel QtWebEngine QtWebEngineCore QtWebEngineWidgets)
++                 QtTest)
++# QtWebChannel QtWebEngine QtWebEngineCore QtWebEngineWidgets
+   foreach(qtName ${qtLibNames})
+     set(temp "${qtName}-NOTFOUND") # Work around CMake bug!
+     find_library(temp ${qtName} PATHS ${QTLIBDIR})
+@@ -106,7 +108,7 @@
  
- set(QTLIBDIR ${LIB_DIR})
--set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets -lQt5DBus)
-+set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
-+#-lQt5WebChannel -lQt5WebEngine -lQt5WebEngineWidgets
+   set(QTLIBDIR ${LIB_DIR})
  
- set(QT_DYNAMIC_LIBS)
- set(QT_DYNAMIC_IN  ${LIB_DIR}/libQt5Concurrent.so
-@@ -76,10 +79,10 @@
-                    ${LIB_DIR}/libQt5Sql.so
-                    ${LIB_DIR}/libQt5Svg.so
-                    ${LIB_DIR}/libQt5Test.so
--                   ${LIB_DIR}/libQt5WebChannel.so
--                   ${LIB_DIR}/libQt5WebEngineCore.so
--                   ${LIB_DIR}/libQt5WebEngine.so
--                   ${LIB_DIR}/libQt5WebEngineWidgets.so
-+                   #${LIB_DIR}/libQt5WebChannel.so
-+                   #${LIB_DIR}/libQt5WebEngineCore.so
-+                   #${LIB_DIR}/libQt5WebEngine.so
-+                   #${LIB_DIR}/libQt5WebEngineWidgets.so
-                    ${LIB_DIR}/libQt5Widgets.so
-                    ${LIB_DIR}/libQt5XcbQpa.so
-                    ${LIB_DIR}/libQt5Xml.so
-@@ -136,12 +139,13 @@
- #---------------------------------------------------------------------------
- set(NAIFINCDIR "${INCLUDE_DIR}/naif")
- set(NAIFLIBDIR "${LIB_DIR}")
--set(NAIFLIB    "-ldsk -lcspice")
-+#set(NAIFLIB    "-ldsk -lcspice")
-+set(NAIFLIB    "-lcdsk -lcspice")
+-  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineCore -lQt5WebEngineWidgets -lQt5DBus)
++  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
  
- #---------------------------------------------------------------------------
- # Set up for TNT
- #---------------------------------------------------------------------------
--set(TNTINCDIR ${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt)
-+set(TNTINCDIR ${INCLUDE_DIR}/tnt/tnt126 ${INCLUDE_DIR}/tnt/tnt126/tnt ${INCLUDE_DIR}/tnt)
- set(TNTLIBDIR)
- set(TNTLIB)
+   set(QT_DYNAMIC_LIBS)
+   set(QT_DYNAMIC_IN  ${QTLIBDIR}/libQt5Concurrent.so
+@@ -125,10 +127,10 @@
+                    ${QTLIBDIR}/libQt5Sql.so
+                    ${QTLIBDIR}/libQt5Svg.so
+                    ${QTLIBDIR}/libQt5Test.so
+-                   ${QTLIBDIR}/libQt5WebChannel.so
+-                   ${QTLIBDIR}/libQt5WebEngineCore.so
+-                   ${QTLIBDIR}/libQt5WebEngine.so
+-                   ${QTLIBDIR}/libQt5WebEngineWidgets.so
++                   #${QTLIBDIR}/libQt5WebChannel.so
++                   #${QTLIBDIR}/libQt5WebEngineCore.so
++                   #${QTLIBDIR}/libQt5WebEngine.so
++                   #${QTLIBDIR}/libQt5WebEngineWidgets.so
+                    ${QTLIBDIR}/libQt5Widgets.so
+                    ${QTLIBDIR}/libQt5XcbQpa.so
+                    ${QTLIBDIR}/libQt5Xml.so
+@@ -212,7 +214,7 @@
+   set(NAIFLIB    "-ldsklib -lcspice")
+   set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsklib${end} ${NAIFLIBDIR}/libcspice${end})
+ else()
+-  set(NAIFLIB    "-ldsk -lcspice")
++  set(NAIFLIB    "-lcdsk -lcspice")
+   set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsk${end} ${NAIFLIBDIR}/libcspice${end})
+ endif()
  
-@@ -155,9 +159,11 @@
+@@ -236,7 +238,7 @@
  #---------------------------------------------------------------------------
- # Set up for GEOS
- #---------------------------------------------------------------------------
--set(GEOSINCDIR "${INCLUDE_DIR}/geos/geos3.5.0")
-+set(GEOSINCDIR "${INCLUDE_DIR}/geos/geos3.5.0" "${INCLUDE_DIR}/geos/")
+ set(GEOSINCDIR ${INCLUDE_DIR}/geos ${INCLUDE_DIR}/geos/geos3.5.0)
  set(GEOSLIBDIR "${LIB_DIR}")
 -set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
-+#set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
-+set(GEOSLIB    "-lgeos-3.5.1 -lgeos_c")
-+
- 
- #---------------------------------------------------------------------------
- # Set up for the GNU Scientific Library (GSL).  Note that this setup
-@@ -191,9 +197,10 @@
- #---------------------------------------------------------------------------
- # Set up for SuperLU
- #---------------------------------------------------------------------------
--set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3")
-+set(SUPERLUINCDIR "${INCLUDE_DIR}/superlu/superlu4.3" "${INCLUDE_DIR}/superlu")
++set(GEOSLIB    "-lgeos -lgeos_c")
+ if(APPLE)
+   set(GEOS_DYNAMIC_LIBS ${GEOSLIBDIR}/libgeos*.dylib ${GEOSLIBDIR}/libgeos_c*.dylib)
+ else() # Linux
+@@ -278,10 +280,10 @@
+ set(SUPERLUINCDIR ${INCLUDE_DIR}/superlu  ${INCLUDE_DIR}/superlu/superlu4.3)
  set(SUPERLULIBDIR "${LIB_DIR}")
--set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
-+#set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
-+set(SUPERLULIB    -lsuperlu -lblas -lgfortran) # Must install packages libblas-dev and gfortran
+ if(APPLE)
+-  set(SUPERLULIB    -lsuperlu_4.3)
++  set(SUPERLULIB    -lsuperlu)
+   set(SUPERLU_DYNAMIC_LIBS ${SUPERLULIBDIR}/libsuperlu.dylib ${SUPERLULIBDIR}/libsuperlu_*.dylib)
+ else()
+-  set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
++  set(SUPERLULIB    -lsuperlu -lblas -lgfortran) # Must install packages libblas-dev and gfortran
+   set(SUPERLU_DYNAMIC_LIBS ${SUPERLULIBDIR}/libsuperlu_*.so ${SUPERLULIBDIR}/libblas.so.* ${SUPERLULIBDIR}/libgfortran.so.*)
+ endif()
  
- #---------------------------------------------------------------------------
- # Set up for Google Protocol Buffers (ProtoBuf)
-@@ -355,7 +362,8 @@
- # Consolidate information
- #---------------------------------------------------------------------------
+@@ -358,7 +360,7 @@
+ set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xfeatures2d
+                   -lopencv_flann -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs 
+                   -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching 
+-                  -lopencv_superres  -lopencv_video -lopencv_videostab)
++                  -lopencv_superres  -lopencv_video)
+ if(APPLE)
+   set(OPENCV_DYNAMIC_LIBS ${OPENCVLIBDIR}/libopencv_*.dylib ${OPENCVLIBDIR}/libavcodec${end} 
+                           ${OPENCVLIBDIR}/libavformat${end} ${OPENCVLIBDIR}/libavutil${end})
+@@ -378,7 +380,6 @@
+ set(NNLIBDIR ${LIB_DIR})
+ set(NNLIB    "-lnn")
  
--set(ALLINCDIRS  ${XTRAINCDIRS}
-+set(ALLINCDIRS  ${INCLUDE_DIR}
-+                ${XTRAINCDIRS}
-                 ${ISISINCDIR}
-                 ${CWDINCDIR}
-                 ${QTINCDIR}
-@@ -379,7 +387,8 @@
+-
+ #---------------------------------------------------------------------------
+ #  Define the third party distribution libraries (patterns)
+ #---------------------------------------------------------------------------
+@@ -477,8 +478,8 @@
+     libproj*.dylib)
+ 
+ else() # Linux
+-  
+-  set(extras libtbb.so*)
++  set(extras libz.so* libpng.so*)
++  #set(extras libtbb.so*)
+ endif()
+ 
+ set(EXTRALIBDIR ${LIB_DIR})
+@@ -572,7 +573,8 @@
+                 ${OPENCVINCDIR}
+                 ${NNINCDIR}
                  ${DEFAULTINCDIR}
-                 ${GMMINCDIR})
+-                ${GMMINCDIR})
++                ${GMMINCDIR}
++                ${INCLUDE_DIR})
  
--set(ALLLIBDIRS  ${XTRALIBDIRS}
-+set(ALLLIBDIRS  ${LIB_DIR}
-+                ${XTRALIBDIRS}
+ set(ALLLIBDIRS  ${XTRALIBDIRS}
                  ${ISISLIBDIR}
-                 ${QTLIBDIR}
-                 ${QWTLIBDIR}
-diff -ruN /home/smcmich1/repo/IsisCMake/CMakeLists.txt /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/CMakeLists.txt
---- isis-git/CMakeLists.txt	2017-02-03 14:17:00.921561896 -0800
-+++ isis-git-new/CMakeLists.txt	2017-02-03 15:16:10.343905482 -0800
-@@ -14,7 +14,7 @@
- include(AddIsisModule)
- include(Utilities)
- include(TestSetup)
--include(BuildDocs)
-+#include(BuildDocs)
+@@ -592,7 +594,8 @@
+                 ${CHOLMODLIBDIR}
+                 ${HDF5LIBDIR}
+                 ${SUPERLULIBDIR}
+-                ${GMMLIBDIR})
++                ${GMMLIBDIR}
++                ${LIB_DIR})
  
- #===============================================================================
- # Project information
-@@ -82,7 +82,7 @@
- # Allow linking to output dir
- link_directories(${CMAKE_INSTALL_PREFIX}/lib)
+ set(ALLLIBS   ${ISISLIB}
+               ${ISISSYSLIBS}
+@@ -616,7 +619,7 @@
+               ${SUPERLULIB}
+               ${GMMLIB}
+               ${NNLIB}
+-              ${OPENCVLIB})
++              ${OPENCVLIB} -lz -lpng)
  
--set(CORE_LIB_NAME isis)
-+set(CORE_LIB_NAME isis3)
+ # Only include Kakadu if it is available
+ if(${JP2KFLAG} EQUAL "1")
+diff -ruN IsisCMake/cmake/Utilities.cmake isis-git/cmake/Utilities.cmake
+--- IsisCMake/cmake/Utilities.cmake	2017-04-11 20:53:04.638440071 -0700
++++ isis-git/cmake/Utilities.cmake	2017-04-11 20:44:11.198838935 -0700
+@@ -230,7 +230,7 @@
+     # Compare this file extension to list of accepted header file extensions
+     if( extensionLower STREQUAL ".h" OR extensionLower STREQUAL ".hpp" OR extensionLower STREQUAL ".tcc")
+       set(fullPath "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
+-      INSTALL(FILES ${f} DESTINATION inc)
++      INSTALL(FILES ${f} DESTINATION include)
+     endif()
+   endforeach(f)
  
- set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} "${ALLINCDIRS}")
- set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} "${ALLLIBDIRS}")
-@@ -92,7 +92,8 @@
- # - Copy 3rd party libs to install dir?
+diff -ruN IsisCMake/CMakeLists.txt isis-git/CMakeLists.txt
+--- IsisCMake/CMakeLists.txt	2017-04-11 20:53:04.636439960 -0700
++++ isis-git/CMakeLists.txt	2017-04-11 18:03:31.803238109 -0700
+@@ -5,7 +5,7 @@
  
- # Have binaries use a relative rpath to the lib folder
--SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
-+#SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib3rd")
-+SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib")
+ # Specify the required version of CMake.  If your machine does not
+ #  have this, it should be easy to build from https://cmake.org/download/
+-cmake_minimum_required(VERSION 3.3)
++cmake_minimum_required(VERSION 3.2)
  
- #set(THIRD_PARTY_LIB_DIR    "${CMAKE_SOURCE_DIR}/3rdParty/lib")
- #set(THIRD_PARTY_PLUGIN_DIR "${CMAKE_SOURCE_DIR}/3rdParty/plugins")
-@@ -108,7 +109,7 @@
- #enable_testing()
- include(CTest)
+ # Point cmake to our other CMake files.
+ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+@@ -68,6 +68,7 @@
+ option(buildCore       "Build the core ISIS modules"        ON)
+ option(buildMissions   "Build the mission specific modules" ON)
+ option(buildStaticCore "Build libisis3 static as well as dynamic" OFF)
++option(buildApps       "Build applications." ON)
+ option(buildTests      "Set up unit, application, and module tests." ON)
  
--# Delete any existing plugin files in the instal folder
-+# Delete any existing plugin files in the install folder
- #  so that we don't get any duplication.
- file(GLOB installedPlugins "${CMAKE_INSTALL_PREFIX}/lib/*.plugin")
- if(installedPlugins)
-@@ -119,7 +120,8 @@
- configure_file("IsisPreferences" "${CMAKE_INSTALL_PREFIX}/IsisPreferences" COPYONLY)
+ if(EXISTS ${isis3Data})
+@@ -148,7 +149,7 @@
+ endif()
  
- # Add a config file to the bin directory so that QT can find the plugin libraries.
--file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
-+#file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib3rd/plugins/\n")
-+file(WRITE "${CMAKE_INSTALL_PREFIX}/bin/qt.conf" "[Paths]\nPlugins=../lib/plugins/\n")
+ # Add a config file to the install bin directory so that QT can find the plugin libraries.
+-file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../3rdParty/plugins/\n")
++file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/plugins/\n")
+ install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
  
- ## TODO: Is this required????!?!?!?!
- ## Copy the template folder to the install folder.
-@@ -132,6 +134,6 @@
+ # Some tests rely on a hardcoded path to $ISISROOT/bin, so set up a 
+@@ -172,7 +173,7 @@
+ add_subdirectory(src)
  
+ # Set up third party libraries for installation
+-install_third_party()
++#install_third_party()
  
- # All of the source code is in here.
--#add_subdirectory(src)
-+add_subdirectory(src)
-
-
-diff -ruN /home/smcmich1/repo/IsisCMake/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp
---- isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-02-03 14:17:03.651725964 -0800
-+++ isis-git-new/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-02-03 12:33:12.557067274 -0800
-@@ -18,10 +18,11 @@
+ # Some tests rely on a hardcoded path to $ISISROOT/lib, so set up a 
+ #  link to make that work.
+diff -ruN IsisCMake/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp
+--- IsisCMake/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-04-11 20:53:07.566602827 -0700
++++ isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-04-11 13:43:27.007879003 -0700
+@@ -18,10 +18,13 @@
  #include <QPushButton>
  #include <QSettings>
  #if defined(__APPLE__)
@@ -215,40 +260,15 @@ diff -ruN /home/smcmich1/repo/IsisCMake/src/qisis/objs/FeatureNomenclatureTool/F
 +//#include <QWebEngineView>
  #endif
 +#include <QPainter>
++#include <QPen>
++#include <QUrl>
  
  #include <geos/geom/Coordinate.h>
  #include <geos/geom/CoordinateSequence.h>
-@@ -849,7 +850,7 @@
-    */
-   void FeatureNomenclatureTool::showFeatureWebsite(
-       FeatureNomenclature::Feature feature) {
--    QDesktopServices::openUrl(feature.referenceUrl());
-+    //QDesktopServices::openUrl(feature.referenceUrl());
-   }
- 
- 
-@@ -1754,14 +1755,14 @@
-             tool->showFeatureDetails(feature);
-           }
-           else if (selectedAction == website) {
--            tool->showFeatureWebsite(feature);
-+            //tool->showFeatureWebsite(feature);
-           }
-           else if (selectedAction == center) {
-             tool->centerOnFeature(m_sourceViewport, feature);
-           }
-           else if (selectedAction == copyUrl) {
--            QApplication::clipboard()->setText(
--                feature.referenceUrl().toString());
-+            //QApplication::clipboard()->setText(
-+            //    feature.referenceUrl().toString());
-           }
-         }
-       }
-diff -ruN /home/smcmich1/repo/IsisCMake/src/qisis/objs/QIsisApplication/QIsisApplication.cpp /home/smcmich1/repo/BinaryBuilder/build_asp/build/isis/isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp
---- isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-02-03 14:17:03.681727768 -0800
-+++ isis-git-new/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-02-03 12:13:15.357159076 -0800
-@@ -7,9 +7,9 @@
+diff -ruN IsisCMake/src/qisis/objs/QIsisApplication/QIsisApplication.cpp isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp
+--- IsisCMake/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-04-11 20:53:07.596604493 -0700
++++ isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-04-11 13:48:11.251683163 -0700
+@@ -7,10 +7,11 @@
  #include <QMessageBox>
  #include <QUrl>
  #if defined(__APPLE__)
@@ -258,9 +278,11 @@ diff -ruN /home/smcmich1/repo/IsisCMake/src/qisis/objs/QIsisApplication/QIsisApp
 -#include <QWebEngineView>
 +//#include <QWebEngineView>
  #endif
++#include <QUrl>
  
  #include "FileName.h"
-@@ -65,9 +65,9 @@
+ #include "IException.h"
+@@ -65,9 +66,9 @@
     * Open a URL in the browser specified by Isis.
     */
    void QIsisApplication::openUrl(QUrl url) {
