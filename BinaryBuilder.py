@@ -790,7 +790,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
     # Disable
     disable_features = 'pkg_paths_default static'.split()
     disable_pkgs = ('tiff hdr tcmalloc clapack slapack ').split()
-    disable_modules = 'python'.split() # Python is needed for the googlenasa project
+    disable_modules = 'python flood_detect'.split() # Python is needed for the googlenasa project
 
     with file(config_file, 'w') as config:
 
