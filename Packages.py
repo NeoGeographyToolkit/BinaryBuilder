@@ -895,8 +895,8 @@ class dsk(Package):
         self.helper(*cmd)
 
 class protobuf(Package):
-    src = 'https://github.com/google/protobuf/archive/v3.1.0.tar.gz'
-    chksum = 'e5f59dc4202fd59894f5cb9310b3d6cb2f0a2ef7'
+    src = 'https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2'
+    chksum = '6421ee86d8fb4e39f21f56991daa892a3e8d314b'
     @stage
     def configure(self):
         
