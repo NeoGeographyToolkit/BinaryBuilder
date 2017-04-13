@@ -773,14 +773,11 @@ class jpeg(Package):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
 class png(CMakePackage):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.29.tar.gz'
-    chksum = '012c842e6454dc38c6390623ed31ec4005c00584'
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.7.tar.gz'
+    chksum = '22fcd1aaab3d8f4b98f43e5b301cc4fd7cc15722'
 
     def configure(self):
-    
-        super(png,self).configure(disable='static', 
-                                  other=['-DPNG_BUILD_ZLIB=OFF', '-DPNG_TESTS=OFF', 
-                                         '-DZLIB_ROOT='+self.env['INSTALL_DIR']])
+        super(png,self).configure(disable='static')
 
 class cspice(Package):
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
