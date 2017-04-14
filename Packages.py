@@ -399,7 +399,7 @@ class isis(GITPackage, CMakePackage):
 
         # Run the default configure process
         
-        super(isis, self).configure(other=['-DbuildMissions=OFF','-DbuildTests=OFF','-DbuildApps=OFF'])
+        super(isis, self).configure(other=['-DbuildMissions=ON','-DbuildTests=OFF','-DbuildApps=OFF'])
 
 class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
@@ -772,12 +772,13 @@ class jpeg(Package):
     def configure(self):
         super(jpeg, self).configure(enable=('shared',), disable=('static',))
 
-class png(CMakePackage):
-    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.7.tar.gz'
-    chksum = '22fcd1aaab3d8f4b98f43e5b301cc4fd7cc15722'
+class png(Package):
+    src    = 'http://downloads.sourceforge.net/libpng/libpng-1.6.24.tar.gz'
+    chksum = 'bdd5a59136c6b1e4cc94de12268122796e24036a'
 
     def configure(self):
-        super(png,self).configure(disable='static')
+        super(png,self).configure(disable='static', 
+                                  other=['--with-zlib-prefix='+self.env['INSTALL_DIR']])
 
 class cspice(Package):
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
