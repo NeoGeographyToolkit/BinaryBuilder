@@ -92,6 +92,11 @@ class PackageError(Exception):
         super(PackageError, self).__init__('Package[%s] %s' % (pkg.pkgname, message))
 class HelperError(Exception):
     def __init__(self, tool, env, message):
+        # This is helpful when trying to reproduce the environment in which
+        # things failed.
+        for key in env:
+            val=env[key]
+            print("export " + key + '=\'' + val + '\'')
         super(HelperError, self).__init__('Command[%s] %s\nEnv%s' % (tool, message, env))
 
 def hash_file(filename):
@@ -204,6 +209,7 @@ class Environment(dict):
             INSTALL_DIR    = kw['INSTALL_DIR'],
             NOINSTALL_DIR  = P.join(kw['INSTALL_DIR'], 'noinstall'),
             ISISROOT       = P.join(kw['INSTALL_DIR'], 'isis'),
+            GIT_SSL_NO_VERIFY = 'true' # to avoid complaints on pfe27
         ))
         self.update(kw)
         self['ISIS3RDPARTY'] = P.join(self['ISISROOT'], '3rdParty', 'lib')
