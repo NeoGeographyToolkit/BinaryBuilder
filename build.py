@@ -128,7 +128,7 @@ if __name__ == '__main__':
     parser.add_option('--libtoolize',                       dest='libtoolize',   default=None,            help='Value to set LIBTOOLIZE, use to override if system\'s default is bad.')
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',       default=True,            help='Disable ccache')
     parser.add_option('--no-fetch',   action='store_const', dest='mode',         const='nofetch',         help='Build, but do not fetch (will fail if sources are missing)')
-    parser.add_option('--osx-sdk-version',                  dest='osx_sdk',      default='10.6',          help='SDK version to use. Make sure you have the SDK version before requesting it.')
+    parser.add_option('--osx-sdk-version',                  dest='osx_sdk',      default='10.11',          help='SDK version to use. Make sure you have the SDK version before requesting it.')
     parser.add_option('--pretend',    action='store_true',  dest='pretend',      default=False,           help='Show the list of packages without actually doing anything')
     parser.add_option('--resume',     action='store_true',  dest='resume',       default=False,           help='Reuse in-progress build/install dirs')
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
