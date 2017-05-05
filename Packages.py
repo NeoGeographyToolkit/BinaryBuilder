@@ -432,8 +432,8 @@ class stereopipeline(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        if False:#self.fast or self.arch.os == 'osx':
-            # The tests on the Mac do not even compile, need to study this
+        if self.fast or self.arch.os == 'osx':
+            # The tests on the Mac do not compile, looks like a clang/gtest conflict.
             print("Skipping tests for OSX or in fast mode.")
         else:
             cmd = ('make', 'check')
@@ -469,8 +469,8 @@ class visionworkbench(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        if False:#self.fast or self.arch.os == 'osx':
-            # The tests on the Mac do not even compile, need to study this
+        if self.fast or self.arch.os == 'osx':
+            # The tests on the Mac do not even compile, looks like a clang/gtest conflict
             print("Skipping tests for OSX or in fast mode.")
         else:
             cmd = ('make', 'check')
