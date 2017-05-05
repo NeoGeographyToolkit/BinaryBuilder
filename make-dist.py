@@ -40,8 +40,13 @@ LIB_SYSTEM_LIST = '''
     QuartzCore.framework/Versions/A/QuartzCore
     CoreVideo.framework/Versions/A/CoreVideo
     IOKit.framework/Versions/A/IOKit
-	  XCTest.framework/Versions/A/XCTest
-  	DiskArbitration.framework/Versions/A/DiskArbitration
+    XCTest.framework/Versions/A/XCTest
+    DiskArbitration.framework/Versions/A/DiskArbitration
+    CoreText.framework/Versions/A/CoreText
+    QTKit.framework/Versions/A/QTKit
+    CoreGraphics.framework/Versions/A/CoreGraphics
+    CFNetwork.framework/Versions/A/CFNetwork
+    ImageIO.framework/Versions/A/ImageIO
 
     libobjc.A.dylib
     libSystem.B.dylib
@@ -79,7 +84,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # prefixes of libs that we always ship
-LIB_SHIP_PREFIX = '''libstdc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
+LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
 
 def tarball_name():
     arch = get_platform()

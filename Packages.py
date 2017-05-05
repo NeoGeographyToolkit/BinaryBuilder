@@ -1,4 +1,4 @@
-#!/usr/bin/env pythonc
+#boost b94de47108b2cdb0f931833a7a9834c2dd3ca46e!/usr/bin/env pythonc
 
 from __future__ import print_function
 import os, shutil
@@ -250,9 +250,6 @@ class openexr(Package):
         self.helper('sed', '-ibak', '-e', 's/-Wno-long-double//g', 'configure.ac')
         self.helper('autoupdate', 'configure.ac')
         self.helper('autoreconf', '-fvi')
-        # The line below was an experimental fix for mac. It appears to not
-        # be needed for now. This may be revisited.
-        #self.helper('sed', '-ibak', '-e', 's#echo \"    ILMBASE_LDFLAGS#export TEST_LDFLAGS=\"-L/Users/smcmich1/usr/local/lib/gcc/4.8 -lgcc_s.1 -lstdc++ \$TEST_LDFLAGS\"; echo \"    ILMBASE_LDFLAGS#g', 'configure')
         super(openexr,self).configure(with_=('ilmbase-prefix=%(INSTALL_DIR)s' % self.env),
                                       disable=('ilmbasetest', 'imfexamples', 'static'))
 
@@ -435,7 +432,7 @@ class stereopipeline(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        if self.fast or self.arch.os == 'osx':
+        if False:#self.fast or self.arch.os == 'osx':
             # The tests on the Mac do not even compile, need to study this
             print("Skipping tests for OSX or in fast mode.")
         else:
@@ -472,7 +469,7 @@ class visionworkbench(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        if self.fast or self.arch.os == 'osx':
+        if False:#self.fast or self.arch.os == 'osx':
             # The tests on the Mac do not even compile, need to study this
             print("Skipping tests for OSX or in fast mode.")
         else:
@@ -498,6 +495,8 @@ class boost(Package):
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
     chksum  = 'b94de47108b2cdb0f931833a7a9834c2dd3ca46e'
     patches = 'patches/boost'
+
+    # TODO: This patch is needed for Clang: https://svn.boost.org/trac/boost/attachment/ticket/1974/vector_of_vector.patch
 
     def __init__(self, env):
         super(boost, self).__init__(env)
@@ -542,13 +541,9 @@ class boost(Package):
             '-d+2' # Show commands as they are executed
             ]
 
-        if self.arch.os == 'osx':
-            self.args += ['cxxflags="-stdlib=libstdc++"', 'linkflags="-stdlib=libstdc++"']
-
         cmd += self.args
         self.helper(*cmd)
 
-    # TODO: Might need some darwin path-munging with install_name_tool?
     @stage
     def install(self):
         self.env['BOOST_ROOT'] = self.workdir
@@ -608,6 +603,16 @@ class superlu(Package):
         super(superlu,self).configure(with_=('blas=%s') % blas,
                                       disable=('static'))
 
+    # TODO: USGS comments out a few lines in the include files to get ISIS to compile with clang!!
+    #       This needs to be repeated in several similar files.
+    #//extern void    countnz (const int, int *, int *, int *, GlobalLU_t *);
+    #//extern void    ilu_countnz (const int, int *, int *, GlobalLU_t *);
+    #//extern void    fixupL (const int, const int *, GlobalLU_t *);
+    #//extern void    PrintPerf (SuperMatrix *, SuperMatrix *, mem_usage_t *,
+    #//                       complex, complex, complex *, complex *, char *);
+    #//extern void    check_tempv(int, complex *);
+
+
 class gmm(Package):
     src     = 'http://download.gna.org/getfem/stable/gmm-4.2.tar.gz'
     chksum  = '3555d5a5abdd525fe6b86db33428604d74f6747c'
@@ -639,31 +644,26 @@ class qt(Package):
     patches = 'patches/qt'
     patch_level = '-p0'
 
-    def __init__(self, env):
-        super(qt, self).__init__(env)
-
-        # Qt can only be built on OSX with an Apple Compiler. If the
-        # user overwrote the compiler choice, we must revert here. The
-        # problem is -fconstant-cfstrings. Macports also gives up in
-        # this situation and blacks lists all Macport built compilers.
-        if self.arch.os == 'osx':
-            self.env['CXX']='c++'
-            self.env['CC']='cc'
-            #self.env['MAKEOPTS'] += ''' CXXFLAGS="-std=c++11"'''
-
-        #self.env['MAKEOPTS'] += ''' CFLAGS="-stdlib=libc++" CXXFLAGS="-stdlib=libc++" LDFLAGS="-stdlib=libc++"'''
-
     @stage
     def configure(self):
+
+        # Modify the min OSX version
+        config_path = self.workdir + '/qtbase/mkspecs/macx-clang/qmake.conf'
+        self.helper('sed', '-ibak', '-e',
+                    's/QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7/QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.11/g',
+                    config_path)
+
         ## The default confs override our compiler choices.
-        cmd = './configure -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -skip webengine' % self.env
+        cmd = './configure -c++std c++11  -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -skip webengine -skip macextras -skip serialbus -skip serialport -skip qtsensors -skip androidextras' % self.env
 
         # TODO: Make sure static libraries are not built!  Causes linker error in ASP in OSX. 
         args = cmd.split()
         if self.arch.os == 'osx':
             args.append('-no-framework')
             args.append('-no-xcb')
-            #args.extend(['-arch',self.env['OSX_ARCH']])
+            args.append('-no-pch') # Required to avoid weird redefinition errors, but slows down compilation.
+            args.extend(['-skip', 'x11extras'])
+            args.extend(['-platform', 'macx-clang'])
         else:
             args.append('-qt-xcb') # Not needed on OSX
         self.helper(*args)
@@ -681,7 +681,8 @@ class qt(Package):
                     '  echo Editing $f\n'                               + \
                     '  cat $f > tmp.txt\n'                              + \
                     '  echo "CONFIG += c++11" > $f\n'                   + \
-                    '  echo "QMAKE_CXXFLAGS += -stdlib=libc++" >> $f\n' + \
+                    '  echo "QMAKE_CXXFLAGS += -stdlib=libc++ -std=c++11" >> $f\n' + \
+                    '  echo "QMAKE_LDLAGS += -stdlib=libc++ -std=c++11"   >> $f\n' + \
                     '  cat tmp.txt >> $f\n'                             + \
                     '  perl -pi -e \'s#(QMAKE_LIBS\s+\+=\s)#$1 -lc++ #g\' $f\n' + \
                     'done\n')
@@ -704,23 +705,20 @@ class qt(Package):
                  glob(P.join(self.env['INSTALL_DIR'], 'lib/', '*Qt*.la'))
             self.helper(*cmd)
 
+        # Add a Prefix entry to INSTALL_DIR/bin/qt.conf so that qmake
+        #       finds the correct QT install location!
+        config_path = os.path.join(self.env['INSTALL_DIR'], 'bin/qt.conf')
+        print(config_path)
+        with open(config_path, "a") as f:
+            f.write("Prefix="+self.env['INSTALL_DIR']+'\n')
+
 class qwt(Package):
     src     = 'http://downloads.sourceforge.net/qwt/qwt-6.1.3.tar.bz2',
     chksum  = '90ec21bc42f7fae270482e1a0df3bc79cb10e5c7',
     patches = 'patches/qwt'
 
-    def __init__(self, env):
-        super(qwt, self).__init__(env)
-
-        # Qt can only be built on OSX with an Apple Compiler. If the
-        # user overwrote the compiler choice, we must revert here. The
-        # problem is -fconstant-cfstrings. Macports also gives up in
-        # this situation and blacks lists all Macport built compilers.
-        if self.arch.os == 'osx':
-            self.env['CXX']='c++'
-            self.env['CC']='cc'
-
     def configure(self):
+
         installDir = self.env['INSTALL_DIR']
 
         # Wipe old installation, otherwise qwt refuses to install
@@ -739,8 +737,6 @@ class qwt(Package):
         self.helper('sed', '-ibak', '-e',
                     's/QWT_CONFIG     += QwtDesigner/#QWT_CONFIG     += QwtDesigner/g',
                     config_path)
-
-
 
     # Qwt pollutes the doc folder
     @stage
@@ -781,19 +777,12 @@ class png(Package):
                                   other=['--with-zlib-prefix='+self.env['INSTALL_DIR']])
 
 class cspice(Package):
+    # TODO: Version 66 has been released which incorporates the dsk library!
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
     PLATFORM = dict(
         linux64 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_64bit/packages/cspice.tar.Z',
             chksum = '335a16141e3d4f5d2e596838285fc9f918c2f328', # N0065
-            ),
-        linux32 = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_32bit/packages/cspice.tar.Z',
-            chksum = 'a875f47ac9811bdc22359ff77e1511a0376bd1bd', # N0065
-            ),
-        osx32   = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_32bit/packages/cspice.tar.Z',
-            chksum = '45efcac7fb260401fcd2124dfe9d226d9f74211d', # N0065
             ),
         osx64   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
@@ -836,20 +825,13 @@ class cspice(Package):
         self.helper(*cmd)
 
 class dsk(Package):
+    # TODO: This library has been folded into cspice and is no longer available!
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
     PLATFORM = dict(
         linux64 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/PC_Linux_GCC_64bit/packages/alpha_dsk_c.tar.Z',
 
             chksum = '01f258d3233ba7cb7025df012b56b02a14611643',
-            ),
-        linux32 = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/PC_Linux_GCC_32bit/packages/alpha_dsk_c.tar.Z',
-            chksum = 'e5f6dc3f3bac96df650d307fa79146bd121479a3',
-            ),
-        osx32   = dict(
-            src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/MacIntel_OSX_AppleC_32bit/packages/alpha_dsk_c.tar.Z',
-            chksum = 'not-tested',
             ),
         osx64   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/misc/alpha_dsk/C/MacIntel_OSX_AppleC_64bit/packages/alpha_dsk_c.tar.Z',
@@ -909,7 +891,8 @@ class protobuf(Package):
             try:
                 print("Trying to use: " + curl_path)
                 self.helper('./autogen.sh')
-                super(protobuf, self).configure(disable=('static'))
+                super(protobuf, self).configure(disable=('static'), 
+                    other=(['cflags="-stdlib=libc++"' 'cxxflags="-stdlib=libc++"', 'linkflags="-stdlib=libc++"']))
                 success=True
                 break
             except Exception, e:
@@ -945,18 +928,6 @@ class osg3(CMakePackage):
     chksum = 'c20891862b5876983d180fc4a3d3cfb2b4a3375c'
     patches = 'patches/osg3'
 
-    def __init__(self, env):
-        super(osg3, self).__init__(env)
-
-        # Cocoa bindings can't be built unless using an apple provided
-        # compiler. Using a homebrew or macports built GCC or hand
-        # built clang will be missing the required 'blocks'
-        # extension. The error will look something like "NSTask.h:
-        # error: expected unqualified-id before '^' token".
-        if self.arch.os == 'osx':
-            self.env['CXX'] = 'c++'
-            self.env['CC'] = 'cc'
-
     def configure(self):
         other_flags = ['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DOSG_USE_QT=OFF', '-DBUILD_DOCUMENTATION=OFF']
         if self.arch.os == 'osx':
@@ -984,8 +955,6 @@ class flann(GITPackage, CMakePackage):
 class eigen(CMakePackage):
     src = 'http://bitbucket.org/eigen/eigen/get/3.2.5.tar.bz2'
     chksum = 'aa4667f0b134f5688c5dff5f03335d9a19aa9b3d'
-    #src = 'http://bitbucket.org/eigen/eigen/get/3.2.6.tar.bz2'
-    #chksum = '90d221459e2e09aac67610bd3e3dfc9cb413ddd7'
 
     def configure(self):
         super(eigen, self).configure(other=[
@@ -1015,8 +984,6 @@ class ceres(CMakePackage):
     chksum = '5e8683bfb410b1ba8b8204eeb0ec1fba009fb2d0'
 
     def configure(self):
-        ## Remove warnings as errors. They don't pass newest compilers.
-        #self.helper('sed', '-ibak', '-e', 's/-Werror//g', 'CMakeLists.txt')
 
         ext = lib_ext(self.arch.os)
         super(ceres, self).configure(other=[
@@ -1096,8 +1063,9 @@ class libpointmatcher(GITPackage, CMakePackage):
         boost_dir = P.join(installDir,'include','boost-'+boost.version)
         self.env['CXXFLAGS'] += ' -I' + boost_dir
 
-        # Use OpenMP to speed up a bit the calculation.
-        self.env['CPPFLAGS'] += ' -fopenmp'
+        # OSX clang does not support fopenmp as of 10.11
+        ## Use OpenMP to speed up a bit the calculation.
+        #self.env['CPPFLAGS'] += ' -fopenmp'
 
         options = [
             '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_dir,
@@ -1135,18 +1103,6 @@ class opencv(CMakePackage):
     src     = 'https://github.com/opencv/opencv/archive/3.1.0.tar.gz'
     chksum  = '6bbe804d2b5de17cff73a5f56aa025e8b1e7f1fd'
     #patches = 'patches/opencv'
-
-    def __init__(self, env):
-        super(opencv, self).__init__(env)
-
-#         # Cocoa bindings can't be built unless using an apple provided
-#         # compiler. Using a homebrew or macports built GCC or hand
-#         # built clang will be missing the required 'blocks'
-#         # extension. The error will look something like "NSTask.h:
-#         # error: expected unqualified-id before '^' token".
-#         if self.arch.os == 'osx':
-#             self.env['CXX'] = 'c++'
-#             self.env['CC' ] = 'cc'
 
     def configure(self):
         # Help OpenCV finds the libraries it needs to link to

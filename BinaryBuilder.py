@@ -762,7 +762,7 @@ class CMakePackage(Package):
 def print_qt_config(cppflags, config, bindir, includedir, libdir):
     '''Print out a bunch of QT stuff'''
     qt_pkgs = ('QtConcurrent QtCore QtGui QtNetwork QtSql QtSvg QtWidgets QtXml QtXmlPatterns QtPrintSupport QtTest'
-               + ' QtPositioning QtQml QtQuick QtSensors QtOpenGL QtMultimedia QtMultimediaWidgets QtDBus')
+               + ' QtPositioning QtQml QtQuick QtOpenGL QtMultimedia QtMultimediaWidgets QtDBus')
     print('QT_ARBITRARY_MODULES="%s"' % qt_pkgs, file=config)
     qt_cppflags=[]
     qt_libs=['-L%s' % libdir]

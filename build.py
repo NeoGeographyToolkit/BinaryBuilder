@@ -209,10 +209,6 @@ if __name__ == '__main__':
 
     # Check compiler version for compilers we hate
     output = run(build_env['CC'],'--version')
-    if 'gcc' in build_env['CC']:
-        output = output.lower()
-        if "llvm" in output or "clang" in output:
-            die('Your compiler is an LLVM-GCC hybrid. It is our experience that these tools can not compile Vision Workbench and Stereo Pipeline correctly. Please change your compiler choice.')
 
     #if arch.os == 'linux':
     ver1 = get_prog_version(build_env['CC'])
@@ -249,13 +245,6 @@ if __name__ == '__main__':
         build_env.append_many(ALL_FLAGS, ' '.join(['-arch ' + i for i in osx_arch.split(';')])) # OSX compiler extension
         #build_env.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
         build_env.append_many(ALL_FLAGS, '-m64')
-
-        # # Resolve a bug with -mmacosx-version-min on 10.6 (see
-        # # http://markmail.org/message/45nbrtxsxvsjedpn).
-        # # Short version: 10.6 generates the new compact header (LD_DYLD_INFO)
-        # # even when told to support 10.5 (which can't read it)
-        if ver >= '10.6' and opt.osx_sdk == '10.5':
-            build_env.append('LDFLAGS', '-Wl,-no_compact_linkedit')
 
     # if arch.osbits == 'linux32':
     #     limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
@@ -368,6 +357,9 @@ if __name__ == '__main__':
             run('tar', 'xf', base, '-C', build_env['INSTALL_DIR'], '--strip-components', '1')
         fix_install_paths(build_env['INSTALL_DIR'], arch)
 
+    print(build_env['MISC_DIR'])
+    print(compiler_dir)
+
     # This must happen after untarring the base system,
     # as perhaps cache will be found there.
     if opt.ccache:
@@ -380,11 +372,15 @@ if __name__ == '__main__':
             Package.build(ccache(build_env.copy_set_default()))
             ccache_path = findfile('ccache', build_env['PATH'])
 
+        print(compiler_dir)
         new = dict(
-            CC  = P.join(compiler_dir, build_env['CC']),
-            CXX = P.join(compiler_dir, build_env['CXX']),
+            CC  = P.join(compiler_dir, os.path.basename(build_env['CC'])),
+            CXX = P.join(compiler_dir, os.path.basename(build_env['CXX'])),
         )
+        print(new)
+        print(ccache_path)
 
+        print(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
         build_env.update(new)

@@ -284,7 +284,7 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
                     raise
 
         logger.debug('%8s %s -> %s' % ('copy', src, dst))
-        shutil.copy2(src, dst)
+        shutil.copyfile(src, dst)
 
         # Bugfix, make it writeable
         mode = os.stat(dst)[stat.ST_MODE]
