@@ -61,6 +61,7 @@ bin/icebridge_kmz_to_csv
 bin/extract_icebridge_ATM_points
 bin/lvis2kml
 bin/ortho2pinhole
+bin/cam2rpc
 lib/*.plugin
 plugins/platforms
 lib/libasp*.[so,dylib]*
