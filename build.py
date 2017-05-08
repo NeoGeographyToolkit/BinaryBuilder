@@ -174,7 +174,7 @@ if __name__ == '__main__':
     os.environ["PATH"] = P.join(opt.build_root, 'install/bin') + \
                          os.pathsep + os.environ["PATH"]
 
-    MIN_CC_VERSION = 4.9
+    MIN_CC_VERSION = 4.8
 
     # -Wl,-z,now ?
     build_env = Environment(
