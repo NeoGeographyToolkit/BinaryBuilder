@@ -65,7 +65,12 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
 echo "Building changed packages"
-./build.py
+if [ "$isMac" != "" ]; then
+    # On OSX use the native compiler.
+    ./build.py --cc clang --cxx clang++
+else
+    ./build.py
+fi
 status="$?"
 echo "Build status is $status"
 if [ "$status" -ne 0 ]; then
@@ -74,9 +79,6 @@ if [ "$status" -ne 0 ]; then
 fi
 
 buildMachine=$(machine_name)
-if [ "$buildMachine" = "centos-64-5" ]; then
-  buildMachine="big-centos-64-5" # VM image name is different from internal machine name!
-fi
 if [ "$buildMachine" = "lunokhod1" ]; then
     # Build the documentation on the machine which has LaTeX
     echo "Will build the documentation"
