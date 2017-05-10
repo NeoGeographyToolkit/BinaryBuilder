@@ -432,7 +432,7 @@ class stereopipeline(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        if self.fast or self.arch.os == 'osx':
+        if self.fast or self.arch.os == 'osx' or int(self.env['SKIP_TESTS']) == 1:
             # The tests on the Mac do not compile, looks like a clang/gtest conflict.
             print("Skipping tests for OSX or in fast mode.")
         else:
@@ -447,7 +447,6 @@ class visionworkbench(GITPackage):
 
     @stage
     def configure(self):
-
         # Skip config in fast mode if config file exists
         config_file  = P.join(self.workdir, 'config.options')
         if self.fast and os.path.isfile(config_file): return
@@ -469,7 +468,7 @@ class visionworkbench(GITPackage):
         # otherwise the old installed library is linked.
         cmd = ('make', 'install')
         self.helper(*cmd)
-        if self.fast or self.arch.os == 'osx':
+        if self.fast or self.arch.os == 'osx' or int(self.env['SKIP_TESTS']) == 1:
             # The tests on the Mac do not even compile, looks like a clang/gtest conflict
             print("Skipping tests for OSX or in fast mode.")
         else:
