@@ -782,7 +782,7 @@ class cspice(Package):
     PLATFORM = dict(
         linux64 = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/PC_Linux_GCC_64bit/packages/cspice.tar.Z',
-            chksum = '335a16141e3d4f5d2e596838285fc9f918c2f328', # N0065
+            chksum = 'bb1bee61522e4fac18b68364362270b4eb2f3fd8', # N0065
             ),
         osx64   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
