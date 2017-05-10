@@ -641,8 +641,8 @@ class xercesc(Package):
 class qt(Package):
     src     = 'http://download.qt-project.org/official_releases/qt/5.6/5.6.2/single/qt-everywhere-opensource-src-5.6.2.tar.gz'
     chksum  = '4385b53f78665ac340ea2a709ebecf1e776efdc2' #SHA-1 Hash
-    patches = 'patches/qt'
-    patch_level = '-p0'
+    #patches = 'patches/qt'
+    #patch_level = '-p0'
 
     @stage
     def configure(self):
