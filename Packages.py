@@ -777,7 +777,7 @@ class png(Package):
                                   other=['--with-zlib-prefix='+self.env['INSTALL_DIR']])
 
 class cspice(Package):
-    # TODO: Version 66 has been released which incorporates the dsk library!
+    # Note: Version 66 has been released which incorporates the dsk library!
     # This will break when they release a new version BECAUSE THEY USE UNVERSIONED TARBALLS.
     PLATFORM = dict(
         linux64 = dict(
@@ -786,7 +786,7 @@ class cspice(Package):
             ),
         osx64   = dict(
             src    = 'ftp://naif.jpl.nasa.gov/pub/naif/toolkit/C/MacIntel_OSX_AppleC_64bit/packages/cspice.tar.Z',
-            chksum = '1500a926f01a0bb04744ebe8af0149c7ae098a8f', # N0065
+            chksum = 'ec3fd214facf14f72908c11cc865d4c8579baf3d', # N0066
             ),
         )
 

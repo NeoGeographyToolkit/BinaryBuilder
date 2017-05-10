@@ -109,7 +109,9 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
  set(qtIncludes  Qt
                  QtCore
                  QtAssistant
-@@ -60,9 +61,9 @@
+@@ -59,9 +60,9 @@
+-                QtSensors
++                #QtSensors
                  QtSql
                  QtSvg
                  QtTest
@@ -121,7 +123,6 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
 +                #QtWebEngineWidgets
                  QtWidgets
                  QtXml
-                 QtXmlPatterns)
 @@ -76,37 +77,44 @@
  
  if(APPLE)
@@ -129,7 +130,7 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
 -  set(QTLIBDIR ${LIB_DIR}/qt5)
 +  set(QTLIBDIR ${LIB_DIR})
 +
-+  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
++  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick  -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
  
 -  # Use find_library cmake function to find the QT frameworks
 -  set(QTLIB)
@@ -163,7 +164,7 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
 +                   ${QTLIBDIR}/libQt5PrintSupport
 +                   ${QTLIBDIR}/libQt5Qml
 +                   ${QTLIBDIR}/libQt5Quick
-+                   ${QTLIBDIR}/libQt5Sensors
++                   #${QTLIBDIR}/libQt5Sensors
 +                   ${QTLIBDIR}/libQt5Sql
 +                   ${QTLIBDIR}/libQt5Svg
 +                   ${QTLIBDIR}/libQt5Test
@@ -186,11 +187,13 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
    set(QTLIBDIR ${LIB_DIR})
  
 -  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineCore -lQt5WebEngineWidgets -lQt5DBus)
-+  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
++  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
  
    set(QT_DYNAMIC_LIBS)
    set(QT_DYNAMIC_IN  ${QTLIBDIR}/libQt5Concurrent.so
-@@ -125,16 +133,16 @@
+@@ -124,16 +132,16 @@
+-                   ${QTLIBDIR}/libQt5Sensors.so
++                   #${QTLIBDIR}/libQt5Sensors.so
                     ${QTLIBDIR}/libQt5Sql.so
                     ${QTLIBDIR}/libQt5Svg.so
                     ${QTLIBDIR}/libQt5Test.so
@@ -211,7 +214,6 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
 +    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6 ${f}.5.6.2)
    endforeach()
  endif()
- #message("QT_DYNAMIC_LIBS = ${QT_DYNAMIC_LIBS}")
 @@ -159,7 +167,7 @@
  
  if(APPLE)
@@ -226,12 +228,14 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
  set(NAIFLIBDIR "${LIB_DIR}")
  if(APPLE)
 -  set(NAIFLIB    "-ldsklib -lcspice")
-+  set(NAIFLIB    "-lcdsk -lcspice")
-   set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsklib${end} ${NAIFLIBDIR}/libcspice${end})
++  set(NAIFLIB    "-lcspice")
+-  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsklib${end} ${NAIFLIBDIR}/libcspice${end})
++  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libcspice${end})
  else()
 -  set(NAIFLIB    "-ldsk -lcspice")
-+  set(NAIFLIB    "-lcdsk -lcspice")
-   set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsk${end} ${NAIFLIBDIR}/libcspice${end})
++  set(NAIFLIB    "-lcspice")
+-  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsk${end} ${NAIFLIBDIR}/libcspice${end})
++  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libcspice${end})
  endif()
  
 @@ -236,7 +244,7 @@
@@ -265,6 +269,9 @@ diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDepend
  set(BOOSTLIB)
  
  
+@@ -335,1 +343,1 @@
+-set(CHOLMODLIB    -lcholmod -lamd -lcamd -lccolamd -lcolamd -lsuitesparseconfig)
++set(CHOLMODLIB    -lcholmod -lamd -lcamd -lccolamd -lcolamd -lsuitesparseconfig -llapack)
 @@ -358,7 +366,7 @@
  set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xfeatures2d
                    -lopencv_flann -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs 
@@ -407,3 +414,18 @@ diff -ruN IsisCMake/src/qisis/objs/QIsisApplication/QIsisApplication.cpp isis-gi
 +     //view->show();
    }
  }
+--- IsisCMake/src/base/objs/NaifDskApi/NaifDskApi.h      2017-04-12 17:01:35.000000000 -0700
++++ isis-git/src/base/objs/NaifDskApi/NaifDskApi.h       2017-04-11 22:19:11.000000000 -0700
+@@ -36,1 +36,1 @@
+-  #include <pl02.h>
++  //#include <pl02.h>
+--- IsisCMake/src/base/objs/NaifDskApi/NaifDskApi.cpp      2017-04-12 17:01:35.000000000 -0700
++++ isis-git/src/base/objs/NaifDskApi/NaifDskApi.cpp       2017-04-11 22:19:11.000000000 -0700
+@@ -32,1 +32,1 @@
+-  #include <pl02.h>
++  //#include <pl02.h>
+--- IsisCMake/src/base/objs/NaifDskPlateModel/NaifDskPlateModel.cpp      2017-04-12 17:01:35.000000000 -0700
++++ isis-git/src/base/objs/NaifDskPlateModel/NaifDskPlateModel.cpp       2017-04-11 22:19:11.000000000 -0700
+@@ -45,1 +45,1 @@
+-#include <dsk_proto.h>
++//#include <dsk_proto.h>
