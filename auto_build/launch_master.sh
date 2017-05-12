@@ -26,8 +26,8 @@ releaseMachine="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
-virtualMachines=""
-buildMachines="andey lunokhod2 $virtualMachines"
+virtualMachines="centos-6"
+buildMachines="andey $virtualMachines"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi

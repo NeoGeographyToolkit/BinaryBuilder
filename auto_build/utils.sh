@@ -25,7 +25,11 @@ export LD_LIBRARY_PATH=/opt/rh/devtoolset-3/root/usr/lib64:/opt/rh/devtoolset-3/
 export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.9/:$DYLD_LIBRARY_PATH
 
 function machine_name() {
-    echo $(uname -n | perl -pi -e "s#\..*?\$##g")
+    machine=$(uname -n | perl -pi -e "s#\..*?\$##g")
+    if [ "$machine" = "localhost" ]; then
+      machine="centos-6" # VM image name is different from internal machine name!
+    fi
+    echo $machine
 }
 
 function status_file () {
@@ -54,7 +58,7 @@ function isis_file (){
 
 function ncpus(){
     ncpu=$(cat /proc/cpuinfo 2>/dev/null |grep processor |wc | awk '{print $1}')
-    if [ "$ncpu" = "0" ]; then ncpu=2; fi # For OSX
+    if [ "$ncpu" = "0" ]; then ncpu=2; fi # For OSX # TODO update when we move to decoder!
     echo $ncpu
 }
 
@@ -138,14 +142,14 @@ function robust_ssh {
 
 function get_test_machines {
 
-    # Test the amos build on itself and andey.
+    # Test the andey build on decoder.
     # Test the centos-6 build on $masterMachine.
 
     buildMachine=$1
     masterMachine=$2
 
     if [ "$buildMachine" = "andey" ]; then
-        testMachines="$buildMachine"
+        testMachines="decoder"
     elif [ "$buildMachine" = "centos-6" ]; then
         testMachines="$masterMachine"
     elif [ "$buildMachine" = "lunokhod2" ]; then

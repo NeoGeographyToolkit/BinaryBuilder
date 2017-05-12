@@ -68,9 +68,6 @@ cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
 
 # Set up the config file
 machine=$(machine_name)
-if [ "$machine" = "centos-64-5" ]; then
-  machine="big-centos-64-5" # VM image name is different from internal machine name!
-fi
 configFile=$(release_conf_file $machine)
 
 if [ ! -e $configFile ]; then
@@ -90,18 +87,23 @@ py.test -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
 test_status="$?"
 
-# Tests are finished running, make sure all maintainers can access the files.
-# - These commands fail on the VM but that is OK because we don't need them to work on that machine.
-chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
-chmod -R g+rw $HOME/$testDir
 
-# Trying these again, for some reason the above does not work, but
-# this apparently does.  I think it is because $HOME/$testDir is a
-# symlink and now we are modifying the internals of the actual dir.
-for d in . *; do 
-    chown -R :ar-gg-ti-asp-maintain $d;
-    chmod -R g+rw $d;
-done
+if [ "$machine" != "centos-6" ]; then
+  # Ownership operation not needed on the VM.
+
+  # Tests are finished running, make sure all maintainers can access the files.
+  # - These commands fail on the VM but that is OK because we don't need them to work on that machine.
+  chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
+  chmod -R g+rw $HOME/$testDir
+
+  # Trying these again, for some reason the above does not work, but
+  # this apparently does.  I think it is because $HOME/$testDir is a
+  # symlink and now we are modifying the internals of the actual dir.
+  for d in . *; do 
+      chown -R :ar-gg-ti-asp-maintain $d;
+      chmod -R g+rw $d;
+  done
+fi
 
 if [ ! -f "$reportFile" ]; then
     echo "Error: Final report file does not exist"
