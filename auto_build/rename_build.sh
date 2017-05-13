@@ -29,6 +29,9 @@ fi
 if [ "$(echo $in_z | grep -i x86_64-redhat)" != "" ]; then
     out_z=StereoPipeline-$version-$timestamp-x86_64-Linux.tar.bz2
 fi
+if [ "$(echo $in_z | grep -i x86_64-centos)" != "" ]; then
+    out_z=StereoPipeline-$version-$timestamp-x86_64-Linux.tar.bz2
+fi
 if [ "$(echo $in_z | grep -i i686-redhat)" != "" ]; then
     out_z=StereoPipeline-$version-$timestamp-i686-Linux.tar.bz2
 fi
