@@ -352,7 +352,7 @@ done
 
 # Cleanup the log dir
 mkdir -p logs
-rm -fv logs/*txt
+rm -fv logs/*
 
 # Copy the log files
 for buildMachine in $buildMachines; do
