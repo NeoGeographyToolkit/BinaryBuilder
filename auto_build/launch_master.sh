@@ -350,8 +350,11 @@ for buildMachine in $buildMachines; do
     ((count++))
 done
 
-# Copy the log files
+# Cleanup the log dir
 mkdir -p logs
+rm -fv logs/*txt
+
+# Copy the log files
 for buildMachine in $buildMachines; do
 
     # Copy the build logs

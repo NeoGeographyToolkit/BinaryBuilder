@@ -21,7 +21,7 @@ files=$(cat $filesList | tr '\n' ' ')
 
 ssh $machine "mkdir -p $buildDir" 2>/dev/null
 
-echo "rsync -avz $files $machine:$buildDir"
+echo "rsync -avz --delete $files $machine:$buildDir"
 rsync -avz --delete $files $machine:$buildDir 2>/dev/null
 
 sleep 5 # just in case, to ensure the files finished copying
