@@ -706,8 +706,10 @@ class qt(Package):
         #       finds the correct QT install location!
         config_path = os.path.join(self.env['INSTALL_DIR'], 'bin/qt.conf')
         print(config_path)
-        with open(config_path, "a") as f:
-            f.write("Prefix="+self.env['INSTALL_DIR']+'\n')
+        with open(config_path, "w") as f:
+            f.write('[Paths]\n')
+            f.write('Plugins=../lib/plugins/\n')
+            f.write('Prefix='+self.env['INSTALL_DIR']+'\n')
 
 class qwt(Package):
     src     = 'http://downloads.sourceforge.net/qwt/qwt-6.1.3.tar.bz2',
