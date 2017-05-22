@@ -495,8 +495,6 @@ class boost(Package):
     chksum  = 'b94de47108b2cdb0f931833a7a9834c2dd3ca46e'
     patches = 'patches/boost'
 
-    # TODO: This patch is needed for Clang: https://svn.boost.org/trac/boost/attachment/ticket/1974/vector_of_vector.patch
-
     def __init__(self, env):
         super(boost, self).__init__(env)
         self.env['NO_BZIP2'] = '1'
