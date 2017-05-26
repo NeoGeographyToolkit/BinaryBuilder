@@ -286,7 +286,7 @@ if __name__ == '__main__':
         build_env['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify we have the executables we need
-    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "svn", "wget", "curl"]
+    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "wget", "curl"]
     compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['F77'] ]
     if arch.os == 'linux':
         common_exec.extend( ["libtool"] )
