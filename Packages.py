@@ -1155,6 +1155,8 @@ class opencv(CMakePackage):
                         '-DBUILD_opencv_xphoto=ON',
                         '-DBUILD_opencv_fuzzy=OFF',
                         '-DBUILD_opencv_dnn=OFF',
+                        '-DBUILD_opencv_python2=OFF',
+                        '-DBUILD_opencv_python3=OFF',
                         '-DINSTALL_C_EXAMPLES=OFF',
                         '-DINSTALL_PYTHON_EXAMPLES=OFF',
                         '-DWITH_FFMPEG=OFF',
