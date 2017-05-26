@@ -786,8 +786,8 @@ def write_vw_config(prefix, installdir, arch, config_file):
 
     # Enable
     enable_features = 'debug optimize rpath as_needed no_undefined'.split()
-    #if arch.os != 'osx': # Currently our OSX build does not support this feature!
-    #    enable_features.append('sse')
+    if arch.os != 'osx': # Currently our OSX build does not support this feature!
+        enable_features.append('sse')
     enable_pkgs = ('jpeg png geotiff gdal proj4 z ilmbase openexr boost flapack ' +
                   'protobuf flann opencv').split()
     enable_modules  = ('camera mosaic interestpoint cartography hdr stereo ' +
