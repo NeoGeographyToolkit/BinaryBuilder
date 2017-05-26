@@ -1180,6 +1180,9 @@ class opencv(CMakePackage):
                         '-DWITH_OPENCLAMDBLAS=OFF',
                         '-DWITH_OPENCL=OFF',
                         '-DWITH_GPHOTO2=OFF',
+                        '-DWITH_V4L=OFF',
+                        '-DWITH_VTK=OFF',
+                        '-DWITH_LIBV4L=OFF',
                         '-DOPENCV_EXTRA_MODULES_PATH='+contrib_path,
                         '-DWITH_IPP=OFF'] # TODO: Re-enable this to get more speed!  Needs some help installing.
 
