@@ -888,8 +888,8 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
     bindir       = P.join(base, 'bin')
 
     # To do: Test removing -O3 and -g, as well as use_env_flags
-    cflags   = ['-O3', '-g']
-    cxxflags = ['-O3', '-g']
+    cflags   = ['-O3', '-g', '-fPIC']
+    cxxflags = ['-O3', '-g', '-fPIC']
     cppflags = ['-I' + includedir]
     ldflags  = ['-L' + libdir, '-Wl,-rpath', '-Wl,' + base]
 
