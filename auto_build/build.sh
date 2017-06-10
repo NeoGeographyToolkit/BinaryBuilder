@@ -65,12 +65,8 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
 echo "Building changed packages"
-if [ "$isMac" != "" ]; then
-    # On OSX use the native compiler.
-    ./build.py --cc clang --cxx clang++
-else
-    ./build.py
-fi
+./build.py # We will use gcc on Linux and clang on OSX
+
 status="$?"
 echo "Build status is $status"
 if [ "$status" -ne 0 ]; then
@@ -136,5 +132,9 @@ rm -f StereoPipeline*debug.tar.bz2
 # Mark the build as finished. This must happen at the very end,
 # otherwise the parent script will take over before this script finished.
 echo "$asp_tarball build_done Success" > $HOME/$buildDir/$statusFile
+
+# Last time make sure the permissions are right
+chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
+chmod -R g+rw $HOME/$buildDir
 
 echo "Finished running build.sh locally!"

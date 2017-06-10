@@ -119,8 +119,8 @@ if __name__ == '__main__':
 
     parser.add_option('--base',       action='append',      dest='base',         default=[],              help='Provide a tarball to use as a base system')
     parser.add_option('--build-root',                       dest='build_root',   default='./build_asp',            help='Root of the build and install')
-    parser.add_option('--cc',                               dest='cc',           default='gcc',           help='Explicitly state which C compiler to use. [gcc (default), clang, gcc-mp-4.7]')
-    parser.add_option('--cxx',                              dest='cxx',          default='g++',           help='Explicitly state which C++ compiler to use. [g++ (default), clang++, g++-mp-4.7]')
+    parser.add_option('--cc',                               dest='cc',           default='',           help='Explicitly state which C compiler to use. Default: gcc on Linux and clang on OSX.')
+    parser.add_option('--cxx',                              dest='cxx',          default='',           help='Explicitly state which C++ compiler to use. Default: g++ on Linux and clang++ on OSX.')
     parser.add_option('--build-goal', type='int',           dest='build_goal',   default=BUILD_GOAL_ASP,  help='Select the goal of the build.  Increasing numbers are smaller builds: [0 = Full ASP build, 1 = ASP/VW development build, 2 = VW build, 3 = VW development build]')
     parser.add_option('--download-dir',                     dest='download_dir', default='./tarballs', help='Where to archive source files')
     parser.add_option('--f77',                              dest='f77',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
@@ -177,6 +177,21 @@ if __name__ == '__main__':
 
     MIN_CC_VERSION = 4.8
 
+    arch = get_platform()
+
+    # Populate the compiler, unless explicitely specified
+    if opt.cc == "":
+        if arch.os == 'linux':
+            opt.cc = 'gcc'
+        elif arch.os == 'osx':
+            opt.cc = 'clang'
+
+    if opt.cxx == "":
+        if arch.os == 'linux':
+            opt.cxx = 'g++'
+        elif arch.os == 'osx':
+            opt.cxx = 'clang++'
+
     # -Wl,-z,now ?
     build_env = Environment(
         CC       = opt.cc,
@@ -206,8 +221,6 @@ if __name__ == '__main__':
     if 'LD_LIBRARY_PATH' not in build_env:
         build_env['LD_LIBRARY_PATH'] = ""
     build_env['LD_LIBRARY_PATH'] += ":" + libdir1 + ":" + libdir2
-
-    arch = get_platform()
 
     # Check compiler version for compilers we hate
     output = run(build_env['CC'],'--version')
