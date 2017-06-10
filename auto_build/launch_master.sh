@@ -295,11 +295,10 @@ done
 overallStatus="Success"
 
 # Builds and tests finished. The documentation is now in
-# dist-add/asp_book.pdf. Need to reduce its size.
-# On the machine the doc was generated gs creates
-# non-searcheable pdfs, so need to reduce the size here.
+# dist-add/asp_book.pdf.
 if [ ! -f "dist-add/asp_book.pdf" ]; then
-    echo "Could not find the documentation: dist-add/asp_book.pdf"
+    echo "Could not find the documentation: dist-add/asp_book.pdf."
+    echo "Check if the build on $masterMachine which makes the doc succeded."
     overallStatus="Fail";
 fi
 
