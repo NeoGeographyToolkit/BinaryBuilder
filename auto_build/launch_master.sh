@@ -35,6 +35,10 @@ sleepTime=30
 localMode=0 # Run local copy of the code. Must not happen in production.
 if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
+# If to skip tests. Must be set to 0 in production.
+skipTests=0
+if [ "$(echo $* | grep skip_tests)" != "" ]; then skipTests=1; echo "Will skip tests."; fi
+
 if [ "$USER" == "smcmich1" ]; then
     mailto="scott.t.mcmichael@nasa.gov"
     if [ "$localMode" -eq 0 ]; then
@@ -226,9 +230,16 @@ while [ 1 ]; do
                     2>/dev/null
 
                 sleep 5; # Give the filesystem enough time to react
-                robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
-                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
-                    $outputTestFile
+                if [ "$skipTests" -eq 0 ]; then
+                    # Start the tests
+                    robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
+                        "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
+                        $outputTestFile
+                else
+                    # Fake it, so that we skip the testing
+                    echo "$tarBall test_done Success" > $statusFile
+                fi
+                    
             done
 
         elif [ "$progress" = "now_testing" ]; then
