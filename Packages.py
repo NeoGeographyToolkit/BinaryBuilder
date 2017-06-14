@@ -599,15 +599,26 @@ class superlu(Package):
             
         super(superlu,self).configure(with_=('blas=%s') % blas,
                                       disable=('static'))
+    
+    @stage
+    def install(self):
+        super(superlu, self).install()
 
-    # TODO: USGS comments out a few lines in the include files to get ISIS to compile with clang!!
-    #       This needs to be repeated in several similar files.
-    #//extern void    countnz (const int, int *, int *, int *, GlobalLU_t *);
-    #//extern void    ilu_countnz (const int, int *, int *, GlobalLU_t *);
-    #//extern void    fixupL (const int, const int *, GlobalLU_t *);
-    #//extern void    PrintPerf (SuperMatrix *, SuperMatrix *, mem_usage_t *,
-    #//                       complex, complex, complex *, complex *, char *);
-    #//extern void    check_tempv(int, complex *);
+        # Need to comment out a few lines in the include files to get ISIS to compile with clang!!
+        file_list = ['slu_cdefs.h', 'slu_ddefs.h', 'slu_sdefs.h', 'slu_zdefs.h']
+        target_list = ['extern void    countnz',
+                       'extern void    ilu_countnz',
+                       'extern void    fixupL',
+                       'extern void    PrintPerf',
+                       'extern void    check_tempv']
+        # Use sed to add // before every instance of these targets in these files
+        for f in file_list:
+            full_path = P.join(self.env['INSTALL_DIR'],'include', 'superlu', f)
+            for target in target_list: 
+                cmd = ['sed', '-i', '-e', 
+                       "s#"+target+"#//"+target+"#g",
+                       full_path]
+                self.helper(*cmd)
 
 
 class gmm(Package):
