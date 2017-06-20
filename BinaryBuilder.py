@@ -868,7 +868,7 @@ class Apps:
                  eigen libpointmatcher proj4 gflags theia'
     vw_pkgs     = \
             'vw_core vw_math vw_image vw_fileio vw_camera \
-             vw_stereo vw_cartography vw_interest_point'
+             vw_stereo vw_cartography vw_interest_point vw_geometry'
     off_pkgs    = \
              'qt_qmake clapack slapack kakadu gsl_hasblas apple_qwt'
 
