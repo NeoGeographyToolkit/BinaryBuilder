@@ -1,4 +1,4 @@
-#boost b94de47108b2cdb0f931833a7a9834c2dd3ca46e!/usr/bin/env pythonc
+#!/usr/bin/env python
 
 from __future__ import print_function
 import os, shutil
@@ -200,9 +200,9 @@ class gdal(Package):
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -lproj' % self.env
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
-        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'], 'jpeg=' + self.env['INSTALL_DIR'], 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR']]
+        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'], 'jpeg=' + self.env['INSTALL_DIR'], 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR'], 'curl']
         wo = \
-            '''bsb cfitsio curl dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
+            '''bsb cfitsio dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
              geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
              macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
              pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
