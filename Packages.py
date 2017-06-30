@@ -170,8 +170,8 @@ class openjpeg2(CMakePackage):
         super(openjpeg2, self).configure(other=['-DBUILD_SHARED_LIBS=ON'])
 
 class tiff(Package):
-    src     = 'http://download.osgeo.org/libtiff/tiff-4.0.3.tar.gz'
-    chksum  = '652e97b78f1444237a82cbcfe014310e776eb6f0'
+    src     = 'http://download.osgeo.org/libtiff/tiff-4.0.8.tar.gz'
+    chksum  = 'fc24c2fe2115088eb82454306cba320330051c94'
 
     def configure(self):
         super(tiff, self).configure(
