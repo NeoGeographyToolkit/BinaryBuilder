@@ -171,7 +171,7 @@ class openjpeg2(CMakePackage):
 
 class tiff(Package):
     src     = 'http://download.osgeo.org/libtiff/tiff-4.0.8.tar.gz'
-    chksum  = 'fc24c2fe2115088eb82454306cba320330051c94'
+    chksum  = '88717c97480a7976c94d23b6d9ed4ac74715267f'
 
     def configure(self):
         super(tiff, self).configure(
