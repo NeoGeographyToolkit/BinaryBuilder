@@ -23,7 +23,7 @@ cd asp_tarballs
 in_z=${in_z/asp_tarballs\//}
 
 out_z=$in_z
-if [ "$(echo $in_z | grep -i Darwin)" != "" ]; then
+if [ "$(echo $in_z | grep -i -E 'OSX|Darwin')" != "" ]; then
     out_z=StereoPipeline-$version-$timestamp-x86_64-OSX.tar.bz2
 fi
 if [ "$(echo $in_z | grep -i x86_64-redhat)" != "" ]; then
