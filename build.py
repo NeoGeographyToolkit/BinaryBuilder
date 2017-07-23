@@ -323,9 +323,10 @@ if __name__ == '__main__':
     CORE_DEPS   = [cmake, bzip2, pbzip2] # For some reason these are inserted in the linux deps
     LINUX_DEPS2 = [chrpath, lapack]
     VW_DEPS     = [zlib, openssl,  png,
-                   jpeg, tiff, proj, openjpeg2, libgeotiff, curl, gdal, # gdal depends on curl
+                   jpeg, tiff, proj, openjpeg2, libgeotiff,
+                   curl, geos, gdal, # gdal depends on curl and geos
                    ilmbase, openexr, boost, flann, hdf5, opencv]
-    ASP_DEPS    = [parallel, gsl, geos, xercesc, cspice, protobuf, 
+    ASP_DEPS    = [parallel, gsl, xercesc, cspice, protobuf, 
                    superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
                    jama, laszip, liblas, geoid, isis, eigen, gflags, glog, ceres,
                    libnabo, libpointmatcher, imagemagick, theia]

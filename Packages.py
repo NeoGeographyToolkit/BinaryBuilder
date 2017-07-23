@@ -200,13 +200,19 @@ class gdal(Package):
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -lproj' % self.env
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
-        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'], 'jpeg=' + self.env['INSTALL_DIR'], 'png', 'zlib', 'pam','openjpeg=' + self.env['INSTALL_DIR'], 'curl']
+        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'],
+             'jpeg=' + self.env['INSTALL_DIR'],
+             'png', 'zlib', 'pam',
+             'openjpeg=' + self.env['INSTALL_DIR'],
+             'geos=yes',
+             'curl']
         wo = \
             '''bsb cfitsio dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
-             geos gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
-             macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
-             pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
-             static-proj4 xerces xerces-inc xerces-lib libiconv-prefix libiconv xml2 pcre freexl'''.split()
+               gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
+               macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
+               pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
+               static-proj4 xerces xerces-inc xerces-lib libiconv-prefix libiconv xml2 pcre
+               freexl'''.split()
 
         self.helper('./autogen.sh')
         super(gdal,self).configure(with_=w, without=wo, disable='static', enable='shared')
