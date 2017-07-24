@@ -788,7 +788,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
     enable_features = 'debug optimize rpath as_needed no_undefined'.split()
     if arch.os != 'osx': # Currently our OSX build does not support this feature!
         enable_features.append('sse')
-    enable_pkgs = ('jpeg png geotiff gdal proj4 z ilmbase openexr boost flapack ' +
+    enable_pkgs = ('jpeg png geotiff geos gdal proj4 z ilmbase openexr boost flapack ' +
                   'protobuf flann opencv').split()
     enable_modules  = ('camera mosaic interestpoint cartography hdr stereo ' +
                        'geometry tools bundleadjustment').split()
@@ -826,7 +826,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
             print('PKG_%s_CPPFLAGS="-I%s"' % (pkg.upper(), includedir),
                   file=config)
             if pkg == 'gdal':
-                print('PKG_%s_LDFLAGS="-L%s -lgeotiff -lproj -ltiff -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
+                print('PKG_%s_LDFLAGS="-L%s -lgeotiff -lproj -ltiff -lgeos -lgeos_c -ljpeg -lpng -lz -lopenjp2"'  % (pkg.upper(), libdir), file=config)
             else:
                 print('PKG_%s_LDFLAGS="-L%s"'  % (pkg.upper(), libdir), file=config)
 
