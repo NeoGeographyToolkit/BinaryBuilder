@@ -297,11 +297,11 @@ overallStatus="Success"
 # Builds and tests finished. The documentation is now in
 # dist-add/asp_book.pdf.
 if [ ! -f "dist-add/asp_book.pdf" ]; then
-    echo "Could not find the documentation: dist-add/asp_book.pdf."
-    echo "Check if the build on $masterMachine which makes the doc succeded."
+    echo "Error: Could not find the documentation: dist-add/asp_book.pdf."
+    echo "Error: Check if the build on $masterMachine which makes the doc succeded."
     overallStatus="Fail";
 fi
-
+echo Status after doc addition is $overallStatus
 
 # Get the ASP version. Hopefully some machine has it.
 version=""
@@ -314,9 +314,10 @@ for buildMachine in $buildMachines; do
 done
 if [ "$version" = "" ]; then
     version="None" # A non-empty string
-    echo "Could not determine the ASP version"
+    echo "Error: Could not determine the ASP version"
     overallStatus="Fail"
 fi
+echo Status after version check is $overallStatus
 
 # Once we finished testing all builds, rename them for release, and
 # record whether the tests passed.
@@ -342,7 +343,7 @@ for buildMachine in $buildMachines; do
 
     # Check the tarballs
     if [[ ! $tarBall =~ \.tar\.bz2$ ]]; then
-        echo "Expecting '$tarBall' to be with .tar.bz2 extension"
+        echo "Error: Expecting '$tarBall' to be with .tar.bz2 extension"
             status="Fail"
     else
         if [ ! -f "$HOME/$buildDir/$tarBall" ]; then
@@ -351,8 +352,9 @@ for buildMachine in $buildMachines; do
         fi
         echo "Renaming build $tarBall"
         tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp)
-        if [ "$?" -ne 0 ]; then "echo Renaming failed"; status="Fail"; fi
-        if [ ! -f "$tarBall" ]; then echo Missing $tarBall; status="Fail"; fi
+        ans="$?"
+        if [ "$ans" -ne 0 ]; then echo "Error: Renaming failed"; status="Fail"; fi
+        if [ ! -f "$tarBall" ]; then echo "Error: Missing $tarBall $tarBall"; status="Fail"; fi
     fi
     if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
     echo $buildMachine $status >> $statusMasterFile
@@ -422,7 +424,7 @@ for log in $(ls logs |grep -v test); do
 done
 
 cat $statusMasterFile
-echo Status is $overallStatus
+echo Final status is $overallStatus
 
 subject="ASP build $timestamp status is $overallStatus"
 cat status_master.txt | mailx -s "$subject" $mailto
