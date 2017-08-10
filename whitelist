@@ -60,6 +60,7 @@ bin/correct_icebridge_l3_dem
 bin/icebridge_kmz_to_csv
 bin/extract_icebridge_ATM_points
 bin/lvis2kml
+bin/h5dump
 bin/ortho2pinhole
 bin/cam2rpc
 lib/*.plugin

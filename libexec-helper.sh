@@ -5,7 +5,7 @@ trap 'exit 1' TERM
 
 TOPLEVEL="$(cd $(dirname $0)/.. && pwd)"
 LIBEXEC="${ASP_DEBUG_DIR:-${TOPLEVEL}/libexec}"
-ISISROOT=$TOPLEVEL
+export ISISROOT=$TOPLEVEL
 
 . "${LIBEXEC}/constants.sh"
 . "${LIBEXEC}/libexec-funcs.sh"
