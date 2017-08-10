@@ -63,6 +63,7 @@ bin/lvis2kml
 bin/h5dump
 bin/ortho2pinhole
 bin/cam2rpc
+bin/camera_footprint
 lib/*.plugin
 plugins/platforms
 lib/libasp*.[so,dylib]*
