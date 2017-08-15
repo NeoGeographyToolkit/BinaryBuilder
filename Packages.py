@@ -628,7 +628,7 @@ class superlu(Package):
 
 
 class gmm(Package):
-    src     = 'http://download.gna.org/getfem/stable/gmm-4.2.tar.gz'
+    src     = 'http://download-mirror.savannah.gnu.org/releases/getfem/stable/gmm-4.2.tar.gz'
     chksum  = '3555d5a5abdd525fe6b86db33428604d74f6747c'
     patches = 'patches/gmm'
 
