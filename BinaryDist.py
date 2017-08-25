@@ -2,7 +2,7 @@
 
 import os.path as P
 import logging
-import itertools, shutil, re, errno, sys, os, stat
+import itertools, shutil, re, errno, sys, os, stat, subprocess
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
 from BinaryBuilder import get_platform, run, hash_file, binary_builder_prefix,\
@@ -234,6 +234,19 @@ class DistManager(object):
         files.flush()
         return files
 
+    def sym_link_lib(self, src, dst):
+        '''In the lib directory, symlink src to dst.'''
+        logger.debug('attempting to symlink ' + src + ' to ' + dst)
+        base_src = P.normpath(src).split('/')[-1]
+        base_dst = P.normpath(dst).split('/')[-1]
+        lib_dir = P.dirname(self.distdir.lib(base_src))
+        mkdir_f(lib_dir)
+
+        # Go to the lib dir and make the link
+        cmd = ['ln', '-s', base_src, base_dst]
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=lib_dir)
+        out, err = p.communicate()
+
     def _add_file(self, src, dst, hardlink=False, keep_symlink=True, add_deps=True):
         '''Add a file to the list of distribution files'''
         dst = P.abspath(dst)
@@ -421,7 +434,7 @@ class Prefix(str):
         return f
 
 def rm_f(filename):
-    ''' An rm that doesn't care if the file isn't there '''
+    ''' An rm that does not care if the file is not there '''
     try:
         remove(filename)
     except OSError, o:

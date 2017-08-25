@@ -191,13 +191,17 @@ if __name__ == '__main__':
             mgr.add_directory(INSTALLDIR, hardlink=True)
             mgr.make_tarball()
             sys.exit(0)
-        else:
-            print('Adding requested files')
-            sys.stdout.flush()
-            with file(opt.include, 'r') as f:
-                for line in f:
-                    mgr.add_glob(line.strip(), INSTALLDIR)
 
+        print('Adding requested files')
+        
+        sys.stdout.flush()
+        with file(opt.include, 'r') as f:
+            for line in f:
+                mgr.add_glob(line.strip(), INSTALLDIR)
+
+        # This is a bugfix for some python tools to find this lib        
+        mgr.sym_link_lib('libproj.so.0', 'libproj.0.so')
+            
         # Force-add this for Qt to work
         if get_platform().os == 'linux':
             mgr.add_glob("lib/libQt5XcbQpa.*", INSTALLDIR)
@@ -236,7 +240,7 @@ if __name__ == '__main__':
             deplist_copy = copy.deepcopy(mgr.deplist)
             for lib in deplist_copy:
                 if ( P.exists( P.join(INSTALLDIR, 'lib', lib) ) ):
-                    mgr.add_library( P.join(INSTALLDIR, 'lib', lib) );
+                    mgr.add_library( P.join(INSTALLDIR, 'lib', lib) )
 
         # Handle the shiplist separately. This will also add more dependencies
         print('\tAdding forced-ship libraries')
