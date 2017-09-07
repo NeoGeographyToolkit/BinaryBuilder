@@ -616,7 +616,12 @@ class superlu(Package):
                        'extern void    ilu_countnz',
                        'extern void    fixupL',
                        'extern void    PrintPerf',
-                       'extern void    check_tempv']
+                       'extern void    check_tempv',
+                       'double, double, double ', # Hit the lines following the PrintPerf line
+                       'complex, complex, complex ',
+                       'float, float, float ',
+                       'doublecomplex, doublecomplex, doublecomplex '
+                      ]
         # Use sed to add // before every instance of these targets in these files
         for f in file_list:
             full_path = P.join(self.env['INSTALL_DIR'],'include', 'superlu', f)
