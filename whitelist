@@ -33,6 +33,7 @@ bin/lronacjitreg
 bin/mapproject
 bin/mer2camera
 bin/orbitviz
+bin/orbitviz_pinhole
 bin/osgviewer
 bin/parallel_stereo
 bin/parallel_sfs
