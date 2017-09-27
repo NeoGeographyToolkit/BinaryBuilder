@@ -34,6 +34,7 @@ bin/mapproject
 bin/mer2camera
 bin/orbitviz
 bin/orbitviz_pinhole
+bin/nav2cam
 bin/osgviewer
 bin/parallel_stereo
 bin/parallel_sfs
