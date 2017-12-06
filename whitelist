@@ -57,6 +57,7 @@ bin/image_calc
 bin/pc_merge
 bin/pansharp
 bin/datum_convert
+bin/convert_pinhole_model
 bin/aster2asp
 bin/icebridge_kmz_to_csv
 bin/correct_icebridge_l3_dem
