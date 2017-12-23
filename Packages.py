@@ -648,7 +648,7 @@ class gmm(Package):
         super(gmm,self).configure(with_=('blas=%s') % blas)
 
 class xercesc(Package):
-    src    = 'http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.1.3.tar.gz'
+    src    = 'http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.1.3.tar.xz'
     chksum = 'ad0c6c93f90abbcfb692c2da246a8934ece03e95'
 
     @stage
@@ -658,8 +658,8 @@ class xercesc(Package):
                                       disable = ['static', 'msgloader-iconv', 'msgloader-icu', 'network'])
 
 class qt(Package):
-    src     = 'http://download.qt-project.org/official_releases/qt/5.6/5.6.2/single/qt-everywhere-opensource-src-5.6.2.tar.gz'
-    chksum  = '4385b53f78665ac340ea2a709ebecf1e776efdc2' #SHA-1 Hash
+    src     = 'http://download.qt.io/official_releases/qt/5.6/5.6.3/single/qt-everywhere-opensource-src-5.6.3.tar.xz'
+    chksum  = 'ca7a752bff079337876ca6ab70b0dec17b47e70f' #SHA-1 Hash
     #patches = 'patches/qt'
     #patch_level = '-p0'
 
@@ -669,7 +669,7 @@ class qt(Package):
         # Modify the min OSX version
         config_path = self.workdir + '/qtbase/mkspecs/macx-clang/qmake.conf'
         self.helper('sed', '-ibak', '-e',
-                    's/QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7/QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.11/g',
+                    's/QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.7/QMAKE_MACOSX_DEPLOYMENT_TARGET = 10.12/g',
                     config_path)
 
         ## The default confs override our compiler choices.
@@ -945,7 +945,7 @@ class suitesparse(Package):
                     )
 
 class osg3(CMakePackage):
-    src = 'http://trac.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
+    src = 'www.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
     chksum = 'c20891862b5876983d180fc4a3d3cfb2b4a3375c'
     patches = 'patches/osg3'
 
@@ -1073,6 +1073,11 @@ class libpointmatcher(GITPackage, CMakePackage):
     def configure(self):
         installDir = self.env['INSTALL_DIR']
 
+        # Turn off the unit tests which don't build on OSX10.12
+        self.helper('sed', '-ibak', '-e',
+                    's/add_subdirectory(utest)/#add_subdirectory(utest)/g',
+                    'CMakeLists.txt')
+
         # Ensure we use the header files from the just fetched code,
         # rather than its older version in the install dir.
         curr_include = '-I' + self.workdir + '/pointmatcher'
@@ -1085,8 +1090,8 @@ class libpointmatcher(GITPackage, CMakePackage):
         self.env['CXXFLAGS'] += ' -I' + boost_dir
 
         # OSX clang does not support fopenmp as of 10.11
-        ## Use OpenMP to speed up a bit the calculation.
-        #self.env['CPPFLAGS'] += ' -fopenmp'
+        if self.arch.os == 'linux':
+            self.env['CPPFLAGS'] += ' -fopenmp'
 
         options = [
             '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_dir,
@@ -1121,8 +1126,8 @@ class binarybuilder(GITPackage):
     def install(self): pass
 
 class opencv(CMakePackage):
-    src     = 'https://github.com/opencv/opencv/archive/3.1.0.tar.gz'
-    chksum  = '6bbe804d2b5de17cff73a5f56aa025e8b1e7f1fd'
+    src     = 'https://github.com/opencv/opencv/archive/3.3.1.tar.gz'
+    chksum  = '79dba99090a5c48308fe91db8336ec2931e06b57'
     #patches = 'patches/opencv'
 
     def configure(self):
@@ -1133,11 +1138,11 @@ class opencv(CMakePackage):
 
         # Manually fetch the contributor tarball - Needed for SIFT etc
         print(self.env['BUILD_DIR'])
-        tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib.tar.gz')
-        contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib-3.1.0/modules')
-        get('https://github.com/opencv/opencv_contrib/archive/3.1.0.tar.gz', tar_path)
+        tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib.tar.gz')
+        contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib-3.3.1/modules')
+        get('https://github.com/opencv/opencv_contrib/archive/3.3.1.tar.gz', tar_path)
         # Unpack the contributor tarball
-        cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0')
+        cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1')
         os.system(cmd)
 
         ## Manually fetch this required file        

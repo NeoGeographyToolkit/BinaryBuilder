@@ -42,7 +42,7 @@
  						ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
  						LIBRARY DESTINATION ${INSTALL_LIB_DIR}
  						RUNTIME DESTINATION ${INSTALL_BIN_DIR})
-+                target_link_libraries(pointmatcher ${yaml-cpp_LIBRARIES} ${NABO_LIBRARY} ${Boost_LIBRARIES} "-fopenmp")
++                target_link_libraries(pointmatcher ${yaml-cpp_LIBRARIES} ${NABO_LIBRARY} ${Boost_LIBRARIES})
  		#install(TARGETS pointmatcher LIBRARY DESTINATION ${INSTALL_LIB_DIR})
  	else(SHARED_LIBS)
  		add_library(pointmatcher ${POINTMATCHER_SRC} ${POINTMATCHER_HEADERS} )

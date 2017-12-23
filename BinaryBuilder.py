@@ -381,12 +381,12 @@ class Package(object):
         # Call the appropriate tool to unpack the code into the build directory
         if ext == '.zip':
             self.helper('unzip', '-d', output_dir, self.tarball)
-        elif ext.endswith('xz'):
-            self.helper('xz','-kcd', self.tarball, '|', 'tar', 'x', '-C', output_dir)
         else:
             flags = 'xf'
             if ext == '.Z' or ext.endswith('gz'):
                 flags = 'z' + flags
+            elif ext.endswith('xz'):
+                 flags = 'J' + flags
             elif ext.endswith('bz2'):
                 flags = 'j' + flags
             self.helper('tar', flags, self.tarball, '-C',  output_dir)
