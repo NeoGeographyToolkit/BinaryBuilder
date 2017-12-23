@@ -81,6 +81,7 @@ LIB_SYSTEM_LIST = '''
     libuuid.so.1
     libXau.so.6
     libxcb-xlib.so.0
+    libwebp.7.dylib
 '''.split()
 
 # prefixes of libs that we always ship
