@@ -8,8 +8,7 @@ https://byss.arc.nasa.gov/stereopipeline/daily_build
 Machines:
 lunokhod1:        Master machine on which the framework starts
 centos-6:         Linux, 64 bit
-amos:             Mac OS X 10.9
-andey:            Mac OS X 10.11
+decoder:          Mac OS X 10.12
 byss:             The machine storing the obtained builds
 
 The host centos-6 is a virtual machine on lunokhod1.
@@ -24,8 +23,8 @@ The main script is auto_build/launch_master.sh. It gets started on
 lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on centos-6 and amos. The amos build is tested on amos
-and andey. The centos-6 build is tested on lunokhod1.
+Builds are done on centos-6 and decoder. The centos-6 build is 
+tested on lunokhod1.
 
 The test process on lunokhod1 is the strictest, it will fail if any
 obtained results differ from the reference. The tests on other

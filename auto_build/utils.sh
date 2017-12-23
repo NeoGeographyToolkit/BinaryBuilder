@@ -142,15 +142,12 @@ function robust_ssh {
 
 function get_test_machines {
 
-    # Test the andey build on decoder.
     # Test the centos-6 build on $masterMachine.
 
     buildMachine=$1
     masterMachine=$2
 
-    if [ "$buildMachine" = "andey" ]; then
-        testMachines="decoder"
-    elif [ "$buildMachine" = "centos-6" ]; then
+    if [ "$buildMachine" = "centos-6" ]; then
         testMachines="$masterMachine"
     elif [ "$buildMachine" = "lunokhod2" ]; then
         testMachines="$masterMachine"
