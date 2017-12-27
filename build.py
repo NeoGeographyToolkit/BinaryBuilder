@@ -321,8 +321,8 @@ if __name__ == '__main__':
     
     LINUX_DEPS1 = [m4, libtool, autoconf, automake]
     CORE_DEPS   = [cmake, bzip2, pbzip2] # For some reason these are inserted in the linux deps
-    LINUX_DEPS2 = [chrpath, lapack, curl] # OSX 10.12 has a good version of curl
-    VW_DEPS     = [zlib, openssl,  png,
+    LINUX_DEPS2 = [chrpath, lapack]
+    VW_DEPS     = [zlib, openssl,  curl, png,
                    jpeg, tiff, proj, openjpeg2, libgeotiff,
                    geos, gdal, # gdal depends on curl and geos
                    ilmbase, openexr, boost, flann, hdf5, opencv]

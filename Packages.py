@@ -287,8 +287,8 @@ class openssl(Package):
         self.helper(*args)
 
 class curl(Package):
-    src     = 'http://curl.haxx.se/download/curl-7.33.0.tar.bz2'
-    chksum  = 'b0dc79066f31a000190fd8a15277738e8c1940aa'
+    src     = 'http://curl.haxx.se/download/curl-7.57.0.tar.bz2'
+    chksum  = '7f47469324bf22cc9ffd1d3a201aa3c76ab626b8'
 
     @stage
     def configure(self):
