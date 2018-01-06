@@ -36,12 +36,14 @@ class automake(Package):
     chksum  = '0bb1714b78d70cab9907d2013082978a28f48a46'
 
 class cmake(Package):
+    #src     = 'http://www.cmake.org/files/v3.10/cmake-3.10.1.tar.gz'
+    #chksum  = '5f4074aa9ee7101d9d24eb0e2de182e2650f6b30'
     src     = 'http://www.cmake.org/files/v3.2/cmake-3.2.3.tar.gz'
     chksum  = 'fa176cc5b1ccf2e98196b50908432d0268323501'
     def configure(self):
         opts = []
-        if self.arch.os == 'osx':
-            opts = ['--system-curl']
+        #if self.arch.os == 'osx': # The system curl on the CentOS 6 VM has been updated.
+        opts = ['--system-curl'] 
         super(cmake, self).configure(
             other = opts
             )
@@ -293,7 +295,7 @@ class curl(Package):
     @stage
     def configure(self):
         w = ['zlib='+self.env['INSTALL_DIR'], 'ssl='+self.env['INSTALL_DIR']]
-        wo = 'libidn'.split()
+        wo = 'libidn ssl '.split() # Turn these off so they are not auto-included, our packages don't need them.
         super(curl,self).configure(
             with_=w, without=wo, disable=['static','ldap','ldaps'])
 
@@ -414,14 +416,14 @@ class stereopipeline(GITPackage):
 
         self.helper('./autogen')
 
-        use_env_flags = True
+        use_env_flags = False # TODO: What is this?
         prefix        = self.env['INSTALL_DIR']
         installdir    = prefix
         vw_build      = prefix
         arch          = self.arch
         write_asp_config(use_env_flags, prefix, installdir, vw_build,
                          arch, geoid, config_file)
-
+        
         super(stereopipeline, self).configure(
             other   = ['docdir=%s/doc' % prefix],
             without = ['clapack', 'slapack', 'tcmalloc'],
@@ -1126,24 +1128,46 @@ class binarybuilder(GITPackage):
     def install(self): pass
 
 class opencv(CMakePackage):
-    src     = 'https://github.com/opencv/opencv/archive/3.3.1.tar.gz'
-    chksum  = '79dba99090a5c48308fe91db8336ec2931e06b57'
+    #src     = 'https://github.com/opencv/opencv/archive/3.3.1.tar.gz'
+    #chksum  = '79dba99090a5c48308fe91db8336ec2931e06b57'
+    src     = 'https://github.com/opencv/opencv/archive/3.1.0.tar.gz'
+    chksum  = '6bbe804d2b5de17cff73a5f56aa025e8b1e7f1fd'
     #patches = 'patches/opencv'
+
+    # NOTE: OSX 10.12 seems to require a newer version (3.3.1 works) but that does not work on CentOS 6.
+    #  - To get it to build on CentOS 6, a newer CMake is needed (with SSL/HTTPS support) to perform
+    #    the file fetching steps in the OpenCV 3.3.1 CMake files.  Unfortunately there is some
+    #    weird problem with the newer CMake build and OpenCV which causes it to not find its header files.
+    #    for now the OSX build is abandoned and CMake/OpenCV are reverted to their old versions.
+    #    Maybe all that is needed is an intermediate version of CMake.
 
     def configure(self):
         # Help OpenCV finds the libraries it needs to link to
         # - Turn off a lot of OpenCV 3rd party stuff we don't need to cut down on the size.
-        # - We had to turn some of it back on to get the calibration sample to compile.
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -ltiff -lpng' % self.env
 
         # Manually fetch the contributor tarball - Needed for SIFT etc
-        print(self.env['BUILD_DIR'])
-        tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib.tar.gz')
-        contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib-3.3.1/modules')
-        get('https://github.com/opencv/opencv_contrib/archive/3.3.1.tar.gz', tar_path)
+        #tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib.tar.gz')
+        #contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib-3.3.1/modules')
+        tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib.tar.gz')
+        contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib-3.1.0/modules')
+
+        # The centos VM is having trouble downloading files properly so we first check if we
+        #  have an already downloaded file available to unpack.
+        if os.path.exists('/home/pipeline/projects/3.1.0.tar.gz'):
+            #os.system('cp  /home/pipeline/projects/3.3.1.tar.gz ' + tar_path)
+            os.system('cp  /home/pipeline/projects/3.1.0.tar.gz ' + tar_path)
+        else:
+            #get('https://github.com/opencv/opencv_contrib/archive/3.3.1.tar.gz', tar_path)
+            get('https://github.com/opencv/opencv_contrib/archive/3.1.0.tar.gz', tar_path)
+
         # Unpack the contributor tarball
-        cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1')
+        #cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1')
+        cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0')
         os.system(cmd)
+
+        # TODO: In Version 3.3.1 this contributor module does not have a flag to turn it off so just remove it!
+        #os.system('rm -rf ' + os.path.join(contrib_path, 'dnn_modern'))
 
         ## Manually fetch this required file        
         #print(self.env['BUILD_DIR'])
@@ -1153,38 +1177,30 @@ class opencv(CMakePackage):
         #cmd = 'wget https://github.com/opencv/opencv_3rdparty/blob/ippicv/master_20151201/ippicv/ippicv_linux_20151201.tgz ' +                ipp_tar_path
         #self.helper(cmd)
 
-        options_list = ['-DBUILD_opencv_apps=OFF',
-                        '-DBUILD_opencv_video=ON',
-                        '-DBUILD_opencv_ts=OFF',
-                        '-DBUILD_opencv_videostab=OFF',
-                        '-DBUILD_opencv_java=OFF',
-                        '-DBUILD_opencv_highgui=ON',
-                        '-DBUILD_opencv_adas=OFF',
-                        '-DBUILD_opencv_bgsegm=OFF',
-                        '-DBUILD_opencv_bioinspired=OFF',
-                        '-DBUILD_opencv_ccalib=OFF',
-                        '-DBUILD_opencv_cvv=OFF',
-                        '-DBUILD_opencv_datasets=OFF',
-                        '-DBUILD_opencv_datasettools=OFF',
-                        '-DBUILD_opencv_face=OFF',
-                        '-DBUILD_opencv_latentsvm=OFF',
-                        '-DBUILD_opencv_line_descriptor=OFF',
-                        '-DBUILD_opencv_matlab=OFF',
-                        '-DBUILD_opencv_optflow=OFF',
-                        '-DBUILD_opencv_reg=ON',
-                        '-DBUILD_opencv_rgbd=OFF',
-                        '-DBUILD_opencv_saliency=OFF',
-                        '-DBUILD_opencv_surface_matching=ON',
-                        '-DBUILD_opencv_text=OFF',
-                        '-DBUILD_opencv_tracking=OFF',
-                        '-DBUILD_opencv_ximgproc=ON',
-                        '-DBUILD_opencv_xobjdetect=ON',
-                        '-DBUILD_opencv_xphoto=ON',
-                        '-DBUILD_opencv_fuzzy=OFF',
-                        '-DBUILD_opencv_dnn=OFF',
-                        '-DBUILD_opencv_python2=OFF',
-                        '-DBUILD_opencv_python3=OFF',
-                        '-DINSTALL_C_EXAMPLES=OFF',
+        # The following lists are up to date for version 3.3.1
+
+        # Add a flag like: -DBUILD_opencv_<name>=ON
+        build_on_list  = ['video', 'highgui', 'reg', 'surface_matching', 'ximgproc', 'xobjdetect',
+                          'xphoto']
+        # Add a flag like: -DBUILD_opencv_<name>=OFF
+        build_off_list = ['apps', 'ts', 'videostab', 'java', 'adas',
+                          'bgsegm', 'bioinspired', 'ccalib', 'cvv', 'datasets', 'datasettools',
+                          'face', 'latentsvm', 'line_descriptor', 'matlab', 'optflow',
+                          'rgbd', 'saliency', 'text', 'tracking', 'fuzzy', 'dnn',
+                          'python2', 'python3', 'aruco', 'cnn_3dobj', 'dnns_easily_fooled',
+                          'dpm', 'freetype', 'ovis', 'plot', 'sfm', 'stereo', 'structured_light',
+                          'dnn_modern']
+
+        # Add a flag like: -DWITH_<name>=ON
+        with_on_list = ['EIGEN']
+        # Add a flag like: -DWITH_<name>=OFF
+        with_off_list = ['JASPER', 'JPEG', 'PNG', 'QT', 'TIFF', 'OPENEXR', 'CUDA', 'OPENGL',
+                         'OPENCLAMDFFT', 'OPENCLAMDBLAS', 'OPENCL', 'GPHOTO2', 'V4L', 'VTK',
+                         'LIBV4L', 'WEBP', 'ITT', 'IPP']
+
+        # Other options
+        eigen_include_path = os.path.join(self.env['INSTALL_DIR'],'include/eigen3')
+        options_list = ['-DINSTALL_C_EXAMPLES=OFF',
                         '-DINSTALL_PYTHON_EXAMPLES=OFF',
                         '-DWITH_FFMPEG=OFF',
                         '-DWITH_DSHOW=OFF',
@@ -1195,25 +1211,17 @@ class opencv(CMakePackage):
                         '-DBUILD_PERF_TESTS=OFF',
                         '-DBUILD_EXAMPLES=OFF',
                         '-DBUILD_WITH_DEBUG_INFO=OFF',
-                        '-DWITH_JASPER=OFF',
-                        '-DWITH_JPEG=OFF',
-                        '-DWITH_PNG=OFF',
-                        '-DWITH_QT=OFF',
-                        '-DWITH_TIFF=OFF',
-                        '-DWITH_OPENEXR=OFF',
-                        '-DWITH_CUDA=OFF',
-                        '-DWITH_OPENGL=OFF',
-                        '-DWITH_OPENCLAMDFFT=OFF',
-                        '-DWITH_OPENCLAMDBLAS=OFF',
-                        '-DWITH_OPENCL=OFF',
-                        '-DWITH_GPHOTO2=OFF',
-                        '-DWITH_V4L=OFF',
-                        '-DWITH_VTK=OFF',
-                        '-DWITH_LIBV4L=OFF',
-                        '-DOPENCV_EXTRA_MODULES_PATH='+contrib_path,
-                        '-DWITH_IPP=OFF'] # TODO: Re-enable this to get more speed!  Needs some help installing.
+                        '-DENABLE_PRECOMPILED_HEADERS=OFF',
+                        '-DEIGEN_INCLUDE_PATH='+eigen_include_path,
+                        '-DOPENCV_EXTRA_MODULES_PATH='+contrib_path
+                        ] # TODO: Re-enable this to get more speed!  Needs some help installing.
 
-        super(opencv, self).configure( other=options_list )
+        for item in build_on_list:
+            options_list.append('-DBUILD_opencv_'+item+'=ON')
+        for item in build_off_list:
+            options_list.append('-DBUILD_opencv_'+item+'=OFF')
+
+        super(opencv, self).configure( other=options_list, with_=with_on_list, without=with_off_list )
 
 class gflags(CMakePackage):
     src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
