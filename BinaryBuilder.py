@@ -770,7 +770,7 @@ def print_qt_config(cppflags, config, bindir, includedir, libdir):
         qt_cppflags.append('-I%s/%s' % (includedir, module))
         qt_libs.append('-l%s' % module.replace('Qt','Qt5'))
     print('PKG_ARBITRARY_QT_LIBS="%s"' %  ' '.join(qt_libs), file=config)
-    print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz"', file=config)
+    print('PKG_ARBITRARY_QT_MORE_LIBS="-lpng -lz -lssl -lcrypto"', file=config)
     print('MOC=%s' % (P.join(bindir, 'moc')),file=config)
     cppflags.extend(qt_cppflags)
 
