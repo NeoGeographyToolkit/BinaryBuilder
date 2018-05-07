@@ -97,6 +97,7 @@ class bzip2(Package):
 class pbzip2(Package):
     src     = 'https://launchpad.net/pbzip2/1.1/1.1.6/+download/pbzip2-1.1.6.tar.gz'
     chksum  = '46cbdcf95b06e72be576d3bd12643de4aa27af5f'
+
     def configure(self): pass
     def compile(self):
         self.helper('sed','-ibak','-e','s# g++# %s#g' % self.env['CXX'],
