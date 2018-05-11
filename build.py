@@ -325,10 +325,11 @@ if __name__ == '__main__':
     VW_DEPS     = [zlib, openssl,  curl, png,
                    jpeg, tiff, proj, openjpeg2, libgeotiff,
                    geos, gdal, # gdal depends on curl and geos
-                   ilmbase, openexr, boost, flann, hdf5, opencv]
+                   ilmbase, openexr, boost, flann, hdf5, eigen, opencv]
     ASP_DEPS    = [parallel, gsl, xercesc, cspice, protobuf, 
                    superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
-                   jama, laszip, liblas, geoid, isis, eigen, gflags, glog, ceres,
+                   jama, laszip, liblas, geoid, 
+                   bullet, embree, nanoflann, nn, pcl, isis, gflags, glog, ceres,
                    libnabo, libpointmatcher, imagemagick, theia]
 
     if (len(args) == 0):

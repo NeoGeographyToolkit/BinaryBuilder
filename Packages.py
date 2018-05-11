@@ -38,12 +38,17 @@ class automake(Package):
 class cmake(Package):
     #src     = 'http://www.cmake.org/files/v3.10/cmake-3.10.1.tar.gz'
     #chksum  = '5f4074aa9ee7101d9d24eb0e2de182e2650f6b30'
-    src     = 'http://www.cmake.org/files/v3.2/cmake-3.2.3.tar.gz'
-    chksum  = 'fa176cc5b1ccf2e98196b50908432d0268323501'
+    #src     = 'http://www.cmake.org/files/v3.2/cmake-3.2.3.tar.gz'
+    #chksum  = 'fa176cc5b1ccf2e98196b50908432d0268323501'
+    src    = 'https://cmake.org/files/v3.5/cmake-3.5.2.tar.gz'
+    chksum = '5d6c68c3007d61cadd6257c170e60aa67154cda1'
     def configure(self):
         opts = []
         #if self.arch.os == 'osx': # The system curl on the CentOS 6 VM has been updated.
         opts = ['--system-curl'] 
+
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
+
         super(cmake, self).configure(
             other = opts
             )
@@ -90,8 +95,8 @@ class bzip2(Package):
         self.helper(*cmd)
 
 class pbzip2(Package):
-    src     = 'http://compression.ca/pbzip2/pbzip2-1.1.6.tar.gz'
-    chksum  = '3b4d0ffa3ac362c3702793cc5d9e61664d468aeb'
+    src     = 'https://launchpad.net/pbzip2/1.1/1.1.6/+download/pbzip2-1.1.6.tar.gz'
+    chksum  = '46cbdcf95b06e72be576d3bd12643de4aa27af5f'
     def configure(self): pass
     def compile(self):
         self.helper('sed','-ibak','-e','s# g++# %s#g' % self.env['CXX'],
@@ -371,40 +376,63 @@ class hdf5(Package):
 
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
-    src = 'https://github.com/NeoGeographyToolkit/IsisCMake.git'
-    chksum = '2eee0ec'
+    src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
+    #chksum = '3c81332195ef9bb7711daa21e640f9b050443e6f'
+    chksum = 'ce3fb97'
     patches = 'patches/isis'
 
-    # For now we are using our CMake copy of the ISIS code but this will
-    #  change some time in the future.
+    # Trying out the new official CMAKE ISIS build!
 
     #def __init__(self, env):
     #    super(isis, self).__init__(env)
-    #    self.isis_localcopy = P.join(env['DOWNLOAD_DIR'], 'rsync', self.pkgname)
-    #    # We download the source code from the OSX branch, should be same code
-    #    # as on the Linux side.
-    #    self.isis_src = "isisdist.astrogeology.usgs.gov::x86-64_darwin_OSX/isis/"
 
-    #    # Fetch the ISIS version. We will rebuild it each time
-    #    # the version changes.
-    #    cmd = ['rsync', self.isis_src +'version', '.']
-    #    self.helper(*cmd)
-    #    f = open('version','r')
-    #    self.chksum = f.readline().strip()
-    #    if self.chksum == "":
-    #        raise PackageError(self, 'Could not find the ISIS version')
+
+    @stage
+    def unpack(self):
+        '''Go from the location we cloned into to a different working directory 
+           containing the desired commit'''
+        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
+        self.workdir = P.join(output_dir, self.pkgname + '-git')
+        # If fast, update and build in existing directory
+        # (assuming it exists).
+        #   Otherwise, delete the existing build and start over.
+        if not self.fast or not os.path.isdir(output_dir):
+            self.remove_build(output_dir)
+            os.mkdir(self.workdir)
+            self.helper('git', 'clone', self.localcopy, self.workdir)
+
+        ## Checkout a specific commit
+        #if self.chksum is not None:
+        #    cmd = ('git', 'checkout', self.chksum)
+        #    self.helper(*cmd, cwd=self.workdir)
+
+        self.helper('git', 'checkout', 'cmake'  )
+        self.helper('git', 'checkout', '3c81332')
+
+        self._apply_patches()
 
     @stage
     def configure(self):
-        # Copy the version file to the install folder
-        #cmd = ['cp', P.join(self.workdir, 'version'), self.env['INSTALL_DIR']]
+       
+        ## Switch to a certain commit in the cmake branch
+        #self.helper('git', 'checkout', 'cmake'  )
+        #self.helper('git', 'checkout', '3c81332')
 
-        #curr_include = '-I' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version)
-        #self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+        # The code is stored one folder down
+        self.workdir = os.path.join(self.workdir, 'isis')
 
-        # Run the default configure process
-        
-        super(isis, self).configure(other=['-DbuildMissions=ON','-DbuildTests=OFF','-DbuildApps=OFF'])
+        ## Add extra includes that ISIS does not handle
+        #include_dir = P.join(self.env['INSTALL_DIR'], 'include')
+        #all_includes = os.listdir(include_dir)
+        #for a in all_includes:
+        #    if len(a) < 4:
+        #        continue
+        #    if a[0:2] == "Qt":
+        #        curr_include = '-I' + P.join(include_dir, a)
+        #        print(curr_include)
+        #        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+
+        super(isis, self).configure(other=['-Dpybindings=Off','-DJP2KFLAG=OFF','-DbuildTests=OFF']) #-DNinja
 
 class stereopipeline(GITPackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
@@ -542,7 +570,7 @@ class boost(Package):
             '-q', '--user-config=%s/user-config.jam' % self.workdir,
             '--prefix=%(INSTALL_DIR)s' % self.env, '--layout=versioned',
             'threading=multi', 'variant=release', 'link=shared', 'runtime-link=shared',
-            '--without-mpi', '--without-python', '--without-wave', '--without-log', 'stage',
+            '--without-mpi', '--without-python', '--without-wave',  'stage',
             '-d+2' # Show commands as they are executed
             ]
 
@@ -651,7 +679,7 @@ class gmm(Package):
 
 class xercesc(Package):
     src    = 'http://archive.apache.org/dist/xerces/c/3/sources/xerces-c-3.1.3.tar.xz'
-    chksum = 'ad0c6c93f90abbcfb692c2da246a8934ece03e95'
+    chksum = '44aa39f8b9ccbfcaf58771634761cbea1084e8f1'
 
     @stage
     def configure(self):
@@ -947,8 +975,8 @@ class suitesparse(Package):
                     )
 
 class osg3(CMakePackage):
-    src = 'www.openscenegraph.org/downloads/developer_releases/OpenSceneGraph-3.2.0.zip'
-    chksum = 'c20891862b5876983d180fc4a3d3cfb2b4a3375c'
+    src = 'https://github.com/openscenegraph/OpenSceneGraph/archive/OpenSceneGraph-3.2.0.zip'
+    chksum = '5435de08cd7f67691f6be7cfa0d36b80f04bcb34'
     patches = 'patches/osg3'
 
     def configure(self):
@@ -1131,7 +1159,7 @@ class opencv(CMakePackage):
     #src     = 'https://github.com/opencv/opencv/archive/3.3.1.tar.gz'
     #chksum  = '79dba99090a5c48308fe91db8336ec2931e06b57'
     src     = 'https://github.com/opencv/opencv/archive/3.1.0.tar.gz'
-    chksum  = '6bbe804d2b5de17cff73a5f56aa025e8b1e7f1fd'
+    chksum  = '31dd36c5d59c76f6b7982a64d6ffc0993736d7ea'
     #patches = 'patches/opencv'
 
     # NOTE: OSX 10.12 seems to require a newer version (3.3.1 works) but that does not work on CentOS 6.
@@ -1227,6 +1255,7 @@ class gflags(CMakePackage):
     src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
     chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
     def configure(self):
+
         options = ['-DCMAKE_CXX_FLAGS=-fPIC', 
                    '-DBUILD_SHARED_LIBS=ON',
                    '-DBUILD_STATIC_LIBS=OFF',
@@ -1270,3 +1299,104 @@ class xz(Package):
     src     = 'http://tukaani.org/xz/xz-5.2.2.tar.gz'
     chksum  = '14663612422ab61386673be78fbb2556f50a1f08'
 
+class bullet(CMakePackage):
+    src    = 'https://github.com/bulletphysics/bullet3/archive/2.86.1.tar.gz'
+    chksum = 'd0a4878ccc166902f0dcb822669d1a8e4ccc8642'
+
+    @stage
+    def configure(self):
+        # The include files are with the rest of the source code
+        curr_include = '-I' + self.workdir + '/src'
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+
+        self.env['MAKEOPTS'] += ''' CFLAGS="-fPIC"''' # Needed for ISIS
+        
+        # Turn off extra stuff
+        options = ['-DCMAKE_CXX_FLAGS=-fPIC',
+                   '-DBUILD_CPU_DEMOS=OFF',
+                   '-DBUILD_OPENGL3_DEMOS=OFF',
+                   '-DBUILD_BULLET2_DEMOS=OFF',
+                   '-DBUILD_EXTRAS=OFF',
+                   '-DBUILD_UNIT_TESTS=OFF']
+        super(bullet, self).configure(other=options)
+
+class embree(CMakePackage):
+    src    = 'https://github.com/embree/embree/archive/v2.15.0.tar.gz'
+    chksum = 'd9e9a7eb2ead012cf56847002551c83f488122f8'
+
+    @stage
+    def configure(self):
+
+        # The include files are with the rest of the source code
+        curr_include = '-I' + self.workdir + '/build'
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+
+        # Turn off extra stuff
+        options = ['-DEMBREE_ISPC_SUPPORT=OFF',
+                   '-DEMBREE_TUTORIALS=OFF',
+                   '-DEMBREE_TASKING_SYSTEM=INTERNAL',
+                   '-DEMBREE_MAX_ISA=AVX']
+        super(embree, self).configure(other=options)
+
+class nanoflann(GITPackage, CMakePackage):
+    src    = 'https://github.com/jlblancoc/nanoflann.git'
+    chksum = '3740943'
+
+    # A single file header only library
+
+    @stage
+    def configure(self):
+        pass
+
+    @stage
+    def compile(self):
+        pass
+
+    @stage
+    def install(self):
+        self.helper('cp', P.join(self.workdir,'include/nanoflann.hpp'), P.join(self.env['INSTALL_DIR'], 'include'))
+
+class nn(GITPackage):
+    src    = 'https://github.com/sakov/nn-c.git'
+    chksum = '343c778'
+    
+    @stage
+    def configure(self):
+        self.workdir = os.path.join(self.workdir, 'nn')
+        super(nn, self).configure()
+
+class pcl(CMakePackage):
+    src    = 'https://github.com/PointCloudLibrary/pcl/archive/pcl-1.8.1.tar.gz'
+    chksum = '6813478c27566da3eb5835b384524fd775115465'
+    
+    @stage
+    def configure(self):
+
+        include_dir = P.join(self.env['INSTALL_DIR'],'include')
+
+        # Include folder are spread out amoung folders at the top level =(
+        folders = ['2d', 'kdtree', 'registration', 'surface',
+                   'features', 'keypoints', 'sample_consensus',
+                   'common', 'filters', 'search',
+                   'geometry', 'ml', 'people', 'segmentation', 'tracking',
+                    'cuda', 'gpu', 'octree', 'simulation', 'visualization',
+                    'io', 'outofcore', 'recognition', 'stereo', 'build']
+        for f in folders:
+            curr_include = '-I' + P.join(self.workdir,f,'include')
+            self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+
+        # Not being included for some reason
+        curr_include = '-I' + P.join(include_dir, 'eigen3')
+        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
+        boost_dir = P.join(include_dir,'boost-'+boost.version)
+        self.env['CXXFLAGS'] += ' -I' + boost_dir
+
+        # Turn off extra stuff
+        options = ['-DBUILD_global_tests=OFF',
+                   '-DBUILD_visualization=OFF',
+                   '-DBOOST_ROOT='+P.join(self.env['INSTALL_DIR']),
+                   '-DBoost_INCLUDE_DIR='+P.join(include_dir, 'boost-'+boost.version),
+                   '-DBoost_LIBRARY_DIRS='+P.join(self.env['INSTALL_DIR'],'lib')]
+        super(pcl, self).configure(other=options)
+    
+    

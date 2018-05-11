@@ -321,6 +321,8 @@ class Package(object):
             self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(ISIS3RDPARTY)s' % self.env
         if P.isdir(self.env['INSTALL_DIR']+'/lib'):
             self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(INSTALL_DIR)s/lib' % self.env
+        if P.isdir(self.env['INSTALL_DIR']+'/lib64'):
+            self.env['LDFLAGS'] = self.env.get('LDFLAGS', '') + ' -L%(INSTALL_DIR)s/lib64' % self.env
 
         # Remove repeated entries in CPPFLAGS, CXXFLAGS, LDFLAGS
         self.env['CPPFLAGS'] = unique_compiler_flags(self.env['CPPFLAGS'])
@@ -405,14 +407,10 @@ class Package(object):
 
         # Prepend the work dir to the include/link dirs, to ensure the newest
         # version of any software is used. This is a bugfix.
-        self.env['CPPFLAGS'] = '-I' + self.workdir + '/include ' \
-                               + self.env['CPPFLAGS']
-        self.env['CXXFLAGS'] = '-I' + self.workdir + '/include ' \
-                               + self.env['CXXFLAGS']
-        self.env['CFLAGS'] = '-I' + self.workdir + '/include ' \
-                               + self.env['CFLAGS']
-        self.env['LDFLAGS'] = '-L' + self.workdir + '/lib ' \
-                               + self.env['LDFLAGS']
+        self.env['CPPFLAGS'] = '-I' + self.workdir + '/include ' + self.env['CPPFLAGS']
+        self.env['CXXFLAGS'] = '-I' + self.workdir + '/include ' + self.env['CXXFLAGS']
+        self.env['CFLAGS'  ] = '-I' + self.workdir + '/include ' + self.env['CFLAGS']
+        self.env['LDFLAGS' ] = '-L' + self.workdir + '/lib ' + self.workdir + '/lib64 '  + self.env['LDFLAGS']
     @stage
     def configure(self, other=(), with_=(), without=(), enable=(), disable=(), configure='./configure'):
         '''After configure, the source code should be ready to build.'''
@@ -711,10 +709,11 @@ class CMakePackage(Package):
 
         # Build up the main cmake command using our environment variables
         cmd = ['cmake']
+        cmd = ['/home/smcmich1/repo/asp_update_build/BinaryBuilder/build_asp/install/bin/cmake']
         args = [
             '-DCMAKE_INSTALL_PREFIX=%(INSTALL_DIR)s' % self.env,
-            '-DCMAKE_BUILD_TYPE=MyBuild',
-            '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
+        #    '-DCMAKE_BUILD_TYPE=MyBuild',
+        #    '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
             '-DCMAKE_SKIP_RPATH=YES',
             '-DCMAKE_INSTALL_DO_STRIP=OFF',
         ]
@@ -885,13 +884,14 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
     base         = '$BASE'
     includedir   = P.join(base, 'include')
     libdir       = P.join(base, 'lib')
+    lib64dir     = P.join(base, 'lib64')
     bindir       = P.join(base, 'bin')
 
     # To do: Test removing -O3 and -g, as well as use_env_flags
     cflags   = ['-O3', '-g', '-fPIC']
     cxxflags = ['-O3', '-g', '-fPIC']
     cppflags = ['-I' + includedir]
-    ldflags  = ['-L' + libdir, '-Wl,-rpath', '-Wl,' + base]
+    ldflags  = ['-L' + libdir, '-L' + lib64dir, '-Wl,-rpath', '-Wl,' + base]
 
     with file(config_file, 'w') as config:
 
@@ -954,8 +954,9 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
         print('', file=config) # newline
 
         # Add include directories for some modules that put their includes in a sub-folder.
-        cppflags.extend(["-I%s/eigen3" % includedir])
-        cppflags.extend(["-I%s/isis3"  % includedir])
+        cppflags.extend(["-I%s/eigen3"  % includedir])
+        cppflags.extend(["-I%s/pcl-1.8" % includedir])
+        cppflags.extend(["-I%s/isis3"   % includedir])
 
         if not use_env_flags:
             print('CFLAGS="'   + ' '.join(cflags)   + '"', file=config)

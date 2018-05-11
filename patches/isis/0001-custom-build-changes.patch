@@ -1,431 +1,555 @@
-diff -ruN IsisCMake/CMakeLists.txt isis-git/CMakeLists.txt
---- IsisCMake/CMakeLists.txt	2017-04-12 17:01:28.000000000 -0700
-+++ isis-git/CMakeLists.txt	2017-04-11 22:30:42.000000000 -0700
-@@ -5,7 +5,7 @@
+diff -ruN isis-git/isis/cmake/AddIsisModule.cmake new_isis/isis/cmake/AddIsisModule.cmake
+--- isis-git/isis/cmake/AddIsisModule.cmake	2018-05-09 21:16:47.294976581 -0700
++++ new_isis/isis/cmake/AddIsisModule.cmake	2018-05-09 18:22:47.402182040 -0700
+@@ -277,9 +277,9 @@
+   endif()
  
- # Specify the required version of CMake.  If your machine does not
- #  have this, it should be easy to build from https://cmake.org/download/
--cmake_minimum_required(VERSION 3.3)
-+cmake_minimum_required(VERSION 3.2)
+   # Process the apps (core library always required)
+-  foreach(f ${appFolders})
+-    add_isis_app(${f} "${reqLibs}")
+-  endforeach()
++  #foreach(f ${appFolders})
++  #  add_isis_app(${f} "${reqLibs}")
++  #endforeach()
  
- # Point cmake to our other CMake files.
- list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-@@ -68,6 +68,7 @@
- option(buildCore       "Build the core ISIS modules"        ON)
- option(buildMissions   "Build the mission specific modules" ON)
- option(buildStaticCore "Build libisis3 static as well as dynamic" OFF)
-+option(buildApps       "Build applications." ON)
- option(buildTests      "Set up unit, application, and module tests." ON)
+   if(${buildTests})
+     # Process the tests
+diff -ruN isis-git/isis/cmake/FindBoost.cmake new_isis/isis/cmake/FindBoost.cmake
+--- isis-git/isis/cmake/FindBoost.cmake	2018-05-09 21:16:47.295976636 -0700
++++ new_isis/isis/cmake/FindBoost.cmake	2018-05-09 18:22:47.402182040 -0700
+@@ -12,127 +12,127 @@
+ get_filename_component(BOOST_ROOT_INCLUDE_DIR "${BOOST_INCLUDE_DIR}" DIRECTORY)
  
- if(EXISTS ${isis3Data})
-@@ -148,7 +149,7 @@
+ find_library(BOOST_ATOMIC_MT_LIBRARY
+-  NAMES boost_atomic-mt boost_atomic
++  NAMES boost_atomic-mt-1_59 boost_atomic
+ )
+ 
+ find_library(BOOST_LOG_MT_LIBRARY
+-  NAMES boost_log-mt boost_log
++  NAMES boost_log-mt-1_59 boost_log
+ )
+ 
+ find_library(BOOST_REGEX_MT_LIBRARY
+-  NAMES boost_regex-mt boost_regex
++  NAMES boost_regex-mt-1_59 boost_regex
+ )
+ 
+ find_library(BOOST_LOG_SETUP_MT_LIBRARY
+-  NAMES boost_log_setup-mt boost_log_setup
++  NAMES boost_log_setup-mt-1_59 boost_log_setup
+ )
+ 
+ find_library(BOOST_SERIALIZATION_MT_LIBRARY
+-  NAMES boost_serialization-mt boost_serialization
++  NAMES boost_serialization-mt-1_59 boost_serialization
+ )
+ 
+ find_library(BOOST_CHRONO_MT_LIBRARY
+-  NAMES boost_chrono-mt boost_chrono
++  NAMES boost_chrono-mt-1_59 boost_chrono
+ )
+ 
+ find_library(BOOST_MATH_C99_MT_LIBRARY
+-  NAMES boost_math_c99-mt boost_math_c99
++  NAMES boost_math_c99-mt-1_59 boost_math_c99
+ )
+ 
+ find_library(BOOST_SIGNALS_MT_LIBRARY
+-  NAMES boost_signals-mt boost_signals
++  NAMES boost_signals-mt-1_59 boost_signals
+ )
+ 
+ find_library(BOOST_CONTAINER_MT_LIBRARY
+-  NAMES boost_container-mt boost_container
++  NAMES boost_container-mt-1_59 boost_container
+ )
+ 
+ find_library(BOOST_MATH_C99F_MT_LIBRARY
+-  NAMES boost_math_c99f-mt boost_math_c99f
++  NAMES boost_math_c99f-mt-1_59 boost_math_c99f
+ )
+ 
+ find_library(BOOST_CONTEXT_MT_LIBRARY
+-  NAMES boost_context-mt boost_context
++  NAMES boost_context-mt-1_59 boost_context
+ )
+ 
+ find_library(BOOST_MATH_C99L_MT_LIBRARY
+-  NAMES boost_math_c99l-mt boost_math_c99l
++  NAMES boost_math_c99l-mt-1_59 boost_math_c99l
+ )
+ 
+ find_library(BOOST_SYSTEM_MT_LIBRARY
+-  NAMES boost_system-mt boost_system
++  NAMES boost_system-mt-1_59 boost_system
+ )
+ 
+ find_library(BOOST_COROUTINE_MT_LIBRARY
+-  NAMES boost_coroutine-mt boost_coroutine
++  NAMES boost_coroutine-mt-1_59 boost_coroutine
+ )
+ 
+ find_library(BOOST_MATH_TR1_MT_LIBRARY
+-  NAMES boost_math_tr1-mt boost_math_tr1
++  NAMES boost_math_tr1-mt-1_59 boost_math_tr1
+ )
+ 
+ find_library(BOOST_MATH_TR1F_MT_LIBRARY
+-  NAMES boost_math_tr1f-mt boost_math_tr1f
++  NAMES boost_math_tr1f-mt-1_59 boost_math_tr1f
+ )
+ 
+ find_library(BOOST_MATH_TR1L_MT_LIBRARY
+-  NAMES boost_math_tr1l-mt boost_math_tr1l
++  NAMES boost_math_tr1l-mt-1_59 boost_math_tr1l
+ )
+ 
+ find_library(BOOST_TEST_EXEC_MONITOR_MT_LIBRARY
+-  NAMES boost_test_exec_monitor-mt boost_test_exec_monitor
++  NAMES boost_test_exec_monitor-mt-1_59 boost_test_exec_monitor
+ )
+ 
+ find_library(BOOST_DATE_TIME_MT_LIBRARY
+-  NAMES boost_date_time-mt boost_date_time
++  NAMES boost_date_time-mt-1_59 boost_date_time
+ )
+ 
+ find_library(BOOST_THREAD_MT_LIBRARY
+-  NAMES boost_thread-mt boost_thread
++  NAMES boost_thread-mt-1_59 boost_thread
+ )
+ 
+ find_library(BOOST_EXCEPTION_MT_LIBRARY
+-  NAMES boost_exception-mt boost_exception
++  NAMES boost_exception-mt-1_59 boost_exception
+ )
+ 
+ find_library(BOOST_TIMER_MT_LIBRARY
+-  NAMES boost_timer-mt boost_timer
++  NAMES boost_timer-mt-1_59 boost_timer
+ )
+ 
+ find_library(BOOST_FILESYSTEM_MT_LIBRARY
+-  NAMES boost_filesystem-mt boost_filesystem
++  NAMES boost_filesystem-mt-1_59 boost_filesystem
+ )
+ 
+ find_library(BOOST_PRG_EXEC_MONITOR_MT_LIBRARY
+-  NAMES boost_prg_exec_monitor-mt boost_prg_exec_monitor
++  NAMES boost_prg_exec_monitor-mt-1_59 boost_prg_exec_monitor
+ )
+ 
+ find_library(BOOST_PROGRAM_OPTIONS_MT_LIBRARY
+-  NAMES boost_program_options-mt boost_program_options
++  NAMES boost_program_options-mt-1_59 boost_program_options
+ )
+ 
+ find_library(BOOST_UNIT_TEST_FRAMEWORK_MT_LIBRARY
+-  NAMES boost_unit_test_framework-mt boost_unit_test_framework
++  NAMES boost_unit_test_framework-mt-1_59 boost_unit_test_framework
+ )
+ 
+ find_library(BOOST_IOSTREAMS_MT_LIBRARY
+-  NAMES boost_iostreams-mt boost_iostreams
++  NAMES boost_iostreams-mt-1_59 boost_iostreams
+ )
+ 
+ #message("BOOST_IOSTREAMS_MT_LIBRARY = ${BOOST_IOSTREAMS_MT_LIBRARY}")
+ #tjw:  Not sure if needed...commenting out because library is missing
+ #find_library(BOOST_PYTHON_MT_LIBRARY
+-#  NAMES boost_python-mt boost_python
++#  NAMES boost_python-mt-1_59 boost_python
+ #)
+ 
+-find_library(BOOST_WAVE_MT_LIBRARY
+-  NAMES boost_wave-mt boost_wave
+-)
++#find_library(BOOST_WAVE_MT_LIBRARY
++#  NAMES boost_wave-mt-1_59 boost_wave
++#)
+ 
+ find_library(BOOST_RANDOM_MT_LIBRARY
+-  NAMES boost_random-mt boost_random
++  NAMES boost_random-mt-1_59 boost_random
+ )
+ 
+ find_library(BOOST_WSERIALIZATION_MT_LIBRARY
+-  NAMES boost_wserialization-mt boost_wserialization
++  NAMES boost_wserialization-mt-1_59 boost_wserialization
+ )
+diff -ruN isis-git/isis/cmake/Utilities.cmake new_isis/isis/cmake/Utilities.cmake
+--- isis-git/isis/cmake/Utilities.cmake	2018-05-09 21:16:47.297976747 -0700
++++ new_isis/isis/cmake/Utilities.cmake	2018-05-09 21:11:06.746061032 -0700
+@@ -257,6 +257,18 @@
+                                              ${CMAKE_INSTALL_PREFIX}/lib/lib${name}.a)")
+   endif()
+ 
++  # Set all the header files to be installed to the include directory
++  foreach(f ${sourceFiles})
++    get_filename_component(extension ${f} EXT)
++    string( TOLOWER "${extension}" extensionLower )
++    # Compare this file extension to list of accepted header file extensions
++    if( extensionLower STREQUAL ".h" OR extensionLower STREQUAL ".hpp" OR extensionLower STREQUAL ".tcc")
++      set(fullPath "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
++      INSTALL(FILES ${f} DESTINATION include)
++    endif()
++  endforeach(f)
++
++
+ endfunction()
+ 
+ function(get_version libFile returnVar)
+diff -ruN isis-git/isis/CMakeLists.txt new_isis/isis/CMakeLists.txt
+--- isis-git/isis/CMakeLists.txt	2018-05-09 21:16:47.833006471 -0700
++++ new_isis/isis/CMakeLists.txt	2018-05-09 20:54:20.168154279 -0700
+@@ -53,6 +53,7 @@
+ #===============================================================================
+ # Configuration options
+ 
++
+ # All libraries are build as shared.  The main library is also built
+ #  as a static library using some specialized code in Utilities.cmake.
+ set(BUILD_SHARED_LIBS ON)
+@@ -149,11 +150,14 @@
+  enable_testing()
+  include(CTest)
+ 
++add_compile_options(-std=c++11)
++
++
+ # Specify flags used
+ # on linux, add the conda prefix to handle possible issues with rpaths at link time
+ # sometimes third parties do not set their rpaths correctly
+ set(thirdPartyCppFlags -Wall
+-                       -std=c++11
++#                       -std=c++11
+                        -fPIC
+                        -DISIS_LITTLE_ENDIAN=1
+                        -fPIC -Wno-unused-parameter
+@@ -168,24 +172,41 @@
+ 
+ 
+ # Flag to fix numeric literals problem with boost on linux
+-if(NOT APPLE)
+-  set(thirdPartyCppFlags ${thirdPartyCppFlags} -fext-numeric-literals
+-                                               -Wl,-rpath,$ENV{CONDA_PREFIX}/lib)
+-endif()
++#if(NOT APPLE)
++#  set(thirdPartyCppFlags ${thirdPartyCppFlags} -fext-numeric-literals
++#                                               -Wl,-rpath,$ENV{CONDA_PREFIX}/lib)
++#endif()
+ 
+  # Append CPP flags set in the third party lib file to the string set in this file.
+  string(REPLACE ";" " " FLAGS_STR "${thirdPartyCppFlags}")
+  set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${FLAGS_STR}" )
+ 
+ 
++set(thirdPartyDir "${CMAKE_SOURCE_DIR}/../../../../install")
++
++set(INCLUDE_DIR "${thirdPartyDir}/include")
++set(LIB_DIR     "${thirdPartyDir}/lib")
++set(PLUGIN_DIR  "${thirdPartyDir}/plugins")
++set(BIN_DIR     "${thirdPartyDir}/bin")
++
++
+ # Paths to required executables
+-find_program(XALAN Xalan REQUIRED)
++#find_program(XALAN Xalan REQUIRED)
+ find_program(LATEX latex)
+ find_program(DOXYGEN NAME doxygen PATH_SUFFIXES doxygen REQUIRED)
+-find_program(UIC uic REQUIRED)
+-find_program(MOC moc REQUIRED)
+-find_program(RCC rcc REQUIRED)
+-find_program(PROTOC protoc REQUIRED)
++#find_program(UIC uic REQUIRED)
++#find_program(MOC moc REQUIRED)
++#find_program(RCC rcc REQUIRED)
++#find_program(PROTOC protoc REQUIRED)
++
++# Binary paths
++set(UIC    "${BIN_DIR}/uic")
++set(MOC    "${BIN_DIR}/moc")
++set(RCC    "${BIN_DIR}/rcc")
++set(PROTOC "${BIN_DIR}/protoc")
++set(XALAN  "${BIN_DIR}/Xalan")
++
++set(SO ".so") # Set earlier
+ 
+ find_package(Qt5 COMPONENTS
+                 Core
+@@ -203,40 +224,181 @@
+                 Sql
+                 Svg
+                 Test
+-                WebChannel
++#                WebChannel
+                 Widgets
+                 Xml
+                 XmlPatterns REQUIRED)
+ 
++# TODO: Can probably turn some of these back on when BB issue is fixed!
++
+ # Some of these will have non-traditional installs with version numbers in the paths in v007
+ # For these, we pass in a version number, and use it in the path suffix
+ # This only applies to v007, and outside of the building, we should only expect standard installs
+ # The v007-specific installs are listed beside their find_package calls below:
+-find_package(Boost     1.59.0  REQUIRED)
++#find_package(Boost     1.59.0  REQUIRED)
+ find_package(Bullet    2.86    REQUIRED)
+-find_package(Cholmod   4.4.5   REQUIRED)
+-find_package(CSPICE    65      REQUIRED)
+-find_package(Eigen             REQUIRED)
++#find_package(Cholmod   4.4.5   REQUIRED)
++#find_package(CSPICE    65      REQUIRED)
++#find_package(Eigen             REQUIRED)
+ find_package(Embree    2.15.0  REQUIRED)
+-find_package(GeoTIFF   2       REQUIRED)
++#find_package(GeoTIFF   2       REQUIRED)
+ find_package(GMM       5.0     REQUIRED)
+-find_package(GSL       19      REQUIRED)
+-find_package(HDF5      1.8.15  REQUIRED)
++#find_package(GSL       19      REQUIRED)
++#find_package(HDF5      1.8.15  REQUIRED)
+ find_package(Jama      125     REQUIRED)
+-find_package(NN                REQUIRED)
+-find_package(OpenCV    3.1.0   REQUIRED)
++#find_package(NN                REQUIRED)
++#find_package(OpenCV    3.1.0   REQUIRED)
+ find_package(PCL       1.8     REQUIRED)
+-find_package(Protobuf  2.6.1   REQUIRED)
+-find_package(Qwt       6       REQUIRED)
+-find_package(SuperLU   4.3     REQUIRED)
+-find_package(TIFF      4.0.5   REQUIRED)
++#find_package(Protobuf  2.6.1   REQUIRED)
++#find_package(Qwt       6       REQUIRED)
++#find_package(SuperLU   4.3     REQUIRED)
++#find_package(TIFF      4.0.5   REQUIRED)
+ find_package(TNT       126     REQUIRED)
+-find_package(XercesC   3.1.2   REQUIRED)
++#find_package(XercesC   3.1.2   REQUIRED)
+ find_package(X11       6       REQUIRED)
+ find_package(nanoflann         REQUIRED)
+-find_package(PNG               REQUIRED)
+-find_package(Kakadu)
+-find_package(Geos    3.5.0   REQUIRED)
++#find_package(PNG               REQUIRED)
++#find_package(Kakadu)
++#find_package(Geos    3.5.0   REQUIRED)
++
++set(BOOST_INCLUDE_DIR ${INCLUDE_DIR}/boost  ${INCLUDE_DIR}/boost/boost1.59.0 ${INCLUDE_DIR}/boost-1_59)
++
++set(BOOST_LIB ${LIB_DIR}/libboost_atomic-mt-1_59.so
++	${LIB_DIR}/libboost_chrono-mt-1_59.so
++	${LIB_DIR}/libboost_container-mt-1_59.so
++	${LIB_DIR}/libboost_context-mt-1_59.so
++	${LIB_DIR}/libboost_coroutine-mt-1_59.so
++	${LIB_DIR}/libboost_date_time-mt-1_59.so
++	${LIB_DIR}/libboost_exception-mt-1_59.a
++	${LIB_DIR}/libboost_filesystem-mt-1_59.so
++	${LIB_DIR}/libboost_iostreams-mt-1_59.so
++	${LIB_DIR}/libboost_log-mt-1_59.so
++	${LIB_DIR}/libboost_log_setup-mt-1_59.so
++	${LIB_DIR}/libboost_math_c99f-mt-1_59.so
++	${LIB_DIR}/libboost_math_c99l-mt-1_59.so
++	${LIB_DIR}/libboost_math_c99-mt-1_59.so
++	${LIB_DIR}/libboost_math_tr1f-mt-1_59.so
++	${LIB_DIR}/libboost_math_tr1l-mt-1_59.so
++	${LIB_DIR}/libboost_math_tr1-mt-1_59.so
++	${LIB_DIR}/libboost_prg_exec_monitor-mt-1_59.so
++	${LIB_DIR}/libboost_program_options-mt-1_59.so
++	${LIB_DIR}/libboost_random-mt-1_59.so
++	${LIB_DIR}/libboost_regex-mt-1_59.so
++	${LIB_DIR}/libboost_serialization-mt-1_59.so
++	${LIB_DIR}/libboost_signals-mt-1_59.so
++	${LIB_DIR}/libboost_system-mt-1_59.so
++	${LIB_DIR}/libboost_test_exec_monitor-mt-1_59.a
++	${LIB_DIR}/libboost_thread-mt-1_59.so
++	${LIB_DIR}/libboost_timer-mt-1_59.so
++	${LIB_DIR}/libboost_unit_test_framework-mt-1_59.so
++	${LIB_DIR}/libboost_wserialization-mt-1_59.so)
++
++#set(GSL_LIB    ${LIB_DIR}/libgsl.la ${LIB_DIR}/libgslcblas.la)
++set(GSL_DYNAMIC_LIB ${LIB_DIR}/libgsl${SO} ${LIB_DIR}/libgslcblas${SO})
++
++set(GEOTIFF_INCLUDE_DIR "${INCLUDE_DIR}/geotiff")
++#set(GEOTIFF_LIB    "${LIB_DIR}/libgeotiff.a")
++set(GEOTIFF_DYNAMIC_LIB ${LIB_DIR}/libgeotiff${SO})
++
++set(HDF5_INCLUDE_DIR "${INCLUDE_DIR}/hdf5")
++#set(HDF5_LIB    ${LIB_DIR}/libhdf5.la ${LIB_DIR}/libhdf5_hl.la ${LIB_DIR}/libhdf5_cpp.la ${LIB_DIR}/libhdf5_hl_cpp.la)
++set(HDF5_DYNAMIC_LIB ${LIB_DIR}/libhdf5${SO} ${LIB_DIR}/libhdf5_hl${SO} ${LIB_DIR}/libhdf5_cpp${SO}
++${LIB_DIR}/libhdf5_hl_cpp${SO})
++
++set(PROTOBUF_INCLUDE_DIR ${INCLUDE_DIR}/google/ ${INCLUDE_DIR}/google-protobuf/protobuf2.6.1)
++#set(PROTOBUF_LIB    "${LIB_DIR}/libprotobuf.la")
++set(PROTOBUF_DYNAMIC_LIB ${LIB_DIR}/libprotobuf${SO})
++
++#set(QWT_LIB    "${LIB_DIR}/libqwt.a")
++set(QWT_DYNAMIC_LIB ${LIB_DIR}/libqwt.so)#     ${LIB_DIR}/libqwt.so.6
++#                    ${LIB_DIR}/libqwt.so.6.1 ${LIB_DIR}/libqwt.so.6.1.2)
++
++set(TIFF_INCLUDE_DIR "${INCLUDE_DIR}/tiff/tiff-4.0.5")
++#set(TIFF_LIB    "${LIB_DIR}/libtiff.la")
++set(TIFF_DYNAMIC_LIB ${LIB_DIR}/libtiff${SO})
++
++set(XERCES_INCLUDE_DIR ${INCLUDE_DIR}/xercesc ${INCLUDE_DIR}/xercesc/xercesc-3.1.2)
++#set(XERCES_LIB    "${LIB_DIR}/libxerces-c.la")
++if(APPLE)
++  set(XERCES_DYNAMIC_LIB ${LIB_DIR}/libxerces-c*.dylib)
++else()
++  set(XERCES_DYNAMIC_LIB ${LIB_DIR}/libxerces-c.so)
++endif()
++
++set(PNG_LIB "${LIB_DIR}/libpng${SO}")
++
++set(GEOS_INCLUDE_DIR ${INCLUDE_DIR}/geos ${INCLUDE_DIR}/geos/geos3.5.0)
++#set(GEOS_LIB    ${LIB_DIR}/libgeos.la ${LIB_DIR}/libgeos_c.la)
++if(APPLE)
++  set(GEOS_DYNAMIC_LIB ${LIB_DIR}/libgeos*.dylib ${LIB_DIR}/libgeos_c*.dylib)
++else() # Linux
++  set(GEOS_DYNAMIC_LIB ${LIB_DIR}/libgeos.so ${LIB_DIR}/libgeos_c.so)
++endif()
++
++set(OPENCV_LIB     ${LIB_DIR}/libopencv_calib3d${SO}    ${LIB_DIR}/libopencv_core${SO}
++                   ${LIB_DIR}/libopencv_features2d${SO} ${LIB_DIR}/libopencv_xfeatures2d${SO}
++                   ${LIB_DIR}/libopencv_flann${SO}      ${LIB_DIR}/libopencv_highgui${SO}
++                   ${LIB_DIR}/libopencv_imgproc${SO}    ${LIB_DIR}/libopencv_imgcodecs${SO}
++                   ${LIB_DIR}/libopencv_ml${SO}         ${LIB_DIR}/libopencv_objdetect${SO}
++                   ${LIB_DIR}/libopencv_photo${SO}      ${LIB_DIR}/libopencv_stitching${SO}
++                   ${LIB_DIR}/libopencv_superres${SO}   ${LIB_DIR}/libopencv_video${SO})
++#if(APPLE)
++#  set(OPENCV_DYNAMIC_LIB ${LIB_DIR}/libopencv_*.dylib ${LIB_DIR}/libavcodec${SO} 
++#                          ${LIB_DIR}/libavformat${SO} ${LIB_DIR}/libavutil${SO})
++#else()
++#  set(OPENCV_DYNAMIC_LIB ${LIB_DIR}/libopencv_*.so* ${LIB_DIR}/libavcodec${SO} 
++#                          ${LIB_DIR}/libavformat${SO} ${LIB_DIR}/libavutil${SO})
++#endif()
++
++set(EIGEN_INCLUDE_DIR "${INCLUDE_DIR}/eigen3")
++
++
++set(CHOLMOD_INCLUDE_DIR
++"${INCLUDE_DIR}/SuiteSparse;${INCLUDE_DIR}/SuiteSparse/SuiteSparse4.4.5/SuiteSparse")
++set(CHOLMOD_LIB    ${LIB_DIR}/libcholmod.a ${LIB_DIR}/libamd.a ${LIB_DIR}/libcamd.a
++${LIB_DIR}/libccolamd.a ${LIB_DIR}/libcolamd.a ${LIB_DIR}/libsuitesparseconfig.a)
++set(CHOLMOD_DYNAMIC_LIB ${LIB_DIR}/libcolamd${end}
++${LIB_DIR}/libccolamd${end} 
++                         ${LIB_DIR}/libamd${end}     ${LIB_DIR}/libcamd${end} 
++                         ${LIB_DIR}/libcholmod${end}
++${LIB_DIR}/libsuitesparseconfig${end})
++if(NOT APPLE)
++  set(CHOLMOD_DYNAMIC_LIB ${CHOLMOD_DYNAMIC_LIBS} ${LIB_DIR}/liblapack.so)
++  #set(CHOLMOD_LIB ${CHOLMODLIB} ${LIB_DIR}/lapack.a)
++endif()
++
++
++
++set(NAIF_INCLUDE_DIR "${INCLUDE_DIR}/naif")
++if(APPLE)
++  #set(NAIF_LIB    "${LIB_DIR}/libcspice.a")
++  set(NAIF_DYNAMIC_LIB ${LIB_DIR}/libcspice${SO})
++else()
++  #set(NAIF_LIB    "${LIB_DIR}/libcspice.a")
++  set(NAIF_DYNAMIC_LIB ${LIB_DIR}/libcspice${SO})
++endif()
++
++
++set(SUPERLU_INCLUDE_DIR ${INCLUDE_DIR}/superlu
++${INCLUDE_DIR}/superlu/superlu4.3)
++if(APPLE)
++  set(SUPERLU_LIB    ${LIB_DIR}/libsuperlu.a ${LIB_DIR}/libblas.a)
++  set(SUPERLU_DYNAMIC_LIB ${LIB_DIR}/libsuperlu.dylib
++${LIB_DIR}/libsuperlu_*.dylib)
++else() # TODO: Get all the dynamic libs!
++#  set(SUPERLU_LIB    ${LIB_DIR}/libsuperlu.la  libgfortran.la)
++  set(SUPERLU_DYNAMIC_LIB ${LIB_DIR}/libsuperlu.so ${LIB_DIR}/libblas.so libgfortran.so)
++endif()
++
++
++
++set(NNINCDIR "${INCLUDE_DIR}/nn")
++set(NNLIB    "${LIB_DIR}/libnn.a")
++
++
++
++
++
+ 
+ # Im this case, we specify the version numbers being searched for in the non-traditional installs.
+ if(APPLE)
+@@ -257,10 +419,15 @@
+ 
+ # Get all include dir variables
+ foreach (_variableName ${_variableNames})
+-#message("VAR=${_variableName}")
++   #message("VAR=${_variableName}")
+    if (_variableName MATCHES ".+_INCLUDE_DIR$")
++     #message("KEPT")
++     list(APPEND ALLINCDIRS "${${_variableName}}")
++   elseif (_variableName MATCHES ".+_INCLUDE_DIRS$")
++     #message("KEPT")
+      list(APPEND ALLINCDIRS "${${_variableName}}")
+    elseif (_variableName MATCHES ".+_INCLUDE_PATH$")
++     #message("KEPT")
+      list(APPEND ALLINCDIRS "${${_variableName}}")
+    endif(_variableName MATCHES ".+_INCLUDE_DIR$")
+ endforeach()
+@@ -270,12 +437,15 @@
+    get_filename_component(LIBDIR "${${_variableName}}" DIRECTORY)
+    if (_variableName MATCHES "^CMAKE+")
+    elseif (_variableName MATCHES ".+_LIB$")
++     message("LIB= ${_variableName} --> ${${_variableName}}")
+      list(APPEND ALLLIBDIRS "${LIBDIR}")
+      list(APPEND ALLLIBS "${${_variableName}}")
+    elseif (_variableName MATCHES ".+_LIBRARY$")
++     message("LIB= ${_variableName} --> ${${_variableName}}")
+      list(APPEND ALLLIBDIRS "${LIBDIR}")
+      list(APPEND ALLLIBS "${${_variableName}}")
+    elseif (_variableName MATCHES ".+_LIBRARIES$")
++     message("LIB= ${_variableName} --> ${${_variableName}}")
+      list(APPEND ALLLIBDIRS "${LIBDIR}")
+      list(APPEND ALLLIBS "${${_variableName}}")
+    endif()
+@@ -357,7 +527,7 @@
+ 
+ # add isis headers
+ file(GLOB ISIS_HEADERS ${CMAKE_SOURCE_DIR}/src/*/objs/*/*.h
+-${CMAKE_SOURCE_DIR}/src/*/objs/*/*.hpp)
++                       ${CMAKE_SOURCE_DIR}/src/*/objs/*/*.hpp)
+ file(COPY ${ISIS_HEADERS} DESTINATION ${CMAKE_BINARY_DIR}/inc)
+ 
+ include_directories(${CMAKE_BINARY_DIR}/inc)
+@@ -376,8 +546,8 @@
+ install(CODE "EXECUTE_PROCESS(COMMAND rm -f ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5.0${SO})")
+ install(CODE "EXECUTE_PROCESS(COMMAND rm -f ${CMAKE_INSTALL_PREFIX}/lib/libisis3.5${SO})")
+ install(CODE "EXECUTE_PROCESS(COMMAND rm -f ${CMAKE_INSTALL_PREFIX}/lib/libisis3.${SO})")
+-EXECUTE_PROCESS(COMMAND cp -f ${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences ${CMAKE_BINARY_DIR}/)
+-install(CODE "EXECUTE_PROCESS(COMMAND cp -f ${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences ${CMAKE_INSTALL_PREFIX}/)")
++#EXECUTE_PROCESS(COMMAND cp -f ${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences ${CMAKE_BINARY_DIR}/)
++#install(CODE "EXECUTE_PROCESS(COMMAND cp -f ${CMAKE_SOURCE_DIR}/src/base/objs/Preference/TestPreferences ${CMAKE_INSTALL_PREFIX}/)")
+ install(CODE "EXECUTE_PROCESS(COMMAND cp -f ${CMAKE_SOURCE_DIR}/IsisPreferences ${CMAKE_INSTALL_PREFIX}/)")
+ 
+ # Delete any existing plugin files in the build folder so they
+@@ -388,7 +558,7 @@
  endif()
  
  # Add a config file to the install bin directory so that QT can find the plugin libraries.
 -file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../3rdParty/plugins/\n")
 +file(WRITE "${CMAKE_BINARY_DIR}/qt.conf" "[Paths]\nPlugins=../lib/plugins/\n")
- install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)
+ install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/xml)
  
- # Some tests rely on a hardcoded path to $ISISROOT/bin, so set up a 
-@@ -172,7 +173,7 @@
- add_subdirectory(src)
+ #Create the inc directory
+@@ -404,6 +574,12 @@
+ # Set up install of the make folder.
+ install(DIRECTORY ${CMAKE_SOURCE_DIR}/make DESTINATION ${CMAKE_INSTALL_PREFIX})
  
- # Set up third party libraries for installation
--install_third_party()
-+#install_third_party()
- 
- # Some tests rely on a hardcoded path to $ISISROOT/lib, so set up a 
- #  link to make that work.
-Binary files IsisCMake/cmake/.FindAllDependencies.cmake.swp and isis-git/cmake/.FindAllDependencies.cmake.swp differ
-diff -ruN IsisCMake/cmake/AddIsisModule.cmake isis-git/cmake/AddIsisModule.cmake
---- IsisCMake/cmake/AddIsisModule.cmake	2017-04-12 17:01:28.000000000 -0700
-+++ isis-git/cmake/AddIsisModule.cmake	2017-04-11 23:00:09.000000000 -0700
-@@ -151,7 +151,7 @@
-   # Always pass the test and truth files to the caller
-   set(newTestFiles   ${thisTestFiles}   PARENT_SCOPE)
-   set(newTruthFiles  ${thisTruthFiles}  PARENT_SCOPE)
--  
++get_property(dirs DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY
++INCLUDE_DIRECTORIES)
++foreach(dir ${dirs})
++  message(STATUS "dir='${dir}'")
++endforeach()
 +
-   list(LENGTH plugins numPlugins)
-   if(${numPlugins} EQUAL 0)
-     # No plugins, pass the source files back to the caller to add to the larger library.
-@@ -273,10 +273,12 @@
-     
-   endif()
-  
--  # Process the apps (core library always required)
--  foreach(f ${appFolders})
--    add_isis_app(${f} "${reqLibs}")
--  endforeach()
-+  if(${buildApps})
-+    # Process the apps (core library always required)
-+    foreach(f ${appFolders})
-+      add_isis_app(${f} "${reqLibs}")
-+    endforeach()
-+  endif()
+ # Have CMake process all of the source code and tests.
+ add_subdirectory(src objects)
  
-   if(${buildTests})  
-     # Process the tests
-diff -ruN IsisCMake/cmake/CMakeLists.txt isis-git/cmake/CMakeLists.txt
---- IsisCMake/cmake/CMakeLists.txt	2017-04-12 17:01:28.000000000 -0700
-+++ isis-git/cmake/CMakeLists.txt	2017-04-11 22:19:11.000000000 -0700
-@@ -11,7 +11,7 @@
- 
- # On OSX, need to correct all the paths encoded in each of the distributed library files so
- #  that they properly find the distruted files using relative paths.
--if (APPLE)
-+if (OFF)
-   # Call the correction script on each folder containing libraries
-   install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/lib)")
-   install(CODE "EXECUTE_PROCESS(COMMAND python ${CMAKE_SOURCE_DIR}/scripts/finalizeInstalledOsxRpaths.py ${CMAKE_INSTALL_PREFIX}/3rdParty/lib resetRpath)")
-diff -ruN IsisCMake/cmake/FindAllDependencies.cmake isis-git/cmake/FindAllDependencies.cmake
---- IsisCMake/cmake/FindAllDependencies.cmake	2017-04-12 17:01:28.000000000 -0700
-+++ isis-git/cmake/FindAllDependencies.cmake	2017-04-12 16:16:19.000000000 -0700
-@@ -6,7 +6,7 @@
- 
- # Specify top level directories
- 
--set(thirdPartyDir "${CMAKE_SOURCE_DIR}/3rdParty")
-+set(thirdPartyDir "${CMAKE_SOURCE_DIR}/../../../install")
- 
- set(INCLUDE_DIR "${thirdPartyDir}/include")
- set(LIB_DIR     "${thirdPartyDir}/lib")
-@@ -28,7 +28,7 @@
- #set(LATEX   "/usr/bin/latex") # MISSING
- # Also need the DOT tool for doxygen.
- 
--verify_file_exists(${XALAN})
-+#verify_file_exists(${XALAN})
- #verify_file_exists(${LATEX})
- #verify_file_exists(${DOXYGEN})
- 
-@@ -39,7 +39,8 @@
- # Set up for Qt
- #---------------------------------------------------------------------------
- # *Most* of the folders in the main QT folder are needed as an include directory
--set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
-+#set(qtDir "${INCLUDE_DIR}/qt/qt5.6.0")
-+set(qtDir "${INCLUDE_DIR}")
- set(qtIncludes  Qt
-                 QtCore
-                 QtAssistant
-@@ -59,9 +60,9 @@
--                QtSensors
-+                #QtSensors
-                 QtSql
-                 QtSvg
-                 QtTest
--                QtWebChannel
--                QtWebEngine
--                QtWebEngineWidgets
-+                #QtWebChannel
-+                #QtWebEngine
-+                #QtWebEngineWidgets
-                 QtWidgets
-                 QtXml
-@@ -76,37 +77,44 @@
- 
- if(APPLE)
- 
--  set(QTLIBDIR ${LIB_DIR}/qt5)
-+  set(QTLIBDIR ${LIB_DIR})
-+
-+  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick  -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
- 
--  # Use find_library cmake function to find the QT frameworks
--  set(QTLIB)
-   set(QT_DYNAMIC_LIBS)
--  set(qtLibNames QtXmlPatterns QtXml QtNetwork
--                 QtSql QtGui QtCore QtSvg 
--                 QtTest QtWebKit QtOpenGL 
--                 QtConcurrent QtDBus 
--                 QtMultimedia QtMultimediaWidgets 
--                 QtNfc QtPositioning QtPrintSupport 
--                 QtQml QtQuick QtQuickParticles 
--                 QtQuickTest QtQuickWidgets QtScript 
--                 QtScriptTools QtSensors QtSerialPort 
--                 QtWebKitWidgets QtWebSockets QtWidgets 
--                 QtTest QtWebChannel QtWebEngine QtWebEngineCore QtWebEngineWidgets)
--  foreach(qtName ${qtLibNames})
--    set(temp "${qtName}-NOTFOUND") # Work around CMake bug!
--    find_library(temp ${qtName} PATHS ${QTLIBDIR})
--    # Update link and lib list in the loop
--    set(QTLIB ${QTLIB} ${temp})
--    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${QTLIBDIR}/${qtName}.framework)
-+  set(QT_DYNAMIC_IN  ${QTLIBDIR}/libQt5Concurrent
-+                   ${QTLIBDIR}/libQt5Core
-+                   ${QTLIBDIR}/libQt5DBuso
-+                   ${QTLIBDIR}/libQt5Gui
-+                   ${QTLIBDIR}/libQt5Multimedia
-+                   ${QTLIBDIR}/libQt5MultimediaWidgets
-+                   ${QTLIBDIR}/libQt5Network
-+                   ${QTLIBDIR}/libQt5OpenGL
-+                   ${QTLIBDIR}/libQt5Positioning
-+                   ${QTLIBDIR}/libQt5PrintSupport
-+                   ${QTLIBDIR}/libQt5Qml
-+                   ${QTLIBDIR}/libQt5Quick
-+                   #${QTLIBDIR}/libQt5Sensors
-+                   ${QTLIBDIR}/libQt5Sql
-+                   ${QTLIBDIR}/libQt5Svg
-+                   ${QTLIBDIR}/libQt5Test
-+                   #${QTLIBDIR}/libQt5WebChannel
-+                   #${QTLIBDIR}/libQt5WebEngineCore
-+                   #${QTLIBDIR}/libQt5WebEngine
-+                   #${QTLIBDIR}/libQt5WebEngineWidgets
-+                   ${QTLIBDIR}/libQt5Widgets
-+                   ${QTLIBDIR}/libQt5XcbQpa
-+                   ${QTLIBDIR}/libQt5Xml
-+                   ${QTLIBDIR}/libQt5XmlPatterns)
-+  foreach(f ${QT_DYNAMIC_IN})
-+    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f}.dylib ${f}.5.dylib ${f}.5.6.dylib ${f}.5.6.2.dylib)
-   endforeach()
--  
--  set(QTLIBDIR ${QT_DYNAMIC_LIBS}) # The same in this case since frameworks are folders
- 
- else() # Linux
- 
-   set(QTLIBDIR ${LIB_DIR})
- 
--  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Sensors -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5WebChannel -lQt5WebEngine -lQt5WebEngineCore -lQt5WebEngineWidgets -lQt5DBus)
-+  set(QTLIB    -lQt5Core -lQt5Concurrent -lQt5XmlPatterns -lQt5Xml -lQt5Network -lQt5Sql -lQt5Gui -lQt5PrintSupport -lQt5Positioning -lQt5Qml -lQt5Quick -lQt5Svg -lQt5Test -lQt5OpenGL -lQt5Widgets -lQt5Multimedia -lQt5MultimediaWidgets -lQt5DBus)
- 
-   set(QT_DYNAMIC_LIBS)
-   set(QT_DYNAMIC_IN  ${QTLIBDIR}/libQt5Concurrent.so
-@@ -124,16 +132,16 @@
--                   ${QTLIBDIR}/libQt5Sensors.so
-+                   #${QTLIBDIR}/libQt5Sensors.so
-                    ${QTLIBDIR}/libQt5Sql.so
-                    ${QTLIBDIR}/libQt5Svg.so
-                    ${QTLIBDIR}/libQt5Test.so
--                   ${QTLIBDIR}/libQt5WebChannel.so
--                   ${QTLIBDIR}/libQt5WebEngineCore.so
--                   ${QTLIBDIR}/libQt5WebEngine.so
--                   ${QTLIBDIR}/libQt5WebEngineWidgets.so
-+                   #${QTLIBDIR}/libQt5WebChannel.so
-+                   #${QTLIBDIR}/libQt5WebEngineCore.so
-+                   #${QTLIBDIR}/libQt5WebEngine.so
-+                   #${QTLIBDIR}/libQt5WebEngineWidgets.so
-                    ${QTLIBDIR}/libQt5Widgets.so
-                    ${QTLIBDIR}/libQt5XcbQpa.so
-                    ${QTLIBDIR}/libQt5Xml.so
-                    ${QTLIBDIR}/libQt5XmlPatterns.so)
-   foreach(f ${QT_DYNAMIC_IN})
--    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6 ${f}.5.6.0)
-+    set(QT_DYNAMIC_LIBS ${QT_DYNAMIC_LIBS} ${f} ${f}.5 ${f}.5.6 ${f}.5.6.2)
-   endforeach()
- endif()
-@@ -159,7 +167,7 @@
- 
- if(APPLE)
- 
--  set(QWTLIBDIR ${LIB_DIR}/qwt)
-+  set(QWTLIBDIR ${LIB_DIR})
- 
-   # Use dedicated cmake code to find the QT frameworks
-   find_library(frameQwt Qwt PATHS ${QWTLIBDIR})
-@@ -209,10 +217,10 @@
- set(NAIFINCDIR "${INCLUDE_DIR}/naif")
- set(NAIFLIBDIR "${LIB_DIR}")
- if(APPLE)
--  set(NAIFLIB    "-ldsklib -lcspice")
-+  set(NAIFLIB    "-lcspice")
--  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsklib${end} ${NAIFLIBDIR}/libcspice${end})
-+  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libcspice${end})
- else()
--  set(NAIFLIB    "-ldsk -lcspice")
-+  set(NAIFLIB    "-lcspice")
--  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libdsk${end} ${NAIFLIBDIR}/libcspice${end})
-+  set(NAIF_DYNAMIC_LIBS ${NAIFLIBDIR}/libcspice${end})
- endif()
- 
-@@ -236,7 +244,7 @@
- #---------------------------------------------------------------------------
- set(GEOSINCDIR ${INCLUDE_DIR}/geos ${INCLUDE_DIR}/geos/geos3.5.0)
- set(GEOSLIBDIR "${LIB_DIR}")
--set(GEOSLIB    "-lgeos-3.5.0 -lgeos_c")
-+set(GEOSLIB    "-lgeos -lgeos_c")
- if(APPLE)
-   set(GEOS_DYNAMIC_LIBS ${GEOSLIBDIR}/libgeos*.dylib ${GEOSLIBDIR}/libgeos_c*.dylib)
- else() # Linux
-@@ -278,10 +286,10 @@
- set(SUPERLUINCDIR ${INCLUDE_DIR}/superlu  ${INCLUDE_DIR}/superlu/superlu4.3)
- set(SUPERLULIBDIR "${LIB_DIR}")
- if(APPLE)
--  set(SUPERLULIB    -lsuperlu_4.3)
-+  set(SUPERLULIB    -lsuperlu -lblas)
-   set(SUPERLU_DYNAMIC_LIBS ${SUPERLULIBDIR}/libsuperlu.dylib ${SUPERLULIBDIR}/libsuperlu_*.dylib)
- else()
--  set(SUPERLULIB    -lsuperlu_4.3 -lblas -lgfortran) # Must install packages libblas-dev and gfortran
-+  set(SUPERLULIB    -lsuperlu -lblas -lgfortran) # Must install packages libblas-dev and gfortran
-   set(SUPERLU_DYNAMIC_LIBS ${SUPERLULIBDIR}/libsuperlu_*.so ${SUPERLULIBDIR}/libblas.so.* ${SUPERLULIBDIR}/libgfortran.so.*)
- endif()
- 
-@@ -323,7 +331,7 @@
- #---------------------------------------------------------------------------
- # Set up for BOOST
- #---------------------------------------------------------------------------
--set(BOOSTINCDIR ${INCLUDE_DIR}/boost  ${INCLUDE_DIR}/boost/boost1.59.0)
-+set(BOOSTINCDIR ${INCLUDE_DIR}/boost  ${INCLUDE_DIR}/boost/boost1.59.0 ${INCLUDE_DIR}/boost-1_59)
- set(BOOSTLIB)
- 
- 
-@@ -335,1 +343,1 @@
--set(CHOLMODLIB    -lcholmod -lamd -lcamd -lccolamd -lcolamd -lsuitesparseconfig)
-+set(CHOLMODLIB    -lcholmod -lamd -lcamd -lccolamd -lcolamd -lsuitesparseconfig -llapack)
-@@ -358,7 +366,7 @@
- set(OPENCVLIB     -lopencv_calib3d -lopencv_core -lopencv_features2d -lopencv_xfeatures2d
-                   -lopencv_flann -lopencv_highgui -lopencv_imgproc -lopencv_imgcodecs 
-                   -lopencv_ml -lopencv_objdetect -lopencv_photo -lopencv_stitching 
--                  -lopencv_superres  -lopencv_video -lopencv_videostab)
-+                  -lopencv_superres  -lopencv_video)
- if(APPLE)
-   set(OPENCV_DYNAMIC_LIBS ${OPENCVLIBDIR}/libopencv_*.dylib ${OPENCVLIBDIR}/libavcodec${end} 
-                           ${OPENCVLIBDIR}/libavformat${end} ${OPENCVLIBDIR}/libavutil${end})
-@@ -378,7 +386,6 @@
- set(NNLIBDIR ${LIB_DIR})
- set(NNLIB    "-lnn")
- 
--
- #---------------------------------------------------------------------------
- #  Define the third party distribution libraries (patterns)
- #---------------------------------------------------------------------------
-@@ -475,10 +482,10 @@
-     libicudata*.dylib
-     # libgeotiff depends on these libraries
-     libproj*.dylib)
--
-+  set(extras)
- else() # Linux
--  
--  set(extras libtbb.so*)
-+  set(extras libz.so* libpng.so*)
-+  #set(extras libtbb.so*)
- endif()
- 
- set(EXTRALIBDIR ${LIB_DIR})
-@@ -572,7 +579,8 @@
-                 ${OPENCVINCDIR}
-                 ${NNINCDIR}
-                 ${DEFAULTINCDIR}
--                ${GMMINCDIR})
-+                ${GMMINCDIR}
-+                ${INCLUDE_DIR})
- 
- set(ALLLIBDIRS  ${XTRALIBDIRS}
-                 ${ISISLIBDIR}
-@@ -592,7 +600,8 @@
-                 ${CHOLMODLIBDIR}
-                 ${HDF5LIBDIR}
-                 ${SUPERLULIBDIR}
--                ${GMMLIBDIR})
-+                ${GMMLIBDIR}
-+                ${LIB_DIR})
- 
- set(ALLLIBS   ${ISISLIB}
-               ${ISISSYSLIBS}
-@@ -615,8 +624,8 @@
-               ${HDF5LIB}
-               ${SUPERLULIB}
-               ${GMMLIB}
--              ${NNLIB}
--              ${OPENCVLIB})
-+#              ${NNLIB}
-+              ${OPENCVLIB} -lz -lpng)
- 
- # Only include Kakadu if it is available
- if(${JP2KFLAG} EQUAL "1")
-diff -ruN IsisCMake/cmake/Utilities.cmake isis-git/cmake/Utilities.cmake
---- IsisCMake/cmake/Utilities.cmake	2017-04-12 17:01:28.000000000 -0700
-+++ isis-git/cmake/Utilities.cmake	2017-04-11 22:19:11.000000000 -0700
-@@ -230,7 +230,7 @@
-     # Compare this file extension to list of accepted header file extensions
-     if( extensionLower STREQUAL ".h" OR extensionLower STREQUAL ".hpp" OR extensionLower STREQUAL ".tcc")
-       set(fullPath "${CMAKE_CURRENT_SOURCE_DIR}/${f}")
--      INSTALL(FILES ${f} DESTINATION inc)
-+      INSTALL(FILES ${f} DESTINATION include)
-     endif()
-   endforeach(f)
- 
-diff -ruN IsisCMake/src/CMakeLists.txt isis-git/src/CMakeLists.txt
---- IsisCMake/src/CMakeLists.txt	2017-04-12 17:01:28.000000000 -0700
-+++ isis-git/src/CMakeLists.txt	2017-04-11 22:50:33.000000000 -0700
-@@ -9,10 +9,10 @@
-   # This folder is for under-development test code so if it is
-   #  missing just ignore it.
-   # - TODO: The install behavior should be disabled for this folder!
--  if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/local)
--    message("Detected optional directory 'local'")
--    add_isis_module(local local)
--  endif()
-+  #if(EXISTS ${CMAKE_CURRENT_LIST_DIR}/local)
-+  #  message("Detected optional directory 'local'")
-+  #  add_isis_module(local local)
-+  #endif()
- 
- endif()
- 
-diff -ruN IsisCMake/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp
---- IsisCMake/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-04-12 17:01:35.000000000 -0700
-+++ isis-git/src/qisis/objs/FeatureNomenclatureTool/FeatureNomenclatureTool.cpp	2017-04-11 22:19:11.000000000 -0700
-@@ -18,10 +18,13 @@
- #include <QPushButton>
- #include <QSettings>
- #if defined(__APPLE__)
--#include <QtWebEngineWidgets/QWebEngineView>
-+//#include <QtWebEngineWidgets/QWebEngineView>
- #else
--#include <QWebEngineView>
-+//#include <QWebEngineView>
- #endif
-+#include <QPainter>
-+#include <QPen>
-+#include <QUrl>
- 
- #include <geos/geom/Coordinate.h>
- #include <geos/geom/CoordinateSequence.h>
-diff -ruN IsisCMake/src/qisis/objs/QIsisApplication/QIsisApplication.cpp isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp
---- IsisCMake/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-04-12 17:01:35.000000000 -0700
-+++ isis-git/src/qisis/objs/QIsisApplication/QIsisApplication.cpp	2017-04-11 22:19:11.000000000 -0700
-@@ -7,10 +7,11 @@
- #include <QMessageBox>
- #include <QUrl>
- #if defined(__APPLE__)
--#include <QtWebEngineWidgets/QWebEngineView>
-+//#include <QtWebEngineWidgets/QWebEngineView>
- #else
--#include <QWebEngineView>
-+//#include <QWebEngineView>
- #endif
-+#include <QUrl>
- 
- #include "FileName.h"
- #include "IException.h"
-@@ -65,9 +66,9 @@
-    * Open a URL in the browser specified by Isis.
-    */
-   void QIsisApplication::openUrl(QUrl url) {
--     QWebEngineView *view = new QWebEngineView(NULL);
--     view->setAttribute(Qt::WA_DeleteOnClose);
--     view->load(url);
--     view->show();
-+     //QWebEngineView *view = new QWebEngineView(NULL);
-+     //view->setAttribute(Qt::WA_DeleteOnClose);
-+     //view->load(url);
-+     //view->show();
-   }
- }
---- IsisCMake/src/base/objs/NaifDskApi/NaifDskApi.h      2017-04-12 17:01:35.000000000 -0700
-+++ isis-git/src/base/objs/NaifDskApi/NaifDskApi.h       2017-04-11 22:19:11.000000000 -0700
-@@ -36,1 +36,1 @@
--  #include <pl02.h>
-+  //#include <pl02.h>
---- IsisCMake/src/base/objs/NaifDskApi/NaifDskApi.cpp      2017-04-12 17:01:35.000000000 -0700
-+++ isis-git/src/base/objs/NaifDskApi/NaifDskApi.cpp       2017-04-11 22:19:11.000000000 -0700
-@@ -32,1 +32,1 @@
--  #include <pl02.h>
-+  //#include <pl02.h>
---- IsisCMake/src/base/objs/NaifDskPlateModel/NaifDskPlateModel.cpp      2017-04-12 17:01:35.000000000 -0700
-+++ isis-git/src/base/objs/NaifDskPlateModel/NaifDskPlateModel.cpp       2017-04-11 22:19:11.000000000 -0700
-@@ -45,1 +45,1 @@
--#include <dsk_proto.h>
-+//#include <dsk_proto.h>
