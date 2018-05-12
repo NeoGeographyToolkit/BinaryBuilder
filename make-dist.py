@@ -175,7 +175,8 @@ if __name__ == '__main__':
     try:
         INSTALLDIR = Prefix(installdir)
         ISISROOT   = P.join(INSTALLDIR)
-        SEARCHPATH = [INSTALLDIR.lib()]
+        SEARCHPATH = [INSTALLDIR.lib(), INSTALLDIR.lib()+'64']
+        print('Search path = ' + str(SEARCHPATH))
 
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
         # work correctly on Ubuntu 13.10.
@@ -268,7 +269,7 @@ if __name__ == '__main__':
         print('\tFinding deps in search path')
         sys.stdout.flush()
         mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
-                           copy = [INSTALLDIR.lib(), '/opt/X11/lib', '/usr/lib', '/usr/lib64', '/lib64', 
+                           copy = SEARCHPATH + ['/opt/X11/lib', '/usr/lib', '/usr/lib64', '/lib64', 
                                    '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:
