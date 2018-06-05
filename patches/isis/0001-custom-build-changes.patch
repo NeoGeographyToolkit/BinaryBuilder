@@ -220,7 +220,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis/isis/CMakeLists.txt
 +if(APPLE)
 +  set(CMAKE_INSTALL_RPATH "@loader_path/../lib;@loader_path/../3rdParty/lib")
 +else()
-+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../3rdParty/lib")
++  set(CMAKE_INSTALL_RPATH "$ORIGIN/../lib;$ORIGIN/../lib64;$ORIGIN/../3rdParty/lib")
 +endif()
 +set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
  

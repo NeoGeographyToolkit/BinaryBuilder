@@ -410,7 +410,7 @@ class Package(object):
         self.env['CPPFLAGS'] = '-I' + self.workdir + '/include ' + self.env['CPPFLAGS']
         self.env['CXXFLAGS'] = '-I' + self.workdir + '/include ' + self.env['CXXFLAGS']
         self.env['CFLAGS'  ] = '-I' + self.workdir + '/include ' + self.env['CFLAGS']
-        self.env['LDFLAGS' ] = '-L' + self.workdir + '/lib ' + self.workdir + '/lib64 '  + self.env['LDFLAGS']
+        #self.env['LDFLAGS' ] = '-L' + self.workdir + '/lib ' + self.workdir + '/lib64 '  + self.env['LDFLAGS']
     @stage
     def configure(self, other=(), with_=(), without=(), enable=(), disable=(), configure='./configure'):
         '''After configure, the source code should be ready to build.'''
@@ -702,19 +702,18 @@ class CMakePackage(Package):
         build_rules = P.join(self.env['BUILD_DIR'], 'my_rules.cmake')
         with file(build_rules, 'w') as f:
             print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (findfile(self.env['CC'], self.env['PATH'])), file=f)
-            print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
+            #print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
             print('SET (CMAKE_CXX_COMPILER "%s" CACHE FILEPATH "C++ compiler" FORCE)' % (findfile(self.env['CXX'], self.env['PATH'])), file=f)
             print('SET (CMAKE_Fortran_COMPILER "%s" CACHE FILEPATH "Fortran compiler" FORCE)' % (findfile(self.env['F77'], self.env['PATH'])), file=f)
-            print('SET (CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
+            #print('SET (CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
 
         # Build up the main cmake command using our environment variables
         cmd = ['cmake']
-        cmd = ['/home/smcmich1/repo/asp_update_build/BinaryBuilder/build_asp/install/bin/cmake']
         args = [
             '-DCMAKE_INSTALL_PREFIX=%(INSTALL_DIR)s' % self.env,
-        #    '-DCMAKE_BUILD_TYPE=MyBuild',
-        #    '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
-            '-DCMAKE_SKIP_RPATH=YES',
+            '-DCMAKE_BUILD_TYPE=MyBuild',
+            '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
+        #    '-DCMAKE_SKIP_RPATH=YES',
             '-DCMAKE_INSTALL_DO_STRIP=OFF',
         ]
 
