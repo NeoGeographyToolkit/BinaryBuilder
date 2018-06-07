@@ -698,6 +698,9 @@ class CMakePackage(Package):
         cmd.extend(files)
         self.helper(*cmd)
 
+        # Some of these build rules were breaking recent packages so they had to be turned off.
+        #  If it breaks something else then we will find out why these changes were there!
+
         # Write out a custom cmake rules file
         build_rules = P.join(self.env['BUILD_DIR'], 'my_rules.cmake')
         with file(build_rules, 'w') as f:

@@ -378,15 +378,8 @@ class hdf5(Package):
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
-    #chksum = '3c81332195ef9bb7711daa21e640f9b050443e6f'
     chksum = 'ce3fb97'
     patches = 'patches/isis'
-
-    # Trying out the new official CMAKE ISIS build!
-
-    #def __init__(self, env):
-    #    super(isis, self).__init__(env)
-
 
     @stage
     def unpack(self):
@@ -402,11 +395,7 @@ class isis(GITPackage, CMakePackage):
             os.mkdir(self.workdir)
             self.helper('git', 'clone', self.localcopy, self.workdir)
 
-        ## Checkout a specific commit
-        #if self.chksum is not None:
-        #    cmd = ('git', 'checkout', self.chksum)
-        #    self.helper(*cmd, cwd=self.workdir)
-
+        # The default branch is not the one with the cmake build so we need to switch
         self.helper('git', 'checkout', 'cmake'  )
         self.helper('git', 'checkout', '3c81332')
 
@@ -415,24 +404,8 @@ class isis(GITPackage, CMakePackage):
     @stage
     def configure(self):
        
-        ## Switch to a certain commit in the cmake branch
-        #self.helper('git', 'checkout', 'cmake'  )
-        #self.helper('git', 'checkout', '3c81332')
-
         # The code is stored one folder down
         self.workdir = os.path.join(self.workdir, 'isis')
-
-        ## Add extra includes that ISIS does not handle
-        #include_dir = P.join(self.env['INSTALL_DIR'], 'include')
-        #all_includes = os.listdir(include_dir)
-        #for a in all_includes:
-        #    if len(a) < 4:
-        #        continue
-        #    if a[0:2] == "Qt":
-        #        curr_include = '-I' + P.join(include_dir, a)
-        #        print(curr_include)
-        #        self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
-
         super(isis, self).configure(other=['-Dpybindings=Off','-DJP2KFLAG=OFF','-DbuildTests=OFF']) #-DNinja
 
 class stereopipeline(GITPackage):
