@@ -664,6 +664,7 @@ def fix_install_paths(installdir, arch):
                          os.pathsep + os.environ["PATH"]
 
     SEARCHPATH = [P.join(installdir,'lib'),
+                  P.join(installdir,'lib64'),
                   P.join(installdir,'lib','osgPlugins*')]
 
     print('Fixing RPATHs')
