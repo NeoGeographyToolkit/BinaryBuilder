@@ -1,6 +1,6 @@
-diff -ruN isis-git/isis/cmake/AddIsisModule.cmake new_isis2/isis/cmake/AddIsisModule.cmake
---- isis-git/isis/cmake/AddIsisModule.cmake	2018-06-06 22:21:00.660891854 -0700
-+++ new_isis2/isis/cmake/AddIsisModule.cmake	2018-06-06 15:36:46.504883471 -0700
+diff -ruN isis-git/isis/cmake/AddIsisModule.cmake new_isis/isis/cmake/AddIsisModule.cmake
+--- isis-git/isis/cmake/AddIsisModule.cmake	2018-06-12 12:21:41.878125157 -0700
++++ new_isis/isis/cmake/AddIsisModule.cmake	2018-06-12 11:06:03.200313124 -0700
 @@ -277,9 +277,9 @@
    endif()
  
@@ -14,9 +14,9 @@ diff -ruN isis-git/isis/cmake/AddIsisModule.cmake new_isis2/isis/cmake/AddIsisMo
  
    if(${buildTests})
      # Process the tests
-diff -ruN isis-git/isis/cmake/FindBoost.cmake new_isis2/isis/cmake/FindBoost.cmake
---- isis-git/isis/cmake/FindBoost.cmake	2018-06-06 22:21:00.660891854 -0700
-+++ new_isis2/isis/cmake/FindBoost.cmake	2018-06-06 15:36:46.504883471 -0700
+diff -ruN isis-git/isis/cmake/FindBoost.cmake new_isis/isis/cmake/FindBoost.cmake
+--- isis-git/isis/cmake/FindBoost.cmake	2018-06-12 12:21:41.878125157 -0700
++++ new_isis/isis/cmake/FindBoost.cmake	2018-06-12 11:06:03.200313124 -0700
 @@ -12,127 +12,127 @@
  get_filename_component(BOOST_ROOT_INCLUDE_DIR "${BOOST_INCLUDE_DIR}" DIRECTORY)
  
@@ -178,9 +178,9 @@ diff -ruN isis-git/isis/cmake/FindBoost.cmake new_isis2/isis/cmake/FindBoost.cma
 -  NAMES boost_wserialization-mt boost_wserialization
 +  NAMES boost_wserialization-mt-1_59 boost_wserialization
  )
-diff -ruN isis-git/isis/cmake/Utilities.cmake new_isis2/isis/cmake/Utilities.cmake
---- isis-git/isis/cmake/Utilities.cmake	2018-06-06 22:21:00.663892034 -0700
-+++ new_isis2/isis/cmake/Utilities.cmake	2018-06-06 15:36:46.523884618 -0700
+diff -ruN isis-git/isis/cmake/Utilities.cmake new_isis/isis/cmake/Utilities.cmake
+--- isis-git/isis/cmake/Utilities.cmake	2018-06-12 12:21:41.878125157 -0700
++++ new_isis/isis/cmake/Utilities.cmake	2018-06-12 11:06:03.200313124 -0700
 @@ -257,6 +257,18 @@
                                               ${CMAKE_INSTALL_PREFIX}/lib/lib${name}.a)")
    endif()
@@ -200,9 +200,9 @@ diff -ruN isis-git/isis/cmake/Utilities.cmake new_isis2/isis/cmake/Utilities.cma
  endfunction()
  
  function(get_version libFile returnVar)
-diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
---- isis-git/isis/CMakeLists.txt	2018-06-06 22:21:01.425938133 -0700
-+++ new_isis2/isis/CMakeLists.txt	2018-06-06 15:36:46.817902433 -0700
+diff -ruN isis-git/isis/CMakeLists.txt new_isis/isis/CMakeLists.txt
+--- isis-git/isis/CMakeLists.txt	2018-06-12 12:21:42.306129189 -0700
++++ new_isis/isis/CMakeLists.txt	2018-06-12 11:33:22.499194863 -0700
 @@ -53,12 +53,20 @@
  #===============================================================================
  # Configuration options
@@ -294,7 +294,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
  
  find_package(Qt5 COMPONENTS
                  Core
-@@ -203,40 +232,184 @@
+@@ -203,40 +232,188 @@
                  Sql
                  Svg
                  Test
@@ -355,7 +355,11 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
 +#find_package(Geos    3.5.0   REQUIRED)
 +
 +set(EMBREE_INCLUDE_DIR ${INCLUDE_DIR}/embree2)
-+set(EMBREE_LIB ${LIB64_DIR}/libembree${SO})
++if(EXISTS ${LIB64_DIR}/libembree${SO})
++  set(EMBREE_LIB ${LIB64_DIR}/libembree${SO})
++else()
++  set(EMBREE_LIB ${LIB_DIR}/libembree${SO})
++endif()
 +
 +set(BOOST_INCLUDE_DIR ${INCLUDE_DIR}/boost  ${INCLUDE_DIR}/boost/boost1.59.0 ${INCLUDE_DIR}/boost-1_59)
 +
@@ -498,7 +502,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
  
  # Im this case, we specify the version numbers being searched for in the non-traditional installs.
  if(APPLE)
-@@ -257,10 +430,15 @@
+@@ -257,10 +434,15 @@
  
  # Get all include dir variables
  foreach (_variableName ${_variableNames})
@@ -515,7 +519,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
       list(APPEND ALLINCDIRS "${${_variableName}}")
     endif(_variableName MATCHES ".+_INCLUDE_DIR$")
  endforeach()
-@@ -270,12 +448,15 @@
+@@ -270,12 +452,15 @@
     get_filename_component(LIBDIR "${${_variableName}}" DIRECTORY)
     if (_variableName MATCHES "^CMAKE+")
     elseif (_variableName MATCHES ".+_LIB$")
@@ -531,7 +535,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
       list(APPEND ALLLIBDIRS "${LIBDIR}")
       list(APPEND ALLLIBS "${${_variableName}}")
     endif()
-@@ -357,27 +538,27 @@
+@@ -357,27 +542,27 @@
  
  # add isis headers
  file(GLOB ISIS_HEADERS ${CMAKE_SOURCE_DIR}/src/*/objs/*/*.h
@@ -566,7 +570,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
  install(CODE "EXECUTE_PROCESS(COMMAND cp -f ${CMAKE_SOURCE_DIR}/IsisPreferences ${CMAKE_INSTALL_PREFIX}/)")
  
  # Delete any existing plugin files in the build folder so they
-@@ -388,7 +569,7 @@
+@@ -388,7 +573,7 @@
  endif()
  
  # Add a config file to the install bin directory so that QT can find the plugin libraries.
@@ -575,7 +579,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis2/isis/CMakeLists.txt
  install(FILES "${CMAKE_BINARY_DIR}/qt.conf" DESTINATION ${CMAKE_INSTALL_PREFIX}/bin/xml)
  
  #Create the inc directory
-@@ -404,6 +585,12 @@
+@@ -404,6 +589,12 @@
  # Set up install of the make folder.
  install(DIRECTORY ${CMAKE_SOURCE_DIR}/make DESTINATION ${CMAKE_INSTALL_PREFIX})
  

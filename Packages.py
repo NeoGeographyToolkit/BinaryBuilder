@@ -1371,6 +1371,8 @@ class pcl(CMakePackage):
                    '-DBOOST_ROOT='+P.join(self.env['INSTALL_DIR']),
                    '-DBoost_INCLUDE_DIR='+P.join(include_dir, 'boost-'+boost.version),
                    '-DBoost_LIBRARY_DIRS='+P.join(self.env['INSTALL_DIR'],'lib')]
-        super(pcl, self).configure(other=options)
+        super(pcl, self).configure(other=options, 
+                                   without=['CUDA', 'QT', 'VTK', 'QHULL', 'PCAP',
+                                            'OPENGL', 'GLUT', 'LIBUSB'])
     
     
