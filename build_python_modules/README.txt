@@ -25,3 +25,22 @@ Installed packages:
  - gdal
  - simplekml
 
+
+Note that this script is an alternative to setting up your own Python
+environment.  The Conda software (https://conda.io/docs/index.html)
+provides an easy way to set up a python environment for ASP.  It has
+been tested on Ubuntu 16.04 with the following additional packages
+installed:
+
+scipy=1.0.0
+numpy=1.14.0
+simplekml=1.3.0
+pyfftw=0.10.4
+proj4=4.9.3
+gdal=2.2.2
+geos=3.6.2
+blas=1.0
+
+
+Note that the simplekml and pyfftw packages needed the argument
+"-c conda-forge" added to their "conda install" command.
