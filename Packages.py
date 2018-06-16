@@ -377,7 +377,7 @@ class hdf5(Package):
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
-    chksum = 'ce3fb97'
+    chksum = 'ce3fb97' # Does not matter since we set the cmake commit below
     patches = 'patches/isis'
 
     # TODO: The macOS build does not work with the default BB cmake command but does work if run
@@ -399,7 +399,7 @@ class isis(GITPackage, CMakePackage):
 
         # The default branch is not the one with the cmake build so we need to switch
         self.helper('git', 'checkout', 'cmake'  )
-        self.helper('git', 'checkout', '3c81332')
+        self.helper('git', 'checkout', '79b3762')
 
         self._apply_patches()
 
