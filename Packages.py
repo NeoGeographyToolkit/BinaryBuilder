@@ -8,7 +8,7 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
-     replace_line_in_file, run, get, program_paths
+     replace_line_in_file, run, get, program_paths, get_platform
 from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
@@ -44,7 +44,6 @@ class cmake(Package):
     chksum = '5d6c68c3007d61cadd6257c170e60aa67154cda1'
     def configure(self):
         opts = []
-        #if self.arch.os == 'osx': # The system curl on the CentOS 6 VM has been updated.
         opts = ['--system-curl'] 
 
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
@@ -380,6 +379,9 @@ class isis(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
     chksum = 'ce3fb97'
     patches = 'patches/isis'
+
+    # TODO: The macOS build does not work with the default BB cmake command but does work if run
+    #        without all of the extra options.  Try to figure out which one is breaking it!
 
     @stage
     def unpack(self):
@@ -1130,10 +1132,12 @@ class binarybuilder(GITPackage):
     def install(self): pass
 
 class opencv(CMakePackage):
-    #src     = 'https://github.com/opencv/opencv/archive/3.3.1.tar.gz'
-    #chksum  = '79dba99090a5c48308fe91db8336ec2931e06b57'
-    src     = 'https://github.com/opencv/opencv/archive/3.1.0.tar.gz'
-    chksum  = '31dd36c5d59c76f6b7982a64d6ffc0993736d7ea'
+    if get_platform().os == 'osx':
+        src     = 'https://github.com/opencv/opencv/archive/3.3.1.tar.gz'
+        chksum  = '79dba99090a5c48308fe91db8336ec2931e06b57'
+    else:
+        src     = 'https://github.com/opencv/opencv/archive/3.1.0.tar.gz'
+        chksum  = '31dd36c5d59c76f6b7982a64d6ffc0993736d7ea'
     #patches = 'patches/opencv'
 
     # NOTE: OSX 10.12 seems to require a newer version (3.3.1 works) but that does not work on CentOS 6.
@@ -1143,29 +1147,39 @@ class opencv(CMakePackage):
     #    for now the OSX build is abandoned and CMake/OpenCV are reverted to their old versions.
     #    Maybe all that is needed is an intermediate version of CMake.
 
+    # TODO: Trying a workaround but clean this up in the future =)
+
     def configure(self):
         # Help OpenCV finds the libraries it needs to link to
         # - Turn off a lot of OpenCV 3rd party stuff we don't need to cut down on the size.
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -ltiff -lpng' % self.env
 
         # Manually fetch the contributor tarball - Needed for SIFT etc
-        #tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib.tar.gz')
-        #contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib-3.3.1/modules')
-        tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib.tar.gz')
-        contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib-3.1.0/modules')
+        if self.arch.os == 'osx':
+            tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib.tar.gz')
+            contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1/opencv_contrib-3.3.1/modules')
+        else:
+            tar_path     = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib.tar.gz')
+            contrib_path = os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0/opencv_contrib-3.1.0/modules')
 
         # The centos VM is having trouble downloading files properly so we first check if we
         #  have an already downloaded file available to unpack.
         if os.path.exists('/home/pipeline/projects/3.1.0.tar.gz'):
-            #os.system('cp  /home/pipeline/projects/3.3.1.tar.gz ' + tar_path)
-            os.system('cp  /home/pipeline/projects/3.1.0.tar.gz ' + tar_path)
+            if self.arch.os == 'osx':
+                os.system('cp  /home/pipeline/projects/3.3.1.tar.gz ' + tar_path)
+            else:
+                os.system('cp  /home/pipeline/projects/3.1.0.tar.gz ' + tar_path)
         else:
-            #get('https://github.com/opencv/opencv_contrib/archive/3.3.1.tar.gz', tar_path)
-            get('https://github.com/opencv/opencv_contrib/archive/3.1.0.tar.gz', tar_path)
+            if self.arch.os == 'osx':
+                get('https://github.com/opencv/opencv_contrib/archive/3.3.1.tar.gz', tar_path)
+            else:
+                get('https://github.com/opencv/opencv_contrib/archive/3.1.0.tar.gz', tar_path)
 
         # Unpack the contributor tarball
-        #cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1')
-        cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0')
+        if self.arch.os == 'osx':
+            cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.3.1')
+        else:
+            cmd = 'tar -xf ' + tar_path + ' -C ' +  os.path.join(self.env['BUILD_DIR'], 'opencv/opencv-3.1.0')
         os.system(cmd)
 
         # TODO: In Version 3.3.1 this contributor module does not have a flag to turn it off so just remove it!
