@@ -893,7 +893,8 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
     cflags   = ['-O3', '-g', '-fPIC']
     cxxflags = ['-O3', '-g', '-fPIC']
     cppflags = ['-I' + includedir]
-    ldflags  = ['-L' + libdir, '-L' + lib64dir, '-Wl,-rpath', '-Wl,' + base]
+    ldflags  = ['-L' + libdir, '-L' + lib64dir, '-Wl,-rpath', '-Wl,' + base,
+                ' -Wl,-rpath,'+libdir+' -Wl,-rpath,'+lib64dir]
 
     with file(config_file, 'w') as config:
 
