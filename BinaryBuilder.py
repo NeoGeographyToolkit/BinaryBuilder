@@ -698,7 +698,7 @@ class CMakePackage(Package):
         cmd.extend(files)
         self.helper(*cmd)
 
-        # Some of these build rules were breaking recent packages so they had to be turned off.
+        # Some of these build rules were breaking recent packages (ISIS etc) so they had to be turned off.
         #  If it breaks something else then we will find out why these changes were there!
 
         # Write out a custom cmake rules file
@@ -715,15 +715,15 @@ class CMakePackage(Package):
         args = [
             '-DCMAKE_INSTALL_PREFIX=%(INSTALL_DIR)s' % self.env,
             '-DCMAKE_BUILD_TYPE=MyBuild',
-            '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules,
+            '-DCMAKE_USER_MAKE_RULES_OVERRIDE=%s' % build_rules#,
         #    '-DCMAKE_SKIP_RPATH=YES',
-            '-DCMAKE_INSTALL_DO_STRIP=OFF',
+#            '-DCMAKE_INSTALL_DO_STRIP=OFF',
         ]
 
-        if self.arch.os == 'osx':
-            args.append('-DCMAKE_OSX_ARCHITECTURES=%s' % self.env['OSX_ARCH'])
-            args.append('-DCMAKE_OSX_SYSROOT=%s' % self.env['OSX_SYSROOT'])
-            args.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=%s' % self.env['OSX_TARGET'])
+#        if self.arch.os == 'osx':
+#            args.append('-DCMAKE_OSX_ARCHITECTURES=%s' % self.env['OSX_ARCH'])
+#            args.append('-DCMAKE_OSX_SYSROOT=%s' % self.env['OSX_SYSROOT'])
+#            args.append('-DCMAKE_OSX_DEPLOYMENT_TARGET=%s' % self.env['OSX_TARGET'])
 
         # Include commands for the input enable/disable commands
         for arg in disable:
