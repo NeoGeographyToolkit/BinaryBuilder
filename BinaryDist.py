@@ -354,7 +354,7 @@ def otool(filename):
     otool(soname=None, sopath=None, libs={'libSystem.B.dylib': '/usr/lib/libSystem.B.dylib', 'libncurses.5.4.dylib': '/usr/lib/libncurses.5.4.dylib'})
     '''
 
-    Ret = namedtuple('otool', 'soname sopath libs old_rpaths')
+    Ret = namedtuple('otool', 'soname sopath libs abs_rpaths rel_rpaths')
     r = re.compile('^\s*(\S+)')
     lines = run('otool', '-L', filename, output=True).split('\n')
     libs = {}
@@ -384,21 +384,26 @@ def otool(filename):
             libs[soname] = sopath
 
     # Identify the absolute RPATH dirs in the current install dir.
-    # We'll wipe those later.
-    old_rpaths = []
+    # We'll wipe those later.  Record the relative ones separately.
+    abs_rpaths   = []
+    rel_rpaths = []
     lines = run('otool', '-l', filename, output=True).split('\n')
     for i in range(0, len(lines)):
         if re.search('cmd LC_RPATH', lines[i]):
-            if i+2 < len(lines):
-                m = re.match('^.*?path\s+([^\s]+)', lines[i+2])
-                if m:
-                    rpath_val = m.group(1)
-                    if re.search(os.getcwd(), rpath_val):
-                        # Keep only those in current dir, not system
-                        # ones. Not sure about this, but it works.
-                        old_rpaths.append(rpath_val)
+            if i+2 >= len(lines):
+                continue
+            #print('found LC_RPATH: ' + lines[i+2])
+            m = re.match('^.*?path\s+([^\s]+)', lines[i+2])
+            if m:
+                rpath_val = m.group(1)
+                if re.search(os.getcwd(), rpath_val):
+                    # Keep only those in current dir, not system
+                    # ones. Not sure about this, but it works.
+                    abs_rpaths.append(rpath_val)
+                else:
+                    rel_rpaths.append(rpath_val)
 
-    return Ret(soname=this_soname, sopath=this_sopath, libs=libs, old_rpaths=old_rpaths)
+    return Ret(soname=this_soname, sopath=this_sopath, libs=libs, abs_rpaths=abs_rpaths, rel_rpaths=rel_rpaths)
 
 def required_libs(filename):
     ''' Returns a dict where the keys are required SONAMEs and the values are proposed full paths. '''
@@ -569,22 +574,22 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
                         break
         if len(info.libs):
             for rpath in searchpath:
-                if run('install_name_tool','-add_rpath',P.join('@executable_path','..',rpath), filename,
-                       raise_on_failure = False) is None:
-                    logger.warn('Failed to add rpath on %s' % filename)
-                if run('install_name_tool','-add_rpath',P.join('@loader_path','..',rpath), filename,
-                       raise_on_failure = False) is None:
-                    logger.warn('Failed to add rpath on %s' % filename)
+                exec_rpath = P.join('@executable_path', '..', rpath)
+                load_rpath = P.join('@loader_path',     '..', rpath)
+                if exec_rpath not in info.rel_rpaths:
+                    if run('install_name_tool', '-add_rpath', exec_rpath, filename, raise_on_failure = False) is None:
+                        logger.warn('Failed to add rpath on %s' % filename)
+                if load_rpath not in info.rel_rpaths:
+                    if run('install_name_tool', '-add_rpath', load_rpath, filename, raise_on_failure = False) is None:
+                        logger.warn('Failed to add rpath on %s' % filename)
 
         # We'd like to wipe the hard-coded RPATH pointing to the
         # original install directory. The user won't have it, and it
         # causes problems on the build machine, as libraries are
         # loaded from both the new and original locations which
-        # results in a subtle crash. If the same rpath shows up twice,
-        # wiping it causes problems, so then we don't do it.
-        if len(info.old_rpaths) == 1:
-            for old_rpath in info.old_rpaths:
-                run('install_name_tool', '-delete_rpath', old_rpath, filename)
+        # results in a subtle crash.
+        for abs_rpath in info.abs_rpaths:
+            run('install_name_tool', '-delete_rpath', abs_rpath, filename)
 
     # Call one of the two functions above depending on the OS
     locals()[get_platform().os]()
