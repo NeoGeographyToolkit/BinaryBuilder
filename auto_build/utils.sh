@@ -122,10 +122,20 @@ function robust_ssh {
     name=$(basename $prog)
 
     for ((count = 0; count < 50; count++)); do
-        # Start the process on the remote machine
-        cmd="nohup nice -19 $prog $opts > $outfile 2>&1&"
-        echo ssh $machine \"$cmd\"
-        ssh $machine "$cmd" 2>/dev/null &
+
+        if [ "$machine" = "decoder" ]; then
+            # nohup does not work on Macs any more
+            # Start an ssh process on the local machine in the background
+            cmd="$prog $opts > $outfile 2>&1"
+            echo ssh $machine \"$cmd\"
+            ssh $machine "$cmd" 2>/dev/null &
+
+        else # All linux machines
+            # Start the process on the remote machine
+            cmd="nohup nice -19 $prog $opts > $outfile 2>&1&"
+            echo ssh $machine \"$cmd\"
+            ssh $machine "$cmd" 2>/dev/null &
+        fi
 
         # Wait a while and then look for the process name
         sleep 20
