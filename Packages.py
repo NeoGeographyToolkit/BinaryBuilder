@@ -307,6 +307,7 @@ class curl(Package):
 class liblas(CMakePackage):
     src     = 'http://download.osgeo.org/liblas/libLAS-1.8.0.tar.bz2'
     chksum  = '73a29a97dfb8373d51c5e36bdf12a825c44fa398'
+    patches = 'patches/liblas'
 
     @stage
     def configure(self):
@@ -666,7 +667,7 @@ class xercesc(Package):
 class qt(Package):
     src     = 'http://download.qt.io/official_releases/qt/5.6/5.6.3/single/qt-everywhere-opensource-src-5.6.3.tar.xz'
     chksum  = 'ca7a752bff079337876ca6ab70b0dec17b47e70f' #SHA-1 Hash
-    #patches = 'patches/qt'
+    patches = 'patches/qt'
     #patch_level = '-p0'
 
     @stage
@@ -679,7 +680,26 @@ class qt(Package):
                     config_path)
 
         ## The default confs override our compiler choices.
-        cmd = './configure -c++std c++11  -opensource -confirm-license -nomake tools -nomake examples  -prefix %(INSTALL_DIR)s  -no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio -skip webengine -skip macextras -skip serialbus -skip serialport -skip qtsensors -skip androidextras' % self.env
+        cmd = ("./configure -c++std c++11  -opensource -confirm-license -release -nomake tools -nomake examples  "
+               "-prefix %(INSTALL_DIR)s  "
+               "-no-openssl -no-libjpeg  -no-libpng -no-cups -no-openvg -no-sql-psql -no-pulseaudio "
+               "-skip qt3d "
+               "-skip qtactiveqt "
+               "-skip qtandroidextras "
+               "-skip qtconnectivity "
+               "-skip qtlocation "
+               "-skip qtmacextras "
+               "-skip qtquickcontrols "
+               "-skip qtquickcontrols2 "
+               "-skip qtsensors "
+               "-skip qtserialbus "
+               "-skip qtserialport "
+               "-skip qtwayland "
+               "-skip qtwebchannel "
+               "-skip qtwebengine "
+               "-skip qtwebview "
+               "-skip qtwinextras "
+               ) % self.env
 
         # TODO: Make sure static libraries are not built!  Causes linker error in ASP in OSX. 
         args = cmd.split()
