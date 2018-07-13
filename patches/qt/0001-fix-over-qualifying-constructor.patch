@@ -1,0 +1,19 @@
+*** backup/qtbase/src/platformsupport//fontdatabases/mac/qfontengine_coretext.mm	2018-07-12 12:07:12.000000000 -0700
+--- qt-everywhere-opensource-src-5.6.3/qtbase/src/platformsupport/fontdatabases/mac/qfontengine_coretext.mm	2018-07-12 12:12:44.000000000 -0700
+***************
+*** 764,770 ****
+  
+  QFixed QCoreTextFontEngine::emSquareSize() const
+  {
+!     return QFixed::QFixed(int(CTFontGetUnitsPerEm(ctfont)));
+  }
+  
+  QFontEngine *QCoreTextFontEngine::cloneWithSize(qreal pixelSize) const
+--- 764,770 ----
+  
+  QFixed QCoreTextFontEngine::emSquareSize() const
+  {
+!     return QFixed(int(CTFontGetUnitsPerEm(ctfont)));
+  }
+  
+  QFontEngine *QCoreTextFontEngine::cloneWithSize(qreal pixelSize) const
