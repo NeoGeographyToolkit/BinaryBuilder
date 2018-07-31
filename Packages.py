@@ -8,7 +8,7 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
-     replace_line_in_file, run, get, program_paths, get_platform
+     replace_line_in_file, run, get, program_paths, get_platform, find_file
 from BinaryDist import fix_install_paths, lib_ext
 
 class ccache(Package):
@@ -269,16 +269,51 @@ class openexr(Package):
 class proj(Package):
     src     = 'http://download.osgeo.org/proj/proj-4.8.0.tar.gz'
     chksum  = '5c8d6769a791c390c873fef92134bf20bb20e82a'
+
+    @stage
+    def configure(self):
+    
+        # Download some data files
+        # - There appear to be duplicate files in the extra tarballs???
+        base_dir = os.path.join(self.env['BUILD_DIR'], 'proj')
+        os.system('mkdir -p ' + base_dir)
+        main_tar_path    = os.path.join(base_dir, 'main_grids.tar.gz'   )
+        na_tar_path      = os.path.join(base_dir, 'na_grids.tar.gz'     )
+        oceania_tar_path = os.path.join(base_dir, 'oceania_grids.tar.gz')
+        europe_tar_path  = os.path.join(base_dir, 'europe_grids.tar.gz' )
+        get('https://github.com/OSGeo/proj-datumgrid/archive/1.7.tar.gz',               main_tar_path   )
+        #get('https://github.com/OSGeo/proj-datumgrid/archive/north-america-1.0.tar.gz', na_tar_path     )
+        #get('https://github.com/OSGeo/proj-datumgrid/archive/oceania-1.0.tar.gz',       oceania_tar_path)
+        #get('https://github.com/OSGeo/proj-datumgrid/archive/europe-1.0.tar.gz',        europe_tar_path )
+
+        # Extract the data files
+        os.system('tar -xf ' + main_tar_path    + ' -C ' + base_dir)
+        #os.system('tar -xf ' + na_tar_path      + ' -C ' + base_dir)
+        #os.system('tar -xf ' + oceania_tar_path + ' -C ' + base_dir)
+        #os.system('tar -xf ' + europe_tar_path  + ' -C ' + base_dir)
+
+        super(proj,self).configure(disable='static', without='jni')   
+    
+    @stage
     def install(self):
         super(proj, self).install()
         # Copy extra files which are needed by libgeotiff to compile.
         cmd = ['cp', '-vf'] + glob(P.join(self.workdir, 'src/*.h')) + \
               [P.join(self.env['INSTALL_DIR'], 'include')]
         self.helper(*cmd)
+        
+        # Copy grid files to the share folder
+        unpack_folder = os.path.join(self.env['BUILD_DIR'], 'proj', 'proj-datumgrid-1.7')
+        share_folder  = os.path.join(self.env['INSTALL_DIR'], 'share', 'proj')
 
-    @stage
-    def configure(self):
-        super(proj,self).configure(disable='static', without='jni')
+        # Larger files are skipped to keep the ASP tarball size down.
+        grid_list = ('alaska europe null prvi stlrnc  WI BETA2007.gsb conus FL ntf_r93.gsb nzgd2kgrid0005.gsb stpaul  WO' +
+                     ' egm96_15.gtx hawaii MD ntv1_can.dat stgeorge TN north-america').split()
+        for f in grid_list:
+            try:
+                shutil.move(os.path.join(unpack_folder, f), share_folder)
+            except:
+                pass # Skip existing files
 
 class openssl(Package):
     src = 'https://github.com/openssl/openssl/archive/OpenSSL_1_1_0e.tar.gz'
@@ -1408,5 +1443,40 @@ class pcl(CMakePackage):
         super(pcl, self).configure(other=options, 
                                    without=['CUDA', 'QT', 'VTK', 'QHULL', 'PCAP',
                                             'OPENGL', 'GLUT', 'LIBUSB'])
+
+class htdp(Package):
+    src    = 'https://www.ngs.noaa.gov/TOOLS/Htdp/HTDP-download.zip'
+    chksum = '24a093132e5915bf360c77f0760a215a9a546459'
     
+    @stage
+    def unpack(self):
+        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
+
+        self.remove_build(output_dir) # Throw out the old content
+        os.system('mkdir -p ' + output_dir)
+        self.helper('unzip', '-d', output_dir, self.tarball)     
+        self.workdir = output_dir
+            
+    @stage
+    def configure(self):
+        return # Nothing to do here.
+    
+    @stage
+    def compile(self):
+        # Just compile the fortran script.
+        fortran_path = find_file(self.env['F77'], self.env['PATH'])
+        cmd = fortran_path +' ' + os.path.join(self.workdir, 'htdp.for') + ' -o ' + os.path.join(self.workdir, 'htdp')
+        print(cmd)
+        os.system(cmd)
+        
+    @stage
+    def install(self):
+        # Copy the binary file to the libexec folder.
+        libexec = P.join( self.env['INSTALL_DIR'], 'libexec' )
+        self.helper('mkdir', '-p', libexec)
+        cmd = ['cp', '-vf', P.join(self.workdir, 'htdp'), libexec]
+        self.helper(*cmd)
+        return    
+
+
     

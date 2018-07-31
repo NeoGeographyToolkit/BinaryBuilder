@@ -180,6 +180,16 @@ def program_paths(program, check_help=False):
 def program_exists(program,check_help=False):
     return len(program_paths(program, check_help))
 
+def find_file(filename, path=None):
+    '''Search for a file in the system PATH or provided path string'''
+    if path is None:
+        path = os.environ.get('PATH', [])
+    for dirname in path.split(':'):
+        possible = P.join(dirname, filename)
+        if P.isfile(possible):
+            return possible
+    raise Exception('Could not find file %s in path[%s]' % (filename, path))
+
 def die(*args, **kw):
     '''Quit, printing the provided error message.'''
     error(*args, **kw)
@@ -655,15 +665,6 @@ class SVNPackage(Package):
 
         self._apply_patches()
 
-def findfile(filename, path=None):
-    '''Search for a file in the system PATH or provided path string'''
-    if path is None: path = os.environ.get('PATH', [])
-    for dirname in path.split(':'):
-        possible = P.join(dirname, filename)
-        if P.isfile(possible):
-            return possible
-    raise Exception('Could not find file %s in path[%s]' % (filename, path))
-
 class CMakePackage(Package):
     '''Package variant that must be built using CMake'''
     # Don't allow these to be specified by the user, we need control over these.
@@ -704,10 +705,10 @@ class CMakePackage(Package):
         # Write out a custom cmake rules file
         build_rules = P.join(self.env['BUILD_DIR'], 'my_rules.cmake')
         with file(build_rules, 'w') as f:
-            print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (findfile(self.env['CC'], self.env['PATH'])), file=f)
+            print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (find_file(self.env['CC'], self.env['PATH'])), file=f)
             #print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
-            print('SET (CMAKE_CXX_COMPILER "%s" CACHE FILEPATH "C++ compiler" FORCE)' % (findfile(self.env['CXX'], self.env['PATH'])), file=f)
-            print('SET (CMAKE_Fortran_COMPILER "%s" CACHE FILEPATH "Fortran compiler" FORCE)' % (findfile(self.env['F77'], self.env['PATH'])), file=f)
+            print('SET (CMAKE_CXX_COMPILER "%s" CACHE FILEPATH "C++ compiler" FORCE)' % (find_file(self.env['CXX'], self.env['PATH'])), file=f)
+            print('SET (CMAKE_Fortran_COMPILER "%s" CACHE FILEPATH "Fortran compiler" FORCE)' % (find_file(self.env['F77'], self.env['PATH'])), file=f)
             #print('SET (CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
 
         # Build up the main cmake command using our environment variables

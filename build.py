@@ -22,7 +22,7 @@ from glob import glob
 from Packages import *
 
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
-     get_platform, findfile, run, get_prog_version, logger, warn, \
+     get_platform, find_file, run, get_prog_version, logger, warn, \
      binary_builder_prefix, program_exists
 from BinaryDist import fix_install_paths, which
 
@@ -271,14 +271,14 @@ if __name__ == '__main__':
 
     # Deal with the Fortran compiler
     try:
-        findfile(build_env['F77'], build_env['PATH'])
+        find_file(build_env['F77'], build_env['PATH'])
     except Exception:
         acceptable_fortran_compilers = [build_env['F77'],'g77']
         for i in range(0,10):
             acceptable_fortran_compilers.append("gfortran-mp-4.%s" % i)
         for compiler in acceptable_fortran_compilers:
             try:
-                gfortran_path = findfile(compiler, build_env['PATH'])
+                gfortran_path = find_file(compiler, build_env['PATH'])
                 print("Found fortran at: %s" % gfortran_path)
                 build_env['F77'] = compiler
                 break
@@ -330,7 +330,7 @@ if __name__ == '__main__':
                    superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
                    jama, laszip, liblas, geoid, 
                    bullet, embree, nanoflann, nn, pcl, isis, gflags, glog, ceres,
-                   libnabo, libpointmatcher, imagemagick, theia]
+                   libnabo, libpointmatcher, imagemagick, theia, htdp]
 
     if (len(args) == 0):
         # Specific package not specified, set packages according to the build goal.
@@ -382,12 +382,12 @@ if __name__ == '__main__':
     if opt.ccache:
 
         try:
-            ccache_path = findfile('ccache', build_env['PATH'])
+            ccache_path = find_file('ccache', build_env['PATH'])
         except:
             # If could not find ccache, build it.
             print("\n========== Building: %s ==========" % ccache.__name__)
             Package.build(ccache(build_env.copy_set_default()))
-            ccache_path = findfile('ccache', build_env['PATH'])
+            ccache_path = find_file('ccache', build_env['PATH'])
 
         print(compiler_dir)
         new = dict(
