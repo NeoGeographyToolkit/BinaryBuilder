@@ -187,7 +187,7 @@ diff -ruN isis-git/isis/CMakeLists.txt new_isis/isis/CMakeLists.txt
 +	${LIB_DIR}/libboost_math_tr1f-mt-1_59${SO}
 +	${LIB_DIR}/libboost_math_tr1l-mt-1_59${SO}
 +	${LIB_DIR}/libboost_math_tr1-mt-1_59${SO}
-+	${LIB_DIR}/libboost_prg_exec_monitor-mt-1_59.dylib
++	${LIB_DIR}/libboost_prg_exec_monitor-mt-1_59${SO}
 +	${LIB_DIR}/libboost_program_options-mt-1_59${SO}
 +	${LIB_DIR}/libboost_random-mt-1_59${SO}
 +	${LIB_DIR}/libboost_regex-mt-1_59${SO}
