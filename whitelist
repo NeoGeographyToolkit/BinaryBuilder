@@ -10,6 +10,7 @@ bin/export_reconstruction_to_vw
 bin/export_matches_file_to_vw
 bin/bundle_adjust
 bin/cam2map4stereo.py
+bin/camera_footprint
 bin/colormap
 bin/dem_geoid
 bin/dem_mosaic
@@ -84,7 +85,9 @@ libexec/asp*.py
 libexec/parallel
 libexec/lasinfo
 libexec/qi2txt
+libexec/datum_convert_cpp
 libexec/htdp
+libexec/crs2crs2grid.py
 share/gdal/*
 share/geoids*
 share/proj/*
