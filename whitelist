@@ -84,6 +84,7 @@ libexec/asp*.py
 libexec/parallel
 libexec/lasinfo
 libexec/qi2txt
+libexec/htdp
 share/gdal/*
 share/geoids*
 share/proj/*

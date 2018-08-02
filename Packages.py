@@ -306,6 +306,10 @@ class proj(Package):
         unpack_folder = os.path.join(self.env['BUILD_DIR'], 'proj', 'proj-datumgrid-1.7')
         share_folder  = os.path.join(self.env['INSTALL_DIR'], 'share', 'proj')
 
+        # First delete some extra files we don't want
+        os.system('rm -rf ' + os.path.join(share_folder, 'europe',        '.github'))
+        os.system('rm -rf ' + os.path.join(share_folder, 'north-america', '.github'))
+
         # Larger files are skipped to keep the ASP tarball size down.
         grid_list = ('alaska europe null prvi stlrnc  WI BETA2007.gsb conus FL ntf_r93.gsb nzgd2kgrid0005.gsb stpaul  WO' +
                      ' egm96_15.gtx hawaii MD ntv1_can.dat stgeorge TN north-america').split()
