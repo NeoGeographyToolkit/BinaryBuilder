@@ -83,7 +83,7 @@ echo "Launching the tests. Output goes to: $(pwd)/$reportFile"
 num_cpus=$(ncpus)
 if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 #bin/run_tests.pl $configFile > $outputFile 2>&1
-py.test -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
+py.test --timeout=900  -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
 test_status="$?"
 
