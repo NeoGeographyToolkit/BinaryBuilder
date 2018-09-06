@@ -24,6 +24,9 @@ ssh $machine "mkdir -p $buildDir" 2>/dev/null
 echo "rsync -avz --delete $files $machine:$buildDir"
 rsync -avz --delete $files $machine:$buildDir 2>/dev/null
 
-sleep 5 # just in case, to ensure the files finished copying
-
-exit 0
+if [ $? -eq 0 ]; then
+    sleep 5 # just in case, to ensure the files finished copying
+    exit 0
+else
+    exit 1
+fi

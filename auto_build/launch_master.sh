@@ -145,7 +145,11 @@ for buildMachine in $buildMachines $masterMachine; do
     # Make sure all scripts are up-to-date on $buildMachine
     echo "Pushing code to: $buildMachine"
     ./auto_build/push_code.sh $buildMachine $buildDir $filesList
-    if [ "$?" -ne 0 ]; then exit 1; fi
+    if [ "$?" -ne 0 ]; then
+      # This only gets tried once, we may need to add retries.
+      echo "Error: Code push to machine $buildMachine failed!"
+      exit 1;
+    fi
 
     if [ "$resumeRun" -ne 0 ]; then
         statusLine=$(cat $statusFile 2>/dev/null)
@@ -163,7 +167,12 @@ for buildMachine in $buildMachines $masterMachine; do
     # Launch the build
     echo "NoTarballYet now_building" > $statusFile
     robust_ssh $buildMachine $buildDir/auto_build/build.sh \
-        "$buildDir $statusFile $masterMachine" $outputFile
+               "$buildDir $statusFile $masterMachine" $outputFile
+    if [ $? -ne 0 ]; then
+      echo Error: Unable to launch build on $buildMachine
+      exit 1
+    fi
+    
 done
 
 # Whenever a build is done, launch tests for it. For some

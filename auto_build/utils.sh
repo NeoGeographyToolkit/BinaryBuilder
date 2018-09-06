@@ -143,11 +143,11 @@ function robust_ssh {
             2>/dev/null)
         if [ "$out" != "" ]; then
             echo "Success starting on $machine: $out";
-            break
+            return 0
         fi
         echo "Trying to start $name at $(date) on $machine in attempt $count"
     done
-
+    return 1
 }
 
 function get_test_machines {
