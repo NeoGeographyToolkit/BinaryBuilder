@@ -1,0 +1,21 @@
+--- a/src/theia/sfm/bundle_adjustment/optimize_relative_position_with_known_rotation.cc
++++ b/src/theia/sfm/bundle_adjustment/optimize_relative_position_with_known_rotation.cc
+@@ -38,6 +38,7 @@
+ #include <Eigen/Core>
+ #include <algorithm>
+ #include <vector>
++#include <glog/logging.h>
+ 
+ #include "theia/math/util.h"
+ #include "theia/matching/feature_correspondence.h"
+--- a/src/theia/sfm/twoview_info.cc
++++ b/src/theia/sfm/twoview_info.cc
+@@ -35,7 +35,7 @@
+ #include <ceres/rotation.h>
+ #include <Eigen/Core>
+ #include <algorithm>
+-
++#include <glog/logging.h>
+ #include "theia/sfm/twoview_info.h"
+ 
+ namespace theia {

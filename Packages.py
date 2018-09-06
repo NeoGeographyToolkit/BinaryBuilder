@@ -1049,9 +1049,10 @@ class eigen(CMakePackage):
             '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
             ])
 
-class glog(GITPackage, CMakePackage):
-    src     = 'https://github.com/google/glog.git'
-    chksum  = '0472b91' 
+class glog(CMakePackage):
+    src     = 'https://github.com/google/glog/archive/v0.3.5.tar.gz'
+    chksum  = '61067502c5f9769d111ea1ee3f74e6ddf0a5f9cc'
+
     def configure(self):
         ext = lib_ext(self.arch.os)
         if self.arch.os == 'osx':
@@ -1066,20 +1067,20 @@ class glog(GITPackage, CMakePackage):
         super(glog, self).configure(other = other_flags)
 
 class ceres(CMakePackage):
-    src = 'http://ceres-solver.org/ceres-solver-1.11.0.tar.gz'
-    chksum = '5e8683bfb410b1ba8b8204eeb0ec1fba009fb2d0'
+    src = 'http://ceres-solver.org/ceres-solver-1.14.0.tar.gz'
+    chksum = '57b61c28d67ca3eb814c5605120ae614be465b7c'
 
     def configure(self):
 
         ext = lib_ext(self.arch.os)
         super(ceres, self).configure(other=[
-            '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
-            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
+            '-DEIGEN_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
+            '-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
             '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
-            '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
+            '-DGFLAGS_LIBRARY='     + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
+            '-DGLOG_INCLUDE_DIR='   + P.join(self.env['INSTALL_DIR'],'include/glog'),
+            '-DGLOG_LIBRARY='       + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
             '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=OFF',
             '-DSUITESPARSE=ON', '-DLAPACK=ON',
             '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
@@ -1299,8 +1300,9 @@ class opencv(CMakePackage):
         super(opencv, self).configure( other=options_list, with_=with_on_list, without=with_off_list )
 
 class gflags(CMakePackage):
-    src     = 'https://github.com/gflags/gflags/archive/v2.1.2.tar.gz'
-    chksum  = '8bdbade9d041339dc14b4ab426e2354a5af38478'
+    src     = 'https://github.com/gflags/gflags/archive/v2.2.1.tar.gz'
+    chksum  = 'b1c82261c8b9c87fb2fb5de6bdf70121ad1cca58'
+
     def configure(self):
 
         options = ['-DCMAKE_CXX_FLAGS=-fPIC', 
@@ -1337,10 +1339,18 @@ class theia(GITPackage, CMakePackage):
                    '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
                    '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
                    '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
-                   '-DENABLE_TESTING=OFF',
+                   '-DBUILD_TESTING=OFF',
                    '-DBUILD_DOCUMENTATION=OFF']
 
         super(theia, self).configure(other=options)
+
+        # Remove this linker tag which just breaks things        
+        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
+        build_dir  = P.join(output_dir, self.pkgname + '-git', 'build')
+        cmd = "find "+build_dir+" -name link.txt -exec sed -i -e 's#-lgflags-shared##g' {} \;"
+        print(cmd)
+        os.system(cmd)
+
 
 class xz(Package):
     src     = 'http://tukaani.org/xz/xz-5.2.2.tar.gz'
