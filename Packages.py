@@ -1305,11 +1305,6 @@ class gflags(CMakePackage):
 
     def configure(self):
 
-        # This causes a conflict on MacOS
-        badFile = os.path.join(self.env['BUILD_DIR'], 'gflags/gflags-2.2.1/BUILD')
-        cmd = 'rm ' + badFile        
-        os.system(cmd)
-
         options = ['-DCMAKE_CXX_FLAGS=-fPIC', 
                    '-DBUILD_SHARED_LIBS=ON',
                    '-DBUILD_STATIC_LIBS=OFF',

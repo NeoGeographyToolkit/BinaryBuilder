@@ -681,7 +681,9 @@ class CMakePackage(Package):
 
     @stage
     def configure(self, other=(), enable=(), disable=(), with_=(), without=()):
-        self.builddir = P.join(self.workdir, 'build')
+        # The tradition is to use "build", but some tools include a
+        #  file called "BUILD" which conflicts in OSX.
+        self.builddir = P.join(self.workdir, 'build_binarybuilder')
 
         def remove_danger(files, dirname, fnames):
             '''Function to find all CMakeLists.txt files in a set of files'''
