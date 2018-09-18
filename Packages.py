@@ -394,9 +394,12 @@ class geoid(Package):
         self.helper(self.env['F77'], '-c','-fPIC','interp_2p5min.f')
         if self.arch.os == 'osx':
             flag = '-dynamiclib'
+            ext  = '.dylib'
         else:
             flag = '-shared'
-        self.helper(self.env['F77'], flag, '-o', 'libegm2008.so', 'interp_2p5min.o')
+            ext  = '.so'
+        
+        self.helper(self.env['F77'], flag, '-o', 'libegm2008'+ext, 'interp_2p5min.o')
 
     def install(self):
         cmd = ['cp'] + glob(P.join(self.workdir, 'libegm2008.*')) \
@@ -450,48 +453,58 @@ class isis(GITPackage, CMakePackage):
         self.workdir = os.path.join(self.workdir, 'isis')
         super(isis, self).configure(other=['-Dpybindings=Off','-DJP2KFLAG=OFF','-DbuildTests=OFF']) #-DNinja
 
-class stereopipeline(GITPackage):
+class stereopipeline(GITPackage, CMakePackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
     def configure(self):
 
-        # Skip config in fast mode if config file exists
-        config_file = P.join(self.workdir, 'config.options')
-        if self.fast and os.path.isfile(config_file): return
+        ## Skip config in fast mode if config file exists
+        #config_file = P.join(self.workdir, 'config.options')
+        #if self.fast and os.path.isfile(config_file): return
 
-        self.helper('./autogen')
+        #self.helper('./autogen')
 
-        use_env_flags = False # TODO: What is this?
+        #use_env_flags = False # TODO: What is this?
         prefix        = self.env['INSTALL_DIR']
         installdir    = prefix
-        vw_build      = prefix
-        arch          = self.arch
-        write_asp_config(use_env_flags, prefix, installdir, vw_build,
-                         arch, geoid, config_file)
+        #vw_build      = prefix
+        #arch          = self.arch
+        #write_asp_config(use_env_flags, prefix, installdir, vw_build,
+        #                 arch, geoid, config_file)
         
-        super(stereopipeline, self).configure(
-            other   = ['docdir=%s/doc' % prefix],
-            without = ['clapack', 'slapack', 'tcmalloc'],
-            disable = ['pkg_paths_default', 'static', 'qt-qmake'],
-            enable  = ['debug=ignore', 'optimize=ignore']
-            )
+        #super(stereopipeline, self).configure(
+        #    other   = ['docdir=%s/doc' % prefix],
+        #    without = ['clapack', 'slapack', 'tcmalloc'],
+        #    disable = ['pkg_paths_default', 'static', 'qt-qmake'],
+        #    enable  = ['debug=ignore', 'optimize=ignore']
+        #    )
+        super(stereopipeline, self).configure(other=['-DBINARYBUILDER_INSTALL_DIR='+installdir,
+                                                     '-DVISIONWORKBENCH_INSTALL_DIR='+installdir])
 
     @stage
-    def compile(self, cwd=None):
-        super(stereopipeline, self).compile(cwd)
+    def compile(self):
+        super(stereopipeline, self).compile()
         # Run unit tests. If the ISIS env vars are not set,
         # the ISIS-related tests will be skipped.
         # Make install must happen before 'make check',
         # otherwise the old installed library is linked.
-        cmd = ('make', 'install')
-        self.helper(*cmd)
+        #cmd = ('make', 'install')
+        #self.helper(*cmd)
+        super(stereopipeline, self).install()
+
         if self.fast or self.arch.os == 'osx' or int(self.env['SKIP_TESTS']) == 1:
             # The tests on the Mac do not compile, looks like a clang/gtest conflict.
             print("Skipping tests for OSX or in fast mode.")
         else:
-            cmd = ('make', 'check')
+            #cmd = ('make', 'check')
+            cmd = ('make', 'gtest')
             self.helper(*cmd)
 
-class visionworkbench(GITPackage):
+    @stage
+    def install(self):
+        pass # We installed during the compile step so skip this.
+
+
+class visionworkbench(GITPackage, CMakePackage):
     src = 'https://github.com/visionworkbench/visionworkbench.git'
 
     def __init__(self,env):
@@ -499,33 +512,42 @@ class visionworkbench(GITPackage):
 
     @stage
     def configure(self):
-        # Skip config in fast mode if config file exists
-        config_file  = P.join(self.workdir, 'config.options')
-        if self.fast and os.path.isfile(config_file): return
+        ## Skip config in fast mode if config file exists
+        #config_file  = P.join(self.workdir, 'config.options')
+        #if self.fast and os.path.isfile(config_file): return
 
-        self.helper('./autogen')
+        #self.helper('./autogen')
 
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
-        prefix       = installdir
-        write_vw_config(prefix, installdir, arch, config_file)       
-        fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
-        super(visionworkbench, self).configure()
+        #prefix       = installdir
+        #write_vw_config(prefix, installdir, arch, config_file)       
+        # TODO: Fix libgeotiff instead!
+        #fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
+        super(visionworkbench, self).configure(other=['-DBINARYBUILDER_INSTALL_DIR='+installdir])
 
     @stage
-    def compile(self, cwd=None):
-        super(visionworkbench, self).compile(cwd)
+    def compile(self):
+        super(visionworkbench, self).compile()
         # Run unit tests
         # Make install must happen before 'make check',
         # otherwise the old installed library is linked.
-        cmd = ('make', 'install')
-        self.helper(*cmd)
+        #cmd = ('make', 'install')
+        #self.helper(*cmd)
+        super(visionworkbench, self).install()
+
         if self.fast or self.arch.os == 'osx' or int(self.env['SKIP_TESTS']) == 1:
             # The tests on the Mac do not even compile, looks like a clang/gtest conflict
             print("Skipping tests for OSX or in fast mode.")
         else:
-            cmd = ('make', 'check')
+            #cmd = ('make', 'check')
+            cmd = ('make', 'gtest')
             self.helper(*cmd)
+
+    @stage
+    def install(self):
+        pass # We installed during the compile step so skip this.
+
 
 class lapack(CMakePackage):
     src     = 'http://www.netlib.org/lapack/lapack-3.5.0.tgz'
