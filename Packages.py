@@ -463,6 +463,8 @@ class stereopipeline(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
+        self.env['LDFLAGS'] = '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both -m64'
+
         #use_env_flags = False # TODO: What is this?
         prefix        = self.env['INSTALL_DIR']
         installdir    = prefix
@@ -496,8 +498,9 @@ class stereopipeline(GITPackage, CMakePackage):
             print("Skipping tests for OSX or in fast mode.")
         else:
             #cmd = ('make', 'check')
-            cmd = ('make', 'gtest')
-            self.helper(*cmd)
+            cmd = ('make', 'gtest_all')
+            buildDir = os.path.join(self.workdir, 'build_binarybuilder')
+            self.helper(*cmd, cwd=buildDir)
 
     @stage
     def install(self):
@@ -517,6 +520,9 @@ class visionworkbench(GITPackage, CMakePackage):
         #if self.fast and os.path.isfile(config_file): return
 
         #self.helper('./autogen')
+
+        # Need to remove some default options that break.
+        self.env['LDFLAGS'] = '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both -m64'
 
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
@@ -541,8 +547,9 @@ class visionworkbench(GITPackage, CMakePackage):
             print("Skipping tests for OSX or in fast mode.")
         else:
             #cmd = ('make', 'check')
-            cmd = ('make', 'gtest')
-            self.helper(*cmd)
+            cmd = ('make', 'gtest_all')
+            buildDir = os.path.join(self.workdir, 'build_binarybuilder')
+            self.helper(*cmd, cwd=buildDir)
 
     @stage
     def install(self):
