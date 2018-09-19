@@ -463,7 +463,11 @@ class stereopipeline(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
-        self.env['LDFLAGS'] = '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both -m64'
+        # TODO: Just remove the bad arguments!
+        if self.arch.os == 'osx':
+            self.env['LDFLAGS'] = '-Wl,-headerpad_max_install_names'
+        else:
+            self.env['LDFLAGS'] = '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both -m64'
 
         #use_env_flags = False # TODO: What is this?
         prefix        = self.env['INSTALL_DIR']
@@ -521,8 +525,11 @@ class visionworkbench(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
-        # Need to remove some default options that break.
-        self.env['LDFLAGS'] = '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both -m64'
+        # TODO: Just remove the bad arguments!
+        if self.arch.os == 'osx':
+            self.env['LDFLAGS'] = '-Wl,-headerpad_max_install_names'
+        else:
+            self.env['LDFLAGS'] = '-Wl,-O1 -Wl,--enable-new-dtags -Wl,--hash-style=both -m64'
 
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
