@@ -79,14 +79,14 @@ if [ "$buildMachine" = "lunokhod1" ]; then
     # Build the documentation on the machine which has LaTeX
     echo "Will build the documentation"
     rm -fv dist-add/asp_book.pdf
-    cd build_asp/build/stereopipeline/stereopipeline-git/docs/book
+    cd build_asp/build/stereopipeline/stereopipeline-git/build_binarybuilder
     rm -fv asp_book.pdf
-    make
+    make workbook
 
     # Copy the documentation to the master machine
     echo Copying the documentation to $masterMachine
-    rsync -avz asp_book.pdf $masterMachine:$buildDir/dist-add/ \
-        2>/dev/null
+    rsync -avz ../docs/book/asp_book.pdf \
+          $masterMachine:$buildDir/dist-add/ 2>/dev/null
 
     cd $HOME/$buildDir
 fi
