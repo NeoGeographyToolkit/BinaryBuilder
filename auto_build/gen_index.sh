@@ -47,7 +47,7 @@ echo "<li><a href=\"$modules_link\">Optional Python Modules</a></li>" >> $index
 
 echo '</ul>
 Contact: stereo-pipeline-owner [at] lists [dot] nasa [dot] gov<br>
-<a href="http://ti.arc.nasa.gov/tech/asr/intelligent-robotics/ngt/stereo/">About Ames Stereo Pipeline</a>
+<a href="https://ti.arc.nasa.gov/tech/asr/groups/intelligent-robotics/ngt/stereo/">About Ames Stereo Pipeline</a>
 </body>
 </hml>
 ' >> $index
