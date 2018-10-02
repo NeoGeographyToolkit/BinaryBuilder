@@ -497,9 +497,8 @@ class stereopipeline(GITPackage, CMakePackage):
         #self.helper(*cmd)
         super(stereopipeline, self).install()
 
-        if self.fast or self.arch.os == 'osx' or int(self.env['SKIP_TESTS']) == 1:
-            # The tests on the Mac do not compile, looks like a clang/gtest conflict.
-            print("Skipping tests for OSX or in fast mode.")
+        if self.fast or int(self.env['SKIP_TESTS']) == 1:
+            print("Skipping tests in fast mode.")
         else:
             #cmd = ('make', 'check')
             cmd = ('make', 'gtest_all')
@@ -549,9 +548,8 @@ class visionworkbench(GITPackage, CMakePackage):
         #self.helper(*cmd)
         super(visionworkbench, self).install()
 
-        if self.fast or self.arch.os == 'osx' or int(self.env['SKIP_TESTS']) == 1:
-            # The tests on the Mac do not even compile, looks like a clang/gtest conflict
-            print("Skipping tests for OSX or in fast mode.")
+        if self.fast or int(self.env['SKIP_TESTS']) == 1:
+            print("Skipping tests in fast mode.")
         else:
             #cmd = ('make', 'check')
             cmd = ('make', 'gtest_all')
