@@ -329,7 +329,7 @@ if __name__ == '__main__':
     ASP_DEPS    = [parallel, gsl, xercesc, cspice, protobuf, 
                    superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
                    jama, laszip, liblas, geoid, 
-                   bullet, embree, nanoflann, nn, pcl, isis, gflags, glog, ceres,
+                   bullet, embree, nanoflann, nn, pcl, armadillo, isis, gflags, glog, ceres,
                    libnabo, libpointmatcher, imagemagick, theia, htdp]
 
     if (len(args) == 0):

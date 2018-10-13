@@ -1,0 +1,15 @@
+diff -ruN armadillo-9.100.5_orig/CMakeLists.txt armadillo-9.100.5/CMakeLists.txt
+--- armadillo-9.100.5_orig/CMakeLists.txt	2016-06-16 09:19:05.000000000 -0700
++++ armadillo-9.100.5/CMakeLists.txt	2018-10-12 16:46:14.141919883 -0700
+@@ -180,7 +180,10 @@
+   include(ARMA_FindATLAS)
+   include(ARMA_FindBLAS)
+   include(ARMA_FindLAPACK)
+-  
++
++  set(ATLAS_FOUND OFF)
++  set(OpesBLAS_FOUND OFF)
++
+   message(STATUS "     MKL_FOUND = ${MKL_FOUND}"     )
+   message(STATUS "  ACMLMP_FOUND = ${ACMLMP_FOUND}"  )
+   message(STATUS "    ACML_FOUND = ${ACML_FOUND}"    )

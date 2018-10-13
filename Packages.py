@@ -417,14 +417,19 @@ class hdf5(Package):
     def configure(self):
         super(hdf5, self).configure(enable=('cxx'), disable = ['static'])
 
+class armadillo(CMakePackage):
+    src    = 'http://sourceforge.net/projects/arma/files/armadillo-9.100.5.tar.xz'
+    chksum = 'c4f9bf2c0d0650ba7814ae746e0da088211accfd'
+
+    @stage
+    def configure(self):
+        super(armadillo, self).configure(other=['-DDETECT_HDF5=OFF'])
+
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
     chksum = 'ce3fb97' # Does not matter since we set the cmake commit below
     patches = 'patches/isis'
-
-    # TODO: The macOS build does not work with the default BB cmake command but does work if run
-    #        without all of the extra options.  Try to figure out which one is breaking it!
 
     @stage
     def unpack(self):
@@ -442,7 +447,7 @@ class isis(GITPackage, CMakePackage):
 
         # The default branch is not the one with the cmake build so we need to switch
         self.helper('git', 'checkout', 'cmake'  )
-        self.helper('git', 'checkout', '79b3762')
+        self.helper('git', 'checkout', 'fc2f1dd')
 
         self._apply_patches()
 
@@ -1023,9 +1028,10 @@ class protobuf(Package):
             raise PackageError(self, 'Could not find a good curl to use.')
             
 class suitesparse(Package):
-    src = 'http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.2.1.tar.gz'
-    chksum = '2fec3bf93314bd14cbb7470c0a2c294988096ed6'
-
+    src = 'http://faculty.cse.tamu.edu/davis/SuiteSparse/SuiteSparse-4.4.5.tar.gz'
+    chksum = '7666883423f56de760546a8be8795d5ac9d66c19'
+    patches = 'patches/suitesparse'
+    
     # Note: Currently this is archive only. They don't have the option
     # of using shared (probably for performance reasons). If we want
     # shared, we'll have make then a build system.
