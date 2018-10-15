@@ -420,6 +420,7 @@ class hdf5(Package):
 class armadillo(CMakePackage):
     src    = 'http://sourceforge.net/projects/arma/files/armadillo-9.100.5.tar.xz'
     chksum = 'c4f9bf2c0d0650ba7814ae746e0da088211accfd'
+    patches = 'patches/armadillo'
 
     @stage
     def configure(self):
@@ -1032,6 +1033,8 @@ class suitesparse(Package):
     chksum = '7666883423f56de760546a8be8795d5ac9d66c19'
     patches = 'patches/suitesparse'
     
+    # TODO: This build fails unless run manually from the build folder!
+
     # Note: Currently this is archive only. They don't have the option
     # of using shared (probably for performance reasons). If we want
     # shared, we'll have make then a build system.
