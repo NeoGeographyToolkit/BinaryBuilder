@@ -1041,7 +1041,10 @@ class suitesparse(Package):
 
     @stage
     def configure(self):
-        pass
+        if self.arch.os == 'osx':
+            # Swap the config file
+            self.helper('mv', 'SuiteSparse_config/SuiteSparse_config_Mac.mk',
+                              'SuiteSparse_config/SuiteSparse_config.mk')
 
     @stage
     def install(self):
