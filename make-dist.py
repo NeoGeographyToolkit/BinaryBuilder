@@ -103,10 +103,11 @@ def sibling_to(dir, name):
 
 # Keep this in sync with the function in libexec-funcs.sh
 def isis_version(isisroot):
-    # Check if this is versioning the ISIS3.3.0 way
+    # Check if this is versioning the ISIS 3.3.0 way
     if P.isfile(P.join(isisroot,'version')):
         f       = open(P.join(isisroot,'version'),'r')
-        version = f.readline().strip().split('.')
+        raw     = f.readline().strip()
+        version = raw.split('#')[0].strip().split('.') # Strip out comment first
         return ".".join(version[0:3])
     header = P.join(isisroot, 'src/base/objs/Constants/Constants.h')
     m      = grep('version\("(.*?)"', header)
