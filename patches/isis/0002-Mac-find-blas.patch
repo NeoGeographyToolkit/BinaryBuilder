@@ -1,0 +1,20 @@
+diff -ruN isis-git_orig/isis/cmake/FindOpenCV.cmake isis-git/isis/cmake/FindOpenCV.cmake
+--- isis-git_orig/isis/cmake/FindCholmod.cmake	2018-10-12 16:19:57.208428373 -0700
++++ isis-git/isis/cmake/FindCholmod.cmake	2018-10-11 16:50:54.454253108 -0700
+@@ -16,11 +16,14 @@ find_library(COLAMD_LIBRARY       NAMES colamd)
+ find_library(CAMD_LIBRARY         NAMES camd)
+ find_library(AMD_LIBRARY          NAMES amd)
+ find_library(SUITESPARSE_LIBRARY  NAMES suitesparseconfig)
+-find_library(BLAS_LIBRARY NAMES blas)
++#find_library(BLAS_LIBRARY NAMES blas)
+ 
+ # OSX does not link against lapack
+ if(NOT APPLE)
++  find_library(BLAS_LIBRARY NAMES blas)
+   find_library(LAPACK_LIBRARY       NAMES lapack)
++else()
++  set(APPLE_EXTRA_LIBRARIES "-llapack;-lblas") # Use system libs
+ endif()
+ 
+ # Dependencies for lapack
+
