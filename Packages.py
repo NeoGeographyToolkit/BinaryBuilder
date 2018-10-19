@@ -1225,6 +1225,37 @@ class libpointmatcher(GITPackage, CMakePackage):
                 ]
         super(libpointmatcher, self).configure(other=options)
 
+# FastGlobalRegistration
+class fgr(GITPackage, CMakePackage):
+    src   = 'https://github.com/oleg-alexandrov/FastGlobalRegistration.git'
+    chksum = 'cb1f21c'
+
+    @stage
+    def configure(self):
+        installDir = self.env['INSTALL_DIR']
+        options = [
+            '-DCMAKE_CXX_FLAGS="'
+            + '-I' + P.join(installDir,'include') + ' '
+            + '-I' + P.join(installDir,'include/eigen3') + ' '
+            + '-L' + P.join(installDir,'lib') + ' '
+            + '-lflann_cpp'
+            + '"',
+            '-DFastGlobalRegistration_LINK_MODE=SHARED'
+            ]
+        self.workdir = P.join(self.workdir, 'source')
+        super(fgr, self).configure(other=options)
+        
+    @stage
+    def install(self):
+        # Install the header file
+        destDir = P.join(self.env['INSTALL_DIR'], 'include', 'FastGlobalRegistration')
+        self.helper('mkdir', '-p', destDir)
+        self.helper('cp', P.join(self.workdir, 'FastGlobalRegistration/app.h'), destDir)
+
+        # Install the library
+        lib = P.join(self.builddir, 'FastGlobalRegistration', 'libFastGlobalRegistrationLib.so')
+        self.helper('cp', lib,  P.join(self.env['INSTALL_DIR'], 'lib'))
+        
 # We would like to fetch this very source code. This is used
 # in the nightly builds and regressions.
 class binarybuilder(GITPackage):
