@@ -1253,7 +1253,11 @@ class fgr(GITPackage, CMakePackage):
         self.helper('cp', P.join(self.workdir, 'FastGlobalRegistration/app.h'), destDir)
 
         # Install the library
-        lib = P.join(self.builddir, 'FastGlobalRegistration', 'libFastGlobalRegistrationLib.so')
+        if self.arch.os == 'osx':
+            ext  = '.dylib'
+        else:
+            ext  = '.so'
+        lib = P.join(self.builddir, 'FastGlobalRegistration', 'libFastGlobalRegistrationLib'+ext)
         self.helper('cp', lib,  P.join(self.env['INSTALL_DIR'], 'lib'))
         
 # We would like to fetch this very source code. This is used
