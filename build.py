@@ -328,7 +328,7 @@ if __name__ == '__main__':
                    ilmbase, openexr, boost, flann, hdf5, eigen, opencv]
     ASP_DEPS    = [parallel, gsl, xercesc, cspice, protobuf, 
                    superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
-                   jama, laszip, liblas, geoid, 
+                   jama, laszip, liblas, geoid, fgr,
                    bullet, embree, nanoflann, nn, pcl, armadillo, isis, gflags, glog, ceres,
                    libnabo, libpointmatcher, imagemagick, theia, htdp]
 
