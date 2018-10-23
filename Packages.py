@@ -1227,8 +1227,8 @@ class libpointmatcher(GITPackage, CMakePackage):
 
 # FastGlobalRegistration
 class fgr(GITPackage, CMakePackage):
-    src   = 'https://github.com/oleg-alexandrov/FastGlobalRegistration.git'
-    chksum = 'cb1f21c'
+    src   = 'https://github.com/ScottMcMichael/FastGlobalRegistrationSmall.git'
+    chksum = '4f33492'
 
     @stage
     def configure(self):
