@@ -40,6 +40,7 @@ bin/osgviewer
 bin/parallel_stereo
 bin/parallel_sfs
 bin/pc_align
+bin/n_align
 bin/point2dem
 bin/point2las
 bin/point2mesh
