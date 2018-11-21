@@ -71,9 +71,9 @@ bin/cam2rpc
 bin/camera_footprint
 lib/*.plugin
 plugins/platforms
-lib/libasp*.[so,dylib]*
+lib/libAsp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib]*
-lib/libvw*.[so,dylib]*
+lib/libVw*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
 libexec/opencv_calibrate
 libexec/opencv_imagelist_creator
