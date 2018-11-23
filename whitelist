@@ -3,6 +3,7 @@ bin/add_spot_rpc
 bin/convert
 bin/camera_solve
 bin/camera_calibrate
+bin/coverage_fraction
 bin/undistort_image
 bin/build_reconstruction
 bin/view_reconstruction
