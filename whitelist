@@ -28,6 +28,7 @@ bin/hiedr2mosaic.py
 bin/hillshade
 bin/hsv_merge
 bin/image2qtree
+bin/image_mosaic
 bin/ipfind
 bin/ipmatch
 bin/lronac2mosaic.py
