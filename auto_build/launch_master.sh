@@ -40,14 +40,14 @@ skipTests=0
 if [ "$(echo $* | grep skip_tests)" != "" ]; then skipTests=1; echo "Will skip tests."; fi
 
 if [ "$USER" == "smcmich1" ]; then
-    mailto="scott.t.mcmichael@nasa.gov"
+    mailto="scott.mcmichael@gmail.com"
     if [ "$localMode" -eq 0 ]; then
-        mailto="$mailto oleg.alexandrov@nasa.gov"
+        mailto="$mailto oleg.alexandrov@gmail.com"
     fi
 else
-    mailto="oleg.alexandrov@nasa.gov"
+    mailto="oleg.alexandrov@gmail.com"
     if [ "$localMode" -eq 0 ]; then
-        mailto="$mailto scott.t.mcmichael@nasa.gov"
+        mailto="$mailto scott.mcmichael@gmail.com"
     fi
 fi
 
