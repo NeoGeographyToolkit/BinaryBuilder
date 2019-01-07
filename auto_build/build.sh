@@ -80,7 +80,7 @@ if [ "$buildMachine" = "lunokhod1" ]; then
     echo "Will build the documentation"
     rm -fv dist-add/asp_book.pdf
     cd build_asp/build/stereopipeline/stereopipeline-git/build_binarybuilder
-    rm -fv asp_book.pdf
+    rm -fv ../docs/book/asp_book.pdf
     make workbook
 
     # Copy the documentation to the master machine
