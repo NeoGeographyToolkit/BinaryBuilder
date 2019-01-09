@@ -27,7 +27,8 @@ releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
 virtualMachines="centos-6"
-buildMachines="$virtualMachines decoder"
+buildMachines="$virtualMachines"
+#buildMachines="$virtualMachines decoder"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -42,10 +43,10 @@ if [ "$(echo $* | grep skip_tests)" != "" ]; then skipTests=1; echo "Will skip t
 if [ "$USER" == "smcmich1" ]; then
     mailto="scott.mcmichael@gmail.com"
     if [ "$localMode" -eq 0 ]; then
-        mailto="$mailto oleg.alexandrov@gmail.com"
+        mailto="$mailto oleg.alexandrov@nasa.gov"
     fi
 else
-    mailto="oleg.alexandrov@gmail.com"
+    mailto="oleg.alexandrov@nasa.gov"
     if [ "$localMode" -eq 0 ]; then
         mailto="$mailto scott.mcmichael@gmail.com"
     fi
