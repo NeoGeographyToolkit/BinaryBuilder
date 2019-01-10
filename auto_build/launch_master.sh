@@ -182,7 +182,10 @@ while [ 1 ]; do
 
     allTestsAreDone=1
 
-    for buildMachine in $buildMachines; do
+    # Note that we wait on both the build machines
+    # and on $masterMachine to build, as the later builds the docs,
+    # though we launch tests only for each build on $buildMachine.
+    for buildMachine in $buildMachines $masterMachine; do
 
         # Parse the current status for this build machine
         statusFile=$(status_file $buildMachine)
@@ -213,6 +216,13 @@ while [ 1 ]; do
             echo "Status for $buildMachine is $statusLine"
         elif [ "$progress" = "build_done" ]; then
 
+            if [ "$buildMachine" = "$masterMachine" ]; then
+                # We do not launch tests for the build on
+                # $masterMachine. That one is just for the doc.
+                # This is confusing. 
+                continue
+            fi
+            
             echo "Fetching the completed build"
             # Grab the build file from the build machine
             echo "rsync -avz  $buildMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"

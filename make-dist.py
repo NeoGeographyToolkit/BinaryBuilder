@@ -52,8 +52,6 @@ LIB_SYSTEM_LIST = '''
     libSystem.B.dylib
     libmathCommon.A.dylib
 
-    libGL.so.1
-    libGLU.so.1
     libICE.so.6
     libSM.so.6
     libX11.so.6
@@ -64,12 +62,6 @@ LIB_SYSTEM_LIST = '''
     libXrender.so.1
     libXt.so.6
     libdl.so.2
-    libfontconfig.so.1
-    libfreetype.so.6
-    libglib-2.0.so.0
-    libglut.so.3
-    libgobject-2.0.so.0
-    libgthread-2.0.so.0
     libm.so.6
     libpthread.so.0
     librt.so.1
@@ -77,11 +69,8 @@ LIB_SYSTEM_LIST = '''
     libc.so.1
     libc.so.6
     libXxf86vm.so.1
-    libxcb.so.1
     libuuid.so.1
     libXau.so.6
-    libxcb-xlib.so.0
-    libwebp.7.dylib
 '''.split()
 
 # prefixes of libs that we always ship

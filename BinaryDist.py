@@ -525,6 +525,9 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
         rpath = [P.join('$ORIGIN', rel_to_top, path) for path in searchpath]
         if run('chrpath', '-r', ':'.join(rpath), filename, raise_on_failure = False) is None:
+            # TODO: Apparently patchelf is better than chrpath when the
+            # latter fails. Here, can use instead:
+            # patchelf --set-rpath ':'.join(rpath) filename
             logger.warn('Failed to set_rpath on %s' % filename)
     def osx():
         info = otool(filename)
