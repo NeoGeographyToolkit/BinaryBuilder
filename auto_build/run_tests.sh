@@ -82,9 +82,14 @@ perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFile
 echo "Launching the tests. Output goes to: $(pwd)/$reportFile"
 num_cpus=$(ncpus)
 if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
+
 #bin/run_tests.pl $configFile > $outputFile 2>&1
-# Kill individual tests after four hours.  They should take much less time but maybe the system is busy.
-py.test --timeout=14400  -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
+# Kill individual tests after four hours. They should take much less time but maybe the system is busy.
+# For some reason, py.test does not work on Linux with multiple CPUs. Hence,
+# I had to reinstall it, and the new name is apparently pytest.py instead of py.test. 
+# TODO: This will need to be sorted out on the Mac when it comes up
+#py.test --timeout=14400  -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
+python /home/oalexan1/.local/pytest.py --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
 test_status="$?"
 
