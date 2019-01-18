@@ -96,3 +96,11 @@ share/gdal/*
 share/geoids*
 share/proj/*
 version
+AUTHORS
+INSTALLGUIDE
+LICENSE
+NEWS
+README
+stereo.default.example
+THIRDPARTYLICENSES
+examples

@@ -283,10 +283,10 @@ if __name__ == '__main__':
                     os.remove(f)
                 except Exception:
                     pass
-        print('Adding files in dist-add and docs')
+        print('Adding files in dist-add')
         sys.stdout.flush()
         # To do: Don't depend on cwd
-        for dir in 'dist-add', INSTALLDIR.doc():
+        for dir in 'dist-add':
             if P.exists(dir):
                 mgr.add_directory(dir)
 
