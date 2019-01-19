@@ -272,21 +272,10 @@ if __name__ == '__main__':
             else:
                 print("Warning: missing libs: " + '\n\t'.join(mgr.deplist.keys()) + "\n")
                 
-        # We don't want to distribute with ASP any random files in
-        # 'docs' installed by any of its deps. Distribute only what we need.
-        # - In the VW build clean out docs completely because we still get junk
-        for f in glob(P.join(INSTALLDIR.doc(),'*')):
-            base_f = os.path.basename(f)
-            if (base_f not in ['AUTHORS', 'COPYING', 'INSTALLGUIDE', 'NEWS',
-                              'README', 'THIRDPARTYLICENSES', 'examples']) or opt.vw_build:
-                try:
-                    os.remove(f)
-                except Exception:
-                    pass
         print('Adding files in dist-add')
         sys.stdout.flush()
         # To do: Don't depend on cwd
-        for dir in 'dist-add':
+        for dir in ['dist-add']:
             if P.exists(dir):
                 mgr.add_directory(dir)
 

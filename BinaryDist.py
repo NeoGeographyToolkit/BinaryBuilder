@@ -151,8 +151,18 @@ class DistManager(object):
         else:
             self._add_file(inpath, self.distdir.base(relpath))
 
+    def add_file(self, src, dst=None, hardlink=False):
+        '''Copy a file to a destination given as a directory relative to distdir.
+        That is, cp src distdir/dst/src.'''
+        if dst is None:
+            dst = self.distdir
+        else:
+            dst = P.join(self.distdir, dst)
+        dst = P.join(dst, src)
+        self._add_file(src, dst)
+        
     def add_directory(self, src, dst=None, hardlink=False):
-        ''' Recursively add a directory. Will do it dumbly! No magic here. '''
+        ''' Recursively copy a directory src to make it relative to directory dst.'''
         if dst is None: dst = self.distdir
         mergetree(src, dst, partial(self._add_file, hardlink=hardlink, add_deps=False))
 
@@ -293,7 +303,8 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
                 logger.debug('%8s %s -> %s' % ('hardlink', src, dst))
                 return
             except OSError, o:
-                if o.errno != errno.EXDEV: # Invalid cross-device link, not an error, fall back to copy
+                # Invalid cross-device link, not an error, fall back to copy
+                if o.errno != errno.EXDEV: 
                     raise
 
         logger.debug('%8s %s -> %s' % ('copy', src, dst))
