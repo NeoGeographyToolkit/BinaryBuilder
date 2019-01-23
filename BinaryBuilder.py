@@ -745,7 +745,10 @@ class CMakePackage(Package):
 
         [args.append(arg) for arg in other]
 
-        os.mkdir(self.builddir)
+        try:
+            os.makedirs(self.builddir)
+        except OSError as e:
+            pass
 
         cmd = cmd + args + [self.workdir]
 
