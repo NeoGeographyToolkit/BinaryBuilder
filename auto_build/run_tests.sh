@@ -89,7 +89,7 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 # I had to reinstall it, and the new name is apparently pytest.py instead of py.test. 
 # TODO: This will need to be sorted out on the Mac when it comes up
 #py.test --timeout=14400  -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
-python /home/oalexan1/.local/pytest.py --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
+python $HOME/.local/pytest.py --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 
 test_status="$?"
 
