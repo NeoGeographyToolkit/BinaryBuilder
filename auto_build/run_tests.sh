@@ -84,7 +84,8 @@ num_cpus=$(ncpus)
 if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 
 #bin/run_tests.pl $configFile > $outputFile 2>&1
-python ~oalexan1/.local/pytest.py -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
+# Kill individual tests after four hours.  They should take much less time but maybe the system is busy.
+pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 test_status="$?"
 
 if [ "$machine" != "centos-6" ]; then
