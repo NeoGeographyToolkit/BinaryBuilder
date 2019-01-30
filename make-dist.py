@@ -73,7 +73,10 @@ LIB_SYSTEM_LIST = '''
     libXau.so.6
 '''.split()
 
-# prefixes of libs that we always ship
+# Lib files that we want to include that don't get pickep up automatically.
+MANUAL_LIBS = '''pcl_io_ply  openjp2  nabo  curl  Qt5Widgets_debug  Qt5PrintSupport_debug  Qt5Gui_debug  Qt5Core_debug MagickCore-6.Q16  MagickWand-6.Q16 '''.split()
+
+# Prefixes of libs that we always ship
 LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
 
 def tarball_name():
@@ -157,6 +160,10 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=opt.loglevel)
 
+    lib_ext = '.dylib'
+    if get_platform().os == 'linux':
+        lib_ext = '.so'
+
     wrapper_file = 'libexec-helper.sh'
     if (opt.vw_build):
         wrapper_file = 'libexec-helper_vw.sh'
@@ -190,12 +197,10 @@ if __name__ == '__main__':
         with file(opt.include, 'r') as f:
             for line in f:
                 mgr.add_glob(line.strip(), INSTALLDIR)
-
-        # This is a bugfix for some python tools to find this lib        
-        mgr.sym_link_lib('libproj.so.0', 'libproj.0.so')
             
-        # Force-add this for Qt to work
+        # Add some platform specific bugfixes
         if get_platform().os == 'linux':
+            mgr.sym_link_lib('libproj.so.0', 'libproj.0.so')
             mgr.add_glob("lib/libQt5XcbQpa.*", INSTALLDIR)
                                 
         if not opt.vw_build:
@@ -230,9 +235,14 @@ if __name__ == '__main__':
             print('\tPass %i to get dependencies of libraries' % i)
             sys.stdout.flush()
             deplist_copy = copy.deepcopy(mgr.deplist)
+
+            for lib in MANUAL_LIBS: # Force the use of these files
+                deplist_copy['lib' + lib + lib_ext] = ''
+
             for lib in deplist_copy:
-                if ( P.exists( P.join(INSTALLDIR, 'lib', lib) ) ):
-                    mgr.add_library( P.join(INSTALLDIR, 'lib', lib) )
+                lib_path = P.join(INSTALLDIR, 'lib', lib)
+                if P.exists(lib_path):
+                    mgr.add_library(lib_path)
 
         # Handle the shiplist separately. This will also add more dependencies
         print('\tAdding forced-ship libraries')
@@ -245,7 +255,7 @@ if __name__ == '__main__':
                     # Bugfix: Do an exhaustive search, as same prefix can
                     # refer to multiple libraries, e.g., libgfortran.so.3 and
                     # libgfortran.so.1, and sometimes the wrong one is picked.
-                    if mgr.deplist[soname] in found_set: 
+                    if mgr.deplist[soname] in found_set:
                         continue
                     found_set.add(mgr.deplist[soname])
                     mgr.add_library(mgr.deplist[soname])
