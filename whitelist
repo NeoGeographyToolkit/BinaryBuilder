@@ -41,6 +41,7 @@ bin/orbitviz_pinhole
 bin/nav2cam
 bin/osgviewer
 bin/parallel_stereo
+bin/parallel_bundle_adjust
 bin/parallel_sfs
 bin/pc_align
 bin/n_align
