@@ -73,6 +73,7 @@ bin/h5dump
 bin/ortho2pinhole
 bin/cam2rpc
 bin/camera_footprint
+bin/historical_helper.py
 lib/*.plugin
 plugins/platforms
 lib/libAsp*.[so,dylib]*
