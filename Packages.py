@@ -339,7 +339,7 @@ class curl(Package):
     @stage
     def configure(self):
         w = ['zlib='+self.env['INSTALL_DIR'], 'ssl='+self.env['INSTALL_DIR']]
-        wo = 'libidn ssl '.split() # Turn these off so they are not auto-included, our packages don't need them.
+        wo = 'libidn '.split() # Turn this off so this is not auto-included, our packages don't need it.
         super(curl,self).configure(
             with_=w, without=wo, disable=['static','ldap','ldaps'])
 
@@ -1541,7 +1541,7 @@ class pcl(CMakePackage):
 
 class htdp(Package):
     src    = 'https://www.ngs.noaa.gov/TOOLS/Htdp/HTDP-download.zip'
-    chksum = '24a093132e5915bf360c77f0760a215a9a546459'
+    chksum = '73aebdf9f3528788c216228002e1fe08d18b3c12'
     
     @stage
     def unpack(self):
