@@ -136,6 +136,7 @@ if __name__ == '__main__':
     parser.add_option('--skip-tests',  action='store_true', dest='skip_tests',   default=False,           help='Skip running tests when building VW and ASP. The latter is very time-consuming.')
     parser.add_option('--fast',                             action='store_true', dest='fast',      default=False,           help='For any git package, update and build in existing directory rather than stating from scratch (may fail)')
     parser.add_option('--add-ld-library-path',              dest='ld_library_path', default=None,          help='This is a hack for the supercomputer that uses libstdc++ in a non-standard location. Please don\'t use this option unless you truly needed. This has the ability to corrupt our builds if you put /usr/lib or /lib as an argument.')
+    parser.add_option('--add-library-path',              dest='library_path', default=None,          help='This is a hack for the supercomputer that uses libstdc++ in a non-standard location. Please don\'t use this option unless you truly needed. This has the ability to corrupt our builds if you put /usr/lib or /lib as an argument.')
 
     global opt
     (opt, args) = parser.parse_args()
@@ -213,6 +214,9 @@ if __name__ == '__main__':
 
     if opt.ld_library_path is not None:
         build_env['LD_LIBRARY_PATH'] = opt.ld_library_path
+
+    if opt.library_path is not None:
+        build_env['LIBRARY_PATH'] = opt.library_path
 
     # Bugfix, add compiler's libraries to LD_LIBRARY_PATH.
     comp_path = which(build_env['CC'])
