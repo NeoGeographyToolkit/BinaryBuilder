@@ -22,8 +22,8 @@ export PATH=/home/pipeline/miniconda2/bin:/opt/rh/devtoolset-3/root/usr/bin:$HOM
 #done    
   
 # This is needed for new gcc
-export LD_LIBRARY_PATH=/opt/rh/devtoolset-3/root/usr/lib64:/opt/rh/devtoolset-3/root/usr/lib:/home/pipeline/projects/gcc-4.9.3-install/lib:/home/pipeline/projects/gcc-4.9.3-install/lib64:/home/oalexan1/projects/zack_packages/local/lib:/home/oalexan1/projects/zack_packages/local/lib64:$LD_LIBRARY_PATH
-export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.9/:$DYLD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/opt/rh/devtoolset-3/root/usr/lib64:/opt/rh/devtoolset-3/root/usr/lib:/home/pipeline/projects/gcc-4.9.3-install/lib:/home/pipeline/projects/gcc-4.9.3-install/lib64:/home/oalexan1/projects/zack_packages/local/lib:/home/oalexan1/projects/zack_packages/local/lib64:$HOME/projects/BinaryBuilder/build_asp/install/lib:$LD_LIBRARY_PATH
+export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.9:$HOME/projects/BinaryBuilder/build_asp/install/lib:$DYLD_LIBRARY_PATH
 
 function machine_name() {
     machine=$(uname -n | perl -pi -e "s#\..*?\$##g")
