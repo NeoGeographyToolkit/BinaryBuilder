@@ -1541,7 +1541,7 @@ class pcl(CMakePackage):
 
 class htdp(Package):
     src    = 'https://www.ngs.noaa.gov/TOOLS/Htdp/HTDP-download.zip'
-    chksum = '24a093132e5915bf360c77f0760a215a9a546459'
+    chksum = '73aebdf9f3528788c216228002e1fe08d18b3c12'
     
     @stage
     def unpack(self):

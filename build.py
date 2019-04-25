@@ -171,10 +171,13 @@ if __name__ == '__main__':
     print("Using build root directory: %s" % opt.build_root)
 
     # Ensure that opt.build_root/install/bin is in the path, as there we keep
-    # chrpath, etc.
+    # chrpath, etc. Also need the library path for cmake.
     if "PATH" not in os.environ: os.environ["PATH"] = ""
     os.environ["PATH"] = P.join(opt.build_root, 'install/bin') + \
                          os.pathsep + os.environ["PATH"]
+    if "LD_LIBRARY_PATH" not in os.environ: os.environ["LD_LIBRARY_PATH"] = ""
+    os.environ["LD_LIBRARY_PATH"] = P.join(opt.build_root, 'install/lib') + \
+                         os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
     MIN_CC_VERSION = 4.8
 
@@ -208,6 +211,7 @@ if __name__ == '__main__':
         MISC_DIR = P.join(opt.build_root, 'misc'),
         PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
         PATH = os.environ['PATH'],
+        LD_LIBRARY_PATH = os.environ['LD_LIBRARY_PATH'],
         FAST = str(int(opt.fast)),
         SKIP_TESTS = str(int(opt.skip_tests))
         )
