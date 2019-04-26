@@ -81,8 +81,14 @@ if [ "$buildMachine" = "lunokhod1" ]; then
     rm -fv dist-add/asp_book.pdf
     cd build_asp/build/stereopipeline/stereopipeline-git/build_binarybuilder
     rm -fv ../docs/book/asp_book.pdf
-    make workbook
 
+    # Must temporarily set LD_LIBRARY_PATH so cmake does not complain.
+    # It likely will cause issues if this is set globally.
+    orig_path=$LD_LIBRARY_PATH
+    export LD_LIBRARY_PATH=$HOME/projects/BinaryBuilder/build_asp/install/lib:$LD_LIBRARY_PATH
+    make workbook
+    export LD_LIBRARY_PATH=$orig_path
+    
     # Copy the documentation to the master machine
     echo Copying the documentation to $masterMachine
     rsync -avz ../docs/book/asp_book.pdf \
