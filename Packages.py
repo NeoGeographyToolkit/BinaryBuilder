@@ -42,15 +42,11 @@ class cmake(Package):
     #chksum  = 'fa176cc5b1ccf2e98196b50908432d0268323501'
     src    = 'https://cmake.org/files/v3.5/cmake-3.5.2.tar.gz'
     chksum = '5d6c68c3007d61cadd6257c170e60aa67154cda1'
+
     def configure(self):
-        opts = []
         opts = ['--system-curl'] 
-
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
-
-        super(cmake, self).configure(
-            other = opts
-            )
+        super(cmake, self).configure(other = opts)
 
     # cmake pollutes the doc folder
     @stage
