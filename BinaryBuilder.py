@@ -282,11 +282,12 @@ def get(url, output=None):
         try:
             r = urllib2.urlopen(url)
         except urllib2.HTTPError, e:
+            print("Failed to get: " + url + ", error was: " + str(e))
             raise HelperError('urlopen', None, '%s: %s' % (url, e))
 
         current = 0
         size = int(r.info().get('Content-Length', -1))
-
+        
         while True: # Download until we run out of data
             block = r.read(BLOCK_SIZE)
             if not block:
@@ -298,7 +299,7 @@ def get(url, output=None):
                 info('\rDownloading %s: %i / %i kB (%0.2f%%)' % (base, current/1024., size/1024., current*100./size), end='')
             f.write(block) # Write to disk
         info('\nDone')
-
+        
 class Package(object):
     '''Class to represent a single package that needs to be built.
        This class assumes the code for the package is posted online as a compressed file
@@ -361,7 +362,6 @@ class Package(object):
         for i in range(0, 2):
 
             for src, chksum in zip(self.src, self.chksum):
-
                 # Get the tarball path and if we don't have it, download it from the url (src)
                 self.tarball = P.join(self.env['DOWNLOAD_DIR'], P.basename(urlparse(src).path))
                 if not P.isfile(self.tarball):
