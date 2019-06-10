@@ -56,8 +56,8 @@ class cmake(Package):
         self.helper(*cmd)
 
 class chrpath(Package):
-    src     = 'http://ftp.debian.org/debian/pool/main/c/chrpath/chrpath_0.13.orig.tar.gz'
-    chksum  = '11ff3e3dda2acaf1e529475f394f74f2ef7a8204'
+    src     = 'http://ftp.debian.org/debian/pool/main/c/chrpath/chrpath_0.16.orig.tar.gz'
+    chksum  = '174bb38c899229f4c928734b20e730f61191795a'
     # chrpath pollutes the doc folder
     @stage
     def install(self):
@@ -66,7 +66,7 @@ class chrpath(Package):
         self.helper(*cmd)
 
 class bzip2(Package):
-    src     = 'http://www.bzip.org/1.0.6/bzip2-1.0.6.tar.gz'
+    src     = 'https://downloads.sourceforge.net/project/bzip2/bzip2-1.0.6.tar.gz'
     chksum  = '3f89f861209ce81a6bab1fd1998c0ef311712002'
 
     def configure(self):
@@ -883,7 +883,8 @@ class zlib(Package):
         self.helper(*['rm', P.join(self.env['INSTALL_DIR'], 'lib', 'libz.a')])
 
 class jpeg(Package):
-    src     = 'http://www.ijg.org/files/jpegsrc.v8d.tar.gz'
+    #src    = 'https://www.ijg.org/files/jpegsrc.v8d.tar.gz' # does not work
+    src     = 'https://download.videolan.org/contrib/jpeg/jpegsrc.v8d.tar.gz' 
     chksum  = 'f080b2fffc7581f7d19b968092ba9ebc234556ff'
     patches = 'patches/jpeg8'
 
@@ -1345,9 +1346,9 @@ class opencv(CMakePackage):
                           'dnn_modern']
 
         # Add a flag like: -DWITH_<name>=ON
-        with_on_list = ['EIGEN']
+        with_on_list = ['EIGEN', 'JPEG']
         # Add a flag like: -DWITH_<name>=OFF
-        with_off_list = ['JASPER', 'JPEG', 'PNG', 'QT', 'TIFF', 'OPENEXR', 'CUDA', 'OPENGL',
+        with_off_list = ['JASPER', 'PNG', 'QT', 'TIFF', 'OPENEXR', 'CUDA', 'OPENGL',
                          'OPENCLAMDFFT', 'OPENCLAMDBLAS', 'OPENCL', 'GPHOTO2', 'V4L', 'VTK',
                          'LIBV4L', 'WEBP', 'ITT', 'IPP']
 
