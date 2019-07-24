@@ -4,8 +4,8 @@ from __future__ import print_function
 import sys
 code = -1
 # Must have this check before importing other BB modules
-if sys.version_info < (2, 6, 1):
-    print('\nERROR: Must use Python 2.6.1 or greater.')
+if sys.version_info < (2, 7, 0):
+    print('\nERROR: Must use Python version >= 2.7.')
     sys.exit(code)
 
 import os
@@ -23,7 +23,8 @@ from Packages import *
 
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
      get_platform, find_file, run, get_prog_version, logger, warn, \
-     binary_builder_prefix, program_exists
+     binary_builder_prefix, program_exists, get_cores
+
 from BinaryDist import fix_install_paths, which
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
@@ -32,23 +33,14 @@ ALL_FLAGS = ('CFLAGS', 'CPPFLAGS', 'CXXFLAGS', 'LDFLAGS')
 
 # List of codes for build types
 BUILD_GOAL_ASP     = 0 # Build everything (the default)
-BUILD_GOAL_ASP_DEV = 1 # Build a full development environment
+BUILD_GOAL_ASP_DEV = 1 # Build prerequisites for building VW and ASP
 BUILD_GOAL_VW      = 2 # Build VW
-BUILD_GOAL_VW_DEV  = 3 # Build a VW development environment
-
-def get_cores():
-    try:
-        n = os.sysconf('SC_NPROCESSORS_ONLN')
-        if n:
-            return n
-        return 2
-    except:
-        return 2
+BUILD_GOAL_VW_DEV  = 3 # Build a VW development environment (hence stop before building VW)
 
 def makelink(src, dst):
     try:
         os.remove(dst)
-    except OSError, o:
+    except OSError as o:
         if o.errno != errno.ENOENT: # Don't care if it wasn't there
             raise
     os.symlink(src, dst)
@@ -121,7 +113,9 @@ if __name__ == '__main__':
     parser.add_option('--build-root',                       dest='build_root',   default='./build_asp',            help='Root of the build and install')
     parser.add_option('--cc',                               dest='cc',           default='',           help='Explicitly state which C compiler to use. Default: gcc on Linux and clang on OSX.')
     parser.add_option('--cxx',                              dest='cxx',          default='',           help='Explicitly state which C++ compiler to use. Default: g++ on Linux and clang++ on OSX.')
-    parser.add_option('--build-goal', type='int',           dest='build_goal',   default=BUILD_GOAL_ASP,  help='Select the goal of the build.  Increasing numbers are smaller builds: [0 = Full ASP build, 1 = ASP/VW development build, 2 = VW build, 3 = VW development build]')
+    parser.add_option('--build-goal', type='int',           dest='build_goal',   default=BUILD_GOAL_ASP,  help='Select the goal of the build.  Increasing numbers are smaller builds: [0 = Full ASP build, 1 = Prerequisites for ASP/VW development build, 2 = VW build, 3 = Prerequisites for VW build]')
+    parser.add_option('--isis3-deps-dir',                   dest='isis3_deps_dir', default='', help='Path to where conda installed the ISIS dependencies. Default: $HOME/miniconda3/envs/isis3.')
+    parser.add_option('--isis3-dir',                        dest='isis3_dir', default='', help='Path to where ISIS 3 was checked out and built (it has subdirectories named isis, build, and install).')
     parser.add_option('--download-dir',                     dest='download_dir', default='./tarballs', help='Where to archive source files')
     parser.add_option('--f77',                              dest='f77',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
@@ -134,7 +128,7 @@ if __name__ == '__main__':
     parser.add_option('--save-temps', action='store_true',  dest='save_temps',   default=False,           help='Save build files to check include paths')
     parser.add_option('--threads',    type='int',           dest='threads',      default=get_cores(),     help='Build threads to use')
     parser.add_option('--skip-tests',  action='store_true', dest='skip_tests',   default=False,           help='Skip running tests when building VW and ASP. The latter is very time-consuming.')
-    parser.add_option('--fast',                             action='store_true', dest='fast',      default=False,           help='For any git package, update and build in existing directory rather than stating from scratch (may fail)')
+    parser.add_option('--fast',                             action='store_true', dest='fast', default=False,           help='For any git package, update and build in existing directory rather than stating from scratch (may fail)')
     parser.add_option('--add-ld-library-path',              dest='ld_library_path', default=None,          help='This is a hack for the supercomputer that uses libstdc++ in a non-standard location. Please don\'t use this option unless you truly needed. This has the ability to corrupt our builds if you put /usr/lib or /lib as an argument.')
     parser.add_option('--add-library-path',              dest='library_path', default=None,          help='This is a hack for the supercomputer that uses libstdc++ in a non-standard location. Please don\'t use this option unless you truly needed. This has the ability to corrupt our builds if you put /usr/lib or /lib as an argument.')
 
@@ -149,6 +143,11 @@ if __name__ == '__main__':
     if opt.build_root is not None and not P.exists(opt.build_root):
         os.makedirs(opt.build_root)
 
+    if opt.isis3_deps_dir == "":
+        opt.isis3_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/isis3')
+    if not P.exists(opt.isis3_deps_dir):
+        die('Cannot find the ISIS dependencies directory installed with conda at ' + opt.isis3_deps_dir + '. Specify it via --isis3-deps-dir.')
+        
     if opt.resume and opt.build_root is None:
         opt.build_root = grablink('last-run')
 
@@ -170,14 +169,17 @@ if __name__ == '__main__':
 
     print("Using build root directory: %s" % opt.build_root)
 
-    # Ensure that opt.build_root/install/bin is in the path, as there we keep
-    # chrpath, etc. Also need the library path for cmake.
-    if "PATH" not in os.environ: os.environ["PATH"] = ""
-    os.environ["PATH"] = P.join(opt.build_root, 'install/bin') + \
-                         os.pathsep + os.environ["PATH"]
+    # Ensure that opt.isis3_deps_dir and opt.build_root/install/bin
+    # are is in the path, as there we keep
+    # cmake, chrpath, etc.
+    if "PATH" not in os.environ:
+        os.environ["PATH"] = ""
+    os.environ["PATH"] = P.join(opt.isis3_deps_dir, 'bin') + os.pathsep + \
+                         P.join(opt.build_root, 'install/bin') + os.pathsep + \
+                         os.environ["PATH"]
     if "LD_LIBRARY_PATH" not in os.environ: os.environ["LD_LIBRARY_PATH"] = ""
     os.environ["LD_LIBRARY_PATH"] = P.join(opt.build_root, 'install/lib') + \
-                         os.pathsep + os.environ["LD_LIBRARY_PATH"]
+                                    os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
     MIN_CC_VERSION = 4.8
 
@@ -208,6 +210,7 @@ if __name__ == '__main__':
         DOWNLOAD_DIR = opt.download_dir,
         BUILD_DIR    = P.join(opt.build_root, 'build'),
         INSTALL_DIR  = P.join(opt.build_root, 'install'),
+        ISIS3_DEPS_DIR = opt.isis3_deps_dir,
         MISC_DIR = P.join(opt.build_root, 'misc'),
         PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
         PATH = os.environ['PATH'],
@@ -326,19 +329,33 @@ if __name__ == '__main__':
         die('Missing required executables for building. You need to install %s.' % missing_exec)
 
     build = []
-    
-    LINUX_DEPS1 = [m4, libtool, autoconf, automake]
-    CORE_DEPS   = [cmake, bzip2, pbzip2] # For some reason these are inserted in the linux deps
-    LINUX_DEPS2 = [chrpath, lapack]
-    VW_DEPS     = [zlib, openssl,  curl, png,
-                   jpeg, tiff, proj, openjpeg2, libgeotiff,
-                   geos, gdal, # gdal depends on curl and geos
-                   ilmbase, openexr, boost, flann, hdf5, eigen, opencv]
-    ASP_DEPS    = [parallel, gsl, xercesc, cspice, protobuf, 
-                   superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
-                   jama, laszip, liblas, geoid, fgr,
-                   bullet, embree, nanoflann, nn, pcl, armadillo, isis, gflags, glog, ceres,
-                   libnabo, libpointmatcher, imagemagick, theia, htdp]
+
+    # Dependencies before we moved to using conda
+    #LINUX_DEPS1 = [m4, libtool, autoconf, automake]
+    #CORE_DEPS   = [cmake, bzip2, pbzip2]
+    #LINUX_DEPS2 = [chrpath, lapack]
+    #VW_DEPS     = [zlib, openssl,  curl, png,
+    #               jpeg, tiff, proj, openjpeg2, libgeotiff, geos, gdal,
+    #               ilmbase, openexr, boost, flann, hdf5, eigen, opencv]
+    #ASP_DEPS    = [parallel, gsl, xercesc, cspice, protobuf, 
+    #               superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
+    #               jama, laszip, liblas, geoid, fgr,
+    #               bullet, embree, nanoflann, nn, pcl, armadillo, isis, gflags, glog, ceres,
+    #               libnabo, libpointmatcher, imagemagick, theia, htdp]
+
+    # Need to find ISIS install dir and conda dir for third party libraries
+    # Read from: https://github.com/USGS-Astrogeology/ISIS3/wiki/Developing-ISIS3-with-cmake
+    # /home/oalexan1/miniconda3/envs/isis3 on ubuntu
+    # /home6/oalexan1/projects/data/miniconda3/envs/isis3 on pfe
+
+    # Remaining dependencies after using conda
+    LINUX_DEPS1 = []
+    CORE_DEPS   = [pbzip2]
+    LINUX_DEPS2 = [chrpath, boost]
+    VW_DEPS     = [png, openjpeg2, geos, xz, gdal, ilmbase, openexr, flann, hdf5]
+    ASP_DEPS    = [parallel, cspice, superlu, osg3, laszip, liblas, geoid, fgr,
+                   gflags, glog, ceres, libnabo, libpointmatcher, imagemagick, theia,
+                   htdp, usgscsm, isis]
 
     if (len(args) == 0):
         # Specific package not specified, set packages according to the build goal.
@@ -439,7 +456,7 @@ if __name__ == '__main__':
                     # in case the process gets interrupted.
                     write_done(done, done_file)
                     break
-                except Exception, e:
+                except Exception as e:
                     print("Failed to build %s in attempt %d %s" %
                           (name, i, str(e)))
                     raise
@@ -449,7 +466,7 @@ if __name__ == '__main__':
                     #else:
                     #    raise
 
-    except Exception, e:
+    except Exception as e:
         die(e)
 
     makelink(opt.build_root, 'last-completed-run')

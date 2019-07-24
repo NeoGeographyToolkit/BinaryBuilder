@@ -7,11 +7,11 @@ https://byss.arc.nasa.gov/stereopipeline/daily_build
 
 Machines:
 lunokhod1:        Master machine on which the framework starts
-centos-6:         Linux, 64 bit
+ubuntu16:         Ubuntu 16, Linux, 64 bit
 decoder:          Mac OS X 10.12
 byss:             The machine storing the obtained builds
 
-The host centos-6 is a virtual machine on lunokhod1.
+The host ubuntu16 is a virtual machine on lunokhod1.
 
 ssh must be configured so that ssh connections from each machine to
 lunokhod1 and back, and to itself (both using its name and using
@@ -23,7 +23,7 @@ The main script is auto_build/launch_master.sh. It gets started on
 lunokhod1. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on centos-6 and decoder. The centos-6 build is 
+Builds are done on ubuntu16 and decoder. The ubuntu16 build is 
 tested on lunokhod1.
 
 The test process on lunokhod1 is the strictest, it will fail if any

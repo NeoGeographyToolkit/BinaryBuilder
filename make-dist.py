@@ -74,7 +74,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # Lib files that we want to include that don't get pickep up automatically.
-MANUAL_LIBS = '''pcl_io_ply  openjp2  nabo  curl  Qt5Widgets_debug  Qt5PrintSupport_debug  Qt5Gui_debug  Qt5Core_debug MagickCore-6.Q16  MagickWand-6.Q16 '''.split()
+MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug MagickCore-6.Q16 lib MagickWand-6.Q16 libicuuc libswresample libx264'''.split()
 
 # Prefixes of libs that we always ship
 LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
@@ -119,14 +119,15 @@ def libc_version():
 
 if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
-    parser.add_option('--debug',       dest='loglevel',    default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
-    parser.add_option('--include',     dest='include',     default='./whitelist', help='A file that lists the binaries for the dist')
-    parser.add_option('--debug-build', dest='debug_build', default=False, action='store_true', help='Create a build having debug symbols')
-    parser.add_option('--vw-build',    dest='vw_build',    default=False, action='store_true', help='Set to true when packaging a non-ASP build')
-    parser.add_option('--keep-temp',   dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
-    parser.add_option('--set-version', dest='version',     default=None, help='Set the version number to use for the generated tarball')
-    parser.add_option('--set-name',    dest='name',        default='StereoPipeline', help='Tarball name for this dist')
-    parser.add_option('--isisroot',    dest='isisroot',    default=None, help='Use a locally-installed isis at this root')
+    parser.add_option('--debug',          dest='loglevel',    default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
+    parser.add_option('--include',        dest='include',     default='./whitelist', help='A file that lists the binaries for the dist')
+    parser.add_option('--isis3-deps-dir', dest='isis3_deps_dir', default='', help='Path to where conda installed the ISIS dependencies. Default: $HOME/miniconda3/envs/isis3.')
+    parser.add_option('--debug-build',    dest='debug_build', default=False, action='store_true', help='Create a build having debug symbols')
+    parser.add_option('--vw-build',       dest='vw_build',    default=False, action='store_true', help='Set to true when packaging a non-ASP build')
+    parser.add_option('--keep-temp',      dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
+    parser.add_option('--set-version',    dest='version',     default=None, help='Set the version number to use for the generated tarball')
+    parser.add_option('--set-name',       dest='name',        default='StereoPipeline', help='Tarball name for this dist')
+    parser.add_option('--isisroot',       dest='isisroot',    default=None, help='Use a locally-installed isis at this root')
     parser.add_option('--force-continue', dest='force_continue', default=False, action='store_true', help='Continue despite errors. Not recommended.')
 
     global opt
@@ -139,6 +140,11 @@ if __name__ == '__main__':
 
     if not args:
         usage('Missing required argument: installdir')
+
+    if opt.isis3_deps_dir == "":
+        opt.isis3_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/isis3')
+    if not P.exists(opt.isis3_deps_dir):
+        die('Cannot find the ISIS dependencies directory installed with conda at ' + opt.isis3_deps_dir + '. Specify it via --isis3-deps-dir.')
 
     # If the user specified a VW build, update some default options.
     if opt.vw_build:
@@ -172,7 +178,7 @@ if __name__ == '__main__':
     try:
         INSTALLDIR = Prefix(installdir)
         ISISROOT   = P.join(INSTALLDIR)
-        SEARCHPATH = [INSTALLDIR.lib(), INSTALLDIR.lib()+'64']
+        SEARCHPATH = [INSTALLDIR.lib(), INSTALLDIR.lib()+'64', opt.isis3_deps_dir + '/lib']
         print('Search path = ' + str(SEARCHPATH))
 
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
@@ -192,16 +198,16 @@ if __name__ == '__main__':
             sys.exit(0)
 
         print('Adding requested files')
-        
+
         sys.stdout.flush()
-        with file(opt.include, 'r') as f:
+        with open(opt.include, 'r') as f:
             for line in f:
-                mgr.add_glob(line.strip(), INSTALLDIR)
+                mgr.add_glob(line.strip(), [INSTALLDIR, opt.isis3_deps_dir])
             
         # Add some platform specific bugfixes
         if get_platform().os == 'linux':
             mgr.sym_link_lib('libproj.so.0', 'libproj.0.so')
-            mgr.add_glob("lib/libQt5XcbQpa.*", INSTALLDIR)
+            mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.isis3_deps_dir])
                                 
         if not opt.vw_build:
             print('Adding Libraries referred to by ISIS plugins')
@@ -216,7 +222,7 @@ if __name__ == '__main__':
                         if line[0] == 'Library':
                             isis_secondary_set.add("lib/lib"+line[2]+"*")
             for library in isis_secondary_set:
-                mgr.add_glob( library, INSTALLDIR )
+                mgr.add_glob( library, [INSTALLDIR, opt.isis3_deps_dir])
 
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
@@ -237,10 +243,14 @@ if __name__ == '__main__':
             deplist_copy = copy.deepcopy(mgr.deplist)
 
             for lib in MANUAL_LIBS: # Force the use of these files
-                deplist_copy['lib' + lib + lib_ext] = ''
+                deplist_copy[lib + lib_ext] = ''
 
             for lib in deplist_copy:
                 lib_path = P.join(INSTALLDIR, 'lib', lib)
+                if P.exists(lib_path):
+                    mgr.add_library(lib_path)
+                    continue
+                lib_path = P.join(opt.isis3_deps_dir, 'lib', lib)
                 if P.exists(lib_path):
                     mgr.add_library(lib_path)
 
@@ -250,7 +260,8 @@ if __name__ == '__main__':
         found_set = set()
         found_and_to_be_removed = []
         for copy_lib in LIB_SHIP_PREFIX:
-            for soname in mgr.deplist.keys():
+            mgr_keys = mgr.deplist.copy().keys() # make a copy of the keys
+            for soname in mgr_keys:
                 if soname.startswith(copy_lib):
                     # Bugfix: Do an exhaustive search, as same prefix can
                     # refer to multiple libraries, e.g., libgfortran.so.3 and
@@ -258,7 +269,10 @@ if __name__ == '__main__':
                     if mgr.deplist[soname] in found_set:
                         continue
                     found_set.add(mgr.deplist[soname])
-                    mgr.add_library(mgr.deplist[soname])
+                    if mgr.deplist[soname] is not None:
+                        mgr.add_library(mgr.deplist[soname])
+                    else:
+                        print("Skip empty deplist for: " + soname)
                     found_and_to_be_removed.append( soname )
         mgr.remove_deps( found_and_to_be_removed )
 
@@ -269,8 +283,16 @@ if __name__ == '__main__':
         print('\tFinding deps in search path')
         sys.stdout.flush()
         mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
-                           copy = SEARCHPATH + ['/opt/X11/lib', '/usr/lib', '/usr/lib64', '/lib64', 
-                                   '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
+                           copy = SEARCHPATH + \
+                         ['/opt/X11/lib',
+                          '/usr/lib',
+                          '/usr/lib64',
+                          '/lib64',
+                          '/usr/lib/x86_64-linux-gnu/mesa',
+                          '/usr/lib/x86_64-linux-gnu/mesa-egl',
+                          '/lib/x86_64-linux-gnu',
+                          '/usr/lib/x86_64-linux-gnu',
+                          '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:
             if not opt.force_continue:
@@ -293,11 +315,16 @@ if __name__ == '__main__':
         sys.stdout.flush()
         mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH))
 
-        debuglist = mgr.find_filter('-name', '*.debug')
-
-        mgr.make_tarball(exclude = [debuglist.name])
-        if P.getsize(debuglist.name) > 0 and opt.debug_build:
-            mgr.make_tarball(include = debuglist.name, name = '%s-debug.tar.bz2' % mgr.tarname)
+        debug_list_name = ''
+        try:
+            debuglist = mgr.find_filter('-name', '*.debug')
+            debug_list_name = debuglist.name
+        except:
+            pass
+        
+        mgr.make_tarball(exclude = [debug_list_name])
+        if P.getsize(debug_list_name) > 0 and opt.debug_build:
+            mgr.make_tarball(include = debug_list_name, name = '%s-debug.tar.bz2' % mgr.tarname)
     finally:
         if not opt.keeptemp:
             mgr.remove_tempdir()

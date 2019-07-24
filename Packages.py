@@ -8,8 +8,8 @@ from glob import glob
 import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
-     replace_line_in_file, run, get, program_paths, get_platform, find_file
-from BinaryDist import fix_install_paths, lib_ext
+     replace_line_in_file, run, get, program_paths, get_platform, find_file, get_cores
+from BinaryDist import fix_install_paths, lib_ext, which
 
 class ccache(Package):
     src     = 'https://www.samba.org/ftp/ccache/ccache-3.1.12.tar.bz2'
@@ -36,17 +36,26 @@ class automake(Package):
     chksum  = '0bb1714b78d70cab9907d2013082978a28f48a46'
 
 class cmake(Package):
-    #src     = 'http://www.cmake.org/files/v3.10/cmake-3.10.1.tar.gz'
-    #chksum  = '5f4074aa9ee7101d9d24eb0e2de182e2650f6b30'
-    #src     = 'http://www.cmake.org/files/v3.2/cmake-3.2.3.tar.gz'
-    #chksum  = 'fa176cc5b1ccf2e98196b50908432d0268323501'
-    src    = 'https://cmake.org/files/v3.5/cmake-3.5.2.tar.gz'
-    chksum = '5d6c68c3007d61cadd6257c170e60aa67154cda1'
+    src     = 'https://github.com/Kitware/CMake/releases/download/v3.14.5/cmake-3.14.5.tar.gz'
+    chksum  = 'a4c021c4fa91e812b87d9c88fdd047ead4201a2f'
 
-    def configure(self):
-        opts = ['--system-curl'] 
+    def __init__(self, env):
+        super(cmake, self).__init__(env)
+
+        if self.arch.os == 'linux':
+            # Bugfix, skip using ccache
+            self.env['CXX']='g++'
+            self.env['CC']='gcc'
+            
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
+                
+    def configure(self):
+        opts = ['--system-curl', '--parallel=%d' % get_cores() ]
         super(cmake, self).configure(other = opts)
+
+    def compile(self):
+        cmd = ['gmake',  '-j%d' % get_cores() ]
+        self.helper(*cmd)
 
     # cmake pollutes the doc folder
     @stage
@@ -200,20 +209,22 @@ class gdal(Package):
         # Parts of GDAL will attempt to load libproj manual (something
         # we can't see or correct in the elf tables). This sed should
         # correct that problem.
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib -ljpeg -lproj' % self.env
+        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -lproj' % (isis_deps_lib, isis_deps_lib)
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
-        w = ['threads', 'libtiff', 'geotiff=' + self.env['INSTALL_DIR'],
-             'jpeg=' + self.env['INSTALL_DIR'],
+        w = ['threads', 'libtiff', 'geotiff=' + self.env['ISIS3_DEPS_DIR'],
+             'jpeg=' + self.env['ISIS3_DEPS_DIR'],
              'png', 'zlib', 'pam',
              'openjpeg=' + self.env['INSTALL_DIR'],
              'geos=yes',
+             #'liblzma='+ self.env['INSTALL_DIR'],
              'curl']
         wo = \
             '''bsb cfitsio dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
                gif grass hdf4 hdf5 idb ingres jasper jp2mrsid kakadu libgrass
                macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
-               pcraster perl pg php pymoddir python ruby sde sde-version spatialite sqlite3
+               pcraster perl pg php pymoddir python sde sde-version spatialite sqlite3
                static-proj4 xerces xerces-inc xerces-lib libiconv-prefix libiconv xml2 pcre
                freexl'''.split()
 
@@ -340,26 +351,50 @@ class curl(Package):
             with_=w, without=wo, disable=['static','ldap','ldaps'])
 
 class liblas(CMakePackage):
-    src     = 'http://download.osgeo.org/liblas/libLAS-1.8.0.tar.bz2'
-    chksum  = '73a29a97dfb8373d51c5e36bdf12a825c44fa398'
+    src     = 'http://download.osgeo.org/liblas/libLAS-1.8.1.tar.bz2'
+    chksum  = 'e30c1efb3df4bcdc7119d7c42638e7a01b14f236'
     patches = 'patches/liblas'
 
     @stage
     def configure(self):
         # Remove the pedantic flag. Latest boost is not compliant.
         self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
+        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
 
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
+        # bugfix for linux
+        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        boost_dir = P.join(isis3_deps_dir,'include')
+        self.env['CXXFLAGS'] += ' -I' + boost_dir + ' -pthread'
+        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma ' % (isis_deps_lib, isis_deps_lib)
 
+        ext = lib_ext(self.arch.os)
         super(liblas, self).configure(other=[
-            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
-            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DBoost_INCLUDE_DIR=' + boost_dir,
+            #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
+            #'include','boost-'+boost.version),            
+            #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DBoost_LIBRARY_DIRS=' + P.join(isis3_deps_dir,'lib'),
             '-DWITH_LASZIP=true',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GDAL=true',
             '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
+            '-DCMAKE_CXX_FLAGS=',
             '-DWITH_GEOTIFF=true',
-            '-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include')
+            '-DGEOTIFF_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
+            '-DTIFF_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
+            '-DTIFF_LIBRARY_RELEASE=' + P.join(isis3_deps_dir,'lib', 'libtiff'+ ext),
+            '-DZLIB_LIBRARY_RELEASE=' + P.join(isis3_deps_dir,'lib', 'libz'+ ext),
+            #'-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
+            #'-DBoost_USE_STATIC_LIBS=OFF',
+            '-DBUILD_SHARED_LIBS=ON',
+            '-DBoost_NO_BOOST_CMAKE=OFF',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DBoost_DEBUG=ON',
+            '-DBoost_DETAILED_FAILURE_MSG=ON',
+            '-DCMAKE_CXX_COMPILER_ARCHITECTURE_ID=x64',
+            '-DBoost_NO_SYSTEM_PATHS=ON' # don't use system boost
+            # Must add these:
+
             ])
 
     @stage
@@ -408,8 +443,8 @@ class geoid(Package):
         self.helper(*cmd)
 
 class hdf5(Package):
-    src     = 'https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.16/src/hdf5-1.8.16.tar.bz2'
-    chksum  = 'a7b631778cb289edec670f665d2c3265983a0d53'
+    src     = 'https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.18/src/hdf5-1.8.18.tar.bz2'
+    chksum  = 'd7e008cbfcf5cb6913b5327a81bbcaf34cc9436d'
     def configure(self):
         super(hdf5, self).configure(enable=('cxx'), disable = ['static'])
 
@@ -425,8 +460,17 @@ class armadillo(CMakePackage):
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
-    chksum = 'ce3fb97' # Does not matter since we set the cmake commit below
+    chksum = '6c5ff47e2362e0826e79b59794f66296d5b22837' 
     patches = 'patches/isis'
+
+    def __init__(self, env):
+        super(isis, self).__init__(env)
+        if self.arch.os == 'linux':
+            # Bugfix, skip using ccache
+            self.env['CXX']='g++'
+            self.env['CC']='gcc'
+            
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
 
     @stage
     def unpack(self):
@@ -434,26 +478,114 @@ class isis(GITPackage, CMakePackage):
            containing the desired commit'''
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.workdir = P.join(output_dir, self.pkgname + '-git')
+
+        
         # If fast, update and build in existing directory
         # (assuming it exists).
         #   Otherwise, delete the existing build and start over.
         if not self.fast or not os.path.isdir(output_dir):
             self.remove_build(output_dir)
             os.mkdir(self.workdir)
-            self.helper('git', 'clone', self.localcopy, self.workdir)
+            self.helper('git', 'clone', '--recurse-submodules', self.localcopy, self.workdir)
 
         # The default branch is not the one with the cmake build so we need to switch
-        self.helper('git', 'checkout', 'cmake'  )
-        self.helper('git', 'checkout', 'fc2f1dd')
+        #self.helper('git', 'checkout', 'cmake'  )
+        #self.helper('git', 'checkout', 'fc2f1dd')
 
         self._apply_patches()
 
     @stage
     def configure(self):
-       
+
+        comp_opt = ""
+        if self.arch.os == 'linux':
+            comp_path = which(self.env['CXX'])
+            comp_opt = '-DCMAKE_CXX_COMPILER=' + comp_path
+
         # The code is stored one folder down
         self.workdir = os.path.join(self.workdir, 'isis')
-        super(isis, self).configure(other=['-Dpybindings=Off','-DJP2KFLAG=OFF','-DbuildTests=OFF']) #-DNinja
+
+        super(isis, self).configure(other= [
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS3_DEPS_DIR'],
+            '-Dpybindings=Off',
+            '-DJP2KFLAG=OFF',
+            '-DbuildTests=OFF',
+            '-DBUILD_TESTING=OFF',
+            '-DCMAKE_CXX_FLAGS=-std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0',
+            #'-GNinja',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            comp_opt
+            ])
+
+    @stage
+    def compile(self):
+        #buildDir = os.path.join(self.workdir, 'build_binarybuilder')
+        # temporary!
+        self.builddir = os.path.join(self.workdir, 'build_binarybuilder')
+        super(isis, self).compile()
+        #Package.compile(cwd = buildDir)
+        #Package.compile(cwd = buildDir)
+        # cmd = ('ninja', 'install', '-v')
+        # self.helper(*cmd, cwd=buildDir)
+        #  self.helper(*cmd)
+
+    @stage
+    def install(self):
+        super(isis, self).install()
+
+        # Must copy the include files manually
+        destDir = P.join(self.env['INSTALL_DIR'],'include/isis3')
+        cmd = ['mkdir','-p', destDir]
+        self.helper(*cmd)
+        buildDir = os.path.join(self.workdir, 'build_binarybuilder')
+        cmd = ['cp', '-rfv'] + glob(buildDir + '/inc/*') + [destDir]
+        print("command is ", cmd)
+        self.helper(*cmd)
+        print("--will exit!")
+
+# USGS Community sensor model
+class usgscsm(GITPackage, CMakePackage):
+    src = 'https://github.com/USGS-Astrogeology/usgscsm'
+    chksum = '85887e1cc4faa95f5e36f9adf2000bebf0943b63'
+    #patches = ''
+
+    def unpack(self):
+        super(usgscsm, self).unpack()
+        cmd = ('git', 'submodule', 'update', '--init', '--recursive')
+        self.helper(*cmd)
+
+# Need to do recursive too!
+# Also make install! See notes in isis.sh
+
+#         '''Go from the location we cloned into to a different working directory 
+#            containing the desired commit'''
+#         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
+#         self.workdir = P.join(output_dir, self.pkgname + '-git')
+#         # If fast, update and build in existing directory
+#         # (assuming it exists).
+#         #   Otherwise, delete the existing build and start over.
+#         if not self.fast or not os.path.isdir(output_dir):
+#             self.remove_build(output_dir)
+#             os.mkdir(self.workdir)
+#             self.helper('git', 'clone', self.localcopy, self.workdir)
+
+#         # The default branch is not the one with the cmake build so we need to switch
+#         self.helper('git', 'checkout', 'cmake'  )
+#         self.helper('git', 'checkout', 'fc2f1dd')
+#         self._apply_patches()
+
+    def configure(self):
+        #         # The code is stored one folder down
+        # self.helper('./autogen')
+        #self.workdir = os.path.join(self.workdir, 'usgscsm')
+        super(usgscsm, self).configure(other=[
+            '-Dpybindings=Off',
+            '-DJP2KFLAG=OFF',
+            '-DbuildTests=OFF',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0'
+            ]) #-DNinja
+
 
 class stereopipeline(GITPackage, CMakePackage):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline.git'
@@ -464,6 +596,9 @@ class stereopipeline(GITPackage, CMakePackage):
         #if self.fast and os.path.isfile(config_file): return
 
         #self.helper('./autogen')
+
+        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        boost_dir = P.join(isis3_deps_dir,'include')
 
         # TODO: Just remove the bad arguments!
         if self.arch.os == 'osx':
@@ -485,8 +620,12 @@ class stereopipeline(GITPackage, CMakePackage):
         #    disable = ['pkg_paths_default', 'static', 'qt-qmake'],
         #    enable  = ['debug=ignore', 'optimize=ignore']
         #    )
-        super(stereopipeline, self).configure(other=['-DBINARYBUILDER_INSTALL_DIR='+installdir,
-                                                     '-DVISIONWORKBENCH_INSTALL_DIR='+installdir])
+        super(stereopipeline, self).configure(other=[
+            '-DBoost_INCLUDE_DIR=' + boost_dir,
+            '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
+            '-DISIS3_DEPS_DIR=' + isis3_deps_dir,
+            '-DVISIONWORKBENCH_INSTALL_DIR='+installdir
+            ])
 
     @stage
     def compile(self):
@@ -526,6 +665,9 @@ class visionworkbench(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
+        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        boost_dir = P.join(isis3_deps_dir,'include')
+
         # TODO: Just remove the bad arguments!
         if self.arch.os == 'osx':
             self.env['LDFLAGS'] = '-Wl,-headerpad_max_install_names'
@@ -538,7 +680,11 @@ class visionworkbench(GITPackage, CMakePackage):
         #write_vw_config(prefix, installdir, arch, config_file)       
         # TODO: Fix libgeotiff instead!
         #fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
-        super(visionworkbench, self).configure(other=['-DBINARYBUILDER_INSTALL_DIR='+installdir])
+        super(visionworkbench, self).configure(other=[
+            '-DBoost_INCLUDE_DIR=' + boost_dir,
+            '-DISIS3_DEPS_DIR=' + isis3_deps_dir,
+            '-DBINARYBUILDER_INSTALL_DIR=' + installdir
+            ])
 
     @stage
     def compile(self):
@@ -578,9 +724,9 @@ class lapack(CMakePackage):
         self.env['LDFLAGS'] = LDFLAGS_ORIG
 
 class boost(Package):
-    version = '1_59' # variable is used in class liblas, libnabo, etc.
+    version = '1_67' # variable is used in class liblas, libnabo, etc.
     src     = 'http://downloads.sourceforge.net/boost/boost_' + version + '_0.tar.bz2'
-    chksum  = 'b94de47108b2cdb0f931833a7a9834c2dd3ca46e'
+    chksum  = '694ae3f4f899d1a80eb7a3b31b33be73c423c1ae'
     patches = 'patches/boost'
 
     def __init__(self, env):
@@ -592,7 +738,7 @@ class boost(Package):
 
     @stage
     def configure(self):
-        with file(P.join(self.workdir, 'user-config.jam'), 'w') as f:
+        with open(P.join(self.workdir, 'user-config.jam'), 'w') as f:
             if self.arch.os == 'linux':
                 toolkit = 'gcc'
             elif self.arch.os == 'osx':
@@ -606,7 +752,6 @@ class boost(Package):
                   (P.join(self.env['INSTALL_DIR'],'include'),P.join(self.env['INSTALL_DIR'],'lib')), file=f)
             print('option.set keep-going : false ;', file=f)
 
-    # TODO: WRONG. There can be other things besides -j4 in MAKEOPTS
     @stage
     def compile(self):
         self.env['BOOST_ROOT'] = self.workdir
@@ -643,6 +788,8 @@ class gsl(Package):
         super(gsl, self).configure(disable=('static'))
 
 class geos(Package):
+    # This version must be synched up with what ISIS needs.
+    # Their conda packages provide geos for Linux but not for Mac.
     src = 'http://download.osgeo.org/geos/geos-3.5.1.tar.bz2'
     chksum = '83373542335c2f20c22d5420ba01d99f645f0c61'
 
@@ -1018,7 +1165,7 @@ class protobuf(Package):
                     other=(['cflags="-stdlib=libc++"' 'cxxflags="-stdlib=libc++"', 'linkflags="-stdlib=libc++"']))
                 success=True
                 break
-            except Exception, e:
+            except Exception as e:
                 print("Bad version of curl.")
                 print(str(e))
 
@@ -1036,6 +1183,13 @@ class suitesparse(Package):
     # of using shared (probably for performance reasons). If we want
     # shared, we'll have make then a build system.
 
+    def __init__(self, env):
+        super(suitesparse, self).__init__(env)
+
+        if self.arch.os == 'linux':
+            # Bugfix, skip using ccache
+            self.env['CXX']='g++'
+            self.env['CC']='gcc'
     @stage
     def configure(self):
         if self.arch.os == 'osx':
@@ -1058,9 +1212,17 @@ class osg3(CMakePackage):
     patches = 'patches/osg3'
 
     def configure(self):
-        other_flags = ['-DBUILD_OSG_APPLICATIONS=ON', '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DOSG_USE_QT=OFF', '-DBUILD_DOCUMENTATION=OFF']
+        other_flags = [
+            '-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DBUILD_OSG_APPLICATIONS=ON',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DOSG_USE_QT=OFF',
+            '-DBUILD_DOCUMENTATION=OFF']
         if self.arch.os == 'osx':
-            other_flags.extend(['-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio','-DOSG_WINDOWING_SYSTEM=Cocoa'])
+            other_flags.extend([
+                '-DOSG_DEFAULT_IMAGE_PLUGIN_FOR_OSX=imageio',
+                '-DOSG_WINDOWING_SYSTEM=Cocoa'
+                ])
         super(osg3, self).configure(
             with_='GDAL GLUT JPEG OpenEXR PNG ZLIB'.split(),
             without='CURL QuickTime CoreVideo QTKit COLLADA FBX FFmpeg FLTK FOX FreeType GIFLIB Inventor ITK Jasper LibVNCServer OpenAL OpenVRML OurDCMTK Performer Qt3 Qt4 SDL TIFF wxWidgets Xine XUL RSVG NVTT DirectInput GtkGL Poppler-glib GTA'.split(),
@@ -1070,9 +1232,19 @@ class osg3(CMakePackage):
 class flann(GITPackage, CMakePackage):
     src = 'https://github.com/mariusmuja/flann.git'
     chksum = 'b8a442f'
+    patches = 'patches/flann'
 
+    def __init__(self, env):
+        super(flann, self).__init__(env)
+
+        if self.arch.os == 'linux':
+            # Bugfix, skip using ccache
+            self.env['CXX']='g++'
+            self.env['CC']='gcc'
+            
     @stage
     def configure(self):
+        self.helper('touch', P.join(self.workdir,'src/cpp/empty.cpp'))
         super(flann, self).configure(other=['-DBUILD_C_BINDINGS=OFF','-DBUILD_MATLAB_BINDINGS=OFF','-DBUILD_PYTHON_BINDINGS=OFF','-DBUILD_CUDA_LIB=OFF','-DUSE_MPI=OFF','-DUSE_OPENMP=OFF'])
 
     @stage
@@ -1103,9 +1275,13 @@ class glog(CMakePackage):
         else:
             other_flags = []
 
-        other_flags += ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-                        '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
-                        '-DBUILD_SHARED_LIBS=ON']
+        other_flags += [
+            '-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
+            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
+            '-DBUILD_SHARED_LIBS=ON',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            ]
 
         super(glog, self).configure(other = other_flags)
 
@@ -1114,19 +1290,26 @@ class ceres(CMakePackage):
     chksum = '57b61c28d67ca3eb814c5605120ae614be465b7c'
 
     def configure(self):
-
         ext = lib_ext(self.arch.os)
+        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        install_dir = self.env['INSTALL_DIR']
         super(ceres, self).configure(other=[
-            '-DEIGEN_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
-            '-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],'include','boost-'+boost.version),
-            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-            '-DGFLAGS_LIBRARY='     + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
-            '-DGLOG_INCLUDE_DIR='   + P.join(self.env['INSTALL_DIR'],'include/glog'),
-            '-DGLOG_LIBRARY='       + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
-            '-DCMAKE_VERBOSE_MAKEFILE=ON', '-DSHARED_LIBS=ON', '-DMINIGLOG=OFF',
-            '-DSUITESPARSE=ON', '-DLAPACK=ON',
-            '-DLIB_SUFFIX=', '-DBUILD_EXAMPLES=OFF', '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF'
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS3_DEPS_DIR'],
+            '-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DEIGEN_INCLUDE_DIR='  + P.join(isis3_deps_dir,'include/eigen3'),
+            '-DGFLAGS_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include/gflags'),
+            '-DGFLAGS_LIBRARY='     + P.join(isis3_deps_dir,'lib/libgflags'+ext),
+            '-DGLOG_INCLUDE_DIR='   + P.join(isis3_deps_dir,'include/glog'),
+            '-DGLOG_LIBRARY='       + P.join(isis3_deps_dir,'lib/libglog'+ext),
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DSHARED_LIBS=ON',
+            '-DMINIGLOG=OFF',
+            '-DSUITESPARSE=ON',
+            '-DLAPACK=ON',
+            '-DLIB_SUFFIX=',
+            '-DBUILD_EXAMPLES=OFF',
+            '-DBUILD_SHARED_LIBS=ON',
+            '-DBUILD_TESTING=OFF'
             ])
 
 class libnabo(GITPackage, CMakePackage):
@@ -1137,17 +1320,18 @@ class libnabo(GITPackage, CMakePackage):
     def configure(self):
 
         installDir = self.env['INSTALL_DIR']
+        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
         
         # Remove python bindings, tests, and examples
         self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
+
         options = [
             '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_PREFIX_PATH=' + installDir,
-            '-DEIGEN_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/eigen3'),
-            '-DBoost_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include',
-                                            'boost-'+boost.version),
-            '-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DEIGEN_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include/eigen3'),
+            '-DBoost_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
+            #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            #'-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DSHARED_LIBS=ON',
             '-DCMAKE_BUILD_TYPE=Release',
@@ -1155,12 +1339,12 @@ class libnabo(GITPackage, CMakePackage):
             ]
         
         # Bugfix for wrong boost dir being found
-        if self.arch.os == 'linux':
-            options += [
-                '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
-                '-DMY_BOOST_VERSION=' + boost.version,
-                '-DMY_BOOST_DIR=' + installDir
-                ]
+        #if self.arch.os == 'linux':
+        #    options += [
+        #        '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
+        #        '-DMY_BOOST_VERSION=' + boost.version,
+        #        '-DMY_BOOST_DIR=' + installDir
+        #        ]
         super(libnabo, self).configure(other=options)
 
 class libpointmatcher(GITPackage, CMakePackage):
@@ -1181,6 +1365,7 @@ class libpointmatcher(GITPackage, CMakePackage):
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']
+        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
 
         # Turn off the unit tests which don't build on OSX10.12
         self.helper('sed', '-ibak', '-e',
@@ -1195,31 +1380,38 @@ class libpointmatcher(GITPackage, CMakePackage):
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
         # bugfix for lunokhod2
-        boost_dir = P.join(installDir,'include','boost-'+boost.version)
-        self.env['CXXFLAGS'] += ' -I' + boost_dir
+        boost_dir = P.join(isis3_deps_dir,'include')
+        #boost_dir = P.join(self.env['INSTALL_DIR'], 'include','boost-'+boost.version)
+        #self.env['CXXFLAGS'] += ' -I' + boost_dir
 
         # OSX clang does not support fopenmp as of 10.11
         if self.arch.os == 'linux':
             self.env['CPPFLAGS'] += ' -fopenmp'
 
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_dir,
-            '-DBoost_INCLUDE_DIR=' + boost_dir,
-            '-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
-            '-DEIGEN_INCLUDE_DIR=' + P.join(installDir,'include/eigen3'),
+            '-DCMAKE_CXX_FLAGS=-g -O3 -I' + boost_dir + ' -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DBoost_INCLUDE_DIR='  + boost_dir,            
+            #'-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
+            '-DEIGEN_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include/eigen3'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DSHARED_LIBS=ON',
             '-DUSE_SYSTEM_YAML_CPP=OFF', # Use the yaml code included with LPM
-            '-DCMAKE_BUILD_TYPE=Release'
+            '-DCMAKE_BUILD_TYPE=Release',
+            '-DBoost_NO_BOOST_CMAKE=OFF',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DBoost_DEBUG=ON',
+            '-DBoost_DETAILED_FAILURE_MSG=ON',
+            '-DCMAKE_CXX_COMPILER_ARCHITECTURE_ID=x64',
+            '-DBoost_NO_SYSTEM_PATHS=ON' # don't use system boost
             ]
         # Bugfix for lunokhod2. This has problems on Mac OSX 10.6.
-        if self.arch.os == 'linux':
-            options += [
-                '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
-                '-DMY_BOOST_VERSION=' + boost.version,
-                '-DMY_BOOST_DIR=' + installDir
-                ]
+        #if self.arch.os == 'linux':
+        #    options += [
+        #        '-DBoost_DIR=' + os.getcwd() + '/settings/boost',
+        #        '-DMY_BOOST_VERSION=' + boost.version,
+        #        '-DMY_BOOST_DIR=' + installDir
+        #        ]
         super(libpointmatcher, self).configure(other=options)
 
 # FastGlobalRegistration
@@ -1229,12 +1421,13 @@ class fgr(GITPackage, CMakePackage):
 
     @stage
     def configure(self):
-        installDir = self.env['INSTALL_DIR']
+        #installDir = self.env['INSTALL_DIR']
+        base_dir = "/home6/oalexan1/projects/data/miniconda3/envs/isis3/include"
         options = [
             '-DCMAKE_CXX_FLAGS="'
-            + '-I' + P.join(installDir,'include') + ' '
-            + '-I' + P.join(installDir,'include/eigen3') + ' '
-            + '-L' + P.join(installDir,'lib') + ' '
+            + '-I' + P.join(base_dir,'include') + ' '
+            + '-I' + P.join(base_dir,'include/eigen3') + ' '
+            + '-L' + P.join(base_dir,'lib') + ' '
             + '-lflann_cpp'
             + '"',
             '-DFastGlobalRegistration_LINK_MODE=SHARED'
@@ -1382,20 +1575,27 @@ class gflags(CMakePackage):
     chksum  = 'b1c82261c8b9c87fb2fb5de6bdf70121ad1cca58'
 
     def configure(self):
-
-        options = ['-DCMAKE_CXX_FLAGS=-fPIC', 
-                   '-DBUILD_SHARED_LIBS=ON',
-                   '-DBUILD_STATIC_LIBS=OFF',
-                   '-DINSTALL_HEADERS=ON'
-                   '-DGFLAGS_BUILD_SHARED_LIBS=ON']
+        options = [
+            '-DCMAKE_CXX_FLAGS=-fPIC -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DBUILD_SHARED_LIBS=ON',
+            '-DBUILD_STATIC_LIBS=OFF',
+            '-DINSTALL_HEADERS=ON'
+            '-DGFLAGS_BUILD_SHARED_LIBS=ON',
+            '-DCMAKE_VERBOSE_MAKEFILE=ON'
+            ]
         super(gflags, self).configure(other=options)
 
 class imagemagick(Package):
     src     = 'http://downloads.sourceforge.net/project/imagemagick/old-sources/6.x/6.8/ImageMagick-6.8.6-10.tar.gz'
     chksum  = '6ea9dfc1042bb2057f8aa08e81e18c0c83451109'
 
-    # Turn off lzma to simplify linking
+    def __init__(self, env):
+        super(imagemagick, self).__init__(env)
+        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg' % (isis_deps_lib, isis_deps_lib)
+
     def configure(self):
+        # Turn off lzma to simplify linking
         super(imagemagick, self).configure(without = ['lzma'])
 
 
@@ -1407,19 +1607,30 @@ class theia(GITPackage, CMakePackage):
     @stage
     def configure(self):
 
+        if self.arch.os == 'linux':
+            # Bugfix, skip using ccache
+            self.env['CXX']='g++'
+            self.env['CC']='gcc'
+            
         # Need this to avoid looking into the old installed version of
         # theia's include in build_asp/install/include
         curr_include = '-I' + self.workdir + '/src -I' + self.workdir + '/include '
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
-        ext = lib_ext(self.arch.os)
-        options = ['-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
-                   '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
-                   '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-                   '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
-                   '-DBUILD_TESTING=OFF',
-                   '-DBUILD_DOCUMENTATION=OFF']
+        # Per https://github.com/sweeneychris/TheiaSfM/issues/208.
+        # Also note the patch in patches/theia/0005-fix_flann.patch
+        self.helper('touch', P.join(self.workdir,'libraries/flann/src/cpp/empty.cpp'))
 
+        ext = lib_ext(self.arch.os)
+        options = [
+            '-DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
+            '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
+            '-DGLOG_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
+            '-DGLOG_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libglog'+ext),
+            '-DBUILD_TESTING=OFF',
+            '-DBUILD_DOCUMENTATION=OFF']
+        
         super(theia, self).configure(other=options)
 
         # Remove this linker tag which just breaks things        
@@ -1431,8 +1642,8 @@ class theia(GITPackage, CMakePackage):
 
 
 class xz(Package):
-    src     = 'http://tukaani.org/xz/xz-5.2.2.tar.gz'
-    chksum  = '14663612422ab61386673be78fbb2556f50a1f08'
+    src     = 'http://tukaani.org/xz/xz-5.2.4.tar.gz'
+    chksum  = '63ca380029597b951ce9afc6dec28f44f70bb5bd'
 
 class bullet(CMakePackage):
     src    = 'https://github.com/bulletphysics/bullet3/archive/2.86.1.tar.gz'

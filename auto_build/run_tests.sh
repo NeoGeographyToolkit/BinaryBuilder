@@ -88,11 +88,11 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 test_status="$?"
 
-if [ "$machine" != "centos-6" ]; then
+if [ "$machine" != "ubuntu16" ]; then
   # Ownership operation not needed on the VM.
 
   # Tests are finished running, make sure all maintainers can access the files.
-  # - These commands fail on the VM but that is OK because we don't need them to work on that machine.
+  # These commands fail on the VM but that is OK because we don't need them to work on that machine.
   chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
   chmod -R g+rw $HOME/$testDir
 

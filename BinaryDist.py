@@ -14,7 +14,6 @@ from functools import partial, wraps
 ''' Code for creating the downloadable binary distribution
 '''
 
-
 global logger
 logger = logging.getLogger()
 
@@ -118,21 +117,49 @@ class DistManager(object):
             to. 'add_deps' means scan the library and add its required dependencies
             to deplist.'''
         logger.debug('attempting to add %s' % inpath)
-        for p in snap_symlinks(inpath) if symlinks_too else [inpath]:
+        if symlinks_too:
+            paths = snap_symlinks(inpath)
+
+            # This is a bugfix, sometimes not all symbolic links are added
+            all_paths = []
+            for path in paths:
+                for newpath in glob(path + '*'):
+                    all_paths.append(newpath)
+
+            # Remove repetition
+            paths_dict = {}
+            paths = []
+            for path in all_paths:
+                if path in paths_dict:
+                    continue
+                paths.append(path)
+                paths_dict[path] = 1
+                
+        else:
+            paths = [inpath]
+
+        for p in paths:
             # This pulls out only the filename for the library. We
             # don't preserve the subdirs underneath 'lib'. This make
             # later rpath code easier to understand.
             lib = P.normpath(p).split('/')[-1]
             self._add_file(p, self.distdir.lib(lib), add_deps=add_deps)
 
-    def add_glob(self, pattern, prefix, require_match=True):
+    def add_glob(self, pattern, prefixes, require_match=True):
         ''' Add a pattern to the tree. pattern must be relative to an
-            installroot, provided in 'prefix' '''
-        pat     = P.join(prefix, pattern)
-        inpaths = glob(pat)
+            installroot, provided in one of the prefixes.'''
+        inpaths = []
+        found_prefix = ""
+        for prefix in prefixes:
+            pat     = P.join(prefix, pattern)
+            inpaths = glob(pat)
+            found_prefix = prefix
+            if len(inpaths) > 0:
+                break
+            
         if require_match:
             assert len(inpaths) > 0, 'No matches for glob pattern %s' % pat
-        [self.add_smart(i, prefix) for i in inpaths]
+        [self.add_smart(i, found_prefix) for i in inpaths]
 
     def add_smart(self, inpath, prefix):
         ''' Looks at the relative path, and calls the correct add_* function '''
@@ -175,6 +202,7 @@ class DistManager(object):
             is found in one of the 'copy' dirs, copy it (without deps) to the dist.'''
         if search is None:
             search = list(itertools.chain(nocopy, copy))
+        
         logger.debug('Searching: %s' % (search,))
         logger.debug('Dependency list--------------------------------------')
         for lib in self.deplist:
@@ -194,7 +222,7 @@ class DistManager(object):
 
     def create_file(self, relpath, mode='w'):
         '''Create a new file in self.distdir and open it'''
-        return file(self.distdir.base(relpath), mode)
+        return open(self.distdir.base(relpath), mode)
 
     def bake(self, searchpath, baker = default_baker):
         '''Updates the rpath of all files to be relative to distdir and strips it of symbols.
@@ -206,28 +234,41 @@ class DistManager(object):
             baker(filename, self.distdir, searchpath)
 
         # Delete all hidden files from the self.distdir folder
-        [remove(i) for i in run('find', self.distdir, '-name', '.*', '-print0').split('\0') if len(i) > 0 and i != '.' and i != '..']
+        for i in run('find', self.distdir, '-name', '.*', '-print0').split('\0'):
+            if len(i) > 0 and i != '.' and i != '..':
+                try:
+                    remove(i)
+                except Exception as e:
+                    print(e)
+         
         # Enable read/execute on all files in libexec and bin
-        [chmod(file, 0755) for file in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*'))]
+        for file in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*')):
+            chmod(file, 755)
 
     def make_tarball(self, include = (), exclude = (), name = None):
         '''Tar up all the files we have written to self.distdir.
            exclude takes priority over include '''
 
         if name is None: name = '%s.tar.bz2' % self.tarname
-        if isinstance(include, basestring):
+        if isinstance(include, str):
             include = [include]
-        if isinstance(exclude, basestring):
+        if isinstance(exclude, str):
             exclude = [exclude]
 
+        # For some reason permissions are wrong
+        cmd = ['chmod', '-R', 'a+r', P.dirname(self.distdir)]
+        run(*cmd)
+        
         cmd = ['tar', 'cf', name, '--use-compress-prog=pbzip2']
         cmd += ['-C', P.dirname(self.distdir)]
+
         if include:
             cmd += ['--no-recursion']
         for i in include:
             cmd += ['-T', i]
         for e in exclude:
-            cmd += ['-X', e]
+            if os.path.exists(e):
+                cmd += ['-X', e]
         cmd.append(self.tarname)
 
         logger.info('Creating tarball %s' % name)
@@ -238,7 +279,7 @@ class DistManager(object):
         dir = kw.get('dir', self.tarname)
         cwd = kw.get('cwd', P.dirname(self.distdir))
         cmd = ['find', dir] + list(filter)
-        out = run(*cmd, cwd=cwd)
+        out = run(*cmd, cwd=cwd).encode()
         files = NamedTemporaryFile()
         files.write(out)
         files.flush()
@@ -256,11 +297,15 @@ class DistManager(object):
         cmd = ['ln', '-s', base_src, base_dst]
         p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=lib_dir)
         out, err = p.communicate()
+        if out is not None:
+            out = out.decode('utf-8')
+        if err is not None:
+            err = err.decode('utf-8')
 
     def _add_file(self, src, dst, hardlink=False, keep_symlink=True, add_deps=True):
         '''Add a file to the list of distribution files'''
-        dst = P.abspath(dst)
 
+        dst = P.abspath(dst)
         assert not P.relpath(dst, self.distdir).startswith('..'), \
                'destination %s must be within distdir[%s]' % (dst, self.distdir)
 
@@ -268,7 +313,6 @@ class DistManager(object):
         copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
         self.distlist.add(dst)
 
-        #print("dst and deps, ", dst, required_libs(dst))
         if add_deps and is_binary(dst):
             req = required_libs(dst)
             self.deplist.update(req)
@@ -291,18 +335,22 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
         if P.exists(dst):
             assert readlink(dst) == readlink(src), 'Refusing to retarget already-exported symlink %s' % dst
         else:
-            symlink(readlink(src), dst)
+            try:
+                symlink(readlink(src), dst)
+            except:
+                pass
         return
 
     if P.exists(dst):
-        assert hash_file(src) == hash_file(dst), 'Refusing to overwrite already exported dst %s' % dst
+        print("Will overwrite " + dst + " with " + src)
+    #    assert hash_file(src) == hash_file(dst), 'Refusing to overwrite already exported dst %s' % dst
     else:
         if hardlink:
             try:
                 link(src, dst)
                 logger.debug('%8s %s -> %s' % ('hardlink', src, dst))
                 return
-            except OSError, o:
+            except OSError as o:
                 # Invalid cross-device link, not an error, fall back to copy
                 if o.errno != errno.EXDEV: 
                     raise
@@ -369,6 +417,7 @@ def otool(filename):
     r = re.compile('^\s*(\S+)')
     lines = run('otool', '-L', filename, output=True).split('\n')
     libs = {}
+
     out = filter(lambda x: len(x.strip()), run('otool', '-D', filename, output=True).split('\n'))
     assert len(out) > 0, 'Empty output for otool -D %s' % filename
     assert len(out) < 3, 'Unexpected otool output: %s' % out
@@ -420,7 +469,7 @@ def required_libs(filename):
     ''' Returns a dict where the keys are required SONAMEs and the values are proposed full paths. '''
     def linux():
         soname = set(readelf(filename).needed)
-        return dict((k,v) for k,v in ldd(filename).iteritems() if k in soname)
+        return dict((k,v) for k,v in ldd(filename).items() if k in soname)
     def osx():
         return otool(filename).libs
 
@@ -430,7 +479,7 @@ def grep(regex, filename):
     '''Run a regular expression search inside a file'''
     ret = []
     rx = re.compile(regex)
-    with file(filename, 'r') as f:
+    with open(filename, 'r') as f:
         for line in f:
             m = rx.search(line)
             if m:
@@ -453,7 +502,7 @@ def rm_f(filename):
     ''' An rm that does not care if the file is not there '''
     try:
         remove(filename)
-    except OSError, o:
+    except OSError as o:
         if o.errno != errno.ENOENT: # Don't care if it wasn't there
             raise
 
@@ -461,7 +510,7 @@ def mkdir_f(dirname):
     ''' A mkdir -p that does not care if the dir is there '''
     try:
         makedirs(dirname)
-    except OSError, o:
+    except OSError as o:
         if o.errno == errno.EEXIST and P.isdir(dirname):
             return
         raise
@@ -483,16 +532,16 @@ def mergetree(src, dst, copyfunc):
                 mergetree(srcname, dstname, copyfunc)
             else:
                 copyfunc(srcname, dstname)
-        except shutil.Error, err:
+        except shutil.Error as err:
             errors.extend(err.args[0])
-        except EnvironmentError, why:
+        except EnvironmentError as why:
             errors.append((srcname, dstname, str(why)))
     try:
         shutil.copystat(src, dst)
-    except OSError, why:
+    except OSError as why:
         errors.extend((src, dst, str(why)))
     if errors:
-        raise shutil.Error, errors
+        raise shutil.Error
 
 def strip(filename):
     '''Discard all symbols from this object file with OS specific flags'''
@@ -514,7 +563,10 @@ def strip(filename):
     # Get flags from one of the two functions above then run the strip command.
     flags = locals()[get_platform().os]()
     flags.append(filename)
-    run('strip', *flags)
+    try:
+        run('strip', *flags)
+    except Exception as e:
+        print("Failed running strip with flags: ", flags, ". Got the error: ", e)
 
 
 def save_elf_debug(filename):
@@ -556,7 +608,7 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         logger.debug("Toplevel var %s" % toplevel)
         logger.debug("Possible search path %s" % searchpath)
 
-        for soname, sopath in info.libs.iteritems():
+        for soname, sopath in info.libs.items():
             logger.debug("Soname %s Sopath %s" % (soname, sopath))
             # /tmp/build/install/lib/libvwCore.5.dylib
             # base = libvwCore.5.dylib
@@ -614,6 +666,7 @@ def snap_symlinks(src):
     assert not P.isdir(src), 'Cannot chase symlinks on a directory'
     if not P.islink(src):
         return [src]
+
     return [src] + snap_symlinks(P.join(P.dirname(src), readlink(src)))
 
 def fix_install_paths(installdir, arch):
@@ -698,7 +751,7 @@ def fix_install_paths(installdir, arch):
                 except:
                     print('  Failed %s' % P.basename(library))
 
-    print('Fixing Binaries')
+    print('Fixing binaries')
     for binary in glob(P.join(installdir,'bin','*')):
         if not is_binary(binary):
             continue

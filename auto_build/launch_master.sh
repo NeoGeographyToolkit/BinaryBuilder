@@ -26,7 +26,7 @@ releaseMachine="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod1"
-virtualMachines="centos-6"
+virtualMachines="ubuntu16"
 #buildMachines="$virtualMachines"
 buildMachines="$virtualMachines decoder"
 
@@ -125,7 +125,7 @@ fi
 # and status files.
 # The reason we build on $masterMachine here is to make the docs,
 # which fails on other machines. When it comes to testing though,
-# we'll test on $masterMachine the build from centos-6.
+# we'll test on $masterMachine the build from ubuntu16.
 echo "Starting up the builds..."
 for buildMachine in $buildMachines $masterMachine; do
 

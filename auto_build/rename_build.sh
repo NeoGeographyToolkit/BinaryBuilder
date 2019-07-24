@@ -25,21 +25,10 @@ in_z=${in_z/asp_tarballs\//}
 out_z=$in_z
 if [ "$(echo $in_z | grep -i -E 'OSX|Darwin')" != "" ]; then
     out_z=StereoPipeline-$version-$timestamp-x86_64-OSX.tar.bz2
-fi
-if [ "$(echo $in_z | grep -i x86_64-redhat)" != "" ]; then
-    out_z=StereoPipeline-$version-$timestamp-x86_64-Linux.tar.bz2
-fi
-if [ "$(echo $in_z | grep -i x86_64-centos)" != "" ]; then
-    out_z=StereoPipeline-$version-$timestamp-x86_64-Linux.tar.bz2
-fi
-if [ "$(echo $in_z | grep -i i686-redhat)" != "" ]; then
-    out_z=StereoPipeline-$version-$timestamp-i686-Linux.tar.bz2
-fi
-if [ "$(echo $in_z | grep -i Ubuntu13)" != "" ]; then
-    out_z=StereoPipeline-$version-$timestamp-x86_64-Linux-GLIBC-2.17.tar.bz2
-fi
-if [ "$(echo $in_z | grep -i SuSE11)" != "" ]; then
-    out_z=StereoPipeline-$version-$timestamp-x86_64-Linux-SuSE.tar.bz2
+else
+    if [ "$(echo $in_z | grep -i x86_64)" != "" ]; then
+	out_z=StereoPipeline-$version-$timestamp-x86_64-Linux.tar.bz2
+    fi
 fi
 
 in=${in_z/.tar.bz2/}

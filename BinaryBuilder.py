@@ -9,16 +9,23 @@ import os.path as P
 import platform
 import subprocess
 import sys
-import urllib2
 import logging
 import copy, re
+
+if sys.version_info < (3, 0, 0):
+    # Python 2
+    from urllib2 import urlopen
+    from urlparse import urlparse
+else:
+    # Python 3
+    from urllib.request import urlopen
+    from urllib.parse import urlparse
 
 from collections import namedtuple
 from functools import wraps, partial
 from glob import glob
 from hashlib import sha1
 from shutil import rmtree
-from urlparse import urlparse
 
 global logger
 logger = logging.getLogger()
@@ -32,7 +39,6 @@ def replace_line_in_file(filename, line_in, line_out):
         for line in lines:
             line = line.rstrip('\n')
             if line == line_in:
-                print("replace " + line_in + " with " + line_out)
                 line = line_out
             f.write( line + '\n')
 
@@ -51,8 +57,8 @@ def get_platform(pkg=None):
 
     if system == 'Linux':
         dist = platform.linux_distribution(full_distribution_name=0)
-        name = dist[0]
-        ver  = dist[1]
+        name  = str(dist[0]).replace("/", "_") # bugfix for Ubuntu, replace slashes
+        ver  = str(dist[1]).replace("/", "_")
     elif system == 'Darwin':
         name = 'Darwin'
         ver  = platform.mac_ver()[0]
@@ -77,6 +83,8 @@ def get_prog_version(prog):
     try:
         p = subprocess.Popen([prog,"--version"], stdout=subprocess.PIPE)
         out, err = p.communicate()
+        if out is not None:
+            out = out.decode('utf-8')
     except:
         raise Exception("Could not find: " + prog)
     if p.returncode != 0:
@@ -94,13 +102,14 @@ class HelperError(Exception):
     def __init__(self, tool, env, message):
         # This is helpful when trying to reproduce the environment in which
         # things failed.
+        print("Environment:")
         for key in env:
             val=env[key]
             print("export " + key + '=\'' + val + '\'')
         super(HelperError, self).__init__('Command[%s] %s\nEnv%s' % (tool, message, env))
 
 def hash_file(filename):
-    with file(filename, 'rb') as f:
+    with open(filename, 'rb') as f:
         return sha1(f.read()).hexdigest()
 
 def run(*args, **kw):
@@ -115,9 +124,13 @@ def run(*args, **kw):
 
     p = subprocess.Popen(args, **kw)
     out, err = p.communicate()
+    if out is not None:
+        out = out.decode('utf-8')
+    if err is not None:
+        err = err.decode('utf-8')
     msg = None
     if p.returncode != 0:
-        msg = '%s: command returned %d (%s)' % (args, p.returncode, err)
+        msg = '%s: return code: %d (output: %s) (error: %s)' % (args, p.returncode, out, err)
     elif need_output and len(out) == 0:
         msg = '%s: failed (no output). (%s)' % (args,err)
     if msg is not None:
@@ -180,6 +193,15 @@ def program_paths(program, check_help=False):
 def program_exists(program,check_help=False):
     return len(program_paths(program, check_help))
 
+def get_cores():
+    try:
+        n = os.sysconf('SC_NPROCESSORS_ONLN')
+        if n:
+            return n
+        return 2
+    except:
+        return 2
+
 def find_file(filename, path=None):
     '''Search for a file in the system PATH or provided path string'''
     if path is None:
@@ -204,7 +226,7 @@ def stage(f):
         info('========== %s.%s ==========' % (self.pkgname, stage))
         try:
             return f(self, *args, **kw)
-        except HelperError, e:
+        except HelperError as e:
             raise PackageError(self, 'Stage[%s] %s' % (stage,e))
     return wrapper
 
@@ -231,14 +253,14 @@ class Environment(dict):
         for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR'):
             try:
                 os.makedirs(self[d])
-            except OSError, o:
+            except OSError as o:
                 if o.errno != errno.EEXIST: # Don't care if it already exists
                     raise
 
     def copy_set_default(self, **kw):
         '''Create a copy of this object with default values provided in case they are missing'''
         e = Environment(**self) # Create copy of this object
-        for k,v in kw.iteritems():
+        for k,v in kw.items():
             if k not in e:
                 e[k] = v
         return e
@@ -278,10 +300,10 @@ def get(url, output=None):
 
     # Read from the URL and write to the output file in blocks
     BLOCK_SIZE = 16384
-    with file(output, 'wb') as f:
+    with open(output, 'wb') as f:
         try:
-            r = urllib2.urlopen(url)
-        except urllib2.HTTPError, e:
+            r = urlopen(url)
+        except urllib2.HTTPError as e:
             print("Failed to get: " + url + ", error was: " + str(e))
             raise HelperError('urlopen', None, '%s: %s' % (url, e))
 
@@ -324,8 +346,8 @@ class Package(object):
         self.env = copy.deepcopy(env) # local copy of the environment, not affecting other packages
         self.arch = get_platform(self)
 
-        self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
-        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(NOINSTALL_DIR)s/include -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CPPFLAGS'] = self.env.get('CPPFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
+        self.env['CXXFLAGS'] = self.env.get('CXXFLAGS', '') + ' -I%(INSTALL_DIR)s/include' % self.env
         # If we include flags to directories that don't exist, we
         # cause compiler tests to fail.
         if P.isdir(self.env['ISIS3RDPARTY']):
@@ -348,7 +370,7 @@ class Package(object):
         assert self.src,    'No src defined for package %s' % self.pkgname
         assert self.chksum, 'No chksum defined for package %s' % self.pkgname
 
-        if isinstance(self.src, basestring):
+        if isinstance(self.src, str):
             self.src = (self.src,)
             self.chksum = (self.chksum,)
 
@@ -387,9 +409,8 @@ class Package(object):
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
 
         self.remove_build(output_dir) # Throw out the old content
-
         ext = P.splitext(self.tarball)[-1]
-
+        
         # Call the appropriate tool to unpack the code into the build directory
         if ext == '.zip':
             self.helper('unzip', '-d', output_dir, self.tarball)
@@ -398,7 +419,7 @@ class Package(object):
             if ext == '.Z' or ext.endswith('gz'):
                 flags = 'z' + flags
             elif ext.endswith('xz'):
-                 flags = 'J' + flags
+                flags = 'J' + flags
             elif ext.endswith('bz2'):
                 flags = 'j' + flags
             self.helper('tar', flags, self.tarball, '-C',  output_dir)
@@ -434,11 +455,11 @@ class Package(object):
             else:
                 value = locals()[flag]
 
-            if isinstance(value, basestring):
+            if isinstance(value, str):
                 args += ['--%s-%s' % (flag, value)]
             else: # Value is a list of strings
                 args += ['--%s-%s'  % (flag, feature) for feature in value]
-
+                
         # Did they pass a prefix? If not, add one.
         if len([True for a in args if a[:9] == '--prefix=']) == 0:
             args.append('--prefix=%(INSTALL_DIR)s' % self.env)
@@ -480,11 +501,11 @@ class Package(object):
     def _apply_patches(self):
         # self.patches could be:
         #    list of strings, interpreted as a list of patches
-        #    a basestring, interpreted as a patch or a dir of patches
+        #    a string, interpreted as a patch or a dir of patches
         patches = []
         if self.patches is None:
             return
-        elif isinstance(self.patches, basestring):
+        elif isinstance(self.patches, str):
             # Grab all of the patch file paths out of the provided directory
             full = P.join(self.pkgdir, self.patches)
 
@@ -538,9 +559,9 @@ class Package(object):
             if out is False:
                 raise HelperError(args[0], kw['env'], err)
             return out, err
-        except (TypeError,), e:
-            raise Exception('%s\n%s' % (e.message, '\t\n'.join(['\t%s=%s%s' % (name, type(value).__name__, value) for name,value in kw['env'].iteritems() if not isinstance(value, basestring)])))
-        except (OSError, subprocess.CalledProcessError), e:
+        except (TypeError,) as e:
+            raise Exception('%s\n%s' % (e.message, '\t\n'.join(['\t%s=%s%s' % (name, type(value).__name__, value) for name,value in kw['env'].iteritems() if not isinstance(value, str)])))
+        except (OSError, subprocess.CalledProcessError) as e:
             raise HelperError(args[0], kw['env'], e)
 
     def copytree(self, src, dest, args=(), delete=True):
@@ -556,8 +577,7 @@ class Package(object):
     def remove_build(self, output_dir):
         '''Make output_dir into an empty directory, deleting everything that is inside.'''
         if P.isdir(output_dir):
-            info("Removing old build dir")
-            info("R: install dir = " + self.env['INSTALL_DIR'])
+            info("Removing old build directory: " + output_dir)
             rmtree(output_dir, False)
         os.makedirs(output_dir)
 
@@ -572,6 +592,11 @@ class GITPackage(Package):
         super(GITPackage, self).__init__(env)
         self.localcopy = P.join(env['DOWNLOAD_DIR'], 'git', self.pkgname)
 
+        # Git gets confused by LD_LIBRARY_PATH but some
+        # other tools need it.
+        self.local_env = self.env.copy_set_default()
+        self.local_env["LD_LIBRARY_PATH"] = ""
+        
         if 'FAST' in env and int(env['FAST']) != 0:
             self.fast = True
 
@@ -579,6 +604,7 @@ class GITPackage(Package):
             # If the user did not specify which commit to fetch,
             # we'll fetch the latest. Store its commit hash.
             for line in self.helper('git', 'ls-remote', '--heads', self.src,
+                                    env = self.local_env,
                                     stdout=subprocess.PIPE)[0].split('\n'):
                 tokens = line.split()
                 if len(tokens) > 1 and tokens[1] == 'refs/heads/master':
@@ -588,7 +614,7 @@ class GITPackage(Package):
         '''Call a git command from the local folder we are using for this package.'''
         cmd = ['git', '--git-dir', self.localcopy]
         cmd.extend(args)
-        self.helper(*cmd)
+        self.helper(*cmd, env = self.local_env)
 
     @stage
     def fetch(self, skip=False):
@@ -598,7 +624,8 @@ class GITPackage(Package):
             self._git('fetch', 'origin')
         else:
             if skip: raise PackageError(self, 'Fetch is skipped and no src available')
-            self.helper('git', 'clone', '--mirror', self.src, self.localcopy)
+            self.helper('git', 'clone', '--mirror', self.src, self.localcopy,
+                        env = self.local_env)
 
     @stage
     def unpack(self):
@@ -612,12 +639,13 @@ class GITPackage(Package):
         if not self.fast or not os.path.isdir(output_dir):
             self.remove_build(output_dir)
             os.mkdir(self.workdir)
-            self.helper('git', 'clone', self.localcopy, self.workdir)
+            self.helper('git', 'clone', self.localcopy, self.workdir,
+                        env = self.local_env)
 
         # Checkout a specific commit
         if self.chksum is not None:
             cmd = ('git', 'checkout', self.chksum)
-            self.helper(*cmd, cwd=self.workdir)
+            self.helper(*cmd, cwd=self.workdir, env = self.local_env)
         self._apply_patches()
 
 class SVNPackage(Package):
@@ -648,7 +676,7 @@ class SVNPackage(Package):
             else:
                 if skip: raise PackageError(self, 'Fetch is skipped and no src available')
                 self.helper('svn', 'checkout', self.src, self.localcopy)
-        except HelperError, e:
+        except HelperError as e:
             warn('svn failed (removing %s): %s' % (self.localcopy, e))
             rmtree(self.localcopy)
             self.helper('svn', 'checkout', self.src, self.localcopy)
@@ -691,22 +719,22 @@ class CMakePackage(Package):
 
         # Generate a custom "sed" command to remove all blacklisted CMake 
         # variables from the existing CMakeLists.txt files
-        files = []
-        P.walk(self.workdir, remove_danger, files) # Find all CMakeLists files
-        cmd = ['sed', '-ibak']
+        #files = []
+        #P.walk(self.workdir, remove_danger, files) # Find all CMakeLists files
+        #cmd = ['sed', '-ibak']
         # strip out vars we must control from every CMakeLists.txt
-        for var in self.BLACKLIST_VARS:
-            cmd.append('-e')
-            cmd.append('s/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*%s.*)/#BINARY BUILDER IGNORE /g' % var)
-        cmd.extend(files)
-        self.helper(*cmd)
+        #for var in self.BLACKLIST_VARS:
+        #    cmd.append('-e')
+        #    cmd.append('s/^[[:space:]]*[sS][eE][tT][[:space:]]*([[:space:]]*%s.*)/#BINARY BUILDER IGNORE /g' % var)
+        #cmd.extend(files)
+        #self.helper(*cmd)
 
         # Some of these build rules were breaking recent packages (ISIS etc) so they had to be turned off.
         #  If it breaks something else then we will find out why these changes were there!
 
         # Write out a custom cmake rules file
         build_rules = P.join(self.env['BUILD_DIR'], 'my_rules.cmake')
-        with file(build_rules, 'w') as f:
+        with open(build_rules, 'w') as f:
             print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (find_file(self.env['CC'], self.env['PATH'])), file=f)
             #print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
             print('SET (CMAKE_CXX_COMPILER "%s" CACHE FILEPATH "C++ compiler" FORCE)' % (find_file(self.env['CXX'], self.env['PATH'])), file=f)
@@ -739,7 +767,7 @@ class CMakePackage(Package):
             args.append('-DWITH_%s=ON' % arg)
 
         args.extend([
-            '-DCMAKE_PREFIX_PATH=%(INSTALL_DIR)s;%(NOINSTALL_DIR)s' % self.env,
+            '-DCMAKE_PREFIX_PATH=%(INSTALL_DIR)s' % self.env,
             '-DLIB_POSTFIX=',
         ])
 
@@ -805,7 +833,7 @@ def write_vw_config(prefix, installdir, arch, config_file):
     disable_pkgs = ('tiff hdr tcmalloc clapack slapack ').split()
     disable_modules = 'python flood_detect'.split() # Python is needed for the googlenasa project
 
-    with file(config_file, 'w') as config:
+    with open(config_file, 'w') as config:
 
         print('# The path to the installed 3rd party libraries', file=config)
         print('BASE=%s' % installdir, file=config)
@@ -902,7 +930,7 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
     ldflags  = ['-L' + libdir, '-L' + lib64dir, '-Wl,-rpath', '-Wl,' + base,
                 ' -Wl,-rpath,'+libdir+' -Wl,-rpath,'+lib64dir]
 
-    with file(config_file, 'w') as config:
+    with open(config_file, 'w') as config:
 
         print('# The path to the installed 3rd party libraries', file=config)
         print('BASE=%s' % installdir, file=config)
