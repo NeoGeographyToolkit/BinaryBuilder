@@ -74,7 +74,7 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # Lib files that we want to include that don't get pickep up automatically.
-MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug MagickCore-6.Q16 lib MagickWand-6.Q16 libicuuc libswresample libx264'''.split()
+MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libMagickCore-6.Q16 libMagickWand-6.Q16 libicuuc libswresample libx264'''.split()
 
 # Prefixes of libs that we always ship
 LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.

@@ -5,7 +5,7 @@ import sys
 code = -1
 # Must have this check before importing other BB modules
 if sys.version_info < (2, 7, 0):
-    print('\nERROR: Must use Python version >= 2.7.')
+    print('\nERROR: Must use Python version >= 2.7 (including Python 3).')
     sys.exit(code)
 
 import os

@@ -443,6 +443,9 @@ class geoid(Package):
         self.helper(*cmd)
 
 class hdf5(Package):
+    # This must be synched up with ISIS's hdf5 package in miniconda.
+    # TODO: Could use just that if our whitelist was able to pick things
+    # from Minconda's directory.
     src     = 'https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8/hdf5-1.8.18/src/hdf5-1.8.18.tar.bz2'
     chksum  = 'd7e008cbfcf5cb6913b5327a81bbcaf34cc9436d'
     def configure(self):
@@ -519,15 +522,10 @@ class isis(GITPackage, CMakePackage):
 
     @stage
     def compile(self):
-        #buildDir = os.path.join(self.workdir, 'build_binarybuilder')
-        # temporary!
         self.builddir = os.path.join(self.workdir, 'build_binarybuilder')
         super(isis, self).compile()
-        #Package.compile(cwd = buildDir)
-        #Package.compile(cwd = buildDir)
         # cmd = ('ninja', 'install', '-v')
         # self.helper(*cmd, cwd=buildDir)
-        #  self.helper(*cmd)
 
     @stage
     def install(self):
@@ -1421,13 +1419,12 @@ class fgr(GITPackage, CMakePackage):
 
     @stage
     def configure(self):
-        #installDir = self.env['INSTALL_DIR']
-        base_dir = "/home6/oalexan1/projects/data/miniconda3/envs/isis3/include"
+        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
         options = [
             '-DCMAKE_CXX_FLAGS="'
-            + '-I' + P.join(base_dir,'include') + ' '
-            + '-I' + P.join(base_dir,'include/eigen3') + ' '
-            + '-L' + P.join(base_dir,'lib') + ' '
+            + '-I' + P.join(isis3_deps_dir,'include') + ' '
+            + '-I' + P.join(isis3_deps_dir,'include/eigen3') + ' '
+            + '-L' + P.join(isis3_deps_dir,'lib') + ' '
             + '-lflann_cpp'
             + '"',
             '-DFastGlobalRegistration_LINK_MODE=SHARED'
@@ -1642,6 +1639,7 @@ class theia(GITPackage, CMakePackage):
 
 
 class xz(Package):
+    # This must be synched up with ISIS's miniconda's liblzma.5.2.4
     src     = 'http://tukaani.org/xz/xz-5.2.4.tar.gz'
     chksum  = '63ca380029597b951ce9afc6dec28f44f70bb5bd'
 
