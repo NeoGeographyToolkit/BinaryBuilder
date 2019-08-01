@@ -65,17 +65,24 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
 echo "Building changed packages"
-./build.py # We will use gcc on Linux and clang on OSX
+opt=""
+if [ "$(uname -n | grep centos7)" != "" ]; then
+    # Use gcc 5 on centos7
+    opt="--cxx=/home/pipeline/projects/gcc5/bin/g++ --cc=/home/pipeline/projects/gcc5/bin/gcc --gfortran=/home/pipeline/projects/gcc5/bin/gfortran"
+fi
+cmd="./build.py $opt --skip-tests"
+echo $cmd
+eval $cmd
+exitStatus=$?
 
-status="$?"
-echo "Build status is $status"
-if [ "$status" -ne 0 ]; then
+echo "Build status is $exitStatus"
+if [ "$exitStatus" -ne 0 ]; then
     echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
 buildMachine=$(machine_name)
-if [ "$buildMachine" = "lunokhod1" ]; then
+if [ "$(uname -n | grep centos7)" != "" ]; then
     # Build the documentation on the machine which has LaTeX
     echo "Will build the documentation"
     rm -fv dist-add/asp_book.pdf

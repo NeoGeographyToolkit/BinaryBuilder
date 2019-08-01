@@ -42,6 +42,18 @@ def replace_line_in_file(filename, line_in, line_out):
                 line = line_out
             f.write( line + '\n')
 
+def make_list_unique(in_list):
+    '''Remove repetitions from a list.'''
+    vals_dict = {}
+    out_list = []
+    for val in in_list:
+        if val in vals_dict:
+            continue
+        out_list.append(val)
+        vals_dict[val] = 1
+
+    return out_list
+
 # List resursively all files in given directory
 def list_recursively(dir):
     matches = []
@@ -738,7 +750,7 @@ class CMakePackage(Package):
             print('SET (CMAKE_C_COMPILER "%s" CACHE FILEPATH "C compiler" FORCE)' % (find_file(self.env['CC'], self.env['PATH'])), file=f)
             #print('SET (CMAKE_C_COMPILE_OBJECT "<CMAKE_C_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
             print('SET (CMAKE_CXX_COMPILER "%s" CACHE FILEPATH "C++ compiler" FORCE)' % (find_file(self.env['CXX'], self.env['PATH'])), file=f)
-            print('SET (CMAKE_Fortran_COMPILER "%s" CACHE FILEPATH "Fortran compiler" FORCE)' % (find_file(self.env['F77'], self.env['PATH'])), file=f)
+            print('SET (CMAKE_Fortran_COMPILER "%s" CACHE FILEPATH "Fortran compiler" FORCE)' % (find_file(self.env['GFORTRAN'], self.env['PATH'])), file=f)
             #print('SET (CMAKE_CXX_COMPILE_OBJECT "<CMAKE_CXX_COMPILER> <DEFINES> %s <FLAGS> -o <OBJECT> -c <SOURCE>" CACHE STRING "C++ compile command" FORCE)' % (self.env.get('CPPFLAGS', '')), file=f)
 
         # Build up the main cmake command using our environment variables

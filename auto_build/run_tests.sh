@@ -88,7 +88,7 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
 test_status="$?"
 
-if [ "$machine" != "ubuntu16" ]; then
+if [ "$machine" != "centos7" ]; then
   # Ownership operation not needed on the VM.
 
   # Tests are finished running, make sure all maintainers can access the files.

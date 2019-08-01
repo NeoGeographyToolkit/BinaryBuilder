@@ -17,8 +17,9 @@ from optparse import OptionParser
 from BinaryBuilder import get_platform, die
 from glob import glob
 
-# These are the SONAMES for libs we're allowed to get from the base system
-# (most of these are frameworks, and therefore lack a dylib/so)
+# These are the libraries we're allowed to get from the base system.
+# But we must not ship them as they cause trouble, especially libc.  A
+# wildcard will be used after each of them.
 LIB_SYSTEM_LIST = '''
     AGL.framework/Versions/A/AGL
     Accelerate.framework/Versions/A/Accelerate
@@ -47,37 +48,41 @@ LIB_SYSTEM_LIST = '''
     CoreGraphics.framework/Versions/A/CoreGraphics
     CFNetwork.framework/Versions/A/CFNetwork
     ImageIO.framework/Versions/A/ImageIO
-
+    VideoDecodeAcceleration.framework/Versions/A/VideoDecodeAcceleration
+    AudioToolbox.framework/Versions/A/AudioToolbox
+    VideoToolbox.framework/Versions/A/VideoToolbox
+    
     libobjc.A.dylib
     libSystem.B.dylib
     libmathCommon.A.dylib
 
-    libICE.so.6
-    libSM.so.6
-    libX11.so.6
-    libXext.so.6
-    libXi.so.6
-    libXmu.so.6
-    libXrandr.so.2
-    libXrender.so.1
-    libXt.so.6
-    libdl.so.2
-    libm.so.6
+    libICE.so
+    libSM.so
+    libX11.so
+    libXau.so
+    libXext.so
+    libXi.so
+    libXmu.so
+    libXrandr.so
+    libXrender.so
+    libXt.so
+    libXxf86vm.so
+    libc.so
+    libdl.so
+    libm.so
     libpthread.so.0
-    librt.so.1
-    librt.so.6
-    libc.so.1
-    libc.so.6
-    libXxf86vm.so.1
-    libuuid.so.1
-    libXau.so.6
+    librt.so
+    libuuid.so
+    libc-
 '''.split()
 
 # Lib files that we want to include that don't get pickep up automatically.
-MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libMagickCore-6.Q16 libMagickWand-6.Q16 libicuuc libswresample libx264'''.split()
+MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libMagickCore-6.Q16 libMagickWand-6.Q16 libicuuc libswresample libx264 libcsmapi libGLX libGLdispatch libproj libproj.0'''.split()
 
 # Prefixes of libs that we always ship
 LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
+
+USGSCSM_PLUGINS = ['libusgscsm']
 
 def tarball_name():
     arch = get_platform()
@@ -206,11 +211,11 @@ if __name__ == '__main__':
             
         # Add some platform specific bugfixes
         if get_platform().os == 'linux':
-            mgr.sym_link_lib('libproj.so.0', 'libproj.0.so')
+            mgr.sym_link_lib('libproj.so', 'libproj.0.so')
             mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.isis3_deps_dir])
                                 
         if not opt.vw_build:
-            print('Adding Libraries referred to by ISIS plugins')
+            print('Adding libraries referred to by ISIS plugins')
             sys.stdout.flush()
             isis_secondary_set = set()
             for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
@@ -222,7 +227,7 @@ if __name__ == '__main__':
                         if line[0] == 'Library':
                             isis_secondary_set.add("lib/lib"+line[2]+"*")
             for library in isis_secondary_set:
-                mgr.add_glob( library, [INSTALLDIR, opt.isis3_deps_dir])
+                mgr.add_glob(library, [INSTALLDIR, opt.isis3_deps_dir])
 
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
@@ -236,24 +241,21 @@ if __name__ == '__main__':
                 print('\tFound GLIBC version %s' % libc_version())
 
         print('Adding libraries')
-
         for i in range(2,4):
             print('\tPass %i to get dependencies of libraries' % i)
             sys.stdout.flush()
             deplist_copy = copy.deepcopy(mgr.deplist)
 
-            for lib in MANUAL_LIBS: # Force the use of these files
+            # Force the use of these files
+            for lib in MANUAL_LIBS:
                 deplist_copy[lib + lib_ext] = ''
-
-            for lib in deplist_copy:
-                lib_path = P.join(INSTALLDIR, 'lib', lib)
-                if P.exists(lib_path):
-                    mgr.add_library(lib_path)
-                    continue
-                lib_path = P.join(opt.isis3_deps_dir, 'lib', lib)
-                if P.exists(lib_path):
-                    mgr.add_library(lib_path)
-
+            for lib_dir in SEARCHPATH + ['/lib64']:
+                for lib in deplist_copy:
+                    lib_path = P.join(lib_dir, lib)
+                    if P.exists(lib_path):
+                        mgr.add_library(lib_path)
+                        continue
+                    
         # Handle the shiplist separately. This will also add more dependencies
         print('\tAdding forced-ship libraries')
         sys.stdout.flush()
@@ -283,7 +285,7 @@ if __name__ == '__main__':
         print('\tFinding deps in search path')
         sys.stdout.flush()
         mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
-                           copy = SEARCHPATH + \
+                         copy = SEARCHPATH + \
                          ['/opt/X11/lib',
                           '/usr/lib',
                           '/usr/lib64',
@@ -292,7 +294,9 @@ if __name__ == '__main__':
                           '/usr/lib/x86_64-linux-gnu/mesa-egl',
                           '/lib/x86_64-linux-gnu',
                           '/usr/lib/x86_64-linux-gnu',
-                          '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks'])
+                          '/System/Library/Frameworks',
+                          '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks',
+                          ])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:
             if not opt.force_continue:
@@ -304,12 +308,25 @@ if __name__ == '__main__':
             else:
                 print("Warning: missing libs: " + '\n\t'.join(mgr.deplist.keys()) + "\n")
                 
+        print('Adding USGS CSM plugins')
+        sys.stdout.flush()
+        for lib_dir in SEARCHPATH:
+            for lib in USGSCSM_PLUGINS:
+                lib_path = P.join(lib_dir, lib + lib_ext)
+                if P.exists(lib_path):
+                    mgr.add_library(lib_path, add_deps = False, is_plugin = True)
+                    continue
+        
         print('Adding files in dist-add')
         sys.stdout.flush()
         # To do: Don't depend on cwd
         for dir in ['dist-add']:
             if P.exists(dir):
                 mgr.add_directory(dir)
+
+        print('\tRemoving system libs')
+        sys.stdout.flush()
+        mgr.remove_already_added(LIB_SYSTEM_LIST)
 
         print('Baking RPATH and stripping binaries')
         sys.stdout.flush()

@@ -9,8 +9,8 @@
 
 # If you have local modifications in the BinaryBuilder directory,
 # update the list at auto_build/filesToCopy.txt (that list has all
-# top-level files and directories in BinaryBuilder), and run this
-# script as
+# top-level files and directories in BinaryBuilder that are checkd
+# in), and run this script as
 
 # ./auto_build/launch_master.sh local_mode
 
@@ -25,8 +25,8 @@ testDir=projects/StereoPipelineTest # must be relative to home dir
 releaseMachine="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
-masterMachine="lunokhod1"
-virtualMachines="ubuntu16"
+masterMachine="lunokhod2"
+virtualMachines="centos7"
 #buildMachines="$virtualMachines"
 buildMachines="$virtualMachines decoder"
 
@@ -123,11 +123,8 @@ fi
 
 # Start the builds. The build script will copy back the built tarballs
 # and status files.
-# The reason we build on $masterMachine here is to make the docs,
-# which fails on other machines. When it comes to testing though,
-# we'll test on $masterMachine the build from ubuntu16.
 echo "Starting up the builds..."
-for buildMachine in $buildMachines $masterMachine; do
+for buildMachine in $buildMachines; do
 
     echo "Setting up and launching: $buildMachine"
 
@@ -136,12 +133,12 @@ for buildMachine in $buildMachines $masterMachine; do
 
     # Set the ISIS env, needed for 'make check' in ASP.
     # We will push this to the build machine.
-    configFile=$(release_conf_file $buildMachine)
-    isis=$(isis_file)
-    if [ ! -f "$HOME/$testDir/$configFile" ]; then
-        echo Missing $HOME/$testDir/$configFile; exit 1;
-    fi
-    grep -i isis $HOME/$testDir/$configFile | grep export > $(isis_file)
+    #configFile=$(release_conf_file $buildMachine)
+    #isis=$(isis_file)
+    #if [ ! -f "$HOME/$testDir/$configFile" ]; then
+    #    echo Missing $HOME/$testDir/$configFile; exit 1;
+    #fi
+    #grep -i isis $HOME/$testDir/$configFile | grep export > $(isis_file)
 
     # Make sure all scripts are up-to-date on $buildMachine
     echo "Pushing code to: $buildMachine"
@@ -182,10 +179,7 @@ while [ 1 ]; do
 
     allTestsAreDone=1
 
-    # Note that we wait on both the build machines
-    # and on $masterMachine to build, as the later builds the docs,
-    # though we launch tests only for each build on $buildMachine.
-    for buildMachine in $buildMachines $masterMachine; do
+    for buildMachine in $buildMachines; do
 
         # Parse the current status for this build machine
         statusFile=$(status_file $buildMachine)
@@ -216,13 +210,6 @@ while [ 1 ]; do
             echo "Status for $buildMachine is $statusLine"
         elif [ "$progress" = "build_done" ]; then
 
-            if [ "$buildMachine" = "$masterMachine" ]; then
-                # We do not launch tests for the build on
-                # $masterMachine. That one is just for the doc.
-                # This is confusing. 
-                continue
-            fi
-            
             echo "Fetching the completed build"
             # Grab the build file from the build machine
             echo "rsync -avz  $buildMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"
@@ -371,7 +358,7 @@ for buildMachine in $buildMachines; do
             status="Fail"
         fi
         echo "Renaming build $tarBall"
-        tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp)
+        tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp | tail -n 1)
         ans="$?"
         if [ "$ans" -ne 0 ]; then echo "Error: Renaming failed"; status="Fail"; fi
         if [ ! -f "$tarBall" ]; then echo "Error: Missing $tarBall $tarBall"; status="Fail"; fi

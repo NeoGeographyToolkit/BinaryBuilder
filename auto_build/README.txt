@@ -6,35 +6,35 @@ the obtained builds to the release area and updates the link at:
 https://byss.arc.nasa.gov/stereopipeline/daily_build
 
 Machines:
-lunokhod1:        Master machine on which the framework starts
-ubuntu16:         Ubuntu 16, Linux, 64 bit
+lunokhod2:        Master machine on which the framework starts
+centos7:          CentOS 7.6, Linux, 64 bit
 decoder:          Mac OS X 10.12
 byss:             The machine storing the obtained builds
 
-The host ubuntu16 is a virtual machine on lunokhod1.
+The host centos7 is a virtual machine on lunokhod2.
 
 ssh must be configured so that ssh connections from each machine to
-lunokhod1 and back, and to itself (both using its name and using
+lunokhod2 and back, and to itself (both using its name and using
 'localhost') work without specifying a user name or password (user
 names, ports, etc., can be specified in .ssh/config). For more details,
 see the file StereoPipeline/VIRTMACHINES.
 
 The main script is auto_build/launch_master.sh. It gets started on
-lunokhod1. That script initiates the jobs on the other machines (and
+lunokhod2. That script initiates the jobs on the other machines (and
 itself).
 
-Builds are done on ubuntu16 and decoder. The ubuntu16 build is 
-tested on lunokhod1.
+Builds are done on centos7 and decoder. The centos7 build is 
+tested on lunokhod2.
 
-The test process on lunokhod1 is the strictest, it will fail if any
+The test process on lunokhod2 is the strictest, it will fail if any
 obtained results differ from the reference. The tests on other
-machines use just a subset of the tests done on lunokhod1 (for various
+machines use just a subset of the tests done on lunokhod2 (for various
 reasons, including runtime, results being too different due to
 architecture being different, etc.), and those tests are allowed to
-deviate somewhat from the reference results for lunokhod1.
+deviate somewhat from the reference results for lunokhod2.
 
 The obtained builds include the latest pdf documentation, generated on
-lunokhod1 (as other machines lack LaTeX), and later copied to each
+lunokhod2 (as other machines lack LaTeX), and later copied to each
 build. The builds are renamed according to the release convention, and
 copied to byss at /byss/docroot/stereopipeline/daily_build (the
 internal location of the public link from above).

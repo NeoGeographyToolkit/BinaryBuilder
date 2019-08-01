@@ -18,6 +18,9 @@ fi
 
 PROGRAM="${LIBEXEC}/$(basename $0)"
 
+# Path to USGS CSM plugins
+export CSM_PLUGIN_PATH="${TOPLEVEL}/plugins/usgscsm"
+
 if [ "$(echo $PROGRAM | grep sparse_disp)" != "" ] &&
     [ "$ASP_PYTHON_MODULES_PATH" != "" ]; then
     # For sparse_disp we must not use ASP's libraries,

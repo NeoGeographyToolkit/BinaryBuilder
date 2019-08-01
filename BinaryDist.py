@@ -6,7 +6,7 @@ import itertools, shutil, re, errno, sys, os, stat, subprocess
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
 from BinaryBuilder import get_platform, run, hash_file, binary_builder_prefix,\
-     list_recursively
+     list_recursively, make_list_unique
 from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
 from functools import partial, wraps
@@ -112,7 +112,7 @@ class DistManager(object):
             self._add_file(inpath, self.distdir.libexec(base))
             self._add_file(self.wrapper_file, self.distdir.bin(base))
 
-    def add_library(self, inpath, symlinks_too=True, add_deps=True):
+    def add_library(self, inpath, symlinks_too=True, add_deps=True, is_plugin = False):
         ''' 'symlinks_too' means follow all symlinks, and add what they point
             to. 'add_deps' means scan the library and add its required dependencies
             to deplist.'''
@@ -125,15 +125,7 @@ class DistManager(object):
             for path in paths:
                 for newpath in glob(path + '*'):
                     all_paths.append(newpath)
-
-            # Remove repetition
-            paths_dict = {}
-            paths = []
-            for path in all_paths:
-                if path in paths_dict:
-                    continue
-                paths.append(path)
-                paths_dict[path] = 1
+            paths = make_list_unique(all_paths)
                 
         else:
             paths = [inpath]
@@ -143,7 +135,10 @@ class DistManager(object):
             # don't preserve the subdirs underneath 'lib'. This make
             # later rpath code easier to understand.
             lib = P.normpath(p).split('/')[-1]
-            self._add_file(p, self.distdir.lib(lib), add_deps=add_deps)
+            if not is_plugin:
+                self._add_file(p, self.distdir.lib(lib), add_deps=add_deps)
+            else:
+                self._add_file(p, usgscsm_plugin_path(self.distdir, lib), add_deps=add_deps)
 
     def add_glob(self, pattern, prefixes, require_match=True):
         ''' Add a pattern to the tree. pattern must be relative to an
@@ -195,8 +190,23 @@ class DistManager(object):
 
     def remove_deps(self, seq):
         ''' Filter deps out of the deplist '''
-        [self.deplist.pop(k, None) for k in seq]
+        for k in seq:
+            self.deplist.pop(k, None)
 
+    def remove_already_added(self, seq):
+        '''It seems easier to first copy all dependences,
+        then wipe the ones we do not want to ship.
+        We assume any entry is in distdir/*/entry'''
+        for k in seq:
+            files = glob(P.join(self.distdir, '*', k + '*'))
+            for f in files:
+                if os.path.exists(f):
+                    try:
+                        print("Removing: " + f)
+                        os.remove(f)
+                    except:
+                        pass
+        
     def resolve_deps(self, nocopy, copy, search = None):
         ''' Find as many of the currently-listed deps as possible. If the dep
             is found in one of the 'copy' dirs, copy it (without deps) to the dist.'''
@@ -257,6 +267,11 @@ class DistManager(object):
 
         # For some reason permissions are wrong
         cmd = ['chmod', '-R', 'a+r', P.dirname(self.distdir)]
+        run(*cmd)
+        
+        # Also use the current modification time. This also is not working
+        # by default or some reason.
+        cmd = ['touch', self.distdir]
         run(*cmd)
         
         cmd = ['tar', 'cf', name, '--use-compress-prog=pbzip2']
@@ -332,9 +347,23 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
     if keep_symlink and P.islink(src):
         assert not P.isabs(readlink(src)), 'Cannot copy symlink that points to an absolute path (%s)' % src
         logger.debug('%8s %s -> %s' % ('symlink', src, dst))
+
+        # Some of the libraries are both in our install dir and in USGS conda's package.
+        # That is because they do not provide headers for cspice for example.
+        # So below we will run into trouble. Just overwrite any library we built
+        # with the one from conda.
         if P.exists(dst):
-            assert readlink(dst) == readlink(src), 'Refusing to retarget already-exported symlink %s' % dst
-        else:
+            is_soft_link = True
+            try:
+                link_val = readlink(dst)
+            except:
+                is_soft_link = False
+
+            if (not is_soft_link) or (readlink(dst) != readlink(src)):
+                print("Will overwrite " + dst + " with " + src)
+                os.remove(dst)
+
+        if not P.exists(dst):
             try:
                 symlink(readlink(src), dst)
             except:
@@ -342,8 +371,8 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
         return
 
     if P.exists(dst):
-        print("Will overwrite " + dst + " with " + src)
-    #    assert hash_file(src) == hash_file(dst), 'Refusing to overwrite already exported dst %s' % dst
+        if hash_file(src) != hash_file(dst):
+            print("Will overwrite " + dst + " with " + src + " having a different hash.")
     else:
         if hardlink:
             try:
@@ -418,10 +447,16 @@ def otool(filename):
     lines = run('otool', '-L', filename, output=True).split('\n')
     libs = {}
 
-    out = filter(lambda x: len(x.strip()), run('otool', '-D', filename, output=True).split('\n'))
+    # Run otool -D and keep the non-empty lines
+    vals = run('otool', '-D', filename, output=True).split('\n')
+    out = []
+    for val in vals:
+        if len(val.strip()) > 0:
+            out.append(val.strip())
+
     assert len(out) > 0, 'Empty output for otool -D %s' % filename
     assert len(out) < 3, 'Unexpected otool output: %s' % out
-
+    
     this_soname = None
     this_sopath = None
 
@@ -473,6 +508,8 @@ def required_libs(filename):
     def osx():
         return otool(filename).libs
 
+    # What an obfuscated way of saying things where an if statement could
+    # do the same thing and would also do error checking.
     return locals()[get_platform().os]()
 
 def grep(regex, filename):
@@ -487,16 +524,28 @@ def grep(regex, filename):
     return ret
 
 class Prefix(str):
-    '''???'''
+    '''A class so that, for example, if myobj is an instance of
+    Prefix, myobj.libexec(tool_name) would return
+    <myobj base path>/libexec/tool_name.
+    What an obfuscated piece of code. One could as well simply implement
+    member functions like libexec(toolname) manually rather than doing
+    the __getattr__ mumbo-jumbo.'''
+    
     def __new__(cls, directory):
         return str.__new__(cls, P.normpath(directory))
     def base(self, *args):
         return P.join(self, *args)
+
     def __getattr__(self, name):
         def f(*args):
             args = [name] + list(args)
             return self.base(*args)
         return f
+
+def usgscsm_plugin_path(distdir, base):
+    '''Return the full path to a given USGS CSM plugin.'''
+    out_path = P.join(distdir, 'plugins', 'usgscsm', base)
+    return out_path
 
 def rm_f(filename):
     ''' An rm that does not care if the file is not there '''
@@ -547,7 +596,7 @@ def strip(filename):
     '''Discard all symbols from this object file with OS specific flags'''
     flags = None
 
-    def linux():
+    def linux_flags():
         typ = run('file', filename, output=True)
         if typ.find('current ar archive') != -1:
             return ['-g']
@@ -556,18 +605,25 @@ def strip(filename):
             return ['--strip-unneeded', '-R', '.comment']
         elif typ.find('SB relocatable') != -1:
             return ['--strip-unneeded']
-        return None
-    def osx():
+        return []
+    def osx_flags():
         return ['-S']
 
     # Get flags from one of the two functions above then run the strip command.
-    flags = locals()[get_platform().os]()
+    flags = []
+    os_type = get_platform().os
+    if os_type == 'linux':
+        flags = linux_flags()
+    elif os_type == 'osx':
+        flags = osx_flags()
+    else:
+        raise Exception('Unknown platform: ' + os_type)
+
     flags.append(filename)
     try:
         run('strip', *flags)
     except Exception as e:
         print("Failed running strip with flags: ", flags, ". Got the error: ", e)
-
 
 def save_elf_debug(filename):
     '''Copy the debug information from an ELF file'''
@@ -586,12 +642,15 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     def linux():
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
+        #small_path = searchpath[0:1] # truncate this as it can't fit
         rpath = [P.join('$ORIGIN', rel_to_top, path) for path in searchpath]
         if run('chrpath', '-r', ':'.join(rpath), filename, raise_on_failure = False) is None:
             # TODO: Apparently patchelf is better than chrpath when the
             # latter fails. Here, can use instead:
             # patchelf --set-rpath ':'.join(rpath) filename
-            logger.warn('Failed to set_rpath on %s' % filename)
+            pass
+            # This warning is too verbose.
+            #logger.warn('Failed to set_rpath on %s' % filename)
     def osx():
         info = otool(filename)
 

@@ -117,7 +117,7 @@ if __name__ == '__main__':
     parser.add_option('--isis3-deps-dir',                   dest='isis3_deps_dir', default='', help='Path to where conda installed the ISIS dependencies. Default: $HOME/miniconda3/envs/isis3.')
     parser.add_option('--isis3-dir',                        dest='isis3_dir', default='', help='Path to where ISIS 3 was checked out and built (it has subdirectories named isis, build, and install).')
     parser.add_option('--download-dir',                     dest='download_dir', default='./tarballs', help='Where to archive source files')
-    parser.add_option('--f77',                              dest='f77',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
+    parser.add_option('--gfortran',                              dest='gfortran',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
     parser.add_option('--fetch',      action='store_const', dest='mode',         const='fetch',           help='Fetch sources only, don\'t build')
     parser.add_option('--libtoolize',                       dest='libtoolize',   default=None,            help='Value to set LIBTOOLIZE, use to override if system\'s default is bad.')
     parser.add_option('--no-ccache',  action='store_false', dest='ccache',       default=True,            help='Disable ccache')
@@ -181,7 +181,7 @@ if __name__ == '__main__':
     os.environ["LD_LIBRARY_PATH"] = P.join(opt.build_root, 'install/lib') + \
                                     os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
-    MIN_CC_VERSION = 4.8
+    MIN_CC_VERSION = 5.0
 
     arch = get_platform()
 
@@ -198,25 +198,35 @@ if __name__ == '__main__':
         elif arch.os == 'osx':
             opt.cxx = 'clang++'
 
-    # -Wl,-z,now ?
+    # From the path to the compiler infer the path to the libs
+    # used by the compiler. This is needed for pbzip2 and other tools
+    # we build.
+    compiler_root = os.path.dirname(os.path.dirname(which(opt.cc)))
+    path_to_libs = P.join(compiler_root, 'lib') + ':' +  P.join(compiler_root, 'lib64')
+    install_dir = P.join(opt.build_root, 'install')
     build_env = Environment(
         CC       = opt.cc,
         CXX      = opt.cxx,
-        F77      = opt.f77,
+        GFORTRAN = opt.gfortran,
+        COMPILER_ROOT = compiler_root,
         CFLAGS   = '-O3 -g',
         CXXFLAGS = '-O3 -g',
-        LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100),
+        BUILD_DIR    = P.join(opt.build_root, 'build'),
+        INSTALL_DIR  = install_dir,
+        # Use this meaningless RPATH of 'a's so later we have enough room the obtained
+        # path to fit in a real path. Also set the paths to the compiler libs
+        # and to installed libs.
+        LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100) + ' -Wl,-rpath,' + path_to_libs + \
+         ' -Wl,-rpath,' + install_dir + '/lib' + ':' + install_dir + '/lib64',
         MAKEOPTS = '-j%s' % opt.threads,
         DOWNLOAD_DIR = opt.download_dir,
-        BUILD_DIR    = P.join(opt.build_root, 'build'),
-        INSTALL_DIR  = P.join(opt.build_root, 'install'),
         ISIS3_DEPS_DIR = opt.isis3_deps_dir,
         MISC_DIR = P.join(opt.build_root, 'misc'),
         PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
         PATH = os.environ['PATH'],
         LD_LIBRARY_PATH = os.environ['LD_LIBRARY_PATH'],
         FAST = str(int(opt.fast)),
-        SKIP_TESTS = str(int(opt.skip_tests))
+        SKIP_TESTS = str(int(opt.skip_tests)),
         )
 
     if opt.ld_library_path is not None:
@@ -226,12 +236,9 @@ if __name__ == '__main__':
         build_env['LIBRARY_PATH'] = opt.library_path
 
     # Bugfix, add compiler's libraries to LD_LIBRARY_PATH.
-    comp_path = which(build_env['CC'])
-    libdir1 = P.join(P.dirname(P.dirname(comp_path)), "lib")
-    libdir2 = P.join(P.dirname(P.dirname(comp_path)), "lib64")
     if 'LD_LIBRARY_PATH' not in build_env:
         build_env['LD_LIBRARY_PATH'] = ""
-    build_env['LD_LIBRARY_PATH'] += ":" + libdir1 + ":" + libdir2
+    build_env['LD_LIBRARY_PATH'] += ":" + path_to_libs
 
     # Check compiler version for compilers we hate
     output = run(build_env['CC'],'--version')
@@ -282,22 +289,22 @@ if __name__ == '__main__':
 
     # Deal with the Fortran compiler
     try:
-        find_file(build_env['F77'], build_env['PATH'])
+        find_file(build_env['GFORTRAN'], build_env['PATH'])
     except Exception:
-        acceptable_fortran_compilers = [build_env['F77'],'g77']
+        acceptable_fortran_compilers = [build_env['GFORTRAN'],'g77']
         for i in range(0,10):
             acceptable_fortran_compilers.append("gfortran-mp-4.%s" % i)
         for compiler in acceptable_fortran_compilers:
             try:
                 gfortran_path = find_file(compiler, build_env['PATH'])
                 print("Found fortran at: %s" % gfortran_path)
-                build_env['F77'] = compiler
+                build_env['GFORTRAN'] = compiler
                 break
             except Exception:
                 pass
-    ver = get_prog_version(build_env['F77'])
+    ver = get_prog_version(build_env['GFORTRAN'])
     if ver < MIN_CC_VERSION:
-        die('Expecting ' + build_env['F77'] + ' version >= ' + str(MIN_CC_VERSION))
+        die('Expecting ' + build_env['GFORTRAN'] + ' version >= ' + str(MIN_CC_VERSION))
 
     print("%s" % build_env['PATH'])
 
@@ -311,7 +318,7 @@ if __name__ == '__main__':
 
     # Verify we have the executables we need
     common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "wget", "curl"]
-    compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['F77'] ]
+    compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['GFORTRAN'] ]
     if arch.os == 'linux':
         common_exec.extend( ["libtool"] )
     else:
@@ -350,10 +357,10 @@ if __name__ == '__main__':
 
     # Remaining dependencies after using conda
     LINUX_DEPS1 = []
-    CORE_DEPS   = [pbzip2]
-    LINUX_DEPS2 = [chrpath, boost]
-    VW_DEPS     = [png, openjpeg2, geos, xz, gdal, ilmbase, openexr, flann, hdf5]
-    ASP_DEPS    = [parallel, cspice, superlu, osg3, laszip, liblas, geoid, fgr,
+    CORE_DEPS   = [bzip2, pbzip2]
+    LINUX_DEPS2 = [chrpath]
+    VW_DEPS     = [openjpeg2, geos, xz, gdal, ilmbase, openexr, hdf5]
+    ASP_DEPS    = [parallel, superlu, cspice, osg3, laszip, liblas, geoid, fgr,
                    gflags, glog, ceres, libnabo, libpointmatcher, imagemagick, theia,
                    htdp, usgscsm, isis]
 
@@ -404,28 +411,28 @@ if __name__ == '__main__':
 
     # This must happen after untarring the base system,
     # as perhaps cache will be found there.
-    if opt.ccache:
+ #    if opt.ccache:
 
-        try:
-            ccache_path = find_file('ccache', build_env['PATH'])
-        except:
-            # If could not find ccache, build it.
-            print("\n========== Building: %s ==========" % ccache.__name__)
-            Package.build(ccache(build_env.copy_set_default()))
-            ccache_path = find_file('ccache', build_env['PATH'])
+#         try:
+#             ccache_path = find_file('ccache', build_env['PATH'])
+#         except:
+#             # If could not find ccache, build it.
+#             print("\n========== Building: %s ==========" % ccache.__name__)
+#             Package.build(ccache(build_env.copy_set_default()))
+#             ccache_path = find_file('ccache', build_env['PATH'])
 
-        print(compiler_dir)
-        new = dict(
-            CC  = P.join(compiler_dir, os.path.basename(build_env['CC'])),
-            CXX = P.join(compiler_dir, os.path.basename(build_env['CXX'])),
-        )
-        print(new)
-        print(ccache_path)
+#         print(compiler_dir)
+#         new = dict(
+#             CC  = P.join(compiler_dir, os.path.basename(build_env['CC'])),
+#             CXX = P.join(compiler_dir, os.path.basename(build_env['CXX'])),
+#         )
+#         print(new)
+#         print(ccache_path)
 
-        print(['ln', '-sf', ccache_path, new['CC']])
-        subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
-        subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
-        build_env.update(new)
+#         print(['ln', '-sf', ccache_path, new['CC']])
+#         subprocess.check_call(['ln', '-sf', ccache_path, new['CC']])
+#         subprocess.check_call(['ln', '-sf', ccache_path, new['CXX']])
+#         build_env.update(new)
 
     modes = dict(
         all     = lambda pkg : Package.build(pkg, skip_fetch=False),

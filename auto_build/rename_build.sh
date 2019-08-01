@@ -49,9 +49,10 @@ if [ ! -f "$doc" ]; then echo "Could not find $(pwd)/$doc"; exit 1; fi
 cp -f $doc $out 
 
 # Pack back
-tar cf $out_z --use-compress-prog=pbzip2 $out
+tar cjf $out_z $out
 if [ "$?" -ne 0 ]; then echo "Packing back failed"; exit 1; fi
 rm -rf $in $out
 
+# The last line printed by this shell script must be the name of the output build
 echo asp_tarballs/$out_z
 
