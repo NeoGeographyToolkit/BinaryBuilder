@@ -512,7 +512,8 @@ class armadillo(CMakePackage):
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
-    chksum = '2fdccdff0cf27544a9b78376a493d7c28b9146e0'  # version 3.7.1
+    chksum = '63a9f0dd360d0c6d284507776270b5cd122d9ff9'  # version 3.8.0
+    #chksum = '2fdccdff0cf27544a9b78376a493d7c28b9146e0'  # version 3.7.1
     patches = 'patches/isis'
 
     def __init__(self, env):
@@ -563,7 +564,7 @@ class isis(GITPackage, CMakePackage):
             + self.env['INSTALL_DIR'],
             '-DCMAKE_CXX_COMPILER=' + which(self.env['CXX']),
             '-DCMAKE_C_COMPILER=' + which(self.env['CC']),
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0 ' \
+            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 ' \
             + '-B' + self.env['COMPILER_ROOT'],
             '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
             '-DPNG_LIBRARY=' + P.join(self.env['ISIS3_DEPS_DIR'],'lib/libpng' + ext),
