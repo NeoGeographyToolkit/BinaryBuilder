@@ -60,22 +60,25 @@ echo "Work directory: $(pwd)"
 # Set system paths and load utilities
 source $HOME/$buildDir/auto_build/utils.sh
 
-# Unless running in local mode for test purposes, fetch from github
-# the latest version of BinaryBuilder, including this very script.
+# This is a very fragile piece of code. We fetch the latest version
+# of this repository in a different directory, identify the files in
+# it, and copy those to here. If there are local changes in this
+# shell script, it will get confused as it is overwritten mid-way.
+# TODO: Need to think of a smart way of doing this.
 filesList=auto_build/filesToCopy.txt
 if [ "$localMode" -eq 0 ]; then
     echo "Updating from github..."
     # Update itself from github
     failure=1
-    for ((i = 0; i < 600; i++)); do
-        # Bugfix: Sometimes the github server is down, so do multiple attempts.
-        echo "Cloning BinaryBuilder in attempt $i"
+    echo "Cloning BinaryBuilder"
 
-        ./build.py binarybuilder
-        failure="$?"
-        if [ "$failure" -eq 0 ]; then break; fi
-        sleep 60
-    done
+    ./build.py binarybuilder
+    failure="$?"
+    if [ "$failure" -eq 0 ]; then
+	echo "Could not clone binarybuilder"
+	exit
+    fi
+    
     currDir=$(pwd)
     cd build_asp/build/binarybuilder/binarybuilder-git
     files=$(ls -ad *)
@@ -86,6 +89,10 @@ if [ "$localMode" -eq 0 ]; then
     # build machines
     echo $files > $filesList
 fi
+
+# As an extra precaution filter out the list of files
+cat $filesList | perl -p -e "s#\s#\n#g" | grep -v -E "build_asp|StereoPipeline|status|pyc|logs|tarballs|output|tmp" > tmp.txt
+/bin/mv -fv tmp.txt $filesList
 
 currMachine=$(machine_name)
 if [ "$currMachine" != "$masterMachine" ]; then

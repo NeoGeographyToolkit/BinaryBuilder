@@ -77,7 +77,7 @@ bin/historical_helper.py
 lib/*.plugin
 plugins/platforms
 lib/libAsp*.[so,dylib]*
-lib/libsuperlu*.[so,dylib]*
+lib/libsuperlu*.[so,dylib,a]*
 lib/libVw*.[so,dylib]*
 lib/osgPlugins-*/osgdb_*
 libexec/opencv_calibrate

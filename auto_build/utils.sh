@@ -17,7 +17,7 @@ export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.9:$DYLD_LIBRARY_PAT
 export PYTHONPATH=$PYTHONPATH:$HOME/.local
 
 function machine_name() {
-    machine=$(uname -n | perl -pi -e "s#\..*?\$##g")
+    machine=$(uname -n | perl -p -e "s#\..*?\$##g")
     echo $machine
 }
 

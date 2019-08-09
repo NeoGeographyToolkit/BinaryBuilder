@@ -317,13 +317,20 @@ if __name__ == '__main__':
         build_env['LIBTOOLIZE'] = opt.libtoolize
 
     # Verify we have the executables we need
-    common_exec = ["make", "tar", "ln", "autoreconf", "cp", "sed", "bzip2", "unzip", "patch", "csh", "git", "wget", "curl"]
-    compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['GFORTRAN'] ]
-    if arch.os == 'linux':
-        common_exec.extend( ["libtool"] )
+    if len(args) != 0 and args[0] == 'binarybuilder':
+        # When we just fetch binarybuilder as we need in launch_master.sh
+        # we won't build right then, so we don't need these tools,
+        common_exec = []
     else:
-        common_exec.extend( ["glibtool", "install_name_tool"] )
-
+        common_exec = ["make", "tar", "ln", "autoreconf", "cp", "csh", "sed", "bzip2",
+                       "unzip", "patch", "git", "wget", "curl"]
+        
+        if arch.os == 'linux':
+            common_exec.extend( ["libtool"] )
+        else:
+            common_exec.extend( ["glibtool", "install_name_tool"] )
+            
+    compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['GFORTRAN'] ]
     missing_exec = []
     for program in common_exec:
         if not program_exists(program):
@@ -360,7 +367,7 @@ if __name__ == '__main__':
     CORE_DEPS   = [bzip2, pbzip2]
     LINUX_DEPS2 = [chrpath]
     VW_DEPS     = [openjpeg2, geos, xz, gdal, ilmbase, openexr, hdf5]
-    ASP_DEPS    = [parallel, superlu, cspice, osg3, laszip, liblas, geoid, fgr,
+    ASP_DEPS    = [parallel, cspice, osg3, laszip, liblas, geoid, fgr,
                    gflags, glog, ceres, libnabo, libpointmatcher, imagemagick, theia,
                    htdp, usgscsm, isis]
 

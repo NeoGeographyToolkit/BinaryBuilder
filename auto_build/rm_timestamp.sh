@@ -19,7 +19,7 @@ tarballDir=$(dirname $tarball)
 tarballNameIn=$(basename $tarball)
 cd $tarballDir
 
-tarballNameOut=$(echo $tarballNameIn | perl -pi -e "s#\d\d\d\d-\d+-\d+-##g")
+tarballNameOut=$(echo $tarballNameIn | perl -p -e "s#\d\d\d\d-\d+-\d+-##g")
 
 # Names without the .tar.bz2 extension
 in=${tarballNameIn/.tar.bz2/}
