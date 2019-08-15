@@ -246,7 +246,7 @@ if __name__ == '__main__':
     #if arch.os == 'linux':
     ver1 = get_prog_version(build_env['CC'])
     ver2 = get_prog_version(build_env['CXX'])
-    if ver1 < MIN_CC_VERSION or ver2 < MIN_CC_VERSION:
+    if (ver1 < MIN_CC_VERSION or ver2 < MIN_CC_VERSION) and args[0] != 'binarybuilder':
         die('Expecting gcc and g++ version >= ' + str(MIN_CC_VERSION))
         
     if arch.os == 'linux':
@@ -303,7 +303,7 @@ if __name__ == '__main__':
             except Exception:
                 pass
     ver = get_prog_version(build_env['GFORTRAN'])
-    if ver < MIN_CC_VERSION:
+    if ver < MIN_CC_VERSION and args[0] != 'binarybuilder':
         die('Expecting ' + build_env['GFORTRAN'] + ' version >= ' + str(MIN_CC_VERSION))
 
     print("%s" % build_env['PATH'])
