@@ -104,13 +104,24 @@ class DistManager(object):
             and the wrapper script to bin/ (with the basename of the exe) '''
         logger.debug('attempting to add %s' % inpath)
         base = P.basename(inpath)
+
+        # When adding a symlink, also add the file it points to.
         if P.islink(inpath):
-            self._add_file(inpath, self.distdir.bin(base))
-        elif base.endswith(".py"):
+            paths = snap_symlinks(inpath)
+        else:
+            paths = [inpath]
+
+        # TODO: Why .py files are extempted from having a wrapper
+        # file?  This can cause issues, as .py tools may end up
+        # searching for libraries outside of our lib directory. Fix
+        # and test this.
+        if base.endswith(".py"):
             self._add_file(inpath, self.distdir.bin(base))
         else:
-            self._add_file(inpath, self.distdir.libexec(base))
-            self._add_file(self.wrapper_file, self.distdir.bin(base))
+            for path in paths:
+                base = P.basename(path)
+                self._add_file(path, self.distdir.libexec(base))
+                self._add_file(self.wrapper_file, self.distdir.bin(base))
 
     def add_library(self, inpath, symlinks_too=True, add_deps=True, is_plugin = False):
         ''' 'symlinks_too' means follow all symlinks, and add what they point
@@ -154,6 +165,7 @@ class DistManager(object):
             
         if require_match:
             assert len(inpaths) > 0, 'No matches for glob pattern %s' % pat
+
         [self.add_smart(i, found_prefix) for i in inpaths]
 
     def add_smart(self, inpath, prefix):
