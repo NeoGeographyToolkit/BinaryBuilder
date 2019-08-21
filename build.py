@@ -452,7 +452,7 @@ if __name__ == '__main__':
     try:
         for pkg in build:
             name = pkg.__name__
-            if name in done:
+            if name in done and name != 'binarybuilder':
                 print("Package %s was already built, skipping" % name)
                 continue
             print("\n========== Building: %s ==========" % name)

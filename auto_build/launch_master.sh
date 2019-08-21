@@ -73,8 +73,8 @@ if [ "$localMode" -eq 0 ]; then
     echo "Cloning BinaryBuilder"
 
     ./build.py binarybuilder
-    failure="$?"
-    if [ "$failure" -eq 0 ]; then
+    status="$?"
+    if [ "$status" -ne 0 ]; then
 	echo "Could not clone binarybuilder"
 	exit
     fi
