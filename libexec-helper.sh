@@ -42,6 +42,13 @@ else
     set_lib_paths "${TOPLEVEL}/lib"
 fi
 
+# Needed for stereo_gui to start quickly.  (Likely the conda Qt
+# libraries have some misconfigured path).
+if [ "$(echo $PROGRAM | grep stereo_gui)" != "" ] && [ -f "/etc/fonts/fonts.conf" ]; then 
+    export FONTCONFIG_PATH=/etc/fonts
+    export FONTCONFIG_FILE=fonts.conf
+fi
+
 if ! test -f "${PROGRAM}"; then
     msg "Could not find ${PROGRAM}"
     die "Is your Stereo Pipeline install incomplete?"

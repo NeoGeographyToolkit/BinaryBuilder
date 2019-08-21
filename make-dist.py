@@ -330,7 +330,7 @@ if __name__ == '__main__':
 
         print('Baking RPATH and stripping binaries')
         sys.stdout.flush()
-        mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH))
+        mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH[0:2]))
 
         debug_list_name = ''
         try:
