@@ -48,6 +48,11 @@ permissions and limitations under the License.
 ************************************************************************
 3. DOCUMENTATION
 
+Here some specific details about how to use Binary Builder are documented.
+More complete documentation is in StereoPipeline's INSTALLGUIDE at
+
+https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE
+
 A. Produce a Complete Binary Build
 
 If you would like Binary Builder to create a tarball of all Stereo
@@ -105,8 +110,8 @@ For a complete VW build, run build.py with the argument: --build-goal 2
 
 For a VW only development environment, run build.py with the argument: --build-goal 3
 
-Other than using these flag values you can use the make-dist.py and deplop-base.py tools
-in the same manner as if building ASP.
+Other than using these flag values you can use the make-dist.py and
+deplop-base.py tools in the same manner as if building ASP.
 
 
 ************************************************************************

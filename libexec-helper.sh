@@ -42,8 +42,9 @@ else
     set_lib_paths "${TOPLEVEL}/lib"
 fi
 
-# Needed for stereo_gui to start quickly.  (Likely the conda Qt
-# libraries have some misconfigured path).
+# Needed for stereo_gui to start quickly. (Likely the slowdown this
+# fixes is due to some misconfigured path in some conda libraries or
+# how we ship them.)
 if [ "$(echo $PROGRAM | grep stereo_gui)" != "" ] && [ -f "/etc/fonts/fonts.conf" ]; then 
     export FONTCONFIG_PATH=/etc/fonts
     export FONTCONFIG_FILE=fonts.conf
