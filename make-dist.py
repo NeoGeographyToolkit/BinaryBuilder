@@ -74,6 +74,8 @@ LIB_SYSTEM_LIST = '''
     librt.so
     libuuid.so
     libc-
+    libdbus-1.so.3.14.14
+    libsystemd.so
 '''.split()
 
 # Lib files that we want to include that don't get pickep up automatically.
