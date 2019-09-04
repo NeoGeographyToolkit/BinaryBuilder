@@ -85,7 +85,9 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 
 #bin/run_tests.pl $configFile > $outputFile 2>&1
 # Kill individual tests after four hours.  They should take much less time but maybe the system is busy.
-pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile > $reportFile
+cmd="pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile"
+echo Running: $cmd
+$cmd > $reportFile
 test_status="$?"
 
 if [ "$machine" != "centos7" ]; then
@@ -116,12 +118,6 @@ echo "###### Contents of the report file ######"
 cat $reportFile
 echo "###### End of the report file ######"
 
-if [ $test_status -ne 0 ]; then
-    echo "py.test command failed, sending status and early quit."
-    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
-    exit 1
-fi
-
 # Wipe old builds on the test machine
 echo "Wiping old builds..."
 numKeep=8
@@ -130,14 +126,20 @@ if [ "$(echo $machine | grep $masterMachine)" != "" ]; then
 fi
 $HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
 
-# Display the allowed error (actual error with extra tolerance) for each run
-bin/print_allowed_error.pl $reportFile
-
-# Mark tests as done
-echo "Reporting test results..."
-failures=$(grep -i fail $reportFile)
-if [ "$failures" = "" ]; then
-    status="Success"
+if [ $test_status -ne 0 ]; then
+    echo "py.test command failed."
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
+else
+    # Display the allowed error (actual error with extra tolerance) for each run
+    bin/print_allowed_error.pl $reportFile
+    
+    # Mark tests as done
+    echo "Reporting test results..."
+    failures=$(grep -i fail $reportFile)
+    if [ "$failures" = "" ]; then
+        status="Success"
+    fi
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
+    echo "Finished running tests locally!"
 fi
-echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
-echo "Finished running tests locally!"
+

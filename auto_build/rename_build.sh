@@ -51,7 +51,11 @@ cp -f $doc $out
 # Pack back
 tar cjf $out_z $out
 if [ "$?" -ne 0 ]; then echo "Packing back failed"; exit 1; fi
-rm -rf $in $out
+
+# Remove the extracted version of the output build, but keep the
+# extracted version of the input build, for forensic analysis.
+# Old builds will be removed later.
+rm -rf $out
 
 # The last line printed by this shell script must be the name of the output build
 echo asp_tarballs/$out_z
