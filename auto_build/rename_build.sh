@@ -40,7 +40,7 @@ if [ -d "$in" ] || [ -d "$out" ]; then exit 1; fi # could not wipe
 bzip2 -dc $in_z | tar xfv - > /dev/null 2>&1
 if [ "$?" -ne 0 ]; then echo "Unpacking failed"; exit 1; fi
 if [ "$in" != "$out" ]; then 
-    mv $in $out
+    cp -rf $in $out # make a copy, keep the original
 fi
 
 # Copy the ASP book
