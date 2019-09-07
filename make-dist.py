@@ -332,7 +332,10 @@ if __name__ == '__main__':
 
         print('Baking RPATH and stripping binaries')
         sys.stdout.flush()
-        mgr.bake(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH[0:2]))
+        # Create relative paths from SEARCHPATH. Use only the first two items,
+        # hence just the values 'lib' and 'lib64'.
+        rel_search_path = list(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH[0:2]))
+        mgr.bake(rel_search_path)
 
         debug_list_name = ''
         try:
