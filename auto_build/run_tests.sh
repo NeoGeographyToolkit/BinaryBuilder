@@ -83,6 +83,9 @@ echo "Launching the tests. Output goes to: $(pwd)/$reportFile"
 num_cpus=$(ncpus)
 if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 
+# This is a bugfix for a known issue with pytest.
+export LANG=en_US.UTF-8
+
 #bin/run_tests.pl $configFile > $outputFile 2>&1
 # Kill individual tests after four hours.  They should take much less time but maybe the system is busy.
 echo The envirnonment
