@@ -356,8 +356,23 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
     assert not P.isdir(src), 'Source path must not be a dir'
     assert not P.isdir(dst), 'Destination path must not be a dir'
 
+    # There is nothing we can do about absolute sym links in system dirs. We just
+    # trace those to the source and copy.
     if keep_symlink and P.islink(src):
-        assert not P.isabs(readlink(src)), 'Cannot copy symlink that points to an absolute path (%s)' % src
+        if P.isabs(readlink(src)):
+            m = re.match('^/usr', readlink(src))
+            if m:
+                print("Resolving absolute link: ", src)
+                while P.islink(src) and \
+                          P.isabs(readlink(src)) \
+                          and os.path.basename(src) == os.path.basename(readlink(src)):
+                    src = readlink(src)
+                    print("Resolved to: ", src)
+
+    if keep_symlink and P.islink(src):
+
+        assert not P.isabs(readlink(src)), \
+               'Cannot copy symlink that points to an absolute path (%s)' % src
         logger.debug('%8s %s -> %s' % ('symlink', src, dst))
 
         # Some of the libraries are both in our install dir and in USGS conda's package.

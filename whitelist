@@ -18,6 +18,7 @@ bin/dem_mosaic
 bin/dg_mosaic
 bin/disparitydebug
 bin/gdal_translate
+bin/gdal_rasterize
 bin/gdaltransform
 bin/gdalinfo
 bin/gdalbuildvrt
