@@ -68,7 +68,7 @@ echo "Building changed packages"
 opt=""
 if [ "$(uname -n | grep centos7)" != "" ]; then
     # Use gcc 5 on centos7
-    opt="--cxx=/home/pipeline/projects/gcc5/bin/g++ --cc=/home/pipeline/projects/gcc5/bin/gcc --gfortran=/home/pipeline/projects/gcc5/bin/gfortran --threads 2"
+    opt="--cxx=/home/pipeline/projects/gcc5/bin/g++ --cc=/home/pipeline/projects/gcc5/bin/gcc --gfortran=/home/pipeline/projects/gcc5/bin/gfortran --threads 1"
 fi
 cmd="./build.py $opt --skip-tests"
 echo $cmd
