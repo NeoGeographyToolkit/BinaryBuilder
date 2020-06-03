@@ -620,6 +620,8 @@ class GITPackage(Package):
                                     stdout=subprocess.PIPE)[0].split('\n'):
                 tokens = line.split()
                 if len(tokens) > 1 and tokens[1] == 'refs/heads/master':
+                    print("tokens are ", tokens)
+                    #sys.exit(1)
                     self.chksum = tokens[0]
 
     def _git(self, *args):
@@ -645,10 +647,15 @@ class GITPackage(Package):
            containing the desired commit'''
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.workdir = P.join(output_dir, self.pkgname + '-git')
+
         # If fast, update and build in existing directory
         # (assuming it exists).
-        #   Otherwise, delete the existing build and start over.
-        if not self.fast or not os.path.isdir(output_dir):
+        if self.fast:
+            return
+        
+        #  Delete the existing build and start over.
+        # TODO(oalexan1): Shoudn't it be the opposite, if a dir exists, then wipe it? 
+        if not os.path.isdir(output_dir):
             self.remove_build(output_dir)
             os.mkdir(self.workdir)
             self.helper('git', 'clone', self.localcopy, self.workdir,

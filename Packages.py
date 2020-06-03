@@ -9,7 +9,7 @@ import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
      replace_line_in_file, run, get, program_paths, get_platform, find_file, get_cores
-from BinaryDist import fix_install_paths, lib_ext, which
+from BinaryDist import fix_install_paths, lib_ext, which, mkdir_f
 
 class ccache(Package):
     src     = 'https://www.samba.org/ftp/ccache/ccache-3.1.12.tar.bz2'
@@ -182,10 +182,10 @@ class openjpeg2(CMakePackage):
     def configure(self):
         curr_include = '-I' + self.workdir + '/src/bin/common'
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
-        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+        isis_deps_lib = self.env['ISIS_DEPS_DIR']
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_lib, isis_deps_lib)
         super(openjpeg2, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DBUILD_SHARED_LIBS=ON',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
@@ -207,7 +207,7 @@ class libgeotiff(CMakePackage):
     chksum='4c6f405869826bb7d9f35f1d69167e3b44a57ef0'
     def configure(self):
         super(libgeotiff, self).configure( other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DBUILD_SHARED_LIBS=ON',
@@ -223,17 +223,17 @@ class gdal(Package):
         # Parts of GDAL will attempt to load libproj manual (something
         # we can't see or correct in the elf tables). This sed should
         # correct that problem.
-        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+        isis_deps_lib = self.env['ISIS_DEPS_DIR']
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -lproj' % (isis_deps_lib, isis_deps_lib)
         # TODO: This may no longer be necessary.
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
-        w = ['threads', 'libtiff', 'geotiff=' + self.env['ISIS3_DEPS_DIR'],
-             'jpeg=' + self.env['ISIS3_DEPS_DIR'],
+        w = ['threads', 'libtiff', 'geotiff=' + self.env['ISIS_DEPS_DIR'],
+             'jpeg=' + self.env['ISIS_DEPS_DIR'],
              'png', 'zlib', 'pam',
-             'openjpeg=' + self.env['INSTALL_DIR'],
+             'openjpeg=' + self.env['ISIS_DEPS_DIR'],
              'geos=yes',
-             #'liblzma='+ self.env['INSTALL_DIR'],
+             'liblzma='+ self.env['ISIS_DEPS_DIR'],
              'curl']
         wo = \
             '''bsb cfitsio dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
@@ -374,32 +374,32 @@ class liblas(CMakePackage):
     def configure(self):
         # Remove the pedantic flag. Latest boost is not compliant.
         self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
-        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+        isis_deps_lib = self.env['ISIS_DEPS_DIR']
 
         # bugfix for linux
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
-        boost_dir = P.join(isis3_deps_dir,'include')
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        boost_dir = P.join(isis_deps_dir,'include')
         self.env['CXXFLAGS'] += ' -I' + boost_dir + ' -pthread'
         self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma ' % (isis_deps_lib, isis_deps_lib)
 
         ext = lib_ext(self.arch.os)
         super(liblas, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DBoost_INCLUDE_DIR=' + boost_dir,
             #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
             #'include','boost-'+boost.version),            
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DBoost_LIBRARY_DIRS=' + P.join(isis3_deps_dir,'lib'),
+            '-DBoost_LIBRARY_DIRS=' + P.join(isis_deps_dir,'lib'),
             '-DWITH_LASZIP=true',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GDAL=true',
             '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GEOTIFF=true',
-            '-DGEOTIFF_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
-            '-DTIFF_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
-            '-DTIFF_LIBRARY_RELEASE=' + P.join(isis3_deps_dir,'lib', 'libtiff'+ ext),
-            '-DZLIB_LIBRARY_RELEASE=' + P.join(isis3_deps_dir,'lib', 'libz'+ ext),
+            '-DGEOTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
+            '-DTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
+            '-DTIFF_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libtiff'+ ext),
+            '-DZLIB_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libz'+ ext),
             #'-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             #'-DBoost_USE_STATIC_LIBS=OFF',
             '-DBUILD_SHARED_LIBS=ON',
@@ -428,31 +428,31 @@ class laszip(CMakePackage):
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
     @stage
     def configure(self):
-        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+        isis_deps_lib = self.env['ISIS_DEPS_DIR']
 
         # bugfix for linux
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
-        boost_dir = P.join(isis3_deps_dir,'include')
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        boost_dir = P.join(isis_deps_dir,'include')
         self.env['CXXFLAGS'] += ' -I' + boost_dir + ' -pthread'
 
         ext = lib_ext(self.arch.os)
         super(laszip, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DBoost_INCLUDE_DIR=' + boost_dir,
             #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
             #'include','boost-'+boost.version),            
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DBoost_LIBRARY_DIRS=' + P.join(isis3_deps_dir,'lib'),
+            '-DBoost_LIBRARY_DIRS=' + P.join(isis_deps_dir,'lib'),
             '-DWITH_LASZIP=true',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GDAL=true',
             '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GEOTIFF=true',
-            '-DGEOTIFF_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
-            '-DTIFF_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
-            '-DTIFF_LIBRARY_RELEASE=' + P.join(isis3_deps_dir,'lib', 'libtiff'+ ext),
-            '-DZLIB_LIBRARY_RELEASE=' + P.join(isis3_deps_dir,'lib', 'libz'+ ext),
+            '-DGEOTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
+            '-DTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
+            '-DTIFF_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libtiff'+ ext),
+            '-DZLIB_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libz'+ ext),
             #'-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             #'-DBoost_USE_STATIC_LIBS=OFF',
             '-DBUILD_SHARED_LIBS=ON',
@@ -512,8 +512,7 @@ class armadillo(CMakePackage):
 # Build our copy of the ISIS code...
 class isis(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/ISIS3.git'
-    chksum = '63a9f0dd360d0c6d284507776270b5cd122d9ff9'  # version 3.8.0
-    #chksum = '2fdccdff0cf27544a9b78376a493d7c28b9146e0'  # version 3.7.1
+    chksum = 'f6beda24b408a6e352f3a8aeb87505874c555691'  # version 4.1
     patches = 'patches/isis'
 
     def __init__(self, env):
@@ -532,14 +531,22 @@ class isis(GITPackage, CMakePackage):
         output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
         self.workdir = P.join(output_dir, self.pkgname + '-git')
 
-        
         # If fast, update and build in existing directory
         # (assuming it exists).
-        #   Otherwise, delete the existing build and start over.
-        if not self.fast or not os.path.isdir(output_dir):
+        if self.fast:
+            return
+        
+        #  Delete the existing build and start over.
+        if os.path.exists(output_dir):
             self.remove_build(output_dir)
-            os.mkdir(self.workdir)
-            self.helper('git', 'clone', '--recurse-submodules', self.localcopy, self.workdir)
+
+        mkdir_f(self.workdir)
+        self.helper('git', 'clone', '--recurse-submodules', self.localcopy, self.workdir)
+
+        # Checkout a specific commit
+        if self.chksum is not None:
+            cmd = ('git', 'checkout', self.chksum)
+            self.helper(*cmd, cwd=self.workdir, env = self.local_env)
 
         # The default branch is not the one with the cmake build so we need to switch
         #self.helper('git', 'checkout', 'cmake'  )
@@ -549,27 +556,31 @@ class isis(GITPackage, CMakePackage):
 
     @stage
     def configure(self):
-
         # The code is stored one folder down
         self.workdir = os.path.join(self.workdir, 'isis')
 
         # Follow the ISIS convention of where the build should be
-        #self.builddir = os.path.join(self.workdir, '../build')
+        self.builddir = os.path.join(self.workdir, '../build')
 
-        self.env['CXXFLAGS'] += ' -D_GLIBCXX_USE_CXX11_ABI=0 -B' + self.env['COMPILER_ROOT']
-        self.env['CONDA_PREFIX'] = self.env['ISIS3_DEPS_DIR']
+        self.env['CXXFLAGS'] += ' -B' + self.env['COMPILER_ROOT']
+        self.env['CONDA_PREFIX'] = self.env['ISIS_DEPS_DIR']
+
+        # Do not configure as we will fetch the binaries with conda,
+        # we need only the headers
+        return 
+
         ext = lib_ext(self.arch.os)
         super(isis, self).configure(other= [
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS3_DEPS_DIR'] + ':' \
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' \
             + self.env['INSTALL_DIR'],
             '-DCMAKE_CXX_COMPILER=' + which(self.env['CXX']),
             '-DCMAKE_C_COMPILER=' + which(self.env['CC']),
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 ' \
+            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 ' \
             + '-B' + self.env['COMPILER_ROOT'],
             '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
-            '-DPNG_LIBRARY=' + P.join(self.env['ISIS3_DEPS_DIR'],'lib/libpng' + ext),
-            '-DCSPICE_LIBRARY=' + P.join(self.env['ISIS3_DEPS_DIR'],'lib/libcspice' + ext),
-            '-DX11_LIBRARY=' + P.join(self.env['ISIS3_DEPS_DIR'],'lib/libX11' + ext),
+            '-DPNG_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libpng' + ext),
+            '-DCSPICE_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libcspice' + ext),
+            '-DX11_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libX11' + ext),
             '-Dpybindings=Off',
             '-DJP2KFLAG=OFF',
             '-DbuildTests=OFF',
@@ -580,29 +591,41 @@ class isis(GITPackage, CMakePackage):
 
     @stage
     def compile(self):
-        
+        # Do not configure as we will fetch the binaries with conda,
+        # we need only the headers
         self.env['ISISROOT'] = self.builddir # Per the ISIS documentation
+        return
 
-        #super(isis, self).compile()
+        super(isis, self).compile()
         cmd = ('ninja', 'install', '-v')
         self.helper(*cmd, cwd=self.builddir)
 
     @stage
     def install(self):
-        #pass
-        #super(isis, self).install()
-        # Must copy the include files manually
-        destDir = P.join(self.env['INSTALL_DIR'],'include/isis3')
-        cmd = ['mkdir','-p', destDir]
+        # Copy all header files. Some are repeated, but hoping
+        # for the best. This is a temporary solution.
+
+        dest_dir = P.join(self.env['INSTALL_DIR'],'include/isis')
+        cmd = ['mkdir','-p', dest_dir]
         self.helper(*cmd)
-        cmd = ['cp', '-rfv'] + glob(self.builddir + '/inc/*') + [destDir]
-        self.helper(*cmd)
+
+        src_dir = os.path.join(self.workdir, 'src')
+        if not os.path.isdir(src_dir):
+            raise Exception("Cannot find directory: " + src_dir)
+
+        header_files = []
+        print("Copying header files in " + src_dir + " to " + dest_dir)
+        for root, dirs, files in os.walk(src_dir):
+            for file_name in files:
+                if file_name.endswith(".h"):
+                    header_file = os.path.join(root, file_name)
+                    shutil.copy(header_file, dest_dir)
 
 # USGS Community sensor model
 # TODO: Make it install in lib and not in lib64 like everything else.
 class usgscsm(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/usgscsm'
-    chksum = '85887e1cc4faa95f5e36f9adf2000bebf0943b63'
+    chksum = 'a53f9cfe30f595809917013c277698a413c32443'
     #patches = ''
 
     def unpack(self):
@@ -619,7 +642,7 @@ class usgscsm(GITPackage, CMakePackage):
             '-DJP2KFLAG=OFF',
             '-DbuildTests=OFF',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             ]) #-DNinja
 
@@ -633,8 +656,8 @@ class stereopipeline(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
-        boost_dir = P.join(isis3_deps_dir,'include')
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        boost_dir = P.join(isis_deps_dir,'include')
 
         # TODO: Just remove the bad arguments!
         if self.arch.os == 'osx':
@@ -657,12 +680,12 @@ class stereopipeline(GITPackage, CMakePackage):
         #    enable  = ['debug=ignore', 'optimize=ignore']
         #    )
         super(stereopipeline, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0 ' \
+            '-DCMAKE_CXX_FLAGS=-g -O3 ' \
             + '-B' + self.env['COMPILER_ROOT'] + ' -lm',
             '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'] + ' -lm',
             '-DBoost_INCLUDE_DIR=' + boost_dir,
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
-            '-DISIS3_DEPS_DIR=' + isis3_deps_dir,
+            '-DISIS_DEPS_DIR=' + isis_deps_dir,
             '-DVISIONWORKBENCH_INSTALL_DIR='+installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             ])
@@ -703,8 +726,8 @@ class visionworkbench(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
-        boost_dir = P.join(isis3_deps_dir,'include')
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        boost_dir = P.join(isis_deps_dir,'include')
 
         # TODO: Just remove the bad arguments!
         if self.arch.os == 'osx':
@@ -719,13 +742,14 @@ class visionworkbench(GITPackage, CMakePackage):
         # TODO: Fix libgeotiff instead!
         #fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
         super(visionworkbench, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0 ' \
-            + '-B' + self.env['COMPILER_ROOT'],
+            # TODO(oalexan1). The boost include dir is already in the isis_deps_dir.
+            '-DCMAKE_CXX_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
             '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
             '-DBoost_INCLUDE_DIR=' + boost_dir,
-            '-DISIS3_DEPS_DIR=' + isis3_deps_dir,
+            '-DISIS_DEPS_DIR=' + isis_deps_dir,
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            # -DVW_ENABLE_SSE=0 #  on pfe
             ])
 
     @stage
@@ -860,12 +884,12 @@ class superlu(Package):
         self.helper('autoreconf', '-fvi')
         blas = ''
         if self.arch.os == "osx":
-            isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+            isis_deps_lib = self.env['ISIS_DEPS_DIR']
             self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_lib, isis_deps_lib)
-            blas = glob(P.join(self.env['ISIS3_DEPS_DIR'],'lib','libblas.dylib*'))[0]
+            blas = glob(P.join(self.env['ISIS_DEPS_DIR'],'lib','libblas.dylib*'))[0]
             #blas = '"-framework vecLib"'
         else:
-            blas = glob(P.join(self.env['ISIS3_DEPS_DIR'],'lib','libblas.so*'))[0]
+            blas = glob(P.join(self.env['ISIS_DEPS_DIR'],'lib','libblas.so*'))[0]
 
         if self.arch.os == 'linux':
             # This is a bugfix, that took long to investigate. For some versions of Linux,
@@ -1258,7 +1282,7 @@ class osg3(CMakePackage):
 
     def configure(self):
         other_flags = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DBUILD_OSG_APPLICATIONS=ON',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
@@ -1291,7 +1315,7 @@ class flann(GITPackage, CMakePackage):
     def configure(self):
         self.helper('touch', P.join(self.workdir,'src/cpp/empty.cpp'))
         super(flann, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DBUILD_C_BINDINGS=OFF',
             '-DBUILD_MATLAB_BINDINGS=OFF',
@@ -1331,7 +1355,7 @@ class glog(CMakePackage):
             other_flags = []
 
         other_flags += [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
             '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
@@ -1347,18 +1371,18 @@ class ceres(CMakePackage):
 
     def configure(self):
         ext = lib_ext(self.arch.os)
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
         install_dir = self.env['INSTALL_DIR']
         super(ceres, self).configure(other=[
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS3_DEPS_DIR'],
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'],
+            '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
-            '-DEIGEN_INCLUDE_DIR='   + P.join(isis3_deps_dir,'include/eigen3'),
-            '-DGFLAGS_INCLUDE_DIR='  + P.join(isis3_deps_dir,'include/gflags'),
-            '-DGFLAGS_LIBRARY='      + P.join(isis3_deps_dir,'lib/libgflags'+ext),
-            '-DGLOG_INCLUDE_DIR='    + P.join(isis3_deps_dir,'include/glog'),
-            '-DGLOG_LIBRARY='        + P.join(isis3_deps_dir,'lib/libglog'+ext),
-            '-DCMAKE_INSTALL_RPATH=' + P.join(isis3_deps_dir,'lib') + ':' \
+            '-DEIGEN_INCLUDE_DIR='   + P.join(isis_deps_dir,'include/eigen3'),
+            '-DGFLAGS_INCLUDE_DIR='  + P.join(isis_deps_dir,'include/gflags'),
+            '-DGFLAGS_LIBRARY='      + P.join(isis_deps_dir,'lib/libgflags'+ext),
+            '-DGLOG_INCLUDE_DIR='    + P.join(isis_deps_dir,'include/glog'),
+            '-DGLOG_LIBRARY='        + P.join(isis_deps_dir,'lib/libglog'+ext),
+            '-DCMAKE_INSTALL_RPATH=' + P.join(isis_deps_dir,'lib') + ':' \
                                      + P.join(install_dir,'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DSHARED_LIBS=ON',
@@ -1379,19 +1403,19 @@ class libnabo(GITPackage, CMakePackage):
     def configure(self):
 
         installDir = self.env['INSTALL_DIR']
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
         
         # Remove python bindings, tests, and examples
         self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
 
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -D_GLIBCXX_USE_CXX11_ABI=0 ' \
+            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 ' \
             + '-B' + self.env['COMPILER_ROOT'],
             '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS3_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             '-DCMAKE_PREFIX_PATH=' + installDir,
-            '-DEIGEN_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include/eigen3'),
-            '-DBoost_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include'),
+            '-DEIGEN_INCLUDE_DIR=' + P.join(isis_deps_dir,'include/eigen3'),
+            '-DBoost_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             #'-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DSHARED_LIBS=ON',
@@ -1427,7 +1451,7 @@ class libpointmatcher(GITPackage, CMakePackage):
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
 
         # Turn off the unit tests which don't build on OSX10.12
         self.helper('sed', '-ibak', '-e',
@@ -1442,7 +1466,7 @@ class libpointmatcher(GITPackage, CMakePackage):
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
         # bugfix for lunokhod2
-        boost_dir = P.join(isis3_deps_dir,'include')
+        boost_dir = P.join(isis_deps_dir,'include')
         #boost_dir = P.join(self.env['INSTALL_DIR'], 'include','boost-'+boost.version)
         #self.env['CXXFLAGS'] += ' -I' + boost_dir
 
@@ -1452,12 +1476,12 @@ class libpointmatcher(GITPackage, CMakePackage):
 
         options = [
             '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -I' + boost_dir\
-            + ' -D_GLIBCXX_USE_CXX11_ABI=0  -B' + self.env['COMPILER_ROOT'],
+            + '  -B' + self.env['COMPILER_ROOT'],
             '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
             '-DBoost_INCLUDE_DIR='  + boost_dir,            
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS3_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             #'-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
-            '-DEIGEN_INCLUDE_DIR=' + P.join(isis3_deps_dir,'include/eigen3'),
+            '-DEIGEN_INCLUDE_DIR=' + P.join(isis_deps_dir,'include/eigen3'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DSHARED_LIBS=ON',
@@ -1486,13 +1510,13 @@ class fgr(GITPackage, CMakePackage):
 
     @stage
     def configure(self):
-        isis3_deps_dir = self.env['ISIS3_DEPS_DIR']
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
         options = [
             '-DCMAKE_CXX_FLAGS='
-            + '-I' + P.join(isis3_deps_dir,'include') + ' '
-            + '-I' + P.join(isis3_deps_dir,'include/eigen3') + ' '
-            + '-L' + P.join(isis3_deps_dir,'lib') + ' -lflann_cpp'
-            + ' -g -O3 -D_GLIBCXX_USE_CXX11_ABI=0',
+            + '-I' + P.join(isis_deps_dir,'include') + ' '
+            + '-I' + P.join(isis_deps_dir,'include/eigen3') + ' '
+            + '-L' + P.join(isis_deps_dir,'lib') + ' -lflann_cpp'
+            + ' -g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DFastGlobalRegistration_LINK_MODE=SHARED'
             ]
@@ -1640,7 +1664,7 @@ class gflags(CMakePackage):
 
     def configure(self):
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -fPIC -D_GLIBCXX_USE_CXX11_ABI=0',
+            '-DCMAKE_CXX_FLAGS=-g -O3 -fPIC',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DBUILD_SHARED_LIBS=ON',
             '-DBUILD_STATIC_LIBS=OFF',
@@ -1656,7 +1680,7 @@ class imagemagick(Package):
 
     def __init__(self, env):
         super(imagemagick, self).__init__(env)
-        isis_deps_lib = self.env['ISIS3_DEPS_DIR']
+        isis_deps_lib = self.env['ISIS_DEPS_DIR']
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg' % (isis_deps_lib, isis_deps_lib)
 
     def configure(self):
@@ -1689,16 +1713,16 @@ class theia(GITPackage, CMakePackage):
 
         ext = lib_ext(self.arch.os)
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -D_GLIBCXX_USE_CXX11_ABI=0 ' \
+            '-DCMAKE_CXX_FLAGS=-g -O3 ' \
             + '-B' + self.env['COMPILER_ROOT'],
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS3_DEPS_DIR'] + ':' + \
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + \
             self.env['INSTALL_DIR'],
             '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
-            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['ISIS3_DEPS_DIR'],'include/gflags'),
-            '-DGFLAGS_LIBRARY=' + P.join(self.env['ISIS3_DEPS_DIR'],'lib/libgflags'+ext),
-            '-DGLOG_INCLUDE_DIR=' + P.join(self.env['ISIS3_DEPS_DIR'],'include'),
-            '-DGLOG_LIBRARY=' + P.join(self.env['ISIS3_DEPS_DIR'],'lib/libglog'+ext),
-            '-DPNG_LIBRARY_RELEASE=' + P.join(self.env['ISIS3_DEPS_DIR'],'lib/libpng' + ext),
+            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include/gflags'),
+            '-DGFLAGS_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libgflags'+ext),
+            '-DGLOG_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include'),
+            '-DGLOG_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libglog'+ext),
+            '-DPNG_LIBRARY_RELEASE=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libpng' + ext),
             '-DBUILD_TESTING=OFF',
             '-DBUILD_DOCUMENTATION=OFF',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
