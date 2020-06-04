@@ -24,8 +24,10 @@ else:
 from collections import namedtuple
 from functools import wraps, partial
 from glob import glob
-from hashlib import sha1
 from shutil import rmtree
+
+from BinaryDist import fix_install_paths, lib_ext, which, mkdir_f, get_platform, run, \
+     hash_file
 
 global logger
 logger = logging.getLogger()
@@ -41,55 +43,6 @@ def replace_line_in_file(filename, line_in, line_out):
             if line == line_in:
                 line = line_out
             f.write( line + '\n')
-
-def make_list_unique(in_list):
-    '''Remove repetitions from a list.'''
-    vals_dict = {}
-    out_list = []
-    for val in in_list:
-        if val in vals_dict:
-            continue
-        out_list.append(val)
-        vals_dict[val] = 1
-
-    return out_list
-
-# List resursively all files in given directory
-def list_recursively(dir):
-    matches = []
-    for root, dirnames, filenames in os.walk(dir):
-        for filename in filenames:
-            matches.append(os.path.join(root, filename))
-    return matches
-
-def get_platform(pkg=None):
-    system  = platform.system()
-    machine = platform.machine()
-    p = namedtuple('Platform', 'os bits osbits system machine prettyos dist_name dist_version')
-
-    if system == 'Linux':
-        dist = platform.linux_distribution(full_distribution_name=0)
-        name  = str(dist[0]).replace("/", "_") # bugfix for Ubuntu, replace slashes
-        ver  = str(dist[1]).replace("/", "_")
-    elif system == 'Darwin':
-        name = 'Darwin'
-        ver  = platform.mac_ver()[0]
-
-    if system == 'Linux' and machine == 'x86_64':
-        return p('linux', 64, 'linux64', system, machine, 'Linux', name, ver)
-    elif system == 'Linux' and machine == 'i686':
-        return p('linux', 32, 'linux32', system, machine, 'Linux', name, ver)
-    elif system == 'Darwin' and machine == 'i386':
-        # Force 64 bit no matter what
-        return p('osx', 64, 'osx64', system, 'x86_64', 'OSX', name, ver)
-    elif system == 'Darwin' and machine == 'x86_64':
-        return p('osx', 64, 'osx64', system, machine, 'OSX', name, ver)
-    else:
-        message = 'Cannot match system to known platform'
-        if pkg is None:
-            raise Exception(message)
-        else:
-            raise PackageError(pkg, message)
 
 def get_prog_version(prog):
     try:
@@ -119,39 +72,6 @@ class HelperError(Exception):
             val=env[key]
             print("export " + key + '=\'' + val + '\'')
         super(HelperError, self).__init__('Command[%s] %s\nEnv%s' % (tool, message, env))
-
-def hash_file(filename):
-    with open(filename, 'rb') as f:
-        return sha1(f.read()).hexdigest()
-
-def run(*args, **kw):
-    '''Try to execute a command line command'''
-    need_output      = kw.pop('output', False)
-    raise_on_failure = kw.pop('raise_on_failure', True)
-    want_stderr      = kw.pop('want_stderr', False)
-    kw['stdout']     = kw.get('stdout', subprocess.PIPE)
-    kw['stderr']     = kw.get('stderr', subprocess.PIPE)
-
-    logger.debug('run: [%s] (wd=%s)' % (' '.join(args), kw.get('cwd', os.getcwd())))
-
-    p = subprocess.Popen(args, **kw)
-    out, err = p.communicate()
-    if out is not None:
-        out = out.decode('utf-8')
-    if err is not None:
-        err = err.decode('utf-8')
-    msg = None
-    if p.returncode != 0:
-        msg = '%s: return code: %d (output: %s) (error: %s)' % (args, p.returncode, out, err)
-    elif need_output and len(out) == 0:
-        msg = '%s: failed (no output). (%s)' % (args,err)
-    if msg is not None:
-        if raise_on_failure: raise Exception(msg)
-        logger.warn(msg)
-        return False, msg
-    if want_stderr:
-        return out, err
-    return out
 
 try:
     from termcolor import colored
@@ -620,8 +540,6 @@ class GITPackage(Package):
                                     stdout=subprocess.PIPE)[0].split('\n'):
                 tokens = line.split()
                 if len(tokens) > 1 and tokens[1] == 'refs/heads/master':
-                    print("tokens are ", tokens)
-                    #sys.exit(1)
                     self.chksum = tokens[0]
 
     def _git(self, *args):
@@ -654,17 +572,19 @@ class GITPackage(Package):
             return
         
         #  Delete the existing build and start over.
-        # TODO(oalexan1): Shoudn't it be the opposite, if a dir exists, then wipe it? 
-        if not os.path.isdir(output_dir):
+        if os.path.exists(output_dir):
             self.remove_build(output_dir)
-            os.mkdir(self.workdir)
-            self.helper('git', 'clone', self.localcopy, self.workdir,
-                        env = self.local_env)
-
+            
+        mkdir_f(self.workdir)
+            
+        self.helper('git', 'clone', '--recurse-submodules', self.localcopy, self.workdir,
+                    env = self.local_env)
+        
         # Checkout a specific commit
         if self.chksum is not None:
             cmd = ('git', 'checkout', self.chksum)
             self.helper(*cmd, cwd=self.workdir, env = self.local_env)
+            
         self._apply_patches()
 
 class SVNPackage(Package):
@@ -910,7 +830,7 @@ class Apps:
                  'demprofile plateorthoproject results \
                  rmax2cahvor rmaxadjust orthoproject'
     enable_apps = \
-                'bundle_adjust bundlevis datum_convert dem_geoid dem_mosaic disparitydebug \
+                'bundle_adjust datum_convert dem_geoid dem_mosaic disparitydebug \
                 geodiff hsvmerge lronacjitreg mapproject mer2camera orbitviz \
                 point2dem point2las point2mesh pc_align rpc_gen \
                 sfs stereo tif_mosaic wv_correct image_calc pc_merge pansharp'
@@ -1021,5 +941,3 @@ def write_asp_config(use_env_flags, prefix, installdir, vw_build, arch,
         print('CPPFLAGS="' + ' '.join(cppflags) + '"', file=config)
         print('LDFLAGS="'  + ' '.join(ldflags)  + '"', file=config)
 
-def binary_builder_prefix():
-    return 'BinaryBuilder'

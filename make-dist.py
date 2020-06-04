@@ -14,7 +14,8 @@ from BinaryDist import grep, DistManager, Prefix, run
 import time, logging, copy, re, os
 import os.path as P
 from optparse import OptionParser
-from BinaryBuilder import get_platform, die
+from BinaryBuilder import die
+from BinaryDist import get_platform
 from glob import glob
 
 # These are the libraries we're allowed to get from the base system.
@@ -102,13 +103,14 @@ def sibling_to(dir, name):
 
 # Keep this in sync with the function in libexec-funcs.sh
 def isis_version(isisroot):
-    # Check if this is versioning the ISIS 3.3.0 way
+    # Check the ISIS version
     if P.isfile(P.join(isisroot,'version')):
         f       = open(P.join(isisroot,'version'),'r')
         raw     = f.readline().strip()
         version = raw.split('#')[0].strip().split('.') # Strip out comment first
         return ".".join(version[0:3])
-    header = P.join(isisroot, 'src/base/objs/Constants/Constants.h')
+    # TODO(oalexan1): The isis headers will move from here the miniconda dir at some point
+    header = P.join(isisroot, 'include/isis/Constants.h')
     m      = grep('version\("(.*?)"', header)
     if not m:
         raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT (%s) is incorrect?' 
@@ -235,8 +237,8 @@ if __name__ == '__main__':
         sys.stdout.flush()
         with mgr.create_file('libexec/constants.sh') as f: # Create constants file
             if not opt.vw_build:
-                print('BAKED_ISIS_VERSION="%s"' % isis_version(ISISROOT), file=f)
-                print('\tFound ISIS version %s' % isis_version(ISISROOT))
+                print('BAKED_ISIS_VERSION="%s"' % isis_version(opt.isis_deps_dir), file=f)
+                print('\tFound ISIS version %s' % isis_version(opt.isis_deps_dir))
             print('BAKED_LIBC_VERSION="%s"' % libc_version(), file=f)
             if get_platform().os == 'linux':
                 # glibc is for Linux only
@@ -298,6 +300,7 @@ if __name__ == '__main__':
                           '/usr/lib/x86_64-linux-gnu',
                           '/System/Library/Frameworks',
                           '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks',
+                          '/opt/local/lib/libomp'
                           ])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
         if mgr.deplist:

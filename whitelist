@@ -40,7 +40,6 @@ bin/mer2camera
 bin/orbitviz
 bin/orbitviz_pinhole
 bin/nav2cam
-bin/osgviewer
 bin/parallel_stereo
 bin/parallel_bundle_adjust
 bin/parallel_sfs
@@ -75,12 +74,12 @@ bin/ortho2pinhole
 bin/cam2rpc
 bin/camera_footprint
 bin/historical_helper.py
+bin/parallel
 lib/*.plugin
 plugins/platforms
 lib/libAsp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib,a]*
 lib/libVw*.[so,dylib]*
-lib/osgPlugins-*/osgdb_*
 libexec/opencv_calibrate
 libexec/opencv_imagelist_creator
 libexec/stereo_parse
@@ -89,7 +88,6 @@ libexec/tif_mosaic
 libexec/mapproject_single
 libexec/stereo_utils.py
 libexec/asp*.py
-libexec/parallel
 libexec/lasinfo
 bin/qi2txt
 libexec/datum_convert_cpp
@@ -99,11 +97,11 @@ share/gdal/*
 share/geoids*
 share/proj/*
 version
-AUTHORS
-INSTALLGUIDE
+AUTHORS.rst
+INSTALLGUIDE.rst
 LICENSE
-NEWS
-README
+NEWS.rst
+README.rst
 stereo.default.example
 THIRDPARTYLICENSES
 examples

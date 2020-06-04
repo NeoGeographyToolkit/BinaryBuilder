@@ -19,13 +19,14 @@ from optparse import OptionParser
 from tempfile import mkdtemp
 from distutils import version
 from glob import glob
-from Packages import *
 
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
      get_platform, find_file, run, get_prog_version, logger, warn, \
-     binary_builder_prefix, program_exists, get_cores
+     program_exists, get_cores
 
-from BinaryDist import fix_install_paths, which
+from BinaryDist import fix_install_paths, which, binary_builder_prefix
+
+from Packages import *
 
 CC_FLAGS = ('CFLAGS', 'CXXFLAGS')
 LD_FLAGS = ('LDFLAGS')
@@ -368,11 +369,10 @@ if __name__ == '__main__':
 
     # Remaining dependencies after using conda
     LINUX_DEPS1 = []
-    CORE_DEPS   = [bzip2, pbzip2]
+    CORE_DEPS   = []
     LINUX_DEPS2 = [chrpath]
-    VW_DEPS     = [openjpeg2, geos, xz, gdal, ilmbase, openexr, hdf5]
-    ASP_DEPS    = [parallel, cspice, osg3, laszip, liblas, geoid, fgr,
-                   gflags, glog, ceres, libnabo, libpointmatcher, imagemagick, theia,
+    VW_DEPS     = [gdal]
+    ASP_DEPS    = [laszip, liblas, geoid, fgr, libnabo, libpointmatcher, imagemagick, theia,
                    htdp, usgscsm, isis]
 
     if (len(args) == 0):

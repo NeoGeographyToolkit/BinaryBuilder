@@ -16,9 +16,9 @@ import re
 import logging
 import string
 from optparse import OptionParser
-from BinaryBuilder import get_platform, die, run, Apps, \
+from BinaryBuilder import get_platform, die, Apps, \
      write_vw_config, write_asp_config
-from BinaryDist import fix_install_paths
+from BinaryDist import fix_install_paths, run
 from Packages import geoid
 from glob import glob
 

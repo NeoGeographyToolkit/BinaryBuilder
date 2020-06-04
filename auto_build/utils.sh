@@ -9,7 +9,7 @@
 
 function prepend_to_path () {
     # Prepend to PATH unless alrady first in the path
-    if ! echo "$PATH" | /bin/grep -Eq "(^)$1($|:)" ; then
+    if ! echo "$PATH" | grep -Eq "(^)$1($|:)" ; then
         export PATH="$1:$PATH"
         #echo New path $PATH
         #echo Already in the PATH=$PATH

@@ -2,20 +2,105 @@
 
 import os.path as P
 import logging
-import itertools, shutil, re, errno, sys, os, stat, subprocess
+import itertools, shutil, re, errno, sys, os, stat, subprocess, platform
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
-from BinaryBuilder import get_platform, run, hash_file, binary_builder_prefix,\
-     list_recursively, make_list_unique
 from tempfile import mkdtemp, NamedTemporaryFile
 from glob import glob
 from functools import partial, wraps
+from hashlib import sha1
 
-''' Code for creating the downloadable binary distribution
+'''
+Code for creating the downloadable binary distribution of ASP.
 '''
 
 global logger
 logger = logging.getLogger()
+
+def binary_builder_prefix():
+    return 'BinaryBuilder'
+
+def hash_file(filename):
+    with open(filename, 'rb') as f:
+        return sha1(f.read()).hexdigest()
+
+def run(*args, **kw):
+    '''Try to execute a command line command'''
+    need_output      = kw.pop('output', False)
+    raise_on_failure = kw.pop('raise_on_failure', True)
+    want_stderr      = kw.pop('want_stderr', False)
+    kw['stdout']     = kw.get('stdout', subprocess.PIPE)
+    kw['stderr']     = kw.get('stderr', subprocess.PIPE)
+
+    logger.debug('run: [%s] (wd=%s)' % (' '.join(args), kw.get('cwd', os.getcwd())))
+
+    p = subprocess.Popen(args, **kw)
+    out, err = p.communicate()
+    if out is not None:
+        out = out.decode('utf-8')
+    if err is not None:
+        err = err.decode('utf-8')
+    msg = None
+    if p.returncode != 0:
+        msg = '%s: return code: %d (output: %s) (error: %s)' % (args, p.returncode, out, err)
+    elif need_output and len(out) == 0:
+        msg = '%s: failed (no output). (%s)' % (args,err)
+    if msg is not None:
+        if raise_on_failure: raise Exception(msg)
+        logger.warn(msg)
+        return False, msg
+    if want_stderr:
+        return out, err
+    return out
+
+def get_platform(pkg=None):
+    system  = platform.system()
+    machine = platform.machine()
+    p = namedtuple('Platform', 'os bits osbits system machine prettyos dist_name dist_version')
+
+    if system == 'Linux':
+        dist = platform.linux_distribution(full_distribution_name=0)
+        name  = str(dist[0]).replace("/", "_") # bugfix for Ubuntu, replace slashes
+        ver  = str(dist[1]).replace("/", "_")
+    elif system == 'Darwin':
+        name = 'Darwin'
+        ver  = platform.mac_ver()[0]
+
+    if system == 'Linux' and machine == 'x86_64':
+        return p('linux', 64, 'linux64', system, machine, 'Linux', name, ver)
+    elif system == 'Linux' and machine == 'i686':
+        return p('linux', 32, 'linux32', system, machine, 'Linux', name, ver)
+    elif system == 'Darwin' and machine == 'i386':
+        # Force 64 bit no matter what
+        return p('osx', 64, 'osx64', system, 'x86_64', 'OSX', name, ver)
+    elif system == 'Darwin' and machine == 'x86_64':
+        return p('osx', 64, 'osx64', system, machine, 'OSX', name, ver)
+    else:
+        message = 'Cannot match system to known platform'
+        if pkg is None:
+            raise Exception(message)
+        else:
+            raise PackageError(pkg, message)
+
+# List resursively all files in given directory
+def list_recursively(dir):
+    matches = []
+    for root, dirnames, filenames in os.walk(dir):
+        for filename in filenames:
+            matches.append(os.path.join(root, filename))
+    return matches
+
+def make_list_unique(in_list):
+    '''Remove repetitions from a list.'''
+    vals_dict = {}
+    out_list = []
+    for val in in_list:
+        if val in vals_dict:
+            continue
+        out_list.append(val)
+        vals_dict[val] = 1
+
+    return out_list
 
 def lib_ext(arch):
     if arch == 'osx':
@@ -82,6 +167,15 @@ def which(program):
                 return exe_file
 
     return None
+
+def mkdir_f(dirname):
+    ''' A mkdir -p that does not care if the dir is there '''
+    try:
+        makedirs(dirname)
+    except OSError as o:
+        if o.errno == errno.EEXIST and P.isdir(dirname):
+            return
+        raise
 
 class DistManager(object):
     '''Main class for creating a StereoPipeline binary distribution'''
@@ -581,15 +675,6 @@ def rm_f(filename):
     except OSError as o:
         if o.errno != errno.ENOENT: # Don't care if it wasn't there
             raise
-
-def mkdir_f(dirname):
-    ''' A mkdir -p that does not care if the dir is there '''
-    try:
-        makedirs(dirname)
-    except OSError as o:
-        if o.errno == errno.EEXIST and P.isdir(dirname):
-            return
-        raise
 
 def mergetree(src, dst, copyfunc):
     """Merge one directory into another.

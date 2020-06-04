@@ -9,7 +9,7 @@ import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
      replace_line_in_file, run, get, program_paths, get_platform, find_file, get_cores
-from BinaryDist import fix_install_paths, lib_ext, which, mkdir_f
+from BinaryDist import fix_install_paths, lib_ext, which
 
 class ccache(Package):
     src     = 'https://www.samba.org/ftp/ccache/ccache-3.1.12.tar.bz2'
@@ -517,42 +517,6 @@ class isis(GITPackage, CMakePackage):
 
     def __init__(self, env):
         super(isis, self).__init__(env)
-        #if self.arch.os == 'linux':
-        #    # Bugfix, skip using ccache
-        #    self.env['CXX']='g++'
-        #    self.env['CC']='gcc'
-            
-        #self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%(INSTALL_DIR)s/lib' % self.env
-
-    @stage
-    def unpack(self):
-        '''Go from the location we cloned into to a different working directory 
-           containing the desired commit'''
-        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
-        self.workdir = P.join(output_dir, self.pkgname + '-git')
-
-        # If fast, update and build in existing directory
-        # (assuming it exists).
-        if self.fast:
-            return
-        
-        #  Delete the existing build and start over.
-        if os.path.exists(output_dir):
-            self.remove_build(output_dir)
-
-        mkdir_f(self.workdir)
-        self.helper('git', 'clone', '--recurse-submodules', self.localcopy, self.workdir)
-
-        # Checkout a specific commit
-        if self.chksum is not None:
-            cmd = ('git', 'checkout', self.chksum)
-            self.helper(*cmd, cwd=self.workdir, env = self.local_env)
-
-        # The default branch is not the one with the cmake build so we need to switch
-        #self.helper('git', 'checkout', 'cmake'  )
-        #self.helper('git', 'checkout', 'fc2f1dd')
-
-        self._apply_patches()
 
     @stage
     def configure(self):
