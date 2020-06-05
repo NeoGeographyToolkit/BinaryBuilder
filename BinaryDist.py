@@ -148,7 +148,10 @@ def default_baker(filename, distdir, searchpath):
     if not is_binary(filename):
         return
     set_rpath(filename, distdir, searchpath)
-    strip(filename)
+
+    # On linux stripping causes the conda libraries to crash
+    if get_platform().os != 'linux':
+        strip(filename)
 
 def which(program):
     '''Find if a program is in the PATH'''
@@ -907,8 +910,7 @@ def fix_install_paths(installdir, arch):
                          os.pathsep + os.environ["PATH"]
 
     SEARCHPATH = [P.join(installdir,'lib'),
-                  P.join(installdir,'lib64'),
-                  P.join(installdir,'lib','osgPlugins*')]
+                  P.join(installdir,'lib64')]
 
     print('Fixing RPATHs')
     for curr_path in SEARCHPATH:

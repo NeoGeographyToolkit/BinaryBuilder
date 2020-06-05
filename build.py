@@ -251,7 +251,8 @@ if __name__ == '__main__':
     #if arch.os == 'linux':
     ver1 = get_prog_version(build_env['CC'])
     ver2 = get_prog_version(build_env['CXX'])
-    if (ver1 < MIN_CC_VERSION or ver2 < MIN_CC_VERSION) and args[0] != 'binarybuilder':
+    if (ver1 < MIN_CC_VERSION or ver2 < MIN_CC_VERSION) and \
+           (len(args) == 0 or args[0] != 'binarybuilder'):
         die('Expecting gcc and g++ version >= ' + str(MIN_CC_VERSION))
         
     if arch.os == 'linux':
@@ -370,7 +371,7 @@ if __name__ == '__main__':
     # Remaining dependencies after using conda
     LINUX_DEPS1 = []
     CORE_DEPS   = []
-    LINUX_DEPS2 = [chrpath]
+    LINUX_DEPS2 = []
     VW_DEPS     = [gdal]
     ASP_DEPS    = [laszip, liblas, geoid, fgr, libnabo, libpointmatcher, imagemagick, theia,
                    htdp, usgscsm, isis]

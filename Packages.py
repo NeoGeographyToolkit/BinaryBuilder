@@ -9,7 +9,7 @@ import subprocess
 from BinaryBuilder import CMakePackage, GITPackage, Package, stage, warn, \
      PackageError, HelperError, SVNPackage, Apps, write_vw_config, write_asp_config, \
      replace_line_in_file, run, get, program_paths, get_platform, find_file, get_cores
-from BinaryDist import fix_install_paths, lib_ext, which
+from BinaryDist import lib_ext, which
 
 class ccache(Package):
     src     = 'https://www.samba.org/ftp/ccache/ccache-3.1.12.tar.bz2'
@@ -241,7 +241,7 @@ class gdal(Package):
                macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
                pcraster perl pg php pymoddir python sde sde-version spatialite sqlite3
                static-proj4 xerces xerces-inc xerces-lib libiconv-prefix libiconv xml2 pcre
-               freexl'''.split()
+               freexl json-c kea'''.split()
 
         self.helper('./autogen.sh')
         super(gdal,self).configure(with_=w, without=wo, disable='static', enable='shared')
@@ -701,10 +701,6 @@ class visionworkbench(GITPackage, CMakePackage):
 
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
-        #prefix       = installdir
-        #write_vw_config(prefix, installdir, arch, config_file)       
-        # TODO: Fix libgeotiff instead!
-        #fix_install_paths(installdir, arch) # this is needed for Mac for libgeotiff
         super(visionworkbench, self).configure(other=[
             # TODO(oalexan1). The boost include dir is already in the isis_deps_dir.
             '-DCMAKE_CXX_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],

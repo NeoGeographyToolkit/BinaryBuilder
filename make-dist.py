@@ -15,7 +15,7 @@ import time, logging, copy, re, os
 import os.path as P
 from optparse import OptionParser
 from BinaryBuilder import die
-from BinaryDist import get_platform
+from BinaryDist import get_platform, required_libs
 from glob import glob
 
 # These are the libraries we're allowed to get from the base system.
@@ -211,7 +211,8 @@ if __name__ == '__main__':
         sys.stdout.flush()
         with open(opt.include, 'r') as f:
             for line in f:
-                mgr.add_glob(line.strip(), [INSTALLDIR, opt.isis_deps_dir])
+                line = line.strip()
+                mgr.add_glob(line, [INSTALLDIR, opt.isis_deps_dir])
             
         # Add some platform specific bugfixes
         if get_platform().os == 'linux':
@@ -219,7 +220,7 @@ if __name__ == '__main__':
             mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.isis_deps_dir])
                                 
         if not opt.vw_build:
-            print('Adding libraries referred to by ISIS plugins')
+            print('Adding the ISIS libraries')
             sys.stdout.flush()
             isis_secondary_set = set()
             for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
@@ -232,6 +233,19 @@ if __name__ == '__main__':
                             isis_secondary_set.add("lib/lib"+line[2]+"*")
             for library in isis_secondary_set:
                 mgr.add_glob(library, [INSTALLDIR, opt.isis_deps_dir])
+
+            # Add all libraries that link to isis, that is, specific instrument libs 
+            for lib in glob(P.join(opt.isis_deps_dir, 'lib','*')):
+                isIsisLib = False
+                try:
+                    req = required_libs(lib)
+                    for key in req.keys():
+                        if 'isis' in key:
+                            isIsisLib = True
+                except:
+                    pass
+                if isIsisLib:
+                    mgr.add_glob(lib, [opt.isis_deps_dir])
 
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
@@ -308,8 +322,10 @@ if __name__ == '__main__':
                 # For each lib, print who uses it:
                 for lib in mgr.deplist.keys():
                     if lib in mgr.parentlib.keys():
-                        print("Library " + lib + " is not found, and is needed by " + " ".join(mgr.parentlib[lib]) + "\n" )
-                raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % '\n\t'.join(mgr.deplist.keys()))
+                        print("Library " + lib + " is not found, and is needed by " \
+                              + " ".join(mgr.parentlib[lib]) + "\n" )
+                raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % \
+                                '\n\t'.join(mgr.deplist.keys()))
             else:
                 print("Warning: missing libs: " + '\n\t'.join(mgr.deplist.keys()) + "\n")
                 

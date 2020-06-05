@@ -6,6 +6,7 @@ trap 'exit 1' TERM
 TOPLEVEL="$(cd $(dirname $0)/.. && pwd)"
 LIBEXEC="${ASP_DEBUG_DIR:-${TOPLEVEL}/libexec}"
 export ISISROOT=$TOPLEVEL
+#export ALESPICEROOT=$ISISDATA # TODO(oalexan1): Think of this.
 
 . "${LIBEXEC}/constants.sh"
 . "${LIBEXEC}/libexec-funcs.sh"

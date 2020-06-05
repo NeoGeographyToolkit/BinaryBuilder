@@ -26,8 +26,7 @@ from functools import wraps, partial
 from glob import glob
 from shutil import rmtree
 
-from BinaryDist import fix_install_paths, lib_ext, which, mkdir_f, get_platform, run, \
-     hash_file
+from BinaryDist import which, mkdir_f, get_platform, run, hash_file
 
 global logger
 logger = logging.getLogger()
