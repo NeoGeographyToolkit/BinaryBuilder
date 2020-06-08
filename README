@@ -51,7 +51,7 @@ permissions and limitations under the License.
 Here some specific details about how to use Binary Builder are documented.
 More complete documentation is in StereoPipeline's INSTALLGUIDE at
 
-https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE
+https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE.rst
 
 A. Produce a Complete Binary Build
 

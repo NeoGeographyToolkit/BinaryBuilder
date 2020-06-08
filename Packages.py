@@ -555,11 +555,11 @@ class isis(GITPackage, CMakePackage):
 
     @stage
     def compile(self):
-        # Do not configure as we will fetch the binaries with conda,
-        # we need only the headers
-        self.env['ISISROOT'] = self.builddir # Per the ISIS documentation
+        # Do not build as we will fetch the binaries with conda,
+        # so we need only the headers (one day they will upload those too)
         return
 
+        self.env['ISISROOT'] = self.builddir # Per the ISIS documentation
         super(isis, self).compile()
         cmd = ('ninja', 'install', '-v')
         self.helper(*cmd, cwd=self.builddir)
