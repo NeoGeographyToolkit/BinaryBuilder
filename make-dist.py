@@ -182,7 +182,7 @@ if __name__ == '__main__':
     wrapper_file = 'libexec-helper.sh'
     if (opt.vw_build):
         wrapper_file = 'libexec-helper_vw.sh'
-    mgr = DistManager(tarball_name(), wrapper_file)
+    mgr = DistManager(tarball_name(), wrapper_file, opt.isis_deps_dir)
 
     try:
         INSTALLDIR = Prefix(installdir)
@@ -193,6 +193,11 @@ if __name__ == '__main__':
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
         # work correctly on Ubuntu 13.10.
         if get_platform().os == 'linux':
+            if "PATH" not in os.environ:
+                os.environ["PATH"] = ""
+            os.environ["PATH"] = P.join(opt.isis_deps_dir, 'bin') + os.pathsep + \
+                                 os.environ["PATH"]
+
             if "LD_LIBRARY_PATH" not in os.environ:
                 os.environ["LD_LIBRARY_PATH"] = ""
             os.environ["LD_LIBRARY_PATH"] = INSTALLDIR.lib() + \

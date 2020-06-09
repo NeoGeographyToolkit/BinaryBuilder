@@ -182,8 +182,8 @@ class openjpeg2(CMakePackage):
     def configure(self):
         curr_include = '-I' + self.workdir + '/src/bin/common'
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
-        isis_deps_lib = self.env['ISIS_DEPS_DIR']
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_lib, isis_deps_lib)
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_dir, isis_deps_dir)
         super(openjpeg2, self).configure(other=[
             '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
@@ -223,8 +223,8 @@ class gdal(Package):
         # Parts of GDAL will attempt to load libproj manual (something
         # we can't see or correct in the elf tables). This sed should
         # correct that problem.
-        isis_deps_lib = self.env['ISIS_DEPS_DIR']
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -lproj' % (isis_deps_lib, isis_deps_lib)
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -lproj' % (isis_deps_dir, isis_deps_dir)
         # TODO: This may no longer be necessary.
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
@@ -374,13 +374,13 @@ class liblas(CMakePackage):
     def configure(self):
         # Remove the pedantic flag. Latest boost is not compliant.
         self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
-        isis_deps_lib = self.env['ISIS_DEPS_DIR']
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
 
         # bugfix for linux
         isis_deps_dir = self.env['ISIS_DEPS_DIR']
         boost_dir = P.join(isis_deps_dir,'include')
         self.env['CXXFLAGS'] += ' -I' + boost_dir + ' -pthread'
-        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma ' % (isis_deps_lib, isis_deps_lib)
+        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma ' % (isis_deps_dir, isis_deps_dir)
 
         ext = lib_ext(self.arch.os)
         super(liblas, self).configure(other=[
@@ -428,7 +428,7 @@ class laszip(CMakePackage):
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
     @stage
     def configure(self):
-        isis_deps_lib = self.env['ISIS_DEPS_DIR']
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
 
         # bugfix for linux
         isis_deps_dir = self.env['ISIS_DEPS_DIR']
@@ -526,7 +526,6 @@ class isis(GITPackage, CMakePackage):
         # Follow the ISIS convention of where the build should be
         self.builddir = os.path.join(self.workdir, '../build')
 
-        self.env['CXXFLAGS'] += ' -B' + self.env['COMPILER_ROOT']
         self.env['CONDA_PREFIX'] = self.env['ISIS_DEPS_DIR']
 
         # Do not configure as we will fetch the binaries with conda,
@@ -539,9 +538,8 @@ class isis(GITPackage, CMakePackage):
             + self.env['INSTALL_DIR'],
             '-DCMAKE_CXX_COMPILER=' + which(self.env['CXX']),
             '-DCMAKE_C_COMPILER=' + which(self.env['CC']),
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 ' \
-            + '-B' + self.env['COMPILER_ROOT'],
-            '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
+            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11',
+            '-DCMAKE_C_FLAGS=-g -O3',
             '-DPNG_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libpng' + ext),
             '-DCSPICE_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libcspice' + ext),
             '-DX11_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libX11' + ext),
@@ -644,10 +642,6 @@ class stereopipeline(GITPackage, CMakePackage):
         #    enable  = ['debug=ignore', 'optimize=ignore']
         #    )
         super(stereopipeline, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3 ' \
-            + '-B' + self.env['COMPILER_ROOT'] + ' -lm',
-            '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'] + ' -lm',
-            '-DBoost_INCLUDE_DIR=' + boost_dir,
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DISIS_DEPS_DIR=' + isis_deps_dir,
             '-DVISIONWORKBENCH_INSTALL_DIR='+installdir,
@@ -691,7 +685,6 @@ class visionworkbench(GITPackage, CMakePackage):
         #self.helper('./autogen')
 
         isis_deps_dir = self.env['ISIS_DEPS_DIR']
-        boost_dir = P.join(isis_deps_dir,'include')
 
         # TODO: Just remove the bad arguments!
         if self.arch.os == 'osx':
@@ -703,9 +696,6 @@ class visionworkbench(GITPackage, CMakePackage):
         installdir   = self.env['INSTALL_DIR']
         super(visionworkbench, self).configure(other=[
             # TODO(oalexan1). The boost include dir is already in the isis_deps_dir.
-            '-DCMAKE_CXX_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
-            '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
-            '-DBoost_INCLUDE_DIR=' + boost_dir,
             '-DISIS_DEPS_DIR=' + isis_deps_dir,
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
@@ -844,8 +834,8 @@ class superlu(Package):
         self.helper('autoreconf', '-fvi')
         blas = ''
         if self.arch.os == "osx":
-            isis_deps_lib = self.env['ISIS_DEPS_DIR']
-            self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_lib, isis_deps_lib)
+            isis_deps_dir = self.env['ISIS_DEPS_DIR']
+            self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_dir, isis_deps_dir)
             blas = glob(P.join(self.env['ISIS_DEPS_DIR'],'lib','libblas.dylib*'))[0]
             #blas = '"-framework vecLib"'
         else:
@@ -1369,9 +1359,8 @@ class libnabo(GITPackage, CMakePackage):
         self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
 
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 ' \
-            + '-B' + self.env['COMPILER_ROOT'],
-            '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
+            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11',
+            '-DCMAKE_C_FLAGS=-g -O3',
             '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DEIGEN_INCLUDE_DIR=' + P.join(isis_deps_dir,'include/eigen3'),
@@ -1435,9 +1424,8 @@ class libpointmatcher(GITPackage, CMakePackage):
             self.env['CPPFLAGS'] += ' -fopenmp'
 
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -I' + boost_dir\
-            + '  -B' + self.env['COMPILER_ROOT'],
-            '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
+            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -I' + boost_dir,
+            '-DCMAKE_C_FLAGS=-g -O3',
             '-DBoost_INCLUDE_DIR='  + boost_dir,            
             '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             #'-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
@@ -1640,8 +1628,10 @@ class imagemagick(Package):
 
     def __init__(self, env):
         super(imagemagick, self).__init__(env)
-        isis_deps_lib = self.env['ISIS_DEPS_DIR']
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg' % (isis_deps_lib, isis_deps_lib)
+        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        self.env['CFLAGS'] = ' -I' + isis_deps_dir + '/include ' + self.env['CFLAGS']
+        self.env['CXXFLAGS'] = ' -I' + isis_deps_dir + '/include ' + self.env['CXXFLAGS']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -pthread' % (isis_deps_dir, isis_deps_dir)
 
     def configure(self):
         # Turn off some packages to simplify linking
@@ -1673,11 +1663,9 @@ class theia(GITPackage, CMakePackage):
 
         ext = lib_ext(self.arch.os)
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 ' \
-            + '-B' + self.env['COMPILER_ROOT'],
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + \
-            self.env['INSTALL_DIR'],
-            '-DCMAKE_C_FLAGS=-g -O3 -B' + self.env['COMPILER_ROOT'],
+            '-DCMAKE_CXX_FLAGS=-g -O3 ',
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
+            '-DCMAKE_C_FLAGS=-g -O3',
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include/gflags'),
             '-DGFLAGS_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libgflags'+ext),
             '-DGLOG_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include'),

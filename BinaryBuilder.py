@@ -54,7 +54,7 @@ def get_prog_version(prog):
     if p.returncode != 0:
         raise Exception("Checking " + prog + " version caused errors")
 
-    m = re.match("^.*?(\d+\.\d+)", out)
+    m = re.match("^.*?\).*?(\d+\.\d+)", out)
     if not m:
         raise Exception("Could not find " + prog + " version")
     return float(m.group(1))

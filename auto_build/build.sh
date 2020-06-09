@@ -81,28 +81,7 @@ if [ "$exitStatus" -ne 0 ]; then
     exit 1
 fi
 
-buildMachine=$(machine_name)
-if [ "$(uname -n | grep centos7)" != "" ]; then
-    # Build the documentation on the machine which has LaTeX
-    echo "Will build the documentation"
-    rm -fv dist-add/asp_book.pdf
-    cd build_asp/build/stereopipeline/stereopipeline-git/build_binarybuilder
-    rm -fv ../docs/book/asp_book.pdf
-
-    # Must temporarily set LD_LIBRARY_PATH so cmake does not complain.
-    # It likely will cause issues if this is set globally.
-    orig_path=$LD_LIBRARY_PATH
-    export LD_LIBRARY_PATH=$HOME/projects/BinaryBuilder/build_asp/install/lib:$LD_LIBRARY_PATH
-    make workbook
-    export LD_LIBRARY_PATH=$orig_path
-    
-    # Copy the documentation to the master machine
-    echo Copying the documentation to $masterMachine
-    rsync -avz ../docs/book/asp_book.pdf \
-          $masterMachine:$buildDir/dist-add/ 2>/dev/null
-
-    cd $HOME/$buildDir
-fi
+#TODO(oalexan1): Figure out how to build the doc
 
 # Dump the ASP version
 versionFile=$(version_file $buildMachine)

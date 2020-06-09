@@ -213,7 +213,6 @@ if __name__ == '__main__':
         CC       = opt.cc,
         CXX      = opt.cxx,
         GFORTRAN = opt.gfortran,
-        COMPILER_ROOT = compiler_root,
         CFLAGS   = '-O3 -g',
         CXXFLAGS = '-O3 -g',
         BUILD_DIR    = P.join(opt.build_root, 'build'),
@@ -372,9 +371,8 @@ if __name__ == '__main__':
     LINUX_DEPS1 = []
     CORE_DEPS   = []
     LINUX_DEPS2 = []
-    VW_DEPS     = [gdal]
-    ASP_DEPS    = [laszip, liblas, geoid, fgr, libnabo, libpointmatcher, imagemagick, theia,
-                   htdp, usgscsm, isis]
+    VW_DEPS     = []
+    ASP_DEPS    = [imagemagick, geoid, fgr, libnabo, libpointmatcher, theia, htdp, usgscsm, isis]
 
     if (len(args) == 0):
         # Specific package not specified, set packages according to the build goal.

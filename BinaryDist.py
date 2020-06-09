@@ -182,14 +182,16 @@ def mkdir_f(dirname):
 
 class DistManager(object):
     '''Main class for creating a StereoPipeline binary distribution'''
-    def __init__(self, tarname, exec_wrapper_file):
+    def __init__(self, tarname, exec_wrapper_file, isis_deps_dir):
         self.wrapper_file = exec_wrapper_file
         self.tarname = tarname
         self.tempdir = mkdtemp(prefix='dist')
         self.distdir = Prefix(P.join(self.tempdir, self.tarname))
+        self.isis_deps_dir = isis_deps_dir
         self.distlist  = set()  # List of files to be distributed
         self.deplist   = dict() # List of file dependencies
         self.parentlib = dict() # library k is used by parentlib[k]
+        self.dst_to_src = dict()
         
         mkdir_f(self.distdir)
 
@@ -434,6 +436,16 @@ class DistManager(object):
                'destination %s must be within distdir[%s]' % (dst, self.distdir)
 
         mkdir_f(P.dirname(dst))
+
+        # Prefer files in isis_deps_dir, as those are portable, over files
+        # in the current system
+        if dst in self.dst_to_src:
+            if self.isis_deps_dir in self.dst_to_src[dst] and (not self.isis_deps_dir in src):
+                print("Will copy " + self.dst_to_src[dst] + " and not " + src)
+                return
+
+        self.dst_to_src[dst] = src
+        print("copy ", src, dst)
         copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
         self.distlist.add(dst)
 
