@@ -55,9 +55,18 @@ def get_prog_version(prog):
         raise Exception("Checking " + prog + " version caused errors")
 
     m = re.match("^.*?\).*?(\d+\.\d+)", out)
-    if not m:
-        raise Exception("Could not find " + prog + " version")
-    return float(m.group(1))
+    if m:
+        # For GCC
+        return float(m.group(1))
+
+    m = re.match("^.*?(\d+\.\d+)", out)
+    if m:
+        # For clang
+        return float(m.group(1))
+    
+    raise Exception("Could not find " + prog + " version")
+
+    return 0.0
 
 class PackageError(Exception):
     def __init__(self, pkg, message):
