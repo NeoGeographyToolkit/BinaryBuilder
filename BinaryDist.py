@@ -445,7 +445,6 @@ class DistManager(object):
                 return
 
         self.dst_to_src[dst] = src
-        print("copy ", src, dst)
         copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
         self.distlist.add(dst)
 
