@@ -695,7 +695,6 @@ class visionworkbench(GITPackage, CMakePackage):
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
         super(visionworkbench, self).configure(other=[
-            # TODO(oalexan1). The boost include dir is already in the isis_deps_dir.
             '-DISIS_DEPS_DIR=' + isis_deps_dir,
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',

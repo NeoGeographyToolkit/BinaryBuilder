@@ -371,8 +371,9 @@ if __name__ == '__main__':
     LINUX_DEPS1 = []
     CORE_DEPS   = []
     LINUX_DEPS2 = []
-    VW_DEPS     = []
-    ASP_DEPS    = [imagemagick, geoid, fgr, libnabo, libpointmatcher, theia, htdp, usgscsm, isis]
+    VW_DEPS     = [gdal]
+    ASP_DEPS    = [laszip, liblas, imagemagick, geoid, fgr, libnabo, libpointmatcher,
+                   theia, htdp, usgscsm, isis]
 
     if (len(args) == 0):
         # Specific package not specified, set packages according to the build goal.
