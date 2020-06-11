@@ -379,8 +379,8 @@ class liblas(CMakePackage):
         # bugfix for linux
         isis_deps_dir = self.env['ISIS_DEPS_DIR']
         boost_dir = P.join(isis_deps_dir,'include')
-        self.env['CXXFLAGS'] += ' -I' + boost_dir + ' -pthread'
-        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma ' % (isis_deps_dir, isis_deps_dir)
+        self.env['CXXFLAGS'] += ' -I' + boost_dir
+        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma -pthread' % (isis_deps_dir, isis_deps_dir)
 
         ext = lib_ext(self.arch.os)
         super(liblas, self).configure(other=[
