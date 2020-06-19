@@ -93,7 +93,7 @@ if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
     fi
 
     pdf_doc=$HOME/$buildDir/build_asp/build/stereopipeline/stereopipeline-git/docs/_build/latex/asp_book.pdf
-    mv $pdf_doc dist-add/asp_book.pdf
+    /bin/mv -fv $pdf_doc dist-add/asp_book.pdf
 fi
 
 # Dump the ASP version
