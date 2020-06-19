@@ -242,8 +242,12 @@ def get(url, output=None):
     BLOCK_SIZE = 16384
     with open(output, 'wb') as f:
         try:
-            r = urlopen(url)
-        except urllib2.HTTPError as e:
+            # Bypass verification to deal with the issue
+            # of bad certificate on some machines
+            import ssl
+            context = ssl._create_unverified_context()
+            r = urlopen(url, context=context)
+        except Exception as e:
             print("Failed to get: " + url + ", error was: " + str(e))
             raise HelperError('urlopen', None, '%s: %s' % (url, e))
 

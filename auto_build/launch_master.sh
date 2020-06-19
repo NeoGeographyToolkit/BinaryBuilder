@@ -22,7 +22,6 @@ buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 
 # Machines and paths
-releaseMachine="byss"
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod2"
@@ -129,16 +128,16 @@ if [ "$resumeRun" -eq 0 ]; then
 fi
 
 # Start the builds. The build script will copy back the built tarballs
-# and status files.
+# and status files. Note that we build on $masterMachine too,
+# as that is where the doc gets built.
 echo "Starting up the builds..."
-for buildMachine in $buildMachines; do
+for buildMachine in $masterMachine $buildMachines; do
 
     echo "Setting up and launching: $buildMachine"
 
     statusFile=$(status_file $buildMachine)
     outputFile=$(output_file $buildDir $buildMachine)
 
-    # Set the ISIS env, needed for 'make check' in ASP.
     # We will push this to the build machine.
     #configFile=$(release_conf_file $buildMachine)
     #isis=$(isis_file)
@@ -341,7 +340,6 @@ echo "Machine and status" >> $statusMasterFile
 count=0
 timestamp=$(date +%Y-%m-%d)
 for buildMachine in $buildMachines; do
-
     # Check the status
     statusFile=$(status_file $buildMachine)
     statusLine=$(cat $statusFile)
@@ -354,7 +352,8 @@ for buildMachine in $buildMachines; do
         echo "Error: Expecting the progress to be: test_done"
         status="Fail"
     fi
-
+    echo Status so far is $status
+    
     # Check the tarballs
     if [[ ! $tarBall =~ \.tar\.bz2$ ]]; then
         echo "Error: Expecting '$tarBall' to be with .tar.bz2 extension"
@@ -365,11 +364,12 @@ for buildMachine in $buildMachines; do
             status="Fail"
         fi
         echo "Renaming build $tarBall"
+        echo "./auto_build/rename_build.sh $tarBall $version $timestamp"
         tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp | tail -n 1)
-        ans="$?"
-        if [ "$ans" -ne 0 ]; then echo "Error: Renaming failed"; status="Fail"; fi
-        if [ ! -f "$tarBall" ]; then echo "Error: Missing $tarBall $tarBall"; status="Fail"; fi
+        if [ ! -f "$tarBall" ]; then echo "Error: Renaming failed."; status="Fail"; fi
     fi
+    echo Status is $status
+    
     if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
     echo $buildMachine $status >> $statusMasterFile
     builds[$count]="$tarBall"
@@ -398,37 +398,34 @@ for buildMachine in $buildMachines; do
     done
 done
 
-# Copy the builds to $releaseMachine and update the public link
-ssh $releaseMachine "mkdir -p $releaseDir" 2>/dev/null
+# Copy the builds to $releaseDir
+mkdir -p $releaseDir
 if [ "$overallStatus" = "Success" ]; then
 
     echo "" >> $statusMasterFile
     echo "Link: $link" >> $statusMasterFile
     echo "" >> $statusMasterFile
-    echo "Paths on $releaseMachine" >> $statusMasterFile
 
-    echo Wil copy doc and builds to $releaseMachine
-    rsync -avz dist-add/asp_book.pdf $releaseMachine:$releaseDir 2>/dev/null
+    echo Wil copy doc and builds to $releaseDir
+    /bin/cp -fv dist-add/asp_book.pdf $releaseDir
     len="${#builds[@]}"
     for ((count = 0; count < len; count++)); do
         tarBall=${builds[$count]}
-        echo Copying $tarBall to $releaseMachine:$releaseDir
-        rsync -avz $tarBall $releaseMachine:$releaseDir 2>/dev/null
+        echo Copying $tarBall to $releaseDir
+        /bin/cp -fv $tarBall $releaseDir
         echo $releaseDir/$(basename $tarBall) >> $statusMasterFile
     done
 
-    # Wipe older files on $releaseMachine and gen the index for today
-    rsync -avz auto_build/rm_old.sh auto_build/gen_index.sh $releaseMachine:$releaseDir 2>/dev/null
-    ssh $releaseMachine "$releaseDir/rm_old.sh $releaseDir 24 StereoPipeline-" 2>/dev/null
-    ssh $releaseMachine "$releaseDir/gen_index.sh $releaseDir $version $timestamp" 2>/dev/null
-
+    # Wipe older files in $releaseDir and gen the index for today
+    auto_build/rm_old.sh $releaseDir 24 StereoPipeline
+    auto_build/gen_index.sh $releaseDir $version $timestamp
 fi
 
-# Copy the logs to $releaseMachine
+# Copy the logs to $releaseDir
 logDir="logs/$timestamp"
-ssh $releaseMachine "mkdir -p $releaseDir/$logDir" 2>/dev/null
-rsync -avz logs/* $releaseMachine:$releaseDir/$logDir  2>/dev/null
-ssh $releaseMachine "$releaseDir/rm_old.sh $releaseDir/logs 24" 2>/dev/null
+mkdir -p $releaseDir/$logDir
+/bin/cp -rfv logs/* $releaseDir/$logDir
+auto_build/rm_old.sh $releaseDir/logs 24
 
 # List the logs in the report
 echo "" >> $statusMasterFile

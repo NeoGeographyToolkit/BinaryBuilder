@@ -284,10 +284,6 @@ if __name__ == '__main__':
         #build_env.append_many(ALL_FLAGS, '-mmacosx-version-min=%s -isysroot %s' % (opt.osx_sdk, sysroot))
         build_env.append_many(ALL_FLAGS, '-m64')
 
-    # if arch.osbits == 'linux32':
-    #     limit_symbols = P.join(P.abspath(P.dirname(__file__)), 'glibc24.h')
-    #     build_env.append('CPPFLAGS', '-include %s' % limit_symbols)
-
     compiler_dir = P.join(build_env['MISC_DIR'], 'mycompilers')
     if not P.exists(compiler_dir):
         os.makedirs(compiler_dir)

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Create the page at: https://byss.arc.nasa.gov/stereopipeline/daily_build/
+
 if [ "$#" -lt 3 ]; then echo Usage: $0 path version timestamp; exit; fi
 
 path=$1

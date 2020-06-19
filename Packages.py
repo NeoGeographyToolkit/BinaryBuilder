@@ -232,7 +232,7 @@ class gdal(Package):
              'jpeg=' + self.env['ISIS_DEPS_DIR'],
              'png', 'zlib', 'pam',
              'openjpeg=' + self.env['ISIS_DEPS_DIR'],
-             'geos=yes',
+             'geos=' + self.env['ISIS_DEPS_DIR'],
              'liblzma='+ self.env['ISIS_DEPS_DIR'],
              'curl']
         wo = \
@@ -241,7 +241,7 @@ class gdal(Package):
                macosx-framework mrsid msg mysql netcdf oci oci-include oci-lib odbc ogdi pcidsk
                pcraster perl pg php pymoddir python sde sde-version spatialite sqlite3
                static-proj4 xerces xerces-inc xerces-lib libiconv-prefix libiconv xml2 pcre
-               freexl json-c kea'''.split()
+               freexl json-c kea libkml'''.split()
 
         self.helper('./autogen.sh')
         super(gdal,self).configure(with_=w, without=wo, disable='static', enable='shared')
@@ -588,7 +588,6 @@ class isis(GITPackage, CMakePackage):
 class usgscsm(GITPackage, CMakePackage):
     src = 'https://github.com/USGS-Astrogeology/usgscsm'
     chksum = 'a53f9cfe30f595809917013c277698a413c32443'
-    #patches = ''
 
     def unpack(self):
         super(usgscsm, self).unpack()
@@ -600,9 +599,6 @@ class usgscsm(GITPackage, CMakePackage):
         # self.helper('./autogen')
         #self.workdir = os.path.join(self.workdir, 'usgscsm')
         super(usgscsm, self).configure(other=[
-            '-Dpybindings=Off',
-            '-DJP2KFLAG=OFF',
-            '-DbuildTests=OFF',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
@@ -1628,14 +1624,15 @@ class imagemagick(Package):
     def __init__(self, env):
         super(imagemagick, self).__init__(env)
         isis_deps_dir = self.env['ISIS_DEPS_DIR']
-        self.env['CFLAGS'] = ' -I' + isis_deps_dir + '/include ' + self.env['CFLAGS']
-        self.env['CXXFLAGS'] = ' -I' + isis_deps_dir + '/include ' + self.env['CXXFLAGS']
+        # temporary include dirs
+        self.env['CFLAGS'] = '-I' + isis_deps_dir + '/include ' + self.env['CFLAGS']
+        self.env['CXXFLAGS'] = '-I' + isis_deps_dir + '/include ' + self.env['CXXFLAGS']
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -pthread' % (isis_deps_dir, isis_deps_dir)
 
     def configure(self):
         # Turn off some packages to simplify linking
         super(imagemagick, self).configure(without = [
-            'lzma', 'fontconfig', 'freetype', 'pango'
+            'lzma', 'fontconfig', 'freetype', 'pango', 'webp', 'openexr', 'xml', 'jbig', 'fftw'
             ])
 
 class theia(GITPackage, CMakePackage):
@@ -1794,8 +1791,8 @@ class pcl(CMakePackage):
                                             'OPENGL', 'GLUT', 'LIBUSB'])
 
 class htdp(Package):
-    src    = 'https://www.ngs.noaa.gov/TOOLS/Htdp/HTDP-download.zip'
-    chksum = '73aebdf9f3528788c216228002e1fe08d18b3c12'
+    src    = 'http://www.ngs.noaa.gov/TOOLS/Htdp/HTDP-download.zip'
+    chksum = '5ebdfda5e2cf29760727ba14ba1194daa5afd2af'
     
     @stage
     def unpack(self):
@@ -1814,7 +1811,7 @@ class htdp(Package):
     def compile(self):
         # Just compile the fortran script.
         fortran_path = find_file(self.env['GFORTRAN'], self.env['PATH'])
-        cmd = fortran_path +' ' + os.path.join(self.workdir, 'htdp.for') + ' -o ' + os.path.join(self.workdir, 'htdp')
+        cmd = fortran_path +' ' + os.path.join(self.workdir, 'htdp.f') + ' -o ' + os.path.join(self.workdir, 'htdp')
         print(cmd)
         os.system(cmd)
         

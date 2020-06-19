@@ -34,6 +34,8 @@ cd $buildDir
 # Set path and load utilities
 source $HOME/$buildDir/auto_build/utils.sh
 
+buildMachine=$(machine_name)
+
 # These are needed primarily for pfe
 ulimit -s unlimited 2>/dev/null
 ulimit -f unlimited 2>/dev/null
@@ -81,7 +83,18 @@ if [ "$exitStatus" -ne 0 ]; then
     exit 1
 fi
 
-#TODO(oalexan1): Figure out how to build the doc
+# Build the documentation on lunokhod2
+if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
+    ./auto_build/build_doc.sh $buildDir
+    exitStatus=$?
+    if [ "$exitStatus" -ne 0 ]; then
+        echo "Fail build_failed" > $HOME/$buildDir/$statusFile
+        exit 1
+    fi
+
+    pdf_doc=$HOME/$buildDir/build_asp/build/stereopipeline/stereopipeline-git/docs/_build/latex/asp_book.pdf
+    mv $pdf_doc dist-add/asp_book.pdf
+fi
 
 # Dump the ASP version
 versionFile=$(version_file $buildMachine)
