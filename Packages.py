@@ -1659,15 +1659,15 @@ class theia(GITPackage, CMakePackage):
 
         ext = lib_ext(self.arch.os)
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 ',
+            '-DCMAKE_CXX_FLAGS=-g -O3 -fPIC',
             '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_C_FLAGS=-g -O3 -fPIC',
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include/gflags'),
             '-DGFLAGS_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libgflags'+ext),
             '-DGLOG_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include'),
             '-DGLOG_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libglog'+ext),
             '-DPNG_LIBRARY_RELEASE=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libpng' + ext),
-            '-DBUILD_TESTING=OFF',
+            '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF',
             '-DBUILD_DOCUMENTATION=OFF',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             ]

@@ -367,7 +367,7 @@ if __name__ == '__main__':
     LINUX_DEPS1 = []
     CORE_DEPS   = []
     LINUX_DEPS2 = []
-    VW_DEPS     = [gdal]
+    VW_DEPS     = []
     ASP_DEPS    = [laszip, liblas, imagemagick, geoid, fgr, libnabo, libpointmatcher,
                    theia, htdp, usgscsm, isis]
 
