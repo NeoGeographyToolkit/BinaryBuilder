@@ -1636,9 +1636,8 @@ class imagemagick(Package):
             ])
 
 class theia(GITPackage, CMakePackage):
-    src     = 'https://github.com/sweeneychris/TheiaSfM.git'
-    chksum  = '231f597'
-    patches = 'patches/theia'
+    src     = 'git@github.com:oleg-alexandrov/TheiaSfM.git'
+    chksum  = '37f8270'
 
     @stage
     def configure(self):
@@ -1655,7 +1654,7 @@ class theia(GITPackage, CMakePackage):
 
         # Per https://github.com/sweeneychris/TheiaSfM/issues/208.
         # Also note the patch in patches/theia/0005-fix_flann.patch
-        self.helper('touch', P.join(self.workdir,'libraries/flann/src/cpp/empty.cpp'))
+        # self.helper('touch', P.join(self.workdir,'libraries/flann/src/cpp/empty.cpp'))
 
         ext = lib_ext(self.arch.os)
         options = [
