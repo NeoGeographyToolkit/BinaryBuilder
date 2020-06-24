@@ -16,13 +16,11 @@ function prepend_to_path () {
     fi
 }
 
-export HOMEBREW_PREFIX=/Users/oalexan1/usr/local
-prepend_to_path $HOME/../oalexan1/miniconda3/envs/isis/bin:$HOME/miniconda3/envs/isis/bin:/opt/rh/devtoolset-6/root/usr/bin:$HOMEBREW_PREFIX/bin:/home6/oalexan1/projects/data/gcc5/gcc-5.4.0/install/bin::/home/smcmich1/programs/latexmk/bin:/byss/smcmich1/programs/tkdiff-unix/:/Users/smcmich1/Library/Python/2.7/bin/:/home/pipeline/projects/gcc-4.9.3-install/bin:/home/oalexan1/projects/zack_packages/local/bin/:/home/pipeline/projects/packages/bin/:/Users/smcmich1/usr/local/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/home/smcmich1/anaconda2/bin:/usr/local/bin:/usr/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/nasa/pkgsrc/2014Q3/gcc49/bin/:/nasa/svn/1.6.21/bin:/home/oalexan1/.local/bin/pip
+prepend_to_path $HOME/../oalexan1/miniconda3/envs/isis/bin:$HOME/miniconda3/envs/isis/bin:$HOMEBREW_PREFIX/bin:/home/smcmich1/programs/latexmk/bin:/byss/smcmich1/programs/tkdiff-unix/:/Users/smcmich1/Library/Python/2.7/bin/:/Users/smcmich1/usr/local/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/usr/local/bin:/usr/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/home/oalexan1/.local/bin/pip
 
-# This is needed for new gcc
-export LD_LIBRARY_PATH=/home/pipeline/projects/gcc5/lib:/home/pipeline/projects/gcc5/lib64:/opt/rh/devtoolset-6/root/usr/lib64:/opt/rh/devtoolset-6/root/usr/lib:/home6/oalexan1/projects/data/gcc5/gcc-5.4.0/install/lib:/home/pipeline/projects/gcc-4.9.3-install/lib:/home/pipeline/projects/gcc-4.9.3-install/lib64:/home/oalexan1/projects/zack_packages/local/lib:/home/oalexan1/projects/zack_packages/local/lib64
-
-export DYLD_LIBRARY_PATH=/Users/oalexan1/usr/local/lib/gcc/4.9:$DYLD_LIBRARY_PATH
+# This is needed for new gcc.
+# TODO(oalexan1): Wipe this at some point soon.
+export LD_LIBRARY_PATH=/home/pipeline/projects/gcc5/lib:/home/pipeline/projects/gcc5/lib64
 
 export PYTHONPATH=$PYTHONPATH:$HOME/.local
 
@@ -30,12 +28,6 @@ function machine_name() {
     machine=$(uname -n | perl -p -e "s#\..*?\$##g")
     echo $machine
 }
-
-# For centos7 tweak LD_LIBRARY_PATH
-if [ "$(machine_name)" = "centos7" ]; then
-    export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$HOME/projects/BinaryBuilder/build_asp/install/lib
-fi
-
 
 function status_file () {
     echo "status_"$1".txt"

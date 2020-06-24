@@ -187,7 +187,7 @@ if __name__ == '__main__':
     try:
         INSTALLDIR = Prefix(installdir)
         ISISROOT   = P.join(INSTALLDIR)
-        SEARCHPATH = [INSTALLDIR.lib(), INSTALLDIR.lib()+'64', opt.isis_deps_dir + '/lib']
+        SEARCHPATH = [INSTALLDIR.lib(), opt.isis_deps_dir + '/lib']
         print('Search path = ' + str(SEARCHPATH))
 
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later

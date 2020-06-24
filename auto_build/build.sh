@@ -68,10 +68,13 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 # whose checksum changed will get built.
 echo "Building changed packages"
 opt=""
-if [ "$(uname -n | grep centos7)" != "" ]; then
-    # Use gcc 5 on centos7
-    opt="--cxx=/home/pipeline/projects/gcc5/bin/g++ --cc=/home/pipeline/projects/gcc5/bin/gcc --gfortran=/home/pipeline/projects/gcc5/bin/gfortran --threads 1"
+if [ "$isMac" != "" ]; then
+    opt="--cxx=$HOME/miniconda3/envs/tools/bin/x86_64-apple-darwin13.4.0-clang++ --cc=$HOME/miniconda3/envs/tools/bin/x86_64-apple-darwin13.4.0-clang --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-apple-darwin13.4.0-gfortran"
+else
+    opt="--cxx=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-c++ --cc=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gcc --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gfortran"
+    opt="$opt --threads 1" # Temporary, for the VM
 fi
+
 cmd="./build.py $opt --skip-tests"
 echo $cmd
 eval $cmd
