@@ -16,7 +16,7 @@ function prepend_to_path () {
     fi
 }
 
-prepend_to_path $HOME/../oalexan1/miniconda3/envs/isis/bin:$HOME/miniconda3/envs/isis/bin:$HOMEBREW_PREFIX/bin:/home/smcmich1/programs/latexmk/bin:/byss/smcmich1/programs/tkdiff-unix/:/Users/smcmich1/Library/Python/2.7/bin/:/Users/smcmich1/usr/local/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/usr/local/bin:/usr/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/home/oalexan1/.local/bin/pip
+prepend_to_path $HOME/../oalexan1/miniconda3/envs/isis/bin:$HOME/miniconda3/envs/isis/bin:/home/smcmich1/programs/latexmk/bin:/byss/smcmich1/programs/tkdiff-unix/:/Users/smcmich1/Library/Python/2.7/bin/:/Users/smcmich1/usr/local/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/nasa/python/2.7.3/bin/:/nasa/sles11/git/1.7.7.4/bin/:/home/oalexan1/.local/bin/pip
 
 # This is needed for new gcc.
 # TODO(oalexan1): Wipe this at some point soon.

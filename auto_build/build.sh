@@ -69,9 +69,10 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 echo "Building changed packages"
 opt=""
 if [ "$isMac" != "" ]; then
-    opt="--cxx=$HOME/miniconda3/envs/tools/bin/x86_64-apple-darwin13.4.0-clang++ --cc=$HOME/miniconda3/envs/tools/bin/x86_64-apple-darwin13.4.0-clang --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-apple-darwin13.4.0-gfortran"
+    # The Conda compiler on the Mac produces a binary that stalls in stereo_pprc on multi-threaded code
+    opt=""
 else
-    opt="--cxx=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-c++ --cc=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gcc --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gfortran"
+    opt="--cc=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-c++ --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gfortran"
     opt="$opt --threads 1" # Temporary, for the VM
 fi
 

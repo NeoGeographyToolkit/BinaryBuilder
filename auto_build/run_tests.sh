@@ -132,7 +132,7 @@ fi
 $HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
 
 if [ $test_status -ne 0 ]; then
-    echo "py.test command failed."
+    echo "pytest command failed."
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
 else
     # Display the allowed error (actual error with extra tolerance) for each run

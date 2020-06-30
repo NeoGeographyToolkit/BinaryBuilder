@@ -130,7 +130,7 @@ if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
     parser.add_option('--debug',          dest='loglevel',    default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
     parser.add_option('--include',        dest='include',     default='./whitelist', help='A file that lists the binaries for the dist')
-    parser.add_option('--isis-deps-dir', dest='isis_deps_dir', default='', help='Path to where conda installed the ISIS dependencies. Default: $HOME/miniconda3/envs/isis.')
+    parser.add_option('--asp-deps-dir', dest='asp_deps_dir', default='', help='Path to where conda installed the ASP dependencies. Default: $HOME/miniconda3/envs/asp_deps.')
     parser.add_option('--debug-build',    dest='debug_build', default=False, action='store_true', help='Create a build having debug symbols')
     parser.add_option('--vw-build',       dest='vw_build',    default=False, action='store_true', help='Set to true when packaging a non-ASP build')
     parser.add_option('--keep-temp',      dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
@@ -150,10 +150,10 @@ if __name__ == '__main__':
     if not args:
         usage('Missing required argument: installdir')
 
-    if opt.isis_deps_dir == "":
-        opt.isis_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/isis')
-    if not P.exists(opt.isis_deps_dir):
-        die('Cannot find the ISIS dependencies directory installed with conda at ' + opt.isis_deps_dir + '. Specify it via --isis-deps-dir.')
+    if opt.asp_deps_dir == "":
+        opt.asp_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/asp_deps')
+    if not P.exists(opt.asp_deps_dir):
+        die('Cannot find the ASP dependencies directory installed with conda at ' + opt.asp_deps_dir + '. Specify it via --asp-deps-dir.')
 
     # If the user specified a VW build, update some default options.
     if opt.vw_build:
@@ -182,12 +182,12 @@ if __name__ == '__main__':
     wrapper_file = 'libexec-helper.sh'
     if (opt.vw_build):
         wrapper_file = 'libexec-helper_vw.sh'
-    mgr = DistManager(tarball_name(), wrapper_file, opt.isis_deps_dir)
+    mgr = DistManager(tarball_name(), wrapper_file, opt.asp_deps_dir)
 
     try:
         INSTALLDIR = Prefix(installdir)
         ISISROOT   = P.join(INSTALLDIR)
-        SEARCHPATH = [INSTALLDIR.lib(), opt.isis_deps_dir + '/lib']
+        SEARCHPATH = [INSTALLDIR.lib(), opt.asp_deps_dir + '/lib']
         print('Search path = ' + str(SEARCHPATH))
 
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
@@ -195,7 +195,7 @@ if __name__ == '__main__':
         if get_platform().os == 'linux':
             if "PATH" not in os.environ:
                 os.environ["PATH"] = ""
-            os.environ["PATH"] = P.join(opt.isis_deps_dir, 'bin') + os.pathsep + \
+            os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + \
                                  os.environ["PATH"]
 
             if "LD_LIBRARY_PATH" not in os.environ:
@@ -217,12 +217,12 @@ if __name__ == '__main__':
         with open(opt.include, 'r') as f:
             for line in f:
                 line = line.strip()
-                mgr.add_glob(line, [INSTALLDIR, opt.isis_deps_dir])
+                mgr.add_glob(line, [INSTALLDIR, opt.asp_deps_dir])
             
         # Add some platform specific bugfixes
         if get_platform().os == 'linux':
             mgr.sym_link_lib('libproj.so', 'libproj.0.so')
-            mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.isis_deps_dir])
+            mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
                                 
         if not opt.vw_build:
             print('Adding the ISIS libraries')
@@ -237,10 +237,10 @@ if __name__ == '__main__':
                         if line[0] == 'Library':
                             isis_secondary_set.add("lib/lib"+line[2]+"*")
             for library in isis_secondary_set:
-                mgr.add_glob(library, [INSTALLDIR, opt.isis_deps_dir])
+                mgr.add_glob(library, [INSTALLDIR, opt.asp_deps_dir])
 
             # Add all libraries that link to isis, that is, specific instrument libs 
-            for lib in glob(P.join(opt.isis_deps_dir, 'lib','*')):
+            for lib in glob(P.join(opt.asp_deps_dir, 'lib','*')):
                 isIsisLib = False
                 try:
                     req = required_libs(lib)
@@ -250,14 +250,14 @@ if __name__ == '__main__':
                 except:
                     pass
                 if isIsisLib:
-                    mgr.add_glob(lib, [opt.isis_deps_dir])
+                    mgr.add_glob(lib, [opt.asp_deps_dir])
 
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
         with mgr.create_file('libexec/constants.sh') as f: # Create constants file
             if not opt.vw_build:
-                print('BAKED_ISIS_VERSION="%s"' % isis_version(opt.isis_deps_dir), file=f)
-                print('\tFound ISIS version %s' % isis_version(opt.isis_deps_dir))
+                print('BAKED_ISIS_VERSION="%s"' % isis_version(opt.asp_deps_dir), file=f)
+                print('\tFound ISIS version %s' % isis_version(opt.asp_deps_dir))
             print('BAKED_LIBC_VERSION="%s"' % libc_version(), file=f)
             if get_platform().os == 'linux':
                 # glibc is for Linux only

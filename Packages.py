@@ -182,8 +182,8 @@ class openjpeg2(CMakePackage):
     def configure(self):
         curr_include = '-I' + self.workdir + '/src/bin/common'
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_dir, isis_deps_dir)
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (asp_deps_dir, asp_deps_dir)
         super(openjpeg2, self).configure(other=[
             '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
@@ -223,17 +223,17 @@ class gdal(Package):
         # Parts of GDAL will attempt to load libproj manual (something
         # we can't see or correct in the elf tables). This sed should
         # correct that problem.
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -lproj' % (isis_deps_dir, isis_deps_dir)
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -lproj' % (asp_deps_dir, asp_deps_dir)
         # TODO: This may no longer be necessary.
         self.helper('sed', '-ibak', '-e', 's/libproj./libproj.0./g', 'ogr/ogrct.cpp')
 
-        w = ['threads', 'libtiff', 'geotiff=' + self.env['ISIS_DEPS_DIR'],
-             'jpeg=' + self.env['ISIS_DEPS_DIR'],
+        w = ['threads', 'libtiff', 'geotiff=' + self.env['ASP_DEPS_DIR'],
+             'jpeg=' + self.env['ASP_DEPS_DIR'],
              'png', 'zlib', 'pam',
-             'openjpeg=' + self.env['ISIS_DEPS_DIR'],
-             'geos=' + self.env['ISIS_DEPS_DIR'],
-             'liblzma='+ self.env['ISIS_DEPS_DIR'],
+             'openjpeg=' + self.env['ASP_DEPS_DIR'],
+             'geos=' + self.env['ASP_DEPS_DIR'],
+             'liblzma='+ self.env['ASP_DEPS_DIR'],
              'curl']
         wo = \
             '''bsb cfitsio dods-root dwg-plt dwgdirect ecw epsilon expat expat-inc expat-lib fme
@@ -374,13 +374,13 @@ class liblas(CMakePackage):
     def configure(self):
         # Remove the pedantic flag. Latest boost is not compliant.
         self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
 
         # bugfix for linux
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
-        boost_dir = P.join(isis_deps_dir,'include')
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
+        boost_dir = P.join(asp_deps_dir,'include')
         self.env['CXXFLAGS'] += ' -I' + boost_dir
-        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma -pthread' % (isis_deps_dir, isis_deps_dir)
+        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma -pthread' % (asp_deps_dir, asp_deps_dir)
 
         ext = lib_ext(self.arch.os)
         super(liblas, self).configure(other=[
@@ -390,16 +390,16 @@ class liblas(CMakePackage):
             #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
             #'include','boost-'+boost.version),            
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DBoost_LIBRARY_DIRS=' + P.join(isis_deps_dir,'lib'),
+            '-DBoost_LIBRARY_DIRS=' + P.join(asp_deps_dir,'lib'),
             '-DWITH_LASZIP=true',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GDAL=true',
             '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GEOTIFF=true',
-            '-DGEOTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
-            '-DTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
-            '-DTIFF_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libtiff'+ ext),
-            '-DZLIB_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libz'+ ext),
+            '-DGEOTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
+            '-DTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
+            '-DTIFF_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libtiff'+ ext),
+            '-DZLIB_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libz'+ ext),
             #'-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             #'-DBoost_USE_STATIC_LIBS=OFF',
             '-DBUILD_SHARED_LIBS=ON',
@@ -428,11 +428,11 @@ class laszip(CMakePackage):
     chksum  = 'bbda26b8a760970ff3da3cfac97603dd0ec4f05f'
     @stage
     def configure(self):
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
 
         # bugfix for linux
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
-        boost_dir = P.join(isis_deps_dir,'include')
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
+        boost_dir = P.join(asp_deps_dir,'include')
         self.env['CXXFLAGS'] += ' -I' + boost_dir + ' -pthread'
 
         ext = lib_ext(self.arch.os)
@@ -443,16 +443,16 @@ class laszip(CMakePackage):
             #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
             #'include','boost-'+boost.version),            
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            '-DBoost_LIBRARY_DIRS=' + P.join(isis_deps_dir,'lib'),
+            '-DBoost_LIBRARY_DIRS=' + P.join(asp_deps_dir,'lib'),
             '-DWITH_LASZIP=true',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GDAL=true',
             '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             '-DWITH_GEOTIFF=true',
-            '-DGEOTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
-            '-DTIFF_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
-            '-DTIFF_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libtiff'+ ext),
-            '-DZLIB_LIBRARY_RELEASE=' + P.join(isis_deps_dir,'lib', 'libz'+ ext),
+            '-DGEOTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
+            '-DTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
+            '-DTIFF_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libtiff'+ ext),
+            '-DZLIB_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libz'+ ext),
             #'-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
             #'-DBoost_USE_STATIC_LIBS=OFF',
             '-DBUILD_SHARED_LIBS=ON',
@@ -526,7 +526,7 @@ class isis(GITPackage, CMakePackage):
         # Follow the ISIS convention of where the build should be
         self.builddir = os.path.join(self.workdir, '../build')
 
-        self.env['CONDA_PREFIX'] = self.env['ISIS_DEPS_DIR']
+        self.env['CONDA_PREFIX'] = self.env['ASP_DEPS_DIR']
 
         # Do not configure as we will fetch the binaries with conda,
         # we need only the headers
@@ -534,15 +534,15 @@ class isis(GITPackage, CMakePackage):
 
         ext = lib_ext(self.arch.os)
         super(isis, self).configure(other= [
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' \
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'] + ':' \
             + self.env['INSTALL_DIR'],
             '-DCMAKE_CXX_COMPILER=' + which(self.env['CXX']),
             '-DCMAKE_C_COMPILER=' + which(self.env['CC']),
             '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11',
             '-DCMAKE_C_FLAGS=-g -O3',
-            '-DPNG_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libpng' + ext),
-            '-DCSPICE_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libcspice' + ext),
-            '-DX11_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libX11' + ext),
+            '-DPNG_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libpng' + ext),
+            '-DCSPICE_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libcspice' + ext),
+            '-DX11_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libX11' + ext),
             '-Dpybindings=Off',
             '-DJP2KFLAG=OFF',
             '-DbuildTests=OFF',
@@ -614,8 +614,8 @@ class stereopipeline(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
-        boost_dir = P.join(isis_deps_dir,'include')
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
+        boost_dir = P.join(asp_deps_dir,'include')
 
         # TODO: Just remove the bad arguments!
         if self.arch.os == 'osx':
@@ -639,7 +639,7 @@ class stereopipeline(GITPackage, CMakePackage):
         #    )
         super(stereopipeline, self).configure(other=[
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
-            '-DISIS_DEPS_DIR=' + isis_deps_dir,
+            '-DASP_DEPS_DIR=' + asp_deps_dir,
             '-DVISIONWORKBENCH_INSTALL_DIR='+installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             ])
@@ -680,7 +680,7 @@ class visionworkbench(GITPackage, CMakePackage):
 
         #self.helper('./autogen')
 
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
 
         # TODO: Just remove the bad arguments!
         if self.arch.os == 'osx':
@@ -691,7 +691,7 @@ class visionworkbench(GITPackage, CMakePackage):
         arch         = self.arch
         installdir   = self.env['INSTALL_DIR']
         super(visionworkbench, self).configure(other=[
-            '-DISIS_DEPS_DIR=' + isis_deps_dir,
+            '-DASP_DEPS_DIR=' + asp_deps_dir,
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             # -DVW_ENABLE_SSE=0 #  on pfe
@@ -829,12 +829,12 @@ class superlu(Package):
         self.helper('autoreconf', '-fvi')
         blas = ''
         if self.arch.os == "osx":
-            isis_deps_dir = self.env['ISIS_DEPS_DIR']
-            self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (isis_deps_dir, isis_deps_dir)
-            blas = glob(P.join(self.env['ISIS_DEPS_DIR'],'lib','libblas.dylib*'))[0]
+            asp_deps_dir = self.env['ASP_DEPS_DIR']
+            self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (asp_deps_dir, asp_deps_dir)
+            blas = glob(P.join(self.env['ASP_DEPS_DIR'],'lib','libblas.dylib*'))[0]
             #blas = '"-framework vecLib"'
         else:
-            blas = glob(P.join(self.env['ISIS_DEPS_DIR'],'lib','libblas.so*'))[0]
+            blas = glob(P.join(self.env['ASP_DEPS_DIR'],'lib','libblas.so*'))[0]
 
         if self.arch.os == 'linux':
             # This is a bugfix, that took long to investigate. For some versions of Linux,
@@ -1316,18 +1316,18 @@ class ceres(CMakePackage):
 
     def configure(self):
         ext = lib_ext(self.arch.os)
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
         install_dir = self.env['INSTALL_DIR']
         super(ceres, self).configure(other=[
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'],
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'],
             '-DCMAKE_CXX_FLAGS=-g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
-            '-DEIGEN_INCLUDE_DIR='   + P.join(isis_deps_dir,'include/eigen3'),
-            '-DGFLAGS_INCLUDE_DIR='  + P.join(isis_deps_dir,'include/gflags'),
-            '-DGFLAGS_LIBRARY='      + P.join(isis_deps_dir,'lib/libgflags'+ext),
-            '-DGLOG_INCLUDE_DIR='    + P.join(isis_deps_dir,'include/glog'),
-            '-DGLOG_LIBRARY='        + P.join(isis_deps_dir,'lib/libglog'+ext),
-            '-DCMAKE_INSTALL_RPATH=' + P.join(isis_deps_dir,'lib') + ':' \
+            '-DEIGEN_INCLUDE_DIR='   + P.join(asp_deps_dir,'include/eigen3'),
+            '-DGFLAGS_INCLUDE_DIR='  + P.join(asp_deps_dir,'include/gflags'),
+            '-DGFLAGS_LIBRARY='      + P.join(asp_deps_dir,'lib/libgflags'+ext),
+            '-DGLOG_INCLUDE_DIR='    + P.join(asp_deps_dir,'include/glog'),
+            '-DGLOG_LIBRARY='        + P.join(asp_deps_dir,'lib/libglog'+ext),
+            '-DCMAKE_INSTALL_RPATH=' + P.join(asp_deps_dir,'lib') + ':' \
                                      + P.join(install_dir,'lib'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DSHARED_LIBS=ON',
@@ -1348,7 +1348,7 @@ class libnabo(GITPackage, CMakePackage):
     def configure(self):
 
         installDir = self.env['INSTALL_DIR']
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
         
         # Remove python bindings, tests, and examples
         self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
@@ -1356,10 +1356,10 @@ class libnabo(GITPackage, CMakePackage):
         options = [
             '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11',
             '-DCMAKE_C_FLAGS=-g -O3',
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             '-DCMAKE_PREFIX_PATH=' + installDir,
-            '-DEIGEN_INCLUDE_DIR=' + P.join(isis_deps_dir,'include/eigen3'),
-            '-DBoost_INCLUDE_DIR=' + P.join(isis_deps_dir,'include'),
+            '-DEIGEN_INCLUDE_DIR=' + P.join(asp_deps_dir,'include/eigen3'),
+            '-DBoost_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             #'-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DSHARED_LIBS=ON',
@@ -1395,7 +1395,7 @@ class libpointmatcher(GITPackage, CMakePackage):
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
 
         # Turn off the unit tests which don't build on OSX10.12
         self.helper('sed', '-ibak', '-e',
@@ -1410,7 +1410,7 @@ class libpointmatcher(GITPackage, CMakePackage):
         self.env['CPPFLAGS'] = curr_include + ' ' + self.env['CPPFLAGS']
 
         # bugfix for lunokhod2
-        boost_dir = P.join(isis_deps_dir,'include')
+        boost_dir = P.join(asp_deps_dir,'include')
         #boost_dir = P.join(self.env['INSTALL_DIR'], 'include','boost-'+boost.version)
         #self.env['CXXFLAGS'] += ' -I' + boost_dir
 
@@ -1422,9 +1422,9 @@ class libpointmatcher(GITPackage, CMakePackage):
             '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -I' + boost_dir,
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DBoost_INCLUDE_DIR='  + boost_dir,            
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             #'-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
-            '-DEIGEN_INCLUDE_DIR=' + P.join(isis_deps_dir,'include/eigen3'),
+            '-DEIGEN_INCLUDE_DIR=' + P.join(asp_deps_dir,'include/eigen3'),
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DSHARED_LIBS=ON',
@@ -1453,12 +1453,12 @@ class fgr(GITPackage, CMakePackage):
 
     @stage
     def configure(self):
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
         options = [
             '-DCMAKE_CXX_FLAGS='
-            + '-I' + P.join(isis_deps_dir,'include') + ' '
-            + '-I' + P.join(isis_deps_dir,'include/eigen3') + ' '
-            + '-L' + P.join(isis_deps_dir,'lib') + ' -lflann_cpp'
+            + '-I' + P.join(asp_deps_dir,'include') + ' '
+            + '-I' + P.join(asp_deps_dir,'include/eigen3') + ' '
+            + '-L' + P.join(asp_deps_dir,'lib') + ' -lflann_cpp'
             + ' -g -O3',
             '-DCMAKE_C_FLAGS=-g -O3',
             '-DFastGlobalRegistration_LINK_MODE=SHARED'
@@ -1623,11 +1623,11 @@ class imagemagick(Package):
 
     def __init__(self, env):
         super(imagemagick, self).__init__(env)
-        isis_deps_dir = self.env['ISIS_DEPS_DIR']
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
         # temporary include dirs
-        self.env['CFLAGS'] = '-I' + isis_deps_dir + '/include ' + self.env['CFLAGS']
-        self.env['CXXFLAGS'] = '-I' + isis_deps_dir + '/include ' + self.env['CXXFLAGS']
-        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -pthread' % (isis_deps_dir, isis_deps_dir)
+        self.env['CFLAGS'] = '-I' + asp_deps_dir + '/include ' + self.env['CFLAGS']
+        self.env['CXXFLAGS'] = '-I' + asp_deps_dir + '/include ' + self.env['CXXFLAGS']
+        self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib -ljpeg -pthread' % (asp_deps_dir, asp_deps_dir)
 
     def configure(self):
         # Turn off some packages to simplify linking
@@ -1659,13 +1659,13 @@ class theia(GITPackage, CMakePackage):
         ext = lib_ext(self.arch.os)
         options = [
             '-DCMAKE_CXX_FLAGS=-g -O3 -fPIC',
-            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ISIS_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
+            '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             '-DCMAKE_C_FLAGS=-g -O3 -fPIC',
-            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include/gflags'),
-            '-DGFLAGS_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libgflags'+ext),
-            '-DGLOG_INCLUDE_DIR=' + P.join(self.env['ISIS_DEPS_DIR'],'include'),
-            '-DGLOG_LIBRARY=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libglog'+ext),
-            '-DPNG_LIBRARY_RELEASE=' + P.join(self.env['ISIS_DEPS_DIR'],'lib/libpng' + ext),
+            '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['ASP_DEPS_DIR'],'include/gflags'),
+            '-DGFLAGS_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libgflags'+ext),
+            '-DGLOG_INCLUDE_DIR=' + P.join(self.env['ASP_DEPS_DIR'],'include'),
+            '-DGLOG_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libglog'+ext),
+            '-DPNG_LIBRARY_RELEASE=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libpng' + ext),
             '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF',
             '-DBUILD_DOCUMENTATION=OFF',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',

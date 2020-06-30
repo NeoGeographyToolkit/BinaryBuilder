@@ -119,7 +119,7 @@ if __name__ == '__main__':
     parser.add_option('--cc',                               dest='cc',           default='',           help='Explicitly state which C compiler to use. Default: gcc on Linux and clang on OSX.')
     parser.add_option('--cxx',                              dest='cxx',          default='',           help='Explicitly state which C++ compiler to use. Default: g++ on Linux and clang++ on OSX.')
     parser.add_option('--build-goal', type='int',           dest='build_goal',   default=BUILD_GOAL_ASP,  help='Select the goal of the build.  Increasing numbers are smaller builds: [0 = Full ASP build, 1 = Prerequisites for ASP/VW development build, 2 = VW build, 3 = Prerequisites for VW build]')
-    parser.add_option('--isis-deps-dir',                   dest='isis_deps_dir', default='', help='Path to where conda installed the ISIS dependencies. Default: $HOME/miniconda3/envs/isis.')
+    parser.add_option('--asp-deps-dir',                   dest='asp_deps_dir', default='', help='Path to where conda installed the ASP dependencies. Default: $HOME/miniconda3/envs/asp_deps.')
     parser.add_option('--isis-dir',                        dest='isis_dir', default='', help='Path to where ISIS 3 was checked out and built (it has subdirectories named isis, build, and install).')
     parser.add_option('--download-dir',                     dest='download_dir', default='./tarballs', help='Where to archive source files')
     parser.add_option('--gfortran',                              dest='gfortran',          default='gfortran',      help='Explicitly state which Fortran compiler to use. [gfortran (default), gfortran-mp-4.7]')
@@ -148,10 +148,10 @@ if __name__ == '__main__':
     if opt.build_root is not None and not P.exists(opt.build_root):
         os.makedirs(opt.build_root)
 
-    if opt.isis_deps_dir == "":
-        opt.isis_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/isis')
-    if not P.exists(opt.isis_deps_dir):
-        die('Cannot find the ISIS dependencies directory installed with conda at ' + opt.isis_deps_dir + '. Specify it via --isis-deps-dir.')
+    if opt.asp_deps_dir == "":
+        opt.asp_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/asp_deps')
+    if not P.exists(opt.asp_deps_dir):
+        die('Cannot find the ASP dependencies directory installed with conda at ' + opt.asp_deps_dir + '. Specify it via --asp-deps-dir.')
         
     if opt.resume and opt.build_root is None:
         opt.build_root = grablink('last-run')
@@ -174,12 +174,12 @@ if __name__ == '__main__':
 
     print("Using build root directory: %s" % opt.build_root)
 
-    # Ensure that opt.isis_deps_dir and opt.build_root/install/bin
+    # Ensure that opt.asp_deps_dir and opt.build_root/install/bin
     # are is in the path, as there we keep
     # cmake, chrpath, etc.
     if "PATH" not in os.environ:
         os.environ["PATH"] = ""
-    os.environ["PATH"] = P.join(opt.isis_deps_dir, 'bin') + os.pathsep + \
+    os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + \
                          P.join(opt.build_root, 'install/bin') + os.pathsep + \
                          os.environ["PATH"]
     if "LD_LIBRARY_PATH" not in os.environ: os.environ["LD_LIBRARY_PATH"] = ""
@@ -187,6 +187,7 @@ if __name__ == '__main__':
                                     os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
     MIN_CC_VERSION = 5.0
+    MIN_FORTRAN_VERSION = 4.0
 
     arch = get_platform()
 
@@ -224,7 +225,7 @@ if __name__ == '__main__':
          ' -Wl,-rpath,' + install_dir + '/lib' + ':' + install_dir + '/lib64',
         MAKEOPTS = '-j%s' % opt.threads,
         DOWNLOAD_DIR = opt.download_dir,
-        ISIS_DEPS_DIR = opt.isis_deps_dir,
+        ASP_DEPS_DIR = opt.asp_deps_dir,
         MISC_DIR = P.join(opt.build_root, 'misc'),
         PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
         PATH = os.environ['PATH'],
@@ -304,8 +305,8 @@ if __name__ == '__main__':
             except Exception:
                 pass
     ver = get_prog_version(build_env['GFORTRAN'])
-    if ver < MIN_CC_VERSION and args[0] != 'binarybuilder':
-        die('Expecting ' + build_env['GFORTRAN'] + ' version >= ' + str(MIN_CC_VERSION))
+    if ver < MIN_FORTRAN_VERSION and (len(args)== 0 or args[0] != 'binarybuilder'):
+        die('Expecting ' + build_env['GFORTRAN'] + ' version >= ' + str(MIN_FORTRAN_VERSION))
 
     print("%s" % build_env['PATH'])
 
@@ -360,8 +361,8 @@ if __name__ == '__main__':
 
     # Need to find ISIS install dir and conda dir for third party libraries
     # Read from: https://github.com/USGS-Astrogeology/ISIS3/wiki/Developing-ISIS3-with-cmake
-    # /home/oalexan1/miniconda3/envs/isis on ubuntu
-    # /home6/oalexan1/projects/data/miniconda3/envs/isis on pfe
+    # /home/oalexan1/miniconda3/envs/asp_deps on ubuntu
+    # /home6/oalexan1/projects/data/miniconda3/envs/asp_deps on pfe
 
     # Remaining dependencies after using conda
     LINUX_DEPS1 = []

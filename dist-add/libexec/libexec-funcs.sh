@@ -80,17 +80,14 @@ check_libc() {
 set_lib_paths() {
     local add_paths="$ISISROOT/lib:$ISISROOT/3rdParty/lib:${1}"
     export GDAL_DATA=${TOPLEVEL}/share/gdal
-    export ASP_DATA=${TOPLEVEL}/share
     export QT_PLUGIN_PATH=${TOPLEVEL}/plugins
     case $(uname -s) in
         Linux)
             export LD_LIBRARY_PATH="${add_paths}${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"
-            export OSG_LIBRARY_PATH="${LD_LIBRARY_PATH}"
             ;;
         Darwin)
             export DYLD_FALLBACK_LIBRARY_PATH="${add_paths}${DYLD_FALLBACK_LIBRARY_PATH:+:}$DYLD_FALLBACK_LIBRARY_PATH"
             export DYLD_FALLBACK_FRAMEWORK_PATH="${add_paths}${DYLD_FALLBACK_FRAMEWORK_PATH:+:}$DYLD_FALLBACK_FRAMEWORK_PATH"
-            export OSG_LIBRARY_PATH="${DYLD_FALLBACK_LIBRARY_PATH}"
             ;;
         *)
             die "Unknown OS: $(uname -s)"

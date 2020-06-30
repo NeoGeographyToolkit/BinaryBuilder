@@ -182,12 +182,12 @@ def mkdir_f(dirname):
 
 class DistManager(object):
     '''Main class for creating a StereoPipeline binary distribution'''
-    def __init__(self, tarname, exec_wrapper_file, isis_deps_dir):
+    def __init__(self, tarname, exec_wrapper_file, asp_deps_dir):
         self.wrapper_file = exec_wrapper_file
         self.tarname = tarname
         self.tempdir = mkdtemp(prefix='dist')
         self.distdir = Prefix(P.join(self.tempdir, self.tarname))
-        self.isis_deps_dir = isis_deps_dir
+        self.asp_deps_dir = asp_deps_dir
         self.distlist  = set()  # List of files to be distributed
         self.deplist   = dict() # List of file dependencies
         self.parentlib = dict() # library k is used by parentlib[k]
@@ -437,10 +437,10 @@ class DistManager(object):
 
         mkdir_f(P.dirname(dst))
 
-        # Prefer files in isis_deps_dir, as those are portable, over files
+        # Prefer files in asp_deps_dir, as those are portable, over files
         # in the current system
         if dst in self.dst_to_src:
-            if self.isis_deps_dir in self.dst_to_src[dst] and (not self.isis_deps_dir in src):
+            if self.asp_deps_dir in self.dst_to_src[dst] and (not self.asp_deps_dir in src):
                 print("Will copy " + self.dst_to_src[dst] + " and not " + src)
                 return
 
