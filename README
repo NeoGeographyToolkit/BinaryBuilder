@@ -48,28 +48,65 @@ permissions and limitations under the License.
 ************************************************************************
 3. DOCUMENTATION
 
-Here some specific details about how to use Binary Builder are documented.
-More complete documentation is in StereoPipeline's INSTALLGUIDE at
-
-https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE.rst
-
 A. Produce a Complete Binary Build
 
-If you would like Binary Builder to create a tarball of all Stereo
-Pipeline binaries and dependencies, you can use the following
-commands:
+All the ASP dependencies can be fetched with conda. If necessary, conda
+can also be used to rebuid them. This is described at
 
-  source ./auto_build/utils.sh
- ./build.py
- ./make-dist.py last-completed-run/install
+  https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE.rst
 
-It is pretty likely that things will break. This is essentially a
-fragile package manager. When things break you'll probably want to
-keep calling the build command to see if you fixed the
-problem. Traditionally build.py will just build everything, here's how
-to rebuild one specific package (that presumably failed):
+Then, VisionWorkbench and Stereo Pipeline can be built either as
+described there, or using the the scripts in this repository. 
+The last step will be packaging the build, which is described later
+in this section.
 
- ./build.py --resume gdal
+Building VisionWorkbench and Stereo Pipeline using build.py
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Having installed the asp_deps conda environment per the above
+documentation, clone this repository in the directory
+~/projects/BinaryBuilder and run the build script:
+
+    cd ~; mkdir projects; cd projects
+    git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git
+    cd BinaryBuilder
+    conda activate isis
+    source ./auto_build/utils.sh
+    ./build.py 
+
+One may need to set some paths in ``./auto_build/utils.sh`` to get
+things to work.
+   
+One can specify the compilers as::
+
+    ./build.py --cc=/path/to/gcc --cxx=/path/to/g++ --gfortran=/path/to/gfortran
+
+If the conda packages were installed in a location other than
+``$HOME/miniconda3/envs/asp_deps``, the path to that directory should be
+set via ``--asp-deps-dir``.
+
+Due to the amount of code that must be downloaded and built,
+BinaryBuilder will take quite a while to finish.  If you see the
+message "All done!" then it has succeeded.  Otherwise something has
+gone wrong and must be fixed before the build can continue.
+
+If the build failed and you need to restart it after finding a fix,
+the name of the individual package that needs to be built can be
+passed to ``build.py`` as an argument. Note that this tool keeps track of
+built packages in::
+
+    build_asp/done.txt
+
+so to force one to rebuild one can remove its entry from there.
+
+Packaging the build
+~~~~~~~~~~~~~~~~~~~
+
+Once the build is successful you should make a distribution tarball to
+store the completed build. Do so using the following command from the
+BinaryBuilder directory::
+
+    ./make-dist.py last-completed-run/install
 
 We strongly encourage you to read the output from ./build.py --help and
 ./make-dist.py --help. There are more features not talked about here.
