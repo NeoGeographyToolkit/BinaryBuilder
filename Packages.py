@@ -1637,7 +1637,7 @@ class imagemagick(Package):
 
 class theia(GITPackage, CMakePackage):
     src     = 'git@github.com:oleg-alexandrov/TheiaSfM.git'
-    chksum  = '37f8270'
+    chksum  = 'f5d93f5'
 
     @stage
     def configure(self):
@@ -1658,9 +1658,9 @@ class theia(GITPackage, CMakePackage):
 
         ext = lib_ext(self.arch.os)
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -fPIC',
+            '-DCMAKE_CXX_FLAGS=-O3 -fPIC -L' + self.env['ASP_DEPS_DIR'] + '/lib',
             '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
-            '-DCMAKE_C_FLAGS=-g -O3 -fPIC',
+            '-DCMAKE_C_FLAGS=-O3 -fPIC',
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['ASP_DEPS_DIR'],'include/gflags'),
             '-DGFLAGS_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libgflags'+ext),
             '-DGLOG_INCLUDE_DIR=' + P.join(self.env['ASP_DEPS_DIR'],'include'),
@@ -1669,6 +1669,8 @@ class theia(GITPackage, CMakePackage):
             '-DBUILD_SHARED_LIBS=ON', '-DBUILD_TESTING=OFF',
             '-DBUILD_DOCUMENTATION=OFF',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
+            '-DTBB_LIBRARIES=' + self.env['ASP_DEPS_DIR'] + '/lib/libtbb.so.2',
+            '-DTBB_MALLOC_LIB=' + self.env['ASP_DEPS_DIR'] + '/lib/libtbbmalloc.so.2',
             ]
         
         super(theia, self).configure(other=options)
