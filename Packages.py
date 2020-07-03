@@ -185,8 +185,8 @@ class openjpeg2(CMakePackage):
         asp_deps_dir = self.env['ASP_DEPS_DIR']
         self.env['LDFLAGS'] += ' -Wl,-rpath -Wl,%s/lib -L%s/lib' % (asp_deps_dir, asp_deps_dir)
         super(openjpeg2, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DBUILD_SHARED_LIBS=ON',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             ])
@@ -207,8 +207,8 @@ class libgeotiff(CMakePackage):
     chksum='4c6f405869826bb7d9f35f1d69167e3b44a57ef0'
     def configure(self):
         super(libgeotiff, self).configure( other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DBUILD_SHARED_LIBS=ON',
             '-DBUILD_STATIC_LIBS=OFF'] )
@@ -384,8 +384,8 @@ class liblas(CMakePackage):
 
         ext = lib_ext(self.arch.os)
         super(liblas, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DBoost_INCLUDE_DIR=' + boost_dir,
             #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
             #'include','boost-'+boost.version),            
@@ -437,8 +437,8 @@ class laszip(CMakePackage):
 
         ext = lib_ext(self.arch.os)
         super(laszip, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DBoost_INCLUDE_DIR=' + boost_dir,
             #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
             #'include','boost-'+boost.version),            
@@ -538,8 +538,8 @@ class isis(GITPackage, CMakePackage):
             + self.env['INSTALL_DIR'],
             '-DCMAKE_CXX_COMPILER=' + which(self.env['CXX']),
             '-DCMAKE_C_COMPILER=' + which(self.env['CC']),
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3 -std=c++11',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DPNG_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libpng' + ext),
             '-DCSPICE_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libcspice' + ext),
             '-DX11_LIBRARY=' + P.join(self.env['ASP_DEPS_DIR'],'lib/libX11' + ext),
@@ -600,8 +600,8 @@ class usgscsm(GITPackage, CMakePackage):
         #self.workdir = os.path.join(self.workdir, 'usgscsm')
         super(usgscsm, self).configure(other=[
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             ]) #-DNinja
 
 class stereopipeline(GITPackage, CMakePackage):
@@ -1227,8 +1227,8 @@ class osg3(CMakePackage):
 
     def configure(self):
         other_flags = [
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DBUILD_OSG_APPLICATIONS=ON',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             '-DOSG_USE_QT=OFF',
@@ -1260,8 +1260,8 @@ class flann(GITPackage, CMakePackage):
     def configure(self):
         self.helper('touch', P.join(self.workdir,'src/cpp/empty.cpp'))
         super(flann, self).configure(other=[
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DBUILD_C_BINDINGS=OFF',
             '-DBUILD_MATLAB_BINDINGS=OFF',
             '-DBUILD_PYTHON_BINDINGS=OFF',
@@ -1300,8 +1300,8 @@ class glog(CMakePackage):
             other_flags = []
 
         other_flags += [
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DGFLAGS_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include/gflags'),
             '-DGFLAGS_LIBRARY=' + P.join(self.env['INSTALL_DIR'],'lib/libgflags'+ext),
             '-DBUILD_SHARED_LIBS=ON',
@@ -1320,8 +1320,8 @@ class ceres(CMakePackage):
         install_dir = self.env['INSTALL_DIR']
         super(ceres, self).configure(other=[
             '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'],
-            '-DCMAKE_CXX_FLAGS=-g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DEIGEN_INCLUDE_DIR='   + P.join(asp_deps_dir,'include/eigen3'),
             '-DGFLAGS_INCLUDE_DIR='  + P.join(asp_deps_dir,'include/gflags'),
             '-DGFLAGS_LIBRARY='      + P.join(asp_deps_dir,'lib/libgflags'+ext),
@@ -1354,8 +1354,8 @@ class libnabo(GITPackage, CMakePackage):
         self.helper('sed', '-ibak', '-e', 's/add_subdirectory(python)//g', '-e', 's/add_subdirectory(tests)//g', '-e', 's/add_subdirectory(examples)//g', 'CMakeLists.txt')
 
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3 -std=c++11',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DEIGEN_INCLUDE_DIR=' + P.join(asp_deps_dir,'include/eigen3'),
@@ -1419,8 +1419,8 @@ class libpointmatcher(GITPackage, CMakePackage):
             self.env['CPPFLAGS'] += ' -fopenmp'
 
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -std=c++11 -I' + boost_dir,
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3 -std=c++11 -I' + boost_dir,
+            '-DCMAKE_C_FLAGS=-O3',
             '-DBoost_INCLUDE_DIR='  + boost_dir,            
             '-DCMAKE_FIND_ROOT_PATH=' + self.env['ASP_DEPS_DIR'] + ':' + self.env['INSTALL_DIR'],
             #'-DBoost_LIBRARY_DIRS=' + P.join(installDir,'lib'),
@@ -1459,8 +1459,8 @@ class fgr(GITPackage, CMakePackage):
             + '-I' + P.join(asp_deps_dir,'include') + ' '
             + '-I' + P.join(asp_deps_dir,'include/eigen3') + ' '
             + '-L' + P.join(asp_deps_dir,'lib') + ' -lflann_cpp'
-            + ' -g -O3',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            + ' -O3',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DFastGlobalRegistration_LINK_MODE=SHARED'
             ]
         self.workdir = P.join(self.workdir, 'source')
@@ -1607,8 +1607,8 @@ class gflags(CMakePackage):
 
     def configure(self):
         options = [
-            '-DCMAKE_CXX_FLAGS=-g -O3 -fPIC',
-            '-DCMAKE_C_FLAGS=-g -O3',
+            '-DCMAKE_CXX_FLAGS=-O3 -fPIC',
+            '-DCMAKE_C_FLAGS=-O3',
             '-DBUILD_SHARED_LIBS=ON',
             '-DBUILD_STATIC_LIBS=OFF',
             '-DINSTALL_HEADERS=ON'
@@ -1702,7 +1702,7 @@ class bullet(CMakePackage):
         
         # Turn off extra stuff
         options = ['-DCMAKE_CXX_FLAGS=-fPIC',
-                   '-DCMAKE_C_FLAGS=-g -O3',
+                   '-DCMAKE_C_FLAGS=-O3',
                    '-DBUILD_CPU_DEMOS=OFF',
                    '-DBUILD_OPENGL3_DEMOS=OFF',
                    '-DBUILD_BULLET2_DEMOS=OFF',
