@@ -6,7 +6,6 @@ bin/camera_calibrate
 bin/coverage_fraction
 bin/undistort_image
 bin/build_reconstruction
-bin/view_reconstruction
 bin/export_reconstruction_to_vw
 bin/export_matches_file_to_vw
 bin/bundle_adjust
@@ -88,7 +87,7 @@ libexec/tif_mosaic
 libexec/mapproject_single
 libexec/stereo_utils.py
 libexec/asp*.py
-libexec/lasinfo
+bin/lasinfo
 bin/qi2txt
 libexec/datum_convert_cpp
 libexec/htdp

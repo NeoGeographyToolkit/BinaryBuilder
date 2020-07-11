@@ -214,15 +214,15 @@ if __name__ == '__main__':
         CC       = opt.cc,
         CXX      = opt.cxx,
         GFORTRAN = opt.gfortran,
-        CFLAGS   = '-O3 -g',
-        CXXFLAGS = '-O3 -g',
+        CFLAGS   = '-O3',
+        CXXFLAGS = '-O3',
         BUILD_DIR    = P.join(opt.build_root, 'build'),
         INSTALL_DIR  = install_dir,
         # Use this meaningless RPATH of 'a's so later we have enough room the obtained
         # path to fit in a real path. Also set the paths to the compiler libs
         # and to installed libs.
         LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100) + ' -Wl,-rpath,' + path_to_libs + \
-         ' -Wl,-rpath,' + install_dir + '/lib' + ':' + install_dir + '/lib64',
+         ' -Wl,-rpath,' + install_dir + '/lib',
         MAKEOPTS = '-j%s' % opt.threads,
         DOWNLOAD_DIR = opt.download_dir,
         ASP_DEPS_DIR = opt.asp_deps_dir,
@@ -354,7 +354,7 @@ if __name__ == '__main__':
     #               jpeg, tiff, proj, openjpeg2, libgeotiff, geos, gdal,
     #               ilmbase, openexr, boost, flann, hdf5, eigen, opencv]
     #ASP_DEPS    = [parallel, gsl, xercesc, cspice, protobuf, 
-    #               superlu, gmm, osg3, qt, qwt, suitesparse, tnt,
+    #               superlu, gmm, qt, qwt, suitesparse, tnt,
     #               jama, laszip, liblas, geoid, fgr,
     #               bullet, embree, nanoflann, nn, pcl, armadillo, isis, gflags, glog, ceres,
     #               libnabo, libpointmatcher, imagemagick, theia, htdp]

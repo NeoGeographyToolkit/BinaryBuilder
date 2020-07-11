@@ -70,7 +70,7 @@ documentation, clone this repository in the directory
     cd ~; mkdir projects; cd projects
     git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git
     cd BinaryBuilder
-    conda activate isis
+    conda activate asp_deps
     source ./auto_build/utils.sh
     ./build.py 
 

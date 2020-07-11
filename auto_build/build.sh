@@ -72,7 +72,7 @@ if [ "$isMac" != "" ]; then
     # The Conda compiler on the Mac produces a binary that stalls in stereo_pprc on multi-threaded code
     opt=""
 else
-    opt="--cc=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-c++ --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gfortran"
+    opt="--cc=$HOME/miniconda3/envs/asp_deps/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$HOME/miniconda3/envs/asp_deps/bin/x86_64-conda_cos6-linux-gnu-g++ --gfortran=$HOME/miniconda3/envs/asp_deps/bin/x86_64-conda_cos6-linux-gnu-gfortran"
     opt="$opt --threads 1" # Temporary, for the VM
 fi
 
