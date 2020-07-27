@@ -179,7 +179,6 @@ class Environment(dict):
             DOWNLOAD_DIR   = kw['DOWNLOAD_DIR'],
             BUILD_DIR      = kw['BUILD_DIR'],
             INSTALL_DIR    = kw['INSTALL_DIR'],
-            NOINSTALL_DIR  = P.join(kw['INSTALL_DIR'], 'noinstall'),
             ISISROOT       = P.join(kw['INSTALL_DIR'], 'isis'),
             GIT_SSL_NO_VERIFY = 'true' # to avoid complaints on pfe27
         ))
@@ -190,7 +189,7 @@ class Environment(dict):
 
     def create_dirs(self):
         '''Create all required directories'''
-        for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR', 'NOINSTALL_DIR'):
+        for d in ('DOWNLOAD_DIR', 'BUILD_DIR', 'INSTALL_DIR'):
             try:
                 os.makedirs(self[d])
             except OSError as o:
