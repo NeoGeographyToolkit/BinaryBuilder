@@ -324,13 +324,13 @@ if __name__ == '__main__':
         # we won't build right then, so we don't need these tools,
         common_exec = []
     else:
-        common_exec = ["make", "tar", "ln", "autoreconf", "cp", "csh", "sed", "bzip2",
+        common_exec = ["make", "tar", "ln", "cp", "csh", "sed", "bzip2",
                        "unzip", "patch", "git", "wget", "curl"]
         
         if arch.os == 'linux':
             common_exec.extend( ["libtool"] )
         else:
-            common_exec.extend( ["glibtool", "install_name_tool"] )
+            common_exec.extend( ["install_name_tool"] )
             
     compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['GFORTRAN'] ]
     missing_exec = []
