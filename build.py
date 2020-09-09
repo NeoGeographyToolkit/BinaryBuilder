@@ -264,7 +264,7 @@ if __name__ == '__main__':
         osx_arch = 'x86_64' #SEMICOLON-DELIMITED
 
         ver = version.StrictVersion(arch.dist_version)
-
+        
         # Transform 10.8.5 into 10.8
         ver_arr = str(ver).split("."); ver_arr = ver_arr[0:2]
         ver2 = ".".join(ver_arr)
@@ -272,7 +272,7 @@ if __name__ == '__main__':
         # Define SDK location. This moved in OSX 10.8
         sysroot = '/Developer/SDKs/MacOSX%s.sdk' % opt.osx_sdk
         if ver >= "10.8":
-            sysroot = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX%s.sdk' % ver2
+            sysroot = '/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk'
         if not os.path.isdir( sysroot ):
             die("Unable to open '%s'. Double check that you actually have the SDK for OSX %s." % (sysroot,opt.osx_sdk))
 
