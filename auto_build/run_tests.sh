@@ -103,6 +103,9 @@ if [ "$machine" != "centos7" ]; then
   chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
   chmod -R g+rw $HOME/$testDir
 
+  chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
+  chmod -R g+rw $HOME/$buildDir
+
   # Trying these again, for some reason the above does not work, but
   # this apparently does.  I think it is because $HOME/$testDir is a
   # symlink and now we are modifying the internals of the actual dir.
