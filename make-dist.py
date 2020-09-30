@@ -80,10 +80,10 @@ LIB_SYSTEM_LIST = '''
 '''.split()
 
 # Lib files that we want to include that don't get pickep up automatically.
-MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libMagickCore-6.Q16 libMagickWand-6.Q16 libicuuc libswresample libx264 libcsmapi libGLX libGLdispatch libproj libproj.0'''.split()
+MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libMagickCore-6.Q16 libMagickWand-6.Q16 libicuuc libswresample libx264 libcsmapi libGL libGLX libGLdispatch libproj libproj.0'''.split()
 
 # Prefixes of libs that we always ship
-LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. '''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
+LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. libGLX.'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
 
 USGSCSM_PLUGINS = ['libusgscsm']
 
@@ -187,7 +187,8 @@ if __name__ == '__main__':
     try:
         INSTALLDIR = Prefix(installdir)
         ISISROOT   = P.join(INSTALLDIR)
-        SEARCHPATH = [INSTALLDIR.lib(), opt.asp_deps_dir + '/lib']
+        SEARCHPATH = [INSTALLDIR.lib(), opt.asp_deps_dir + '/lib',
+                      opt.asp_deps_dir + '/x86_64-conda-linux-gnu/sysroot/usr/lib64']
         print('Search path = ' + str(SEARCHPATH))
 
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
