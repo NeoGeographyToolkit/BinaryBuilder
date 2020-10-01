@@ -25,9 +25,9 @@ testDir=projects/StereoPipelineTest # must be relative to home dir
 releaseDir="/byss/docroot/stereopipeline/daily_build"
 link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod2"
-virtualMachines="centos7"
+#virtualMachines="centos7"
 #buildMachines="$virtualMachines"
-buildMachines="$virtualMachines decoder"
+buildMachines="$masterMachine decoder"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -100,7 +100,7 @@ if [ "$currMachine" != "$masterMachine" ]; then
 fi
 
 echo "Making sure virtual machines are running..."
-start_vrts $virtualMachines
+#start_vrts $virtualMachines
 mkdir -p asp_tarballs
 
 # Wipe the doc before regenerating it
@@ -131,7 +131,7 @@ fi
 # and status files. Note that we build on $masterMachine too,
 # as that is where the doc gets built.
 echo "Starting up the builds..."
-for buildMachine in $masterMachine $buildMachines; do
+for buildMachine in $buildMachines; do
 
     echo "Setting up and launching: $buildMachine"
 
