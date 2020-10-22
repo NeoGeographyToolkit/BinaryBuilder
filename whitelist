@@ -48,6 +48,7 @@ bin/point2dem
 bin/point2las
 bin/point2mesh
 bin/sfs
+bin/sfs_blend
 bin/sparse_disp
 bin/stereo
 bin/stereo_corr
