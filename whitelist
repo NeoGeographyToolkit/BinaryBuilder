@@ -75,6 +75,7 @@ bin/cam2rpc
 bin/camera_footprint
 bin/historical_helper.py
 bin/parallel
+bin/bathy_plane_calc
 lib/*.plugin
 plugins/platforms
 lib/libAsp*.[so,dylib]*
