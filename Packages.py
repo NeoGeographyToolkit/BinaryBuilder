@@ -640,7 +640,7 @@ class stereopipeline(GITPackage, CMakePackage):
         super(stereopipeline, self).configure(other=[
             '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DASP_DEPS_DIR=' + asp_deps_dir,
-            '-DVISIONWORKBENCH_INSTALL_DIR='+installdir,
+            '-DVISIONWORKBENCH_INSTALL_DIR=' + installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             ])
 

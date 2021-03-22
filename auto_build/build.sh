@@ -72,9 +72,11 @@ if [ "$isMac" != "" ]; then
     # The Conda compiler on the Mac produces a binary that stalls in stereo_pprc on multi-threaded code
     opt=""
 else
-    opt="--cc=$HOME/miniconda3/envs/asp_deps/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$HOME/miniconda3/envs/asp_deps/bin/x86_64-conda_cos6-linux-gnu-g++ --gfortran=$HOME/miniconda3/envs/asp_deps/bin/x86_64-conda_cos6-linux-gnu-gfortran"
-    opt="$opt --threads 1" # Temporary, for the VM
+    opt="--cc=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-g++ --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gfortran"
 fi
+
+# Add the path to the deps
+opt="$opt --asp-deps-dir $HOME/miniconda3/envs/isis4.4"
 
 cmd="./build.py $opt --skip-tests"
 echo $cmd
