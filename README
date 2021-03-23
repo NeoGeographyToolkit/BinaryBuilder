@@ -55,6 +55,10 @@ can also be used to rebuid them. This is described at
 
   https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE.rst
 
+and
+
+  https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/docs/conda_build.rst
+
 Then, VisionWorkbench and Stereo Pipeline can be built either as
 described there, or using the the scripts in this repository. 
 The last step will be packaging the build, which is described later
