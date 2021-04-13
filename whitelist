@@ -77,6 +77,7 @@ bin/historical_helper.py
 bin/parallel
 bin/bathy_plane_calc
 bin/bathy_threshold_calc.py
+bin/disp_avg
 lib/*.plugin
 plugins/platforms
 lib/libAsp*.[so,dylib]*
