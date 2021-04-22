@@ -325,7 +325,7 @@ if __name__ == '__main__':
         common_exec = []
     else:
         common_exec = ["make", "tar", "ln", "cp", "csh", "sed", "bzip2",
-                       "unzip", "patch", "git", "wget", "curl"]
+                       "unzip", "patch", "git", "curl"]
         
         if arch.os == 'linux':
             common_exec.extend( ["libtool"] )
