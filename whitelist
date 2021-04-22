@@ -99,6 +99,7 @@ libexec/crs2crs2grid.py
 share/gdal/*
 share/geoids*
 share/proj/*
+share/wv_correct/*
 version
 AUTHORS.rst
 INSTALLGUIDE.rst
