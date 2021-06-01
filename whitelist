@@ -80,6 +80,7 @@ bin/bathy_threshold_calc.py
 bin/disp_avg
 lib/*.plugin
 plugins/platforms
+plugins/stereo
 lib/libAsp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib,a]*
 lib/libVw*.[so,dylib]*
