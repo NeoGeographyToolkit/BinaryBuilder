@@ -75,7 +75,8 @@ else
     opt="--cc=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-g++ --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gfortran"
 fi
 
-# Add the path to the deps
+# Add the path to the deps. Note that we use isis4.4 both
+# for building and later for packaging with make-dist.py.
 opt="$opt --asp-deps-dir $HOME/miniconda3/envs/isis4.4"
 
 cmd="./build.py $opt --skip-tests"
@@ -113,7 +114,7 @@ chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
 chmod -R g+rw $HOME/$buildDir
 
 echo "Making the distribution..."
-./make-dist.py last-completed-run/install
+./make-dist.py last-completed-run/install --asp-deps-dir $HOME/miniconda3/envs/isis4.4
 if [ "$?" -ne 0 ]; then
     echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1

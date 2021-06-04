@@ -112,6 +112,15 @@ BinaryBuilder directory::
 
     ./make-dist.py last-completed-run/install
 
+If the conda packages were installed in a location other than
+``$HOME/miniconda3/envs/asp_deps``, the path to that directory should be
+set via ``--asp-deps-dir``.
+
+On Linux, this will need the additional tool named chrpath, which can 
+be installed in your conda environment with the command::
+
+    conda install -c conda-forge chrpath
+
 We strongly encourage you to read the output from ./build.py --help and
 ./make-dist.py --help. There are more features not talked about here.
 
