@@ -445,9 +445,15 @@ class DistManager(object):
                 return
 
         self.dst_to_src[dst] = src
-        copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
-        self.distlist.add(dst)
-
+        try:
+            copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
+            self.distlist.add(dst)
+        except Exception as e:
+            # Bail out if the copying failed.
+            # TODO(oalexan1): This may need finer-grained treatment
+            print("Warning: " + str(e))
+            return
+        
         if add_deps and is_binary(dst):
             req = required_libs(dst)
             self.deplist.update(req)
@@ -852,7 +858,8 @@ def snap_symlinks(src):
     if not P.islink(src):
         return [src]
 
-    return [src] + snap_symlinks(P.join(P.dirname(src), readlink(src)))
+    dst = snap_symlinks(P.join(P.dirname(src), readlink(src)))
+    return [src] + dst
 
 def fix_install_paths(installdir, arch):
     ''' After unpacking a set of pre-built binaries, in given directory,
