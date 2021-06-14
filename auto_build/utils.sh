@@ -194,3 +194,76 @@ function check_if_remotes_changed() {
     done
 
 }
+
+# Upload the builds to github
+function upload_to_github {
+
+    binaries=$1
+    timestamp=$2
+
+    # The path to the gh tool
+    gh=/home/oalexan1/projects/packages/gh_1.11.0_linux_amd64/bin/gh
+    echo binaries are $binaries
+    echo timestamp is $timestamp
+
+    # First record all the releases we already did
+    releaseFile="GitHubReleases.txt"
+
+    count=0
+    declare -a releases=() # make an empty initial array
+    for f in $(cat $releaseFile); do
+        if [ "$f" = "" ]; then
+            continue;
+        fi
+        releases[$count]=$f
+        ((count++))
+    done
+
+    # Add today's release
+    tag=$timestamp"-daily-build"
+    releases[$count]=$tag
+
+    numReleases="${#releases[@]}"
+    #for ((count = 0; count < numReleases; count++)); do
+    #    echo "Have record of release ${releases[$count]}"
+    #done
+
+    # Have to cd to the local ASP directory, as that's where the GitHub credentials
+    # are stored
+    currDir=$(pwd)
+    cd /home/oalexan1/projects/StereoPipeline
+    
+    # Make gh not interactive
+    $gh config set prompt disabled
+
+    # Keep only the last two releases, so delete old ones
+    numKeep=2
+    for ((count = 0; count < numReleases - numKeep; count++)); do
+        echo $gh release delete "${releases[$count]}"
+        $gh release delete "${releases[$count]}"
+    done
+
+    # List the releases
+    echo Releases so far
+    $gh release list
+    
+    echo $gh release create $tag $binaries --title $tag --notes "$tag"
+    $gh release create $tag $binaries --title $tag --notes "$tag"
+
+    # Record the status
+    status=$?
+    echo Status is $status
+    
+    # Go back to the original directory
+    cd $currDir
+
+    # Record the releases that are kept. Keep only the last two
+    # releases, so delete old ones.
+    rm -f $releaseFile
+    for ((count = numReleases - numKeep; count < numReleases; count++)); do
+        if [ "$count" -lt 0 ]; then continue; fi
+        echo "${releases[$count]}" >> $releaseFile
+    done
+
+    return $status
+}

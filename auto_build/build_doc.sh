@@ -3,11 +3,12 @@
 # Build the pdf doc
 
 
-if [ "$#" -lt 1 ]; then
-    echo Usage: $0 buildDir
+if [ "$#" -lt 2 ]; then
+    echo Usage: $0 buildDir isisEnv
     exit 1
 fi
 buildDir=$1
+isisEnv=$2
 
 # Go to the doc directory
 docDir=$HOME/$buildDir/build_asp/build/stereopipeline/stereopipeline-git/docs
@@ -27,7 +28,7 @@ fi
 # Activate conda to get the dependencies
 # TODO(oalexan1): Move them to our own namespace.
 source $condaFile
-conda activate isis
+conda activate $(basename $isisEnv)
 
 make latexpdf
 

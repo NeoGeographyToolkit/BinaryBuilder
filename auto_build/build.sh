@@ -23,6 +23,9 @@ buildDir=$1
 statusFile=$2
 masterMachine=$3
 
+# Ensure this is changed when the environment changes
+isisEnv=$HOME/miniconda3/envs/isis4.4
+
 cd $HOME
 if [ ! -d "$buildDir" ]; then
     echo "Error: Directory: $buildDir does not exist"
@@ -77,7 +80,7 @@ fi
 
 # Add the path to the deps. Note that we use isis4.4 both
 # for building and later for packaging with make-dist.py.
-opt="$opt --asp-deps-dir $HOME/miniconda3/envs/isis4.4"
+opt="$opt --asp-deps-dir $isisEnv"
 
 cmd="./build.py $opt --skip-tests"
 echo $cmd
@@ -92,7 +95,7 @@ fi
 
 # Build the documentation on lunokhod2
 if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
-    ./auto_build/build_doc.sh $buildDir
+    ./auto_build/build_doc.sh $buildDir $isisEnv
     exitStatus=$?
     if [ "$exitStatus" -ne 0 ]; then
         echo "Fail build_failed" > $HOME/$buildDir/$statusFile
@@ -114,7 +117,7 @@ chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
 chmod -R g+rw $HOME/$buildDir
 
 echo "Making the distribution..."
-./make-dist.py last-completed-run/install --asp-deps-dir $HOME/miniconda3/envs/isis4.4
+./make-dist.py last-completed-run/install --asp-deps-dir $isisEnv
 if [ "$?" -ne 0 ]; then
     echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1

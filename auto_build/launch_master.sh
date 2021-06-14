@@ -22,8 +22,6 @@ buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 
 # Machines and paths
-releaseDir="/byss/docroot/stereopipeline/daily_build"
-link="http://byss.arc.nasa.gov/stereopipeline/daily_build"
 masterMachine="lunokhod2"
 #virtualMachines="centos7"
 #buildMachines="$virtualMachines"
@@ -398,41 +396,21 @@ for buildMachine in $buildMachines; do
     done
 done
 
-# Copy the builds to $releaseDir
-mkdir -p $releaseDir
-if [ "$overallStatus" = "Success" ]; then
+# Copy the builds to GitHub.
+binaries=$(realpath dist-add/asp_book.pdf)
+len="${#builds[@]}"
+for ((count = 0; count < len; count++)); do
+    tarBall=${builds[$count]}
+    tarBall=$(realpath $tarBall)
 
-    echo "" >> $statusMasterFile
-    echo "Link: $link" >> $statusMasterFile
-    echo "" >> $statusMasterFile
-
-    echo Wil copy doc and builds to $releaseDir
-    /bin/cp -fv dist-add/asp_book.pdf $releaseDir
-    len="${#builds[@]}"
-    for ((count = 0; count < len; count++)); do
-        tarBall=${builds[$count]}
-        echo Copying $tarBall to $releaseDir
-        /bin/cp -fv $tarBall $releaseDir
-        echo $releaseDir/$(basename $tarBall) >> $statusMasterFile
-    done
-
-    # Wipe older files in $releaseDir and gen the index for today
-    auto_build/rm_old.sh $releaseDir 24 StereoPipeline
-    auto_build/gen_index.sh $releaseDir $version $timestamp
-fi
-
-# Copy the logs to $releaseDir
-logDir="logs/$timestamp"
-mkdir -p $releaseDir/$logDir
-/bin/cp -rfv logs/* $releaseDir/$logDir
-auto_build/rm_old.sh $releaseDir/logs 24
-
-# List the logs in the report
-echo "" >> $statusMasterFile
-echo "Logs" >> $statusMasterFile
-for log in $(ls logs |grep -v test); do
-    echo "$link/$logDir/$log" >> $statusMasterFile
+    binaries="$binaries $tarBall"
 done
+
+upload_to_github "$binaries" $timestamp
+if [ $? -ne 0 ]; then
+    echo Error: Failed to upload to GitHub
+    overallStatus="Fail"
+fi
 
 cat $statusMasterFile
 echo Final status is $overallStatus
