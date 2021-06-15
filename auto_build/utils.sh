@@ -239,8 +239,14 @@ function upload_to_github {
     # Keep only the last two releases, so delete old ones
     numKeep=2
     for ((count = 0; count < numReleases - numKeep; count++)); do
+
+        # Wipe the old release
         echo $gh release delete "${releases[$count]}"
         $gh release delete "${releases[$count]}"
+
+        # Wipe the old tag
+        git fetch --all
+        git push --delete god "${releases[$count]}"
     done
 
     # List the releases
