@@ -201,10 +201,11 @@ function upload_to_github {
     binaries=$1
     timestamp=$2
 
+    echo The binaries to upload are $binaries
+    echo Timestamp is $timestamp
+
     # The path to the gh tool
     gh=/home/oalexan1/projects/packages/gh_1.11.0_linux_amd64/bin/gh
-    echo binaries are $binaries
-    echo timestamp is $timestamp
 
     # First record all the releases we already did
     releaseFile="GitHubReleases.txt"

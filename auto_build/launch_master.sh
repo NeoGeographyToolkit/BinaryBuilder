@@ -415,5 +415,9 @@ fi
 cat $statusMasterFile
 echo Final status is $overallStatus
 
+if [ "$overallStatus" = "Success" ]; then
+    echo See the daily build at https://github.com/NeoGeographyToolkit/StereoPipeline/releases  >> status_master.txt
+fi
+
 subject="ASP build $timestamp status is $overallStatus"
 cat status_master.txt | mailx -s "$subject" $mailto
