@@ -219,12 +219,14 @@ if __name__ == '__main__':
         with open(opt.include, 'r') as f:
             for line in f:
                 line = line.strip()
-                mgr.add_glob(line, [INSTALLDIR, opt.asp_deps_dir])
+                # Note that we first look in opt.asp_deps_dir and then in INSTALLDIR,
+                # so later files with the same name may overwrite the earlier ones.
+                mgr.add_glob(line, [opt.asp_deps_dir, INSTALLDIR])
             
         # Add some platform specific bugfixes
         if get_platform().os == 'linux':
             mgr.sym_link_lib('libproj.so', 'libproj.0.so')
-            mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
+            mgr.add_glob("lib/libQt5XcbQpa.*", [opt.asp_deps_dir, INSTALLDIR])
                                 
         if not opt.vw_build:
             print('Adding the ISIS libraries')
@@ -239,7 +241,7 @@ if __name__ == '__main__':
                         if line[0] == 'Library':
                             isis_secondary_set.add("lib/lib"+line[2]+"*")
             for library in isis_secondary_set:
-                mgr.add_glob(library, [INSTALLDIR, opt.asp_deps_dir])
+                mgr.add_glob(library, [opt.asp_deps_dir, INSTALLDIR])
 
             # Add all libraries that link to isis, that is, specific instrument libs 
             for lib in glob(P.join(opt.asp_deps_dir, 'lib','*')):

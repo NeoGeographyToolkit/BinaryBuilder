@@ -250,28 +250,21 @@ class DistManager(object):
             else:
                 self._add_file(p, usgscsm_plugin_path(self.distdir, lib), add_deps=add_deps)
 
-    def add_glob(self, pattern, prefixes, require_match=True):
+    def add_glob(self, pattern, prefixes):
         ''' Add a pattern to the tree. pattern must be relative to an
             installroot, provided in one of the prefixes.'''
         inpaths = []
-        found_prefix = ""
         for prefix in prefixes:
             pat     = P.join(prefix, pattern)
             inpaths = glob(pat)
-            found_prefix = prefix
-            if len(inpaths) > 0:
-                break
+            [self.add_smart(i, prefix) for i in inpaths]
             
-        if require_match:
-            assert len(inpaths) > 0, 'No matches for glob pattern %s' % pat
-
-        [self.add_smart(i, found_prefix) for i in inpaths]
-
     def add_smart(self, inpath, prefix):
         ''' Looks at the relative path, and calls the correct add_* function '''
         if not P.isabs(inpath):
             inpath = P.abspath(P.join(prefix, inpath))
-        assert P.commonprefix([inpath, prefix]) == prefix, 'path[%s] must be within prefix[%s]' % (inpath, prefix)
+        assert P.commonprefix([inpath, prefix]) == prefix, \
+               'path[%s] must be within prefix[%s]' % (inpath, prefix)
 
         relpath = P.relpath(inpath, prefix)
         if P.isdir(inpath):

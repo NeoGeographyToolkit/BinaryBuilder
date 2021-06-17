@@ -51,7 +51,7 @@ permissions and limitations under the License.
 A. Produce a Complete Binary Build
 
 All the ASP dependencies can be fetched with conda. If necessary, conda
-can also be used to rebuid them. This is described at
+can also be used to rebuild them. This is described at
 
   https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE.rst
 
@@ -116,8 +116,12 @@ If the conda packages were installed in a location other than
 ``$HOME/miniconda3/envs/asp_deps``, the path to that directory should be
 set via ``--asp-deps-dir``.
 
-On Linux, this will need the additional tool named chrpath, which can 
-be installed in your conda environment with the command::
+The files to be shipped as part of the distribution should be listed
+in the file named ``whitelist``.
+
+For packaging to succeed on Linux, the additional tool named
+``chrpath`` is needed, which can be installed in your conda
+environment with the command::
 
     conda install -c conda-forge chrpath
 
@@ -161,8 +165,7 @@ For a complete VW build, run build.py with the argument: --build-goal 2
 For a VW only development environment, run build.py with the argument: --build-goal 3
 
 Other than using these flag values you can use the make-dist.py and
-deplop-base.py tools in the same manner as if building ASP.
-
+deploy-base.py tools in the same manner as if building ASP.
 
 ************************************************************************
 4. ADDITIONAL BUILD OPTIONS
