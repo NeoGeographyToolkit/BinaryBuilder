@@ -195,6 +195,23 @@ function check_if_remotes_changed() {
 
 }
 
+# Wipe a given release from GitHub. This function must be invoked from
+# a StereoPipeline directory where authentification with GitHub was
+# done beforehand.
+function wipe_release {
+    gh=$1
+    release=$2
+    
+    # Wipe the old release
+    echo $gh release delete $release
+    $gh release delete $release
+    
+    # Wipe the old tag
+    git fetch --all
+    git push --delete god $release
+}
+
+    
 # Upload the builds to github
 function upload_to_github {
 
@@ -244,20 +261,19 @@ function upload_to_github {
     # Keep only the last two releases, so delete old ones
     numKeep=2
     for ((count = 0; count < numReleases - numKeep; count++)); do
-
-        # Wipe the old release
-        echo $gh release delete "${releases[$count]}"
-        $gh release delete "${releases[$count]}"
-
-        # Wipe the old tag
-        git fetch --all
-        git push --delete god "${releases[$count]}"
+        wipe_release $gh "${releases[$count]}"
     done
 
     # List the releases
     echo Releases so far
     $gh release list
-    
+
+    # If the current release already exists, wipe it
+    exists=$($gh release list | grep $tag)
+    if [ "$exists" != "" ]; then
+        wipe_release $gh $tag
+    fi
+
     echo $gh release create $tag $binaries --title $tag --notes "$tag"
     $gh release create $tag $binaries --title $tag --notes "$tag"
 
