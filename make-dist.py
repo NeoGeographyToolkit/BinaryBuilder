@@ -9,7 +9,7 @@ if sys.version_info < (2, 6, 1):
     print('\nERROR: Must use Python 2.6.1 or greater.')
     sys.exit(code)
 
-from BinaryDist import grep, DistManager, Prefix, run
+from BinaryDist import grep, DistManager, DistPrefix, run
 
 import time, logging, copy, re, os
 import os.path as P
@@ -182,10 +182,11 @@ if __name__ == '__main__':
     wrapper_file = 'libexec-helper.sh'
     if (opt.vw_build):
         wrapper_file = 'libexec-helper_vw.sh'
-    mgr = DistManager(tarball_name(), wrapper_file, opt.asp_deps_dir)
+        
+    INSTALLDIR = DistPrefix(installdir)
+    mgr = DistManager(tarball_name(), wrapper_file, INSTALLDIR, opt.asp_deps_dir)
 
     try:
-        INSTALLDIR = Prefix(installdir)
         ISISROOT   = P.join(INSTALLDIR)
         SEARCHPATH = [INSTALLDIR.lib(), opt.asp_deps_dir + '/lib',
                       opt.asp_deps_dir + '/x86_64-conda-linux-gnu/sysroot/usr/lib64',
@@ -219,14 +220,12 @@ if __name__ == '__main__':
         with open(opt.include, 'r') as f:
             for line in f:
                 line = line.strip()
-                # Note that we first look in opt.asp_deps_dir and then in INSTALLDIR,
-                # so later files with the same name may overwrite the earlier ones.
-                mgr.add_glob(line, [opt.asp_deps_dir, INSTALLDIR])
+                mgr.add_glob(line, [INSTALLDIR, opt.asp_deps_dir])
             
         # Add some platform specific bugfixes
         if get_platform().os == 'linux':
             mgr.sym_link_lib('libproj.so', 'libproj.0.so')
-            mgr.add_glob("lib/libQt5XcbQpa.*", [opt.asp_deps_dir, INSTALLDIR])
+            mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
                                 
         if not opt.vw_build:
             print('Adding the ISIS libraries')
@@ -241,7 +240,7 @@ if __name__ == '__main__':
                         if line[0] == 'Library':
                             isis_secondary_set.add("lib/lib"+line[2]+"*")
             for library in isis_secondary_set:
-                mgr.add_glob(library, [opt.asp_deps_dir, INSTALLDIR])
+                mgr.add_glob(library, [INSTALLDIR, opt.asp_deps_dir])
 
             # Add all libraries that link to isis, that is, specific instrument libs 
             for lib in glob(P.join(opt.asp_deps_dir, 'lib','*')):

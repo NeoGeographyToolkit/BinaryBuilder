@@ -220,13 +220,17 @@ function upload_to_github {
         ((count++))
     done
 
-    # Add today's release
+    # Add today's release. If this is second time this tool runs today,
+    # ensure we don't add this timestamp twice
     tag=$timestamp"-daily-build"
-    releases[$count]=$tag
-
+    exists=$(cat $releaseFile |grep $tag)
+    if [ "$exists" = "" ]; then
+        releases[$count]=$tag
+    fi
+    
     numReleases="${#releases[@]}"
     #for ((count = 0; count < numReleases; count++)); do
-    #    echo "Have record of release ${releases[$count]}"
+    #  echo "Release timestamp: ${releases[$count]}"
     #done
 
     # Have to cd to the local ASP directory, as that's where the GitHub credentials
@@ -266,7 +270,7 @@ function upload_to_github {
 
     # Record the releases that are kept. Keep only the last two
     # releases, so delete old ones.
-    rm -f $releaseFile
+    /bin/rm -f $releaseFile
     for ((count = numReleases - numKeep; count < numReleases; count++)); do
         if [ "$count" -lt 0 ]; then continue; fi
         echo "${releases[$count]}" >> $releaseFile

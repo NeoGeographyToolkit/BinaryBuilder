@@ -182,11 +182,12 @@ def mkdir_f(dirname):
 
 class DistManager(object):
     '''Main class for creating a StereoPipeline binary distribution'''
-    def __init__(self, tarname, exec_wrapper_file, asp_deps_dir):
+    def __init__(self, tarname, exec_wrapper_file, asp_install_dir, asp_deps_dir):
         self.wrapper_file = exec_wrapper_file
         self.tarname = tarname
         self.tempdir = mkdtemp(prefix='dist')
-        self.distdir = Prefix(P.join(self.tempdir, self.tarname))
+        self.distdir = DistPrefix(P.join(self.tempdir, self.tarname))
+        self.asp_install_dir = asp_install_dir
         self.asp_deps_dir = asp_deps_dir
         self.distlist  = set()  # List of files to be distributed
         self.deplist   = dict() # List of file dependencies
@@ -355,9 +356,6 @@ class DistManager(object):
                 except Exception as e:
                     print(e)
          
-        # Enable read/execute on all files in libexec and bin
-        for file in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*')):
-            chmod(file, 755)
 
     def make_tarball(self, include = (), exclude = (), name = None):
         '''Tar up all the files we have written to self.distdir.
@@ -369,12 +367,17 @@ class DistManager(object):
         if isinstance(exclude, str):
             exclude = [exclude]
 
-        # For some reason permissions are wrong
+        # Ensure all the files are readable
         cmd = ['chmod', '-R', 'a+r', P.dirname(self.distdir)]
         run(*cmd)
         
-        # Also use the current modification time. This also is not working
-        # by default or some reason.
+        # Enable read/execute on all files in libexec, bin, and stereo plugins
+        for filename in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*')) + \
+                glob(self.distdir + "/plugins/stereo/*/bin/*"):
+            os.chmod(filename, 0o755) # note we use the octal value of 755
+            
+        # Use the current modification time. This is not working by
+        # default or some reason.
         cmd = ['touch', self.distdir]
         run(*cmd)
         
@@ -430,14 +433,20 @@ class DistManager(object):
 
         mkdir_f(P.dirname(dst))
 
-        # Prefer files in asp_deps_dir, as those are portable, over files
-        # in the current system
+        # If a file to copy shows up in multiple places, prefer the
+        # one from the ASP install dir. Then the one from
+        # asp_deps_dir. Those are portable, unlike potentially the
+        # files in the current system.
         if dst in self.dst_to_src:
+            if self.asp_install_dir in self.dst_to_src[dst] and (not self.asp_install_dir in src):
+                print("Will copy " + self.dst_to_src[dst] + " and not " + src)
+                return
             if self.asp_deps_dir in self.dst_to_src[dst] and (not self.asp_deps_dir in src):
                 print("Will copy " + self.dst_to_src[dst] + " and not " + src)
                 return
 
         self.dst_to_src[dst] = src
+
         try:
             copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
             self.distlist.add(dst)
@@ -505,26 +514,29 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
         return
 
     if P.exists(dst):
+        # This should happen rarely, normally the problem of which
+        # instance of a given file to copy should be solved by now.
         if hash_file(src) != hash_file(dst):
             print("Will overwrite " + dst + " with " + src + " having a different hash.")
-    else:
-        if hardlink:
-            try:
-                link(src, dst)
-                logger.debug('%8s %s -> %s' % ('hardlink', src, dst))
-                return
-            except OSError as o:
-                # Invalid cross-device link, not an error, fall back to copy
-                if o.errno != errno.EXDEV: 
-                    raise
 
-        logger.debug('%8s %s -> %s' % ('copy', src, dst))
-        shutil.copyfile(src, dst)
+    if hardlink:
+        try:
+            link(src, dst)
+            logger.debug('%8s %s -> %s' % ('hardlink', src, dst))
+            return
+        except OSError as o:
+            # Invalid cross-device link, not an error, fall back to copy
+            if o.errno != errno.EXDEV: 
+                raise
 
-        # Bugfix, make it writeable
-        mode = os.stat(dst)[stat.ST_MODE]
-        os.chmod(dst, mode | stat.S_IWUSR)
+    logger.debug('%8s %s -> %s' % ('copy', src, dst))
 
+    shutil.copyfile(src, dst)
+
+    # Bugfix, make it writeable
+    mode = os.stat(dst)[stat.ST_MODE]
+    os.chmod(dst, mode | stat.S_IWUSR)
+     
 @doctest_on('linux')
 def readelf(filename):
     ''' Run readelf on a file
@@ -657,9 +669,9 @@ def grep(regex, filename):
                 ret.append(m)
     return ret
 
-class Prefix(str):
+class DistPrefix(str):
     '''A class so that, for example, if myobj is an instance of
-    Prefix, myobj.libexec(tool_name) would return
+    DistPrefix, myobj.libexec(tool_name) would return
     <myobj base path>/libexec/tool_name.
     What an obfuscated piece of code. One could as well simply implement
     member functions like libexec(toolname) manually rather than doing
