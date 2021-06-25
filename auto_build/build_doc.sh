@@ -1,14 +1,16 @@
 #!/bin/bash
 
-# Build the pdf doc
+SPHINX_PATH=/home/oalexan1/miniconda3/envs/sphinx/bin
+
+# Build the pdf doc. Note how we use the sphinx package installed
+# at $SPHINX_PATH. 
 
 
-if [ "$#" -lt 2 ]; then
-    echo Usage: $0 buildDir isisEnv
+if [ "$#" -lt 1 ]; then
+    echo Usage: $0 buildDir
     exit 1
 fi
 buildDir=$1
-isisEnv=$2
 
 # Go to the doc directory
 docDir=$HOME/$buildDir/build_asp/build/stereopipeline/stereopipeline-git/docs
@@ -18,19 +20,7 @@ if [ ! -d "$docDir" ]; then
 fi
 cd $docDir
 
-condaFile=$HOME/miniconda3/etc/profile.d/conda.sh
-
-if [ ! -f "$condaFile" ]; then
-    echo Cannot find $condaFile
-    exit 1
-fi
-
-# Activate conda to get the dependencies
-# TODO(oalexan1): Move them to our own namespace.
-source $condaFile
-conda activate $(basename $isisEnv)
-
-make latexpdf
+PATH=$SPHINX_PATH:$PATH make latexpdf
 
 if [ ! -f "_build/latex/asp_book.pdf" ]; then
     echo Failed to produce the pdf document

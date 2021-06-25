@@ -95,7 +95,7 @@ fi
 
 # Build the documentation on lunokhod2
 if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
-    ./auto_build/build_doc.sh $buildDir $isisEnv
+    ./auto_build/build_doc.sh $buildDir
     exitStatus=$?
     if [ "$exitStatus" -ne 0 ]; then
         echo "Fail build_failed" > $HOME/$buildDir/$statusFile
