@@ -208,9 +208,9 @@ function wipe_release {
     
     # Wipe the old tag
     git fetch --all
-    git push --delete god $release
+    git push --delete god $release # delete the tag on the server
+    git tag -d $release            # delete the tag locally
 }
-
     
 # Upload the builds to github
 function upload_to_github {
