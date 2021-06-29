@@ -457,7 +457,9 @@ class DistManager(object):
             return
         
         if add_deps and is_binary(dst):
-            req = required_libs(dst)
+            # Search for dependencies in our preferred locations first
+            search_path = self.asp_install_dir + "/lib" + ":" + self.asp_deps_dir + "/lib"
+            req = required_libs(dst, search_path)
             self.deplist.update(req)
             
             # Keep track for later which library needs the current library
@@ -561,7 +563,7 @@ def readelf(filename):
     return Ret(needed, soname, rpath)
 
 @doctest_on('linux')
-def ldd(filename):
+def ldd(filename, search_path):
     ''' Run ldd on a file
 
     >>> ldd('/lib/libc.so.6')
@@ -573,10 +575,23 @@ def ldd(filename):
 
     libs = {}
     r = re.compile('^\s*(\S+) => (\S+)')
+
+    # Ensure this is initalized
+    if "LD_LIBRARY_PATH" not in os.environ:
+        os.environ["LD_LIBRARY_PATH"] = ""
+
+    # Help ldd find the libraries in the desired location
+    orig_path =  os.environ["LD_LIBRARY_PATH"]
+    os.environ["LD_LIBRARY_PATH"] = search_path
+    
     for line in run('ldd', filename, output=True).split('\n'):
         m = r.search(line)
         if m:
             libs[m.group(1)] = (None if m.group(2) == 'not' else m.group(2))
+
+    # Restore the orginal environment
+    os.environ["LD_LIBRARY_PATH"] = orig_path
+    
     return libs
 
 @doctest_on('osx')
@@ -646,11 +661,11 @@ def otool(filename):
 
     return Ret(soname=this_soname, sopath=this_sopath, libs=libs, abs_rpaths=abs_rpaths, rel_rpaths=rel_rpaths)
 
-def required_libs(filename):
+def required_libs(filename, search_path):
     ''' Returns a dict where the keys are required SONAMEs and the values are proposed full paths. '''
     def linux():
         soname = set(readelf(filename).needed)
-        return dict((k,v) for k,v in ldd(filename).items() if k in soname)
+        return dict((k,v) for k,v in ldd(filename, search_path).items() if k in soname)
     def osx():
         return otool(filename).libs
 

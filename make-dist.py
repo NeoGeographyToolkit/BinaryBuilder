@@ -246,7 +246,8 @@ if __name__ == '__main__':
             for lib in glob(P.join(opt.asp_deps_dir, 'lib','*')):
                 isIsisLib = False
                 try:
-                    req = required_libs(lib)
+                    search_path = INSTALLDIR + "/lib" + ":" + opt.asp_deps_dir + "/lib"
+                    req = required_libs(lib, search_path)
                     for key in req.keys():
                         if 'isis' in key:
                             isIsisLib = True
@@ -267,6 +268,7 @@ if __name__ == '__main__':
                 print('\tFound GLIBC version %s' % libc_version())
 
         print('Adding libraries')
+        found_set = set()
         for i in range(2,4):
             print('\tPass %i to get dependencies of libraries' % i)
             sys.stdout.flush()
@@ -279,6 +281,14 @@ if __name__ == '__main__':
                 for lib in deplist_copy:
                     lib_path = P.join(lib_dir, lib)
                     if P.exists(lib_path):
+                        if lib in found_set:
+                            # Already found, no need to search
+                            # further, as then a copy of this may be
+                            # found again in a different part of the
+                            # system.
+                            continue
+                        
+                        found_set.add(lib)
                         mgr.add_library(lib_path)
                         continue
                     
