@@ -62,6 +62,7 @@ bin/wv_correct
 bin/image_calc
 bin/pc_merge
 bin/pansharp
+bin/csm_test
 bin/datum_convert
 bin/convert_pinhole_model
 bin/aster2asp
