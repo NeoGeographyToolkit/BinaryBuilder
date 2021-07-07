@@ -200,11 +200,12 @@ function check_if_remotes_changed() {
 # done beforehand.
 function wipe_release {
     gh=$1
-    release=$2
+    repo=$2
+    release=$3
     
     # Wipe the old release
-    echo $gh release delete $release
-    $gh release delete $release
+    echo $gh release -R $repo delete $release
+    $gh release -R $repo delete $release
     
     # Wipe the old tag
     git fetch --all
@@ -223,7 +224,8 @@ function upload_to_github {
 
     # The path to the gh tool
     gh=/home/oalexan1/projects/packages/gh_1.11.0_linux_amd64/bin/gh
-
+    repo=git@github.com:NeoGeographyToolkit/StereoPipeline.git
+    
     # First record all the releases we already did
     releaseFile="GitHubReleases.txt"
 
@@ -246,9 +248,9 @@ function upload_to_github {
     fi
     
     numReleases="${#releases[@]}"
-    #for ((count = 0; count < numReleases; count++)); do
-    #  echo "Release timestamp: ${releases[$count]}"
-    #done
+    for ((count = 0; count < numReleases; count++)); do
+      echo "Release timestamp: ${releases[$count]}"
+    done
 
     # Have to cd to the local ASP directory, as that's where the GitHub credentials
     # are stored
@@ -261,21 +263,22 @@ function upload_to_github {
     # Keep only the last two releases, so delete old ones
     numKeep=2
     for ((count = 0; count < numReleases - numKeep; count++)); do
-        wipe_release $gh "${releases[$count]}"
+        wipe_release $gh $repo "${releases[$count]}"
     done
 
     # List the releases
     echo Releases so far
-    $gh release list
+    $gh release -R $repo list
 
     # If the current release already exists, wipe it
-    exists=$($gh release list | grep $tag)
+    exists=$($gh release -R $repo list | grep $tag)
     if [ "$exists" != "" ]; then
-        wipe_release $gh $tag
+        echo Also wipe release $tag
+        wipe_release $gh $repo $tag
     fi
 
-    echo $gh release create $tag $binaries --title $tag --notes "$tag"
-    $gh release create $tag $binaries --title $tag --notes "$tag"
+    echo $gh release -R $repo create $tag $binaries --title $tag --notes "$tag"
+    $gh release -R $repo create $tag $binaries --title $tag --notes "$tag"
 
     # Record the status
     status=$?
