@@ -169,9 +169,9 @@ if __name__ == '__main__':
         parser.print_help()
         die('\nIllegal argument to --isisroot: path does not exist')
 
-    # Ensure installdir/bin is in the path, to be able to find chrpath, etc.
+    # Ensure asp_deps/bin is in the path, to be able to find chrpath, bzip2, etc.
     if "PATH" not in os.environ: os.environ["PATH"] = ""
-    os.environ["PATH"] = P.join(installdir, 'bin') + os.pathsep + os.environ["PATH"]
+    os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + os.environ["PATH"]
 
     logging.basicConfig(level=opt.loglevel)
 
@@ -356,12 +356,14 @@ if __name__ == '__main__':
                     mgr.add_library(lib_path, add_deps = False, is_plugin = True)
                     continue
         
-        print('Adding files in dist-add')
+        print('Adding files in dist-add and python3.6')
         sys.stdout.flush()
         # To do: Don't depend on cwd
-        for dir in ['dist-add']:
+        for dir in ['dist-add', 'python3.6']:
             if P.exists(dir):
                 mgr.add_directory(dir)
+            else:
+                raise Exception('Failed to find in BinaryBuilder directory: ' + dir)
 
         print('\tRemoving system libs')
         sys.stdout.flush()
