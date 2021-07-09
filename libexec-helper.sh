@@ -44,6 +44,7 @@ else
     # Need this to use the Python we ship, to deal with the fact that ISIS
     # expects a full Python runtime.
     export PATH="${TOPLEVEL}/bin":$PATH
+    export PYTHONHOME="${TOPLEVEL}"
     
     set_lib_paths "${TOPLEVEL}/lib"
 fi
