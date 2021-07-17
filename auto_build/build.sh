@@ -23,9 +23,6 @@ buildDir=$1
 statusFile=$2
 masterMachine=$3
 
-# Ensure this is changed when the environment changes
-isisEnv=$HOME/miniconda3/envs/isis4.4
-
 cd $HOME
 if [ ! -d "$buildDir" ]; then
     echo "Error: Directory: $buildDir does not exist"
@@ -78,8 +75,7 @@ else
     opt="--cc=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-g++ --gfortran=$HOME/miniconda3/envs/tools/bin/x86_64-conda_cos6-linux-gnu-gfortran"
 fi
 
-# Add the path to the deps. Note that we use isis4.4 both
-# for building and later for packaging with make-dist.py.
+# The path to the ASP dependencies 
 opt="$opt --asp-deps-dir $isisEnv"
 
 cmd="./build.py $opt --skip-tests"

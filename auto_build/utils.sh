@@ -16,13 +16,18 @@ function prepend_to_path () {
     fi
 }
 
-prepend_to_path $HOME/../oalexan1/miniconda3/envs/isis4.4/bin:$HOME/../oalexan1/miniconda3/envs/sparse_disp/bin:/home/smcmich1/programs/latexmk/bin:/byss/smcmich1/programs/tkdiff-unix/:/Users/smcmich1/Library/Python/2.7/bin/:/Users/smcmich1/usr/local/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/usr/local/bin:/home/oalexan1/.local/bin/pip
+# Ensure this is changed when the environment changes
+export isisEnv=$HOME/miniconda3/envs/isis5.0.1
+
+# TODO(oalexan1): Sort this out. 
+prepend_to_path $isisEnv/bin:$HOME/../oalexan1/miniconda3/envs/sparse_disp/bin:/home/smcmich1/programs/latexmk/bin:/byss/smcmich1/programs/tkdiff-unix/:/Users/smcmich1/Library/Python/2.7/bin/:/Users/smcmich1/usr/local/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/usr/local/bin:/home/oalexan1/.local/bin/pip
 
 # These are needed for the development build and will
 # be set properly for the packaged build.
-export ISISROOT_DEV=$HOME/miniconda3/envs/isis4.4
-export GDAL_DATA=$HOME/miniconda3/envs/isis4.4/share/gdal
-export QT_PLUGIN_PATH=$HOME/miniconda3/envs/isis4.4/plugins
+# TODO(oalexan1): Are these necessary?
+export ISISROOT_DEV=$isisEnv
+export GDAL_DATA=$isisEnv/share/gdal
+export QT_PLUGIN_PATH=$isisEnv/plugins
 
 export PYTHONPATH=$PYTHONPATH:$HOME/.local
 
