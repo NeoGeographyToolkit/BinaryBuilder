@@ -638,7 +638,6 @@ class stereopipeline(GITPackage, CMakePackage):
         #    enable  = ['debug=ignore', 'optimize=ignore']
         #    )
         super(stereopipeline, self).configure(other=[
-            '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DASP_DEPS_DIR=' + asp_deps_dir,
             '-DVISIONWORKBENCH_INSTALL_DIR=' + installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
@@ -692,7 +691,6 @@ class visionworkbench(GITPackage, CMakePackage):
         installdir   = self.env['INSTALL_DIR']
         super(visionworkbench, self).configure(other=[
             '-DASP_DEPS_DIR=' + asp_deps_dir,
-            '-DBINARYBUILDER_INSTALL_DIR=' + installdir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             # -DVW_ENABLE_SSE=0 #  on pfe
             ])
