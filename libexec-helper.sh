@@ -27,6 +27,8 @@ if [ "$(echo $PROGRAM | grep sparse_disp)" != "" ] &&
     # For sparse_disp we must not use ASP's libraries,
     # as those don't play well with Python
     export PYTHONPATH="$ASP_PYTHON_MODULES_PATH"
+    # Also use the right Python
+    export PATH=$(dirname $(dirname $(dirname $ASP_PYTHON_MODULES_PATH)))/bin:$PATH
     case $(uname -s) in
         Linux)
         export LD_LIBRARY_PATH="$ASP_PYTHON_MODULES_PATH"
