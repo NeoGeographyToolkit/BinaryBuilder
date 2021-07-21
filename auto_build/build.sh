@@ -89,7 +89,7 @@ if [ "$exitStatus" -ne 0 ]; then
     exit 1
 fi
 
-# Build the documentation on lunokhod2
+# Build the documentation on the master machine
 if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
     ./auto_build/build_doc.sh $buildDir
     exitStatus=$?

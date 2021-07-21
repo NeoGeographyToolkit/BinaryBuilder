@@ -22,9 +22,7 @@ buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 
 # Machines and paths
-masterMachine="lunokhod2"
-#virtualMachines="centos7"
-#buildMachines="$virtualMachines"
+masterMachine="lunokhod1"
 buildMachines="$masterMachine decoder"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
@@ -97,8 +95,6 @@ if [ "$currMachine" != "$masterMachine" ]; then
     exit 1
 fi
 
-echo "Making sure virtual machines are running..."
-#start_vrts $virtualMachines
 mkdir -p asp_tarballs
 
 # Wipe the doc before regenerating it

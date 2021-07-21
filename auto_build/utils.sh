@@ -156,18 +156,14 @@ function robust_ssh {
 
 function get_test_machines {
 
-    # Test the centos7 build on $masterMachine.
+    # The same machine is used for building and testing. In the future
+    # that may change.
 
     buildMachine=$1
     masterMachine=$2
 
-    if [ "$buildMachine" = "centos7" ]; then
-        testMachines="$masterMachine"
-    elif [ "$buildMachine" = "lunokhod2" ]; then
-        testMachines="$masterMachine"
-    else
-        testMachines=$buildMachine
-    fi
+    testMachines=$buildMachine
+
     echo $testMachines
 }
 
