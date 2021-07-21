@@ -69,7 +69,7 @@ if [ "$localMode" -eq 0 ]; then
     failure=1
     echo "Cloning BinaryBuilder"
 
-    ./build.py binarybuilder
+    ./build.py binarybuilder --asp-deps-dir $isisEnv
     status="$?"
     if [ "$status" -ne 0 ]; then
 	echo "Could not clone binarybuilder"
