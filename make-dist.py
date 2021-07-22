@@ -76,6 +76,7 @@ LIB_SYSTEM_LIST = '''
     libuuid.so
     libc-
     libdbus-1.so.3.14.14
+    libresolv.so
     libsystemd.so
 '''.split()
 
