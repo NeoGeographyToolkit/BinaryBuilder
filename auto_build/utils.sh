@@ -226,45 +226,39 @@ function upload_to_github {
     # The path to the gh tool
     gh=/home/oalexan1/projects/packages/gh_1.11.0_linux_amd64/bin/gh
     repo=git@github.com:NeoGeographyToolkit/StereoPipeline.git
+    daily_build="daily-build"
+
+    # See the existing daily builds already published
+    releases=$($gh release -R $repo list | awk '{print $1}' | grep $daily_build)
     
-    # First record all the releases we already did
-    releaseFile="GitHubReleases.txt"
+    # Today's release
+    tag="${timestamp}-${daily_build}"
 
-    count=0
-    declare -a releases=() # make an empty initial array
-    for f in $(cat $releaseFile); do
-        if [ "$f" = "" ]; then
-            continue;
-        fi
-        releases[$count]=$f
-        ((count++))
-    done
-
-    # Add today's release. If this is second time this tool runs today,
-    # ensure we don't add this timestamp twice
-    tag=$timestamp"-daily-build"
-    exists=$(cat $releaseFile |grep $tag)
+    # Add today's release, unless this is second time this tool runs today
+    # so it is already present.
+    exists=$(echo $releases | grep $tag)
     if [ "$exists" = "" ]; then
-        releases[$count]=$tag
+        releases="$tag $releases"
     fi
-    
-    numReleases="${#releases[@]}"
-    for ((count = 0; count < numReleases; count++)); do
-      echo "Release timestamp: ${releases[$count]}"
-    done
 
     # Have to cd to the local ASP directory, as that's where the GitHub credentials
     # are stored
     currDir=$(pwd)
     cd /home/oalexan1/projects/StereoPipeline
     
+    # Note that the first time gh is used it will ask for authorization
+
     # Make gh not interactive
     $gh config set prompt disabled
-
+   
     # Keep only the last two releases, so delete old ones
     numKeep=2
-    for ((count = 0; count < numReleases - numKeep; count++)); do
-        wipe_release $gh $repo "${releases[$count]}"
+    count=0
+    for release in $releases; do
+        ((count = count + 1))
+        if [ "$count" -gt "$numKeep" ]; then
+            wipe_release $gh $repo "$release"
+        fi
     done
 
     # List the releases
@@ -287,14 +281,6 @@ function upload_to_github {
     
     # Go back to the original directory
     cd $currDir
-
-    # Record the releases that are kept. Keep only the last two
-    # releases, so delete old ones.
-    /bin/rm -f $releaseFile
-    for ((count = numReleases - numKeep; count < numReleases; count++)); do
-        if [ "$count" -lt 0 ]; then continue; fi
-        echo "${releases[$count]}" >> $releaseFile
-    done
 
     return $status
 }
