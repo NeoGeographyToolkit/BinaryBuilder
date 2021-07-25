@@ -77,6 +77,7 @@ LIB_SYSTEM_LIST = '''
     libc-
     libdbus-1.so.3.14.14
     libresolv.so
+    libresolv-
     libsystemd.so
 '''.split()
 
