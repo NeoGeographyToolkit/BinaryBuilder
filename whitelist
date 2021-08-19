@@ -42,6 +42,7 @@ bin/nav2cam
 bin/parallel_stereo
 bin/parallel_bundle_adjust
 bin/parallel_sfs
+bin/parse_match_file.py
 bin/pc_align
 bin/n_align
 bin/point2dem
