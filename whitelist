@@ -102,6 +102,7 @@ share/gdal/*
 share/geoids*
 share/proj/*
 share/wv_correct/*
+share/CASP-GO_params.xml
 version
 AUTHORS.rst
 INSTALLGUIDE.rst
