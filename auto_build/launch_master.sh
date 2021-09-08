@@ -392,28 +392,29 @@ for buildMachine in $buildMachines; do
     done
 done
 
-# Copy the builds to GitHub.
-binaries=$(realpath dist-add/asp_book.pdf)
-len="${#builds[@]}"
-for ((count = 0; count < len; count++)); do
-    tarBall=${builds[$count]}
-    tarBall=$(realpath $tarBall)
+# Copy the builds to GitHub
+if [ "$overallStatus" = "Success" ]; then
 
-    binaries="$binaries $tarBall"
-done
+    binaries=$(realpath dist-add/asp_book.pdf)
+    len="${#builds[@]}"
+    for ((count = 0; count < len; count++)); do
+        tarBall=${builds[$count]}
+        tarBall=$(realpath $tarBall)
+        binaries="$binaries $tarBall"
+    done
+    
+    upload_to_github "$binaries" $timestamp
+    if [ $? -ne 0 ]; then
+        echo Error: Failed to upload to GitHub
+        overallStatus="Fail"
+    fi
 
-upload_to_github "$binaries" $timestamp
-if [ $? -ne 0 ]; then
-    echo Error: Failed to upload to GitHub
-    overallStatus="Fail"
+    echo See the daily build at https://github.com/NeoGeographyToolkit/StereoPipeline/releases \
+        >> status_master.txt
 fi
 
 cat $statusMasterFile
 echo Final status is $overallStatus
-
-if [ "$overallStatus" = "Success" ]; then
-    echo See the daily build at https://github.com/NeoGeographyToolkit/StereoPipeline/releases  >> status_master.txt
-fi
 
 subject="ASP build $timestamp status is $overallStatus"
 cat status_master.txt | mailx -s "$subject" $mailto
