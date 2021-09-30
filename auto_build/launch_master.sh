@@ -417,4 +417,11 @@ cat $statusMasterFile
 echo Final status is $overallStatus
 
 subject="ASP build $timestamp status is $overallStatus"
-cat status_master.txt | mailx -s "$subject" $mailto
+
+# For some reason sending mail from lunokhod1 does not work.
+#cat status_master.txt | mailx -s "$subject" $mailto
+
+# But it works from lunokhod2, so do it that way.
+# TODO(oalexan1): A better approach could be some Git action, perhaps.
+rsync -avzP status_master.txt lunokhod2:$(pwd)
+ssh lunokhod2 "cat $(pwd)/status_master.txt | mailx -s '$subject' $mailto"
