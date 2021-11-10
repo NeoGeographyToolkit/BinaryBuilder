@@ -98,9 +98,10 @@ bin/lasinfo
 libexec/datum_convert_cpp
 libexec/htdp
 libexec/crs2crs2grid.py
-share/gdal/*
+share/gdal
+share/epsg_csv
 share/geoids*
-share/proj/*
+share/proj
 share/wv_correct/*
 share/CASP-GO_params.xml
 version
