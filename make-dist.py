@@ -76,16 +76,22 @@ LIB_SYSTEM_LIST = '''
     libuuid.so
     libc-
     libdbus-1.so.3.14.14
-    libresolv.so
-    libresolv-
     libsystemd.so
 '''.split()
+
+if get_platform().os == 'linux':
+    # Exclude this from shipping for Linux, but not for Mac, as then things don't work
+    LIB_SYSTEM_LIST += ['libresolv.so', 'libresolv-']
 
 # Lib files that we want to include that don't get pickep up automatically.
 MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libMagickCore-6.Q16 libMagickWand-6.Q16 libicuuc libswresample libx264 libcsmapi libproj libproj.0 libGLX libGLdispatch'''.split()
 
 # Prefixes of libs that we always ship
 LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb.'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
+
+if get_platform().os != 'linux':
+    # Need to have these on the Mac
+    LIB_SHIP_PREFIX += ['libresolv.', 'libcups.', 'libc++abi.', 'libcrypto.']
 
 USGSCSM_PLUGINS = ['libusgscsm']
 
@@ -192,7 +198,7 @@ if __name__ == '__main__':
         ISISROOT   = P.join(INSTALLDIR)
         SEARCHPATH = [INSTALLDIR.lib(), opt.asp_deps_dir + '/lib',
                       opt.asp_deps_dir + '/x86_64-conda-linux-gnu/sysroot/usr/lib64',
-                      '/usr/lib/x86_64-linux-gnu']
+                      '/usr/lib/x86_64-linux-gnu', '/usr/lib']
         print('Search path = ' + str(SEARCHPATH))
 
         # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
@@ -373,8 +379,7 @@ if __name__ == '__main__':
 
         print('Baking RPATH and stripping binaries')
         sys.stdout.flush()
-        # Create relative paths from SEARCHPATH. Use only the first two items,
-        # hence just the values 'lib' and 'lib64'.
+        # Create relative paths from SEARCHPATH. Use only the first two items.
         rel_search_path = list(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH[0:2]))
         mgr.bake(rel_search_path)
 
