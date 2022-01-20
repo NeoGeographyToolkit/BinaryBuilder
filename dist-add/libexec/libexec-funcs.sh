@@ -30,7 +30,7 @@ version_comp() {
 isis_version() {
     local ROOT="${1:-$ISISROOT}"
     local ISIS_HEADER="${ROOT}/version"
-    if test -s ${ISIS_HEADER}; then
+    if test -s "${ISIS_HEADER}"; then
         local version="$(head -1 < $ISIS_HEADER | sed 's/\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')"
     else
         local ISIS_HEADER="${ROOT}/src/base/objs/Constants/Constants.h"
@@ -59,7 +59,7 @@ libc_version() {
 }
 
 check_isis() {
-    if test -z "$ISISROOT"; then
+    if [ "$ISISROOT" = "" ]; then
         die "Please set ISISROOT before you run $0"
     fi
     local current="$(isis_version)"
@@ -71,7 +71,7 @@ check_isis() {
 
 check_libc() {
     local curent="$(libc_version)"
-    if ! version_comp $current $BAKED_LIBC_VERSION ; then
+    if ! version_comp "$current" "$BAKED_LIBC_VERSION" ; then
         msg "This version of Stereo Pipeline requires a libc version of $BAKED_LIBC_VERSION"
         die "but your operating system features an older $current"
     fi
@@ -79,8 +79,8 @@ check_libc() {
 
 set_lib_paths() {
     local add_paths="$ISISROOT/lib:$ISISROOT/3rdParty/lib:${1}"
-    export GDAL_DATA=${TOPLEVEL}/share/gdal
-    export QT_PLUGIN_PATH=${TOPLEVEL}/plugins
+    export GDAL_DATA="${TOPLEVEL}/share/gdal"
+    export QT_PLUGIN_PATH="${TOPLEVEL}/plugins"
     case $(uname -s) in
         Linux)
             export LD_LIBRARY_PATH="${add_paths}${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"

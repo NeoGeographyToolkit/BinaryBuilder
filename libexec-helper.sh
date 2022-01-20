@@ -3,21 +3,31 @@
 self=$$
 trap 'exit 1' TERM
 
-TOPLEVEL="$(cd $(dirname $0)/.. && pwd)"
-LIBEXEC="${ASP_DEBUG_DIR:-${TOPLEVEL}/libexec}"
-export ISISROOT=$TOPLEVEL
-#export ALESPICEROOT=$ISISDATA # TODO(oalexan1): Think of this.
+# Care here if the paths have spaces
+EXEC_PATH="$0"
+DIR_NAME=$(dirname "$EXEC_PATH")
+EXEC_NAME=$(basename "$EXEC_PATH")
+TOPLEVEL=$(cd "$DIR_NAME"/..; echo "$(pwd)")
+
+if [ "$ASP_DEBUG_DIR" != "" ]; then
+    LIBEXEC="$ASP_DEBUG_DIR"
+else
+    LIBEXEC="${TOPLEVEL}/libexec"
+fi
+    
+export ISISROOT="$TOPLEVEL"
+#export ALESPICEROOT="$ISISDATA" # TODO(oalexan1): Think of this.
 
 . "${LIBEXEC}/constants.sh"
 . "${LIBEXEC}/libexec-funcs.sh"
 
 check_isis
-if [ "$(uname -s)" = "Linux" ]
-then
+
+if [ "$(uname -s)" = "Linux" ]; then
     check_libc
 fi
 
-PROGRAM="${LIBEXEC}/$(basename $0)"
+PROGRAM="${LIBEXEC}/${EXEC_NAME}"
 
 # Path to USGS CSM plugins
 export CSM_PLUGIN_PATH="${TOPLEVEL}/plugins/usgscsm"
@@ -28,7 +38,9 @@ if [ "$(echo $PROGRAM | grep sparse_disp)" != "" ] &&
     # as those don't play well with Python
     export PYTHONPATH="$ASP_PYTHON_MODULES_PATH"
     # Also use the right Python
-    export PATH=$(dirname $(dirname $(dirname $ASP_PYTHON_MODULES_PATH)))/bin:$PATH
+    # Careful with spaces in $ASP_PYTHON_MODULES_PATH
+    dir1=$(dirname "$ASP_PYTHON_MODULES_PATH");  dir2=$(dirname "$dir1"); dir3=$(dirname "$dir2")
+    export PATH="$dir3/bin":"$PATH"
     case $(uname -s) in
         Linux)
         export LD_LIBRARY_PATH="$ASP_PYTHON_MODULES_PATH"
@@ -42,19 +54,19 @@ if [ "$(echo $PROGRAM | grep sparse_disp)" != "" ] &&
         ;;
     esac
 else
-    
+
     # Need this to use the Python we ship, to deal with the fact that ISIS
     # expects a full Python runtime.
-    export PATH="${TOPLEVEL}/bin":$PATH
+    export PATH="${TOPLEVEL}/bin":"$PATH"
     export PYTHONHOME="${TOPLEVEL}"
-    
     set_lib_paths "${TOPLEVEL}/lib"
 fi
 
 # Needed for stereo_gui to start quickly. (Likely the slowdown this
 # fixes is due to some misconfigured path in some conda libraries or
 # how we ship them.)
-if [ "$(echo $PROGRAM | grep stereo_gui)" != "" ] && [ -f "/etc/fonts/fonts.conf" ]; then 
+IS_STEREO_GUI=$(echo "$PROGRAM" |grep "stereo_gui")
+if [ "$IS_STEREO_GUI" != "" ] && [ -f "/etc/fonts/fonts.conf" ]; then
     export FONTCONFIG_PATH=/etc/fonts
     export FONTCONFIG_FILE=fonts.conf
 fi
