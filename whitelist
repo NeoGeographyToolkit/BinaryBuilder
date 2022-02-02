@@ -79,6 +79,7 @@ bin/historical_helper.py
 bin/parallel
 bin/bathy_plane_calc
 bin/bathy_threshold_calc.py
+bin/otsu_threshold
 bin/disp_avg
 lib/*.plugin
 plugins/platforms
