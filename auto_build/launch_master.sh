@@ -35,17 +35,7 @@ if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 skipTests=0
 if [ "$(echo $* | grep skip_tests)" != "" ]; then skipTests=1; echo "Will skip tests."; fi
 
-if [ "$USER" == "smcmich1" ]; then
-    mailto="scott.t.mcmichael@nasa.gov"
-    if [ "$localMode" -eq 0 ]; then
-        mailto="$mailto oleg.alexandrov@nasa.gov"
-    fi
-else
-    mailto="oleg.alexandrov@nasa.gov"
-    if [ "$localMode" -eq 0 ]; then
-        mailto="$mailto scott.t.mcmichael@nasa.gov"
-    fi
-fi
+mailto="oleg.alexandrov@nasa.gov"
 
 cd $HOME
 mkdir -p $buildDir
