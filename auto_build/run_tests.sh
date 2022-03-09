@@ -86,10 +86,10 @@ if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
 # This is a bugfix for a known issue with pytest.
 export LANG=en_US.UTF-8
 
-#bin/run_tests.pl $configFile > $outputFile 2>&1
-# Kill individual tests after four hours.  They should take much less time but maybe the system is busy.
 echo The envirnonment
 env
+
+# Run the tests with timeout. See StereoPipelineTest/README.txt for usage.
 cmd="pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile"
 echo Running: $cmd
 $cmd > $reportFile
