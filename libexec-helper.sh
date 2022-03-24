@@ -27,6 +27,10 @@ if [ "$(uname -s)" = "Linux" ]; then
     check_libc
 fi
 
+# Find the path to the Tcl library. Careful with paths having spaces.
+TCL_LIBRARY=$(cd "$TOPLEVEL"; tcl=$(find . -name init.tcl); tcl=$(dirname $tcl); cd $tcl; echo "$(pwd)")
+export TCL_LIBRARY="$TCL_LIBRARY"
+
 PROGRAM="${LIBEXEC}/${EXEC_NAME}"
 
 # Path to USGS CSM plugins
