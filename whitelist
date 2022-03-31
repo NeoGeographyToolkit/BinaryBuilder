@@ -55,6 +55,7 @@ bin/stereo_tri
 bin/stereo_blend
 bin/wv_correct
 bin/image_calc
+bin/image_align
 bin/pc_merge
 bin/pansharp
 bin/cam_test
