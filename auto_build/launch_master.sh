@@ -310,9 +310,17 @@ for buildMachine in $buildMachines; do
     if [ "$localVersion" != "" ]; then version=$localVersion; fi
 done
 if [ "$version" = "" ]; then
-    version="None" # A non-empty string
-    echo "Error: Could not determine the ASP version"
-    overallStatus="Fail"
+    # Try again
+    buildMachine=$(machine_name)
+    versionFile=$(version_file $buildMachine)
+    find_version $versionFile
+    version=$(cat $versionFile 2>/dev/null)
+    
+    if [ "$version" = "" ]; then
+        version="None" # A non-empty string
+        echo "Error: Could not determine the ASP version"
+        overallStatus="Fail"
+    fi
 fi
 echo Status after version check is $overallStatus
 

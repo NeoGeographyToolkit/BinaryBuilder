@@ -52,6 +52,12 @@ function version_file (){
     echo "version_"$1".txt"
 }
 
+function find_version () {
+    versionFile=$1
+    build_asp/install/bin/stereo -v 2>/dev/null | grep "NASA Ames Stereo Pipeline" | awk '{print $5}' >  $versionFile
+
+}
+
 function release_conf_file (){
     echo "release_"$1".conf"
 }
