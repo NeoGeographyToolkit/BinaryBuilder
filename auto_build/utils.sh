@@ -278,8 +278,9 @@ function upload_to_github {
         wipe_release $gh $repo $tag
     fi
 
-    echo $gh release -R $repo create $tag $binaries --title $tag --notes "$tag"
-    $gh release -R $repo create $tag $binaries --title $tag --notes "$tag"
+    notes="Recent additions log: https://stereopipeline.readthedocs.io/en/latest/news.html"
+    echo $gh release -R $repo create $tag $binaries --title $tag --notes "$notes"
+    $gh release -R $repo create $tag $binaries --title $tag --notes "$notes"
 
     # Record the status
     status=$?

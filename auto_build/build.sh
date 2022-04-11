@@ -104,8 +104,8 @@ fi
 
 # Dump the ASP version
 versionFile=$(version_file $buildMachine)
-echo "Saving the ASP version to file: $versionFile"
 find_version $versionFile
+echo "Saving the ASP version ($(cat $versionFile)) to file: $versionFile"
 
 # Make sure all maintainers can access the files.
 # - These commands fail on the VM but that is OK because we don't need them to work on that machine.
