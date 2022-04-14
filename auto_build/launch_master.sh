@@ -310,11 +310,15 @@ for buildMachine in $buildMachines; do
     if [ "$localVersion" != "" ]; then version=$localVersion; fi
 done
 if [ "$version" = "" ]; then
-    # Try again
+    echo Failed to find the version, trying again
+    echo Directory is $(pwd)
     buildMachine=$(machine_name)
     versionFile=$(version_file $buildMachine)
     find_version $versionFile
+    build_asp/install/bin/stereo -v 2 2>&1 # try to catch a bug with this
     version=$(cat $versionFile 2>/dev/null)
+    echo versionFile is $versionFile
+    echo version is $version
     
     if [ "$version" = "" ]; then
         version="None" # A non-empty string
