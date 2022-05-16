@@ -92,6 +92,7 @@ libexec/mapproject_single
 libexec/stereo_utils.py
 libexec/asp*.py
 bin/lasinfo
+bin/usgscsm_cam_test
 libexec/datum_convert_cpp
 libexec/htdp
 libexec/crs2crs2grid.py
