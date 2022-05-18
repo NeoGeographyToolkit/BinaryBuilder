@@ -304,9 +304,16 @@ if __name__ == '__main__':
                 break
             except Exception:
                 pass
-    ver = get_prog_version(build_env['GFORTRAN'])
-    if ver < MIN_FORTRAN_VERSION and (len(args)== 0 or args[0] != 'binarybuilder'):
-        die('Expecting ' + build_env['GFORTRAN'] + ' version >= ' + str(MIN_FORTRAN_VERSION))
+
+    ver = 0
+    try:
+        ver = get_prog_version(build_env['GFORTRAN'])
+        if ver < MIN_FORTRAN_VERSION and (len(args)== 0 or args[0] != 'binarybuilder'):
+            print("No gfortran found. Will not be able to compile Fortran programs.")
+            #die('Expecting ' + build_env['GFORTRAN'] + ' version >= ' + str(MIN_FORTRAN_VERSION))
+    except Exception:
+        print("No gfortran found. Will not be able to compile Fortran programs.")
+        build_env['GFORTRAN'] = 'no-fortran'
 
     print("%s" % build_env['PATH'])
 

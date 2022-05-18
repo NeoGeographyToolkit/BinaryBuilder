@@ -72,7 +72,7 @@ if [ "$isMac" != "" ]; then
     # The Conda compiler on the Mac produces a binary that stalls in stereo_pprc on multi-threaded code
     opt=""
 else
-    opt="--cc=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-g++ --gfortran=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gfortran"
+    opt="--cc=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-g++" # no gfortran. (--gfortran=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gfortran")
 fi
 
 # The path to the ASP dependencies 
