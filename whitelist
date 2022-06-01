@@ -77,7 +77,7 @@ bin/bathy_threshold_calc.py
 bin/otsu_threshold
 bin/corr_eval
 bin/disp_avg
-bin/gen_pcd
+bin/pc_filter
 lib/*.plugin
 plugins/platforms
 plugins/stereo/*
