@@ -78,6 +78,7 @@ bin/otsu_threshold
 bin/corr_eval
 bin/disp_avg
 bin/pc_filter
+bin/scale_bathy_mask.py
 lib/*.plugin
 plugins/platforms
 plugins/stereo/*
