@@ -117,5 +117,6 @@ bin/export_reconstruction_to_vw
 bin/export_matches_file_to_vw
 bin/build_reconstruction
 bin/theia_sfm.py
+bin/texrecon.py
 bin/voxblox_mesh
 bin/rig_calibrator
