@@ -116,6 +116,7 @@ bin/export_to_nvm_file
 bin/export_reconstruction_to_vw
 bin/export_matches_file_to_vw
 bin/build_reconstruction
+bin/undistort_image_texrecon
 bin/theia_sfm.py
 bin/texrecon.py
 bin/voxblox_mesh
