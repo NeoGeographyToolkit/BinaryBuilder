@@ -342,7 +342,7 @@ class DistManager(object):
     def bake(self, searchpath, baker = default_baker):
         '''Updates the rpath of all files to be relative to distdir and strips it of symbols.
            Also cleans up some junk in self.distdir and sets file permissions.'''
-        logger.debug('Baking list------------------------------------------')
+        logger.debug('Baking list')
         for filename in self.distlist:
             logger.debug('  %s' % filename)
         for filename in self.distlist:
@@ -355,7 +355,6 @@ class DistManager(object):
                     remove(i)
                 except Exception as e:
                     print(e)
-         
 
     def make_tarball(self, include = (), exclude = (), name = None):
         '''Tar up all the files we have written to self.distdir.
@@ -371,11 +370,16 @@ class DistManager(object):
         cmd = ['chmod', '-R', 'a+r', P.dirname(self.distdir)]
         run(*cmd)
         
-        # Enable read/execute on all files in libexec, bin, and stereo plugins
-        for filename in glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*')) + \
-                glob(self.distdir + "/plugins/stereo/*/bin/*"):
-            os.chmod(filename, 0o755) # note we use the octal value of 755
-            
+        # Enable read/execute on all files in libexec, bin, and stereo plugins.
+        # Also for all subdirectories.
+        rwx_list = glob(self.distdir.libexec('*')) + glob(self.distdir.bin('*')) + \
+                       glob(self.distdir + "/plugins/stereo/*/bin/*")
+        for dir_name in glob(self.distdir + "/*"):
+            if os.path.isdir(dir_name):
+                rwx_list.append(dir_name)
+        for path in rwx_list:
+            os.chmod(path, 0o755) # note we use the octal value of 755
+
         # Use the current modification time. This is not working by
         # default or some reason.
         cmd = ['touch', self.distdir]
@@ -720,7 +724,7 @@ def mergetree(src, dst, copyfunc):
     """Merge one directory into another.
 
     The destination directory may already exist.
-    If exception(s) occur, an Error is raised with a list of reasons.
+    If exception(s) occur, an error is raised with a list of reasons.
     """
     if not P.exists(dst):
         makedirs(dst)
@@ -906,7 +910,8 @@ def fix_install_paths(installdir, arch):
         st = os.stat(control)
         os.chmod(control, st.st_mode | stat.S_IREAD | stat.S_IWRITE)
 
-        # replace the temporary install directory with the one we're deploying to. (Modify file in-place)
+        # replace the temporary install directory with the one we're
+        # deploying to. (Modify file in-place)
         lines = []
         with open(control,'r') as f:
             lines = f.readlines()
