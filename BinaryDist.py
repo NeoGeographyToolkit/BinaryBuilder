@@ -288,11 +288,26 @@ class DistManager(object):
         dst = P.join(dst, src)
         self._add_file(src, dst)
         
-    def add_directory(self, src, dst=None, hardlink=False):
-        ''' Recursively copy a directory src to make it relative to directory dst.'''
+    def add_directory(self, src, dst = None, hardlink = False, subdirs = []):
+        '''
+        Recursively copy the files and dirs in src, and make them relative to directory dst.
+        That is:
+           cp -rf src/* dst/
+        Can also add only selected subdirectories.
+        '''
         if dst is None: dst = self.distdir
-        mergetree(src, dst, partial(self._add_file, hardlink=hardlink, add_deps=False))
+        if not P.exists(src):
+            raise Exception("Failed to find directory: " + src)
 
+        if len(subdirs) == 0:
+            # Copy everything in src
+            mergetree(src, dst, partial(self._add_file, hardlink=hardlink, add_deps=False))
+        else:
+            # Copy only selected subdirectories
+            for subdir in subdirs:
+                mergetree(src + "/" + subdir, dst + "/" + subdir,
+                          partial(self._add_file, hardlink=hardlink, add_deps=False))
+                
     def remove_deps(self, seq):
         ''' Filter deps out of the deplist '''
         for k in seq:

@@ -161,7 +161,8 @@ if __name__ == '__main__':
     if opt.asp_deps_dir == "":
         opt.asp_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/asp_deps')
     if not P.exists(opt.asp_deps_dir):
-        die('Cannot find the ASP dependencies directory installed with conda at ' + opt.asp_deps_dir + '. Specify it via --asp-deps-dir.')
+        die('Cannot find the ASP dependencies directory installed with conda at ' + \
+            opt.asp_deps_dir + '. Specify it via --asp-deps-dir.')
 
     # If the user specified a VW build, update some default options.
     if opt.vw_build:
@@ -228,6 +229,8 @@ if __name__ == '__main__':
         with open(opt.include, 'r') as f:
             for line in f:
                 line = line.strip()
+                if line == "":
+                    continue # skip empty lines
                 mgr.add_glob(line, [INSTALLDIR, opt.asp_deps_dir])
             
         # Add some platform specific bugfixes
@@ -363,15 +366,20 @@ if __name__ == '__main__':
                 if P.exists(lib_path):
                     mgr.add_library(lib_path, add_deps = False, is_plugin = True)
                     continue
-        
+
         print('Adding files in dist-add and python3.6')
+        mgr.add_directory('dist-add')
+        # ISIS expects a full Python distribution to be shipped. For
+        # now, that is achieved as follows.  A conda env named
+        # 'python3.6' is created having nothing but this Python
+        # version. That env is copied to the BinaryBuilder
+        # directory. Now we copy it to the build to ship. This is a
+        # fragile solution.  At least ship only some subdirs, not the
+        # whole python3.6 directory which appears to have more things
+        # than what we need.
+        mgr.add_directory('python3.6', subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
+
         sys.stdout.flush()
-        # To do: Don't depend on cwd
-        for dir in ['dist-add', 'python3.6']:
-            if P.exists(dir):
-                mgr.add_directory(dir)
-            else:
-                raise Exception('Failed to find in BinaryBuilder directory: ' + dir)
 
         print('\tRemoving system libs')
         sys.stdout.flush()
