@@ -254,6 +254,8 @@ class DistManager(object):
     def add_glob(self, pattern, prefixes):
         ''' Add a pattern to the tree. pattern must be relative to an
             installroot, provided in one of the prefixes.'''
+        if pattern == "":
+            raise Exception("Tried to add a glob with an empty pattern.")
         inpaths = []
         for prefix in prefixes:
             pat     = P.join(prefix, pattern)
