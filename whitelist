@@ -99,6 +99,7 @@ share/gdal
 share/epsg_csv
 share/geoids*
 share/proj
+share/theia_flags.txt
 share/wv_correct/*
 share/CASP-GO_params.xml
 version
@@ -122,4 +123,5 @@ bin/texrecon
 bin/voxblox_mesh
 bin/rig_calibrator
 bin/multi_stereo
+bin/fit_rpc
 
