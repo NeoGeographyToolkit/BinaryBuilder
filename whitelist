@@ -95,6 +95,7 @@ bin/usgscsm_cam_test
 libexec/datum_convert_cpp
 libexec/htdp
 libexec/crs2crs2grid.py
+libexec/rig_utils.py 
 share/gdal
 share/epsg_csv
 share/geoids*
@@ -124,4 +125,3 @@ bin/voxblox_mesh
 bin/rig_calibrator
 bin/multi_stereo
 bin/fit_rpc
-
