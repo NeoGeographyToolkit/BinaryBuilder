@@ -77,6 +77,8 @@ bin/disp_avg
 bin/pc_filter
 bin/scale_bathy_mask.py
 lib/*.plugin
+lib/*ImageIO*
+lib/*imageio*
 plugins/platforms
 plugins/stereo/*
 lib/libAsp*.[so,dylib]*
