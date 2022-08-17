@@ -6,6 +6,7 @@ bin/camera_calibrate
 bin/coverage_fraction
 bin/undistort_image
 bin/bundle_adjust
+bin/jitter_solve
 bin/cam2map4stereo.py
 bin/camera_footprint
 bin/colormap
