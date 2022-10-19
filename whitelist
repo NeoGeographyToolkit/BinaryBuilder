@@ -15,6 +15,10 @@ bin/dem_mosaic
 bin/dg_mosaic
 bin/disparitydebug
 bin/*gdal*
+bin/smoothe_mesh
+bin/fill_holes
+bin/simplify_mesh
+bin/rm_connected_components 
 bin/geodiff
 bin/hiedr2mosaic.py
 bin/hillshade
