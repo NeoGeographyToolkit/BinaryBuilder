@@ -48,7 +48,7 @@ rm -fv ./StereoPipeline*bz2
 # Set the ISIS env, needed for 'make check' in ASP. Do this only
 # on the Mac, as on other platforms we lack
 # all the needed ISIS data.
-isMac=$(uname -a|grep Darwin)
+isMac=$(uname -a | grep Darwin)
 if [ "$isMac" != "" ]; then
     isis=$(isis_file)
     if [ -f "$isis" ]; then
@@ -69,8 +69,7 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 echo "Building changed packages"
 opt=""
 if [ "$isMac" != "" ]; then
-    # The Conda compiler on the Mac produces a binary that stalls in stereo_pprc on multi-threaded code
-    opt=""
+    opt="--cc=$isisEnv/bin/clang --cxx=$isisEnv/bin/clang++"
 else
     opt="--cc=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-g++" # no gfortran. (--gfortran=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gfortran")
 fi
