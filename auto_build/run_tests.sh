@@ -90,33 +90,36 @@ echo The envirnonment
 env
 
 # Run the tests with timeout. See StereoPipelineTest/README.txt for usage.
-cmd="pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile"
+cmd="$HOME/miniconda3/envs/pytest/bin/python $HOME/miniconda3/envs/pytest/bin/pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile"
 echo Running: $cmd
+echo Current directory: $(pwd)
 $cmd > $reportFile
 test_status="$?"
 
-if [ "$machine" != "centos7" ]; then
-  # Ownership operation not needed on the VM.
-
-  # Tests are finished running, make sure all maintainers can access the files.
-  # These commands fail on the VM but that is OK because we don't need them to work on that machine.
-  chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
-  chmod -R g+rw $HOME/$testDir
-
-  chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
-  chmod -R g+rw $HOME/$buildDir
-
-  # Trying these again, for some reason the above does not work, but
-  # this apparently does.  I think it is because $HOME/$testDir is a
-  # symlink and now we are modifying the internals of the actual dir.
-  for d in . *; do 
-      chown -R :ar-gg-ti-asp-maintain $d
-      chmod -R g+rw $d
-  done
+if [ "$test_status" -ne 0 ]; then
+    echo "pytest command failed. See StereoPipelineTest/README.txt for how to " \
+        "install and use pytest."
+    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
+    exit
 fi
 
+# Turn this off. Some groups no longer exists on all machines.
+# To be revisited when more developers maintain this.
+# # Tests are finished running, make sure all maintainers can access the files.
+# chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
+# chmod -R g+rw $HOME/$testDir
+# chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
+# chmod -R g+rw $HOME/$buildDir
+# # Trying these again, for some reason the above does not work, but
+# # this apparently does.  I think it is because $HOME/$testDir is a
+# # symlink and now we are modifying the internals of the actual dir.
+# for d in . *; do 
+#     chown -R :ar-gg-ti-asp-maintain $d
+#     chmod -R g+rw $d
+# done
+
 if [ ! -f "$reportFile" ]; then
-    echo "Error: Final report file does not exist"
+    echo "Error: Final report file does not exist."
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
@@ -134,20 +137,16 @@ if [ "$(echo $machine | grep $masterMachine)" != "" ]; then
 fi
 $HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
 
-if [ $test_status -ne 0 ]; then
-    echo "pytest command failed."
-    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
-else
-    # Display the allowed error (actual error with extra tolerance) for each run
-    bin/print_allowed_error.pl $reportFile
-    
-    # Mark tests as done
-    echo "Reporting test results..."
-    failures=$(grep -i fail $reportFile)
-    if [ "$failures" = "" ]; then
+# Display the allowed error (actual error with extra tolerance) for each run
+bin/print_allowed_error.pl $reportFile
+
+# Mark tests as done
+echo "Reporting test results..."
+failures=$(grep -i fail $reportFile)
+if [ "$failures" = "" ]; then
         status="Success"
-    fi
-    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
-    echo "Finished running tests locally!"
 fi
+echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
+echo "Finished running tests locally!"
+
 
