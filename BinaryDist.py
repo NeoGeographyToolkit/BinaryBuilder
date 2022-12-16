@@ -637,12 +637,17 @@ def otool(filename):
             out.append(val.strip())
 
     assert len(out) > 0, 'Empty output for otool -D %s' % filename
-    assert len(out) < 3, 'Unexpected otool output: %s' % out
+
+    # Turn this off as being too verbose
+    #if len(out) > 2:
+    #    print("Suspect output produced by otool -D " + filename + ".\n")
+    #    print("Only two entries expected, but got: " + " ".join(out) + "\n")
+    #    print("Ignoring the extra entries.\n")
     
     this_soname = None
     this_sopath = None
 
-    if len(out) == 2:
+    if len(out) >= 2:
         this_sopath = out[1]
         this_soname = P.basename(this_sopath)
 
