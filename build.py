@@ -182,9 +182,11 @@ if __name__ == '__main__':
     os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + \
                          P.join(opt.build_root, 'install/bin') + os.pathsep + \
                          os.environ["PATH"]
-    if "LD_LIBRARY_PATH" not in os.environ: os.environ["LD_LIBRARY_PATH"] = ""
-    os.environ["LD_LIBRARY_PATH"] = P.join(opt.build_root, 'install/lib') + \
-                                    os.pathsep + os.environ["LD_LIBRARY_PATH"]
+
+    # This causes problems with system tools
+    #if "LD_LIBRARY_PATH" not in os.environ: os.environ["LD_LIBRARY_PATH"] = ""
+    #os.environ["LD_LIBRARY_PATH"] = P.join(opt.build_root, 'install/lib') + \
+    #                                os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
     MIN_CC_VERSION = 5.0
     MIN_FORTRAN_VERSION = 4.0
@@ -229,7 +231,7 @@ if __name__ == '__main__':
         MISC_DIR = P.join(opt.build_root, 'misc'),
         PKG_CONFIG_PATH = P.join(opt.build_root, 'install', 'lib', 'pkgconfig'),
         PATH = os.environ['PATH'],
-        LD_LIBRARY_PATH = os.environ['LD_LIBRARY_PATH'],
+        #LD_LIBRARY_PATH = os.environ['LD_LIBRARY_PATH'],
         FAST = str(int(opt.fast)),
         SKIP_TESTS = str(int(opt.skip_tests)),
         )
@@ -241,9 +243,9 @@ if __name__ == '__main__':
         build_env['LIBRARY_PATH'] = opt.library_path
 
     # Bugfix, add compiler's libraries to LD_LIBRARY_PATH.
-    if 'LD_LIBRARY_PATH' not in build_env:
-        build_env['LD_LIBRARY_PATH'] = ""
-    build_env['LD_LIBRARY_PATH'] += ":" + path_to_libs
+    #if 'LD_LIBRARY_PATH' not in build_env:
+    #    build_env['LD_LIBRARY_PATH'] = ""
+    #build_env['LD_LIBRARY_PATH'] += ":" + path_to_libs
 
     # Check compiler version for compilers we hate
     output = run(build_env['CC'],'--version')

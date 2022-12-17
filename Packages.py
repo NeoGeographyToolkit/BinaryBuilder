@@ -365,37 +365,43 @@ class curl(Package):
         super(curl,self).configure(
             with_=w, without=wo, disable=['static','ldap','ldaps'])
 
-class liblas(CMakePackage):
-    src     = 'http://download.osgeo.org/liblas/libLAS-1.8.1.tar.bz2'
-    chksum  = 'e30c1efb3df4bcdc7119d7c42638e7a01b14f236'
-    patches = 'patches/liblas'
+class liblas(GITPackage, CMakePackage):
+    src     = 'git@github.com:oleg-alexandrov/libLAS.git'
+    #chksum  = 'e30c1efb3df4bcdc7119d7c42638e7a01b14f236'
+    #patches = 'patches/liblas'
 
     @stage
     def configure(self):
         # Remove the pedantic flag. Latest boost is not compliant.
-        self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
+        #self.helper('sed', '-ibak', '-e', 's/-pedantic//g', 'CMakeLists.txt')
+        # Make the compiler C++11
+        #cmd=['perl', '-pi', '-e', '"s#-std=c\+\+98\s+-ansi#-std=c++11#g"', 'CMakeLists.txt']
+        #self.helper(*cmd)
+
         asp_deps_dir = self.env['ASP_DEPS_DIR']
 
         # bugfix for linux
         asp_deps_dir = self.env['ASP_DEPS_DIR']
         boost_dir = P.join(asp_deps_dir,'include')
         self.env['CXXFLAGS'] += ' -I' + boost_dir
-        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma -pthread' % (asp_deps_dir, asp_deps_dir)
+        self.env['LDFLAGS'] += ' -pthread -Wl,-rpath -Wl,%s/lib -L%s/lib -llzma -pthread -llz4 -lgeos_c -lqhull_r -lexpat -lproj' % (asp_deps_dir, asp_deps_dir)
 
         ext = lib_ext(self.arch.os)
         super(liblas, self).configure(other=[
             '-DCMAKE_CXX_FLAGS=-O3',
             '-DCMAKE_C_FLAGS=-O3',
+            '-DJPEG_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
+            '-DJPEG_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libjpeg'+ ext),
             '-DBoost_INCLUDE_DIR=' + boost_dir,
             #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
             #'include','boost-'+boost.version),            
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DBoost_LIBRARY_DIRS=' + P.join(asp_deps_dir,'lib'),
-            '-DWITH_LASZIP=true',
+            '-DWITH_LASZIP=ON',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            '-DWITH_GDAL=true',
+            '-DWITH_GDAL=ON',
             '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            '-DWITH_GEOTIFF=true',
+            '-DWITH_GEOTIFF=ON',
             '-DGEOTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             '-DTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             '-DTIFF_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libtiff'+ ext),
@@ -444,11 +450,11 @@ class laszip(CMakePackage):
             #'include','boost-'+boost.version),            
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DBoost_LIBRARY_DIRS=' + P.join(asp_deps_dir,'lib'),
-            '-DWITH_LASZIP=true',
+            '-DWITH_LASZIP=ON',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            '-DWITH_GDAL=true',
+            '-DWITH_GDAL=ON',
             '-DGDAL_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            '-DWITH_GEOTIFF=true',
+            '-DWITH_GEOTIFF=ON',
             '-DGEOTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             '-DTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             '-DTIFF_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libtiff'+ ext),
@@ -479,7 +485,7 @@ class geoid(Package):
             flag = '-shared'
             ext  = '.so'
         
-        self.helper(self.env['GFORTRAN'], flag, '-o', 'libegm2008'+ext, 'interp_2p5min.o')
+        self.helper(self.env['GFORTRAN'], flag, '-o', 'libegm2008' + ext, 'interp_2p5min.o')
 
     def install(self):
         cmd = ['cp'] + glob(P.join(self.workdir, 'libegm2008.*')) \
@@ -1339,9 +1345,9 @@ class ceres(CMakePackage):
             ])
 
 class libnabo(GITPackage, CMakePackage):
-    src = 'https://github.com/ethz-asl/libnabo.git'
-    patches = 'patches/libnabo'
-    chksum = '2df86e0'
+    src = 'git@github.com:oleg-alexandrov/libnabo.git'
+    #patches = 'patches/libnabo' # no patches
+    #chksum = '2df86e0' # use latest version
 
     def configure(self):
 
@@ -1359,10 +1365,9 @@ class libnabo(GITPackage, CMakePackage):
             '-DEIGEN_INCLUDE_DIR=' + P.join(asp_deps_dir,'include/eigen3'),
             '-DBoost_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
-            #'-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
+            '-DBoost_DIR=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DSHARED_LIBS=ON',
             '-DCMAKE_BUILD_TYPE=Release',
-            '-DCMAKE_PREFIX_PATH=' + installDir,
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
             ]
         
@@ -1376,20 +1381,8 @@ class libnabo(GITPackage, CMakePackage):
         super(libnabo, self).configure(other=options)
 
 class libpointmatcher(GITPackage, CMakePackage):
-    src   = 'https://github.com/ethz-asl/libpointmatcher'
-    #src   = 'https://github.com/oleg-alexandrov/libpointmatcher.git'
-    chksum = 'bcf4b04'
-    # We apply a non-trivial patch to libpointmatcher to make
-    # it a bit more efficient. These changes seem to be custom
-    # enough that would not make sense to be merged upstream.
-    patches = 'patches/libpointmatcher'
-
-    # A patch can be re-generated with
-    # f=patches/libpointmatcher/0001_custom_lib_changes.patch 
-    # git diff hash1 hash2 > $f 
-    # perl -pi -e "s# (a|b)/# #g" $f
-    # perl -pi -e "s#--- pointmatcher#--- libpointmatcher/pointmatcher#g" $f
-    # perl -pi -e "s#\+\+\+ pointmatcher#+++ libpointmatcher/pointmatcher#g" $f
+    src   = 'https://github.com/oleg-alexandrov/libpointmatcher.git'
+    # chksum = 'bcf4b04' # no checksum; use latest
 
     def configure(self):
         installDir = self.env['INSTALL_DIR']
@@ -1446,8 +1439,8 @@ class libpointmatcher(GITPackage, CMakePackage):
 
 # FastGlobalRegistration
 class fgr(GITPackage, CMakePackage):
-    src   = 'https://github.com/IntelVCL/FastGlobalRegistration.git'
-    chksum = 'bfcb9f9'
+    src   = 'git@github.com:oleg-alexandrov/FastGlobalRegistration.git'
+    # chksum = 'bfcb9f9' # comment this out, use the latest version
 
     @stage
     def configure(self):
@@ -1457,7 +1450,7 @@ class fgr(GITPackage, CMakePackage):
             + '-I' + P.join(asp_deps_dir,'include') + ' '
             + '-I' + P.join(asp_deps_dir,'include/eigen3') + ' '
             + '-L' + P.join(asp_deps_dir,'lib') + ' -lflann_cpp'
-            + ' -O3',
+            + ' -O3 -std=c++11',
             '-DCMAKE_C_FLAGS=-O3',
             '-DFastGlobalRegistration_LINK_MODE=SHARED'
             ]
@@ -1471,13 +1464,11 @@ class fgr(GITPackage, CMakePackage):
         self.helper('mkdir', '-p', destDir)
         self.helper('cp', P.join(self.workdir, 'FastGlobalRegistration/app.h'), destDir)
 
-        # Install the library
-        if self.arch.os == 'osx':
-            ext  = '.dylib'
-        else:
-            ext  = '.so'
-        lib = P.join(self.builddir, 'FastGlobalRegistration', 'libFastGlobalRegistrationLib'+ext)
-        self.helper('cp', lib,  P.join(self.env['INSTALL_DIR'], 'lib'))
+        # Copy the library
+        lib = P.join(self.builddir, 'FastGlobalRegistration', 'libFastGlobalRegistrationLib')
+        cmd = ['cp'] + glob(lib + '*') + [P.join(self.env['INSTALL_DIR'], 'lib')]
+        print("cmd is ", cmd)
+        self.helper(*cmd)
         
 # We would like to fetch this very source code. This is used
 # in the nightly builds and regressions.
