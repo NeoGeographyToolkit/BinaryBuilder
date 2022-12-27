@@ -1,6 +1,5 @@
 IsisPreferences
 bin/add_spot_rpc
-bin/convert
 bin/camera_solve
 bin/camera_calibrate
 bin/coverage_fraction

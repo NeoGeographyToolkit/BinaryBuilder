@@ -334,14 +334,14 @@ if __name__ == '__main__':
         common_exec = []
     else:
         common_exec = ["make", "tar", "ln", "cp", "csh", "sed", "bzip2",
-                       "unzip", "patch", "git", "curl"]
+                       "unzip", "patch", "git", "curl", "pbzip2"]
         
         if arch.os == 'linux':
             common_exec.extend( ["libtool"] )
         else:
             common_exec.extend( ["install_name_tool"] )
             
-    compiler_exec = [ build_env['CC'],build_env['CXX'],build_env['GFORTRAN'] ]
+    compiler_exec = [build_env['CC'], build_env['CXX'], build_env['GFORTRAN']]
     missing_exec = []
     for program in common_exec:
         if not program_exists(program):

@@ -57,11 +57,9 @@ def get_platform(pkg=None):
     system  = platform.system()
     machine = platform.machine()
     p = namedtuple('Platform', 'os bits osbits system machine prettyos dist_name dist_version')
-
     if system == 'Linux':
-        dist = platform.linux_distribution(full_distribution_name=0)
-        name  = str(dist[0]).replace("/", "_") # bugfix for Ubuntu, replace slashes
-        ver  = str(dist[1]).replace("/", "_")
+        name  = 'Linux'
+        ver  = ''
     elif system == 'Darwin':
         name = 'Darwin'
         ver  = platform.mac_ver()[0]
@@ -602,8 +600,10 @@ def ldd(filename, search_path):
         os.environ["LD_LIBRARY_PATH"] = ""
 
     # Help ldd find the libraries in the desired location
-    orig_path =  os.environ["LD_LIBRARY_PATH"]
-    os.environ["LD_LIBRARY_PATH"] = search_path
+    # Turning this off recently as it causes isses with
+    # system tools.
+    #orig_path =  os.environ["LD_LIBRARY_PATH"]
+    #os.environ["LD_LIBRARY_PATH"] = search_path
     
     for line in run('ldd', filename, output=True).split('\n'):
         m = r.search(line)
@@ -611,7 +611,7 @@ def ldd(filename, search_path):
             libs[m.group(1)] = (None if m.group(2) == 'not' else m.group(2))
 
     # Restore the orginal environment
-    os.environ["LD_LIBRARY_PATH"] = orig_path
+    #os.environ["LD_LIBRARY_PATH"] = orig_path
     
     return libs
 

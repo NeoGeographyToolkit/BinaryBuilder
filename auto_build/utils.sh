@@ -17,7 +17,7 @@ function prepend_to_path () {
 }
 
 # Ensure this is changed when the environment changes
-export isisEnv=$HOME/miniconda3/envs/isis6
+export isisEnv=$HOME/miniconda3/envs/isis7
 
 # TODO(oalexan1): Sort this out. 
 prepend_to_path $isisEnv/bin:$HOME/miniconda3/envs/tools/bin:$HOME/../oalexan1/miniconda3/envs/sparse_disp/bin:/home/smcmich1/programs/latexmk/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/usr/local/bin:/home/oalexan1/.local/bin/pip

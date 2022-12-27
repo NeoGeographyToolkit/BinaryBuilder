@@ -14,7 +14,7 @@ from BinaryDist import grep, DistManager, DistPrefix, run
 import time, logging, copy, re, os
 import os.path as P
 from optparse import OptionParser
-from BinaryBuilder import die
+from BinaryBuilder import die, program_exists
 from BinaryDist import get_platform, required_libs
 from glob import glob
 
@@ -36,6 +36,8 @@ LIB_SYSTEM_LIST = '''
     QuickTime.framework/Versions/A/QuickTime
     Security.framework/Versions/A/Security
     SystemConfiguration.framework/Versions/A/SystemConfiguration
+    System/Library/Frameworks/GSS.framework/Versions/A/GSS
+    GSS.framework/Versions/A/GSS
     vecLib.framework/Versions/A/vecLib
     CoreMedia.framework/Versions/A/CoreMedia
     AVFoundation.framework/Versions/A/AVFoundation
@@ -52,6 +54,10 @@ LIB_SYSTEM_LIST = '''
     VideoDecodeAcceleration.framework/Versions/A/VideoDecodeAcceleration
     AudioToolbox.framework/Versions/A/AudioToolbox
     VideoToolbox.framework/Versions/A/VideoToolbox
+    Metal.framework/Versions/A/Metal
+    IOSurface.framework/Versions/A/IOSurface
+    ColorSync.framework/Versions/A/ColorSync
+    GSS.framework/Versions/A/GSS
     
     libobjc.A.dylib
     libSystem.B.dylib
@@ -79,17 +85,25 @@ LIB_SYSTEM_LIST = '''
     libsystemd.so
 '''.split()
 
+SKIP_IF_NOT_FOUND = []
+
 if get_platform().os == 'linux':
     # Exclude this from shipping for Linux, but not for Mac, as then things don't work
     LIB_SYSTEM_LIST += ['libresolv.so', 'libresolv-']
+else:
+    # A recent OSX does not have this, and does not seem necessary
+    SKIP_IF_NOT_FOUND += ['libXplugin.1.dylib']
 
 # Lib files that we want to include that don't get pickep up automatically.
-MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libMagickCore-6.Q16 libMagickWand-6.Q16 libicuuc libswresample libx264 libcsmapi libproj libproj.0 libGLX libGLdispatch'''.split()
+MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libicuuc libswresample libx264 libcsmapi libproj libproj.0 libGLX libGLdispatch'''.split()
 
 # Prefixes of libs that we always ship
 LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb.'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
 
-if get_platform().os != 'linux':
+if get_platform().os == 'linux':
+    MANUAL_LIBS += ['libnettle', 'libhogweed', 'libvorbis', 'libvorbisenc',
+                    'libp11-kit', 'libopus', 'libFLAC']
+else:
     # Need to have these on the Mac
     LIB_SHIP_PREFIX += ['libresolv.', 'libcups.', 'libc++abi.', 'libcrypto.']
 
@@ -182,6 +196,14 @@ if __name__ == '__main__':
     if "PATH" not in os.environ: os.environ["PATH"] = ""
     os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + os.environ["PATH"]
 
+    common_exec = ['bzip2', 'pbzip2', 'tar']
+    missing_exec = []
+    for program in common_exec:
+        if not program_exists(program):
+            missing_exec.append(program)
+    if missing_exec:
+        die('Missing required executables for building. You need to install: ', missing_exec)
+
     logging.basicConfig(level=opt.loglevel)
 
     lib_ext = '.dylib'
@@ -199,21 +221,23 @@ if __name__ == '__main__':
         ISISROOT   = P.join(INSTALLDIR)
         SEARCHPATH = [INSTALLDIR.lib(), opt.asp_deps_dir + '/lib',
                       opt.asp_deps_dir + '/x86_64-conda-linux-gnu/sysroot/usr/lib64',
-                      '/usr/lib/x86_64-linux-gnu', '/usr/lib']
+                      opt.asp_deps_dir + '/lib/pulseaudio',
+                      '/usr/lib/x86_64-linux-gnu', '/usr/lib', '/opt/X11/lib']
         print('Search path = ' + str(SEARCHPATH))
 
-        # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
-        # work correctly on Ubuntu 13.10.
         if get_platform().os == 'linux':
             if "PATH" not in os.environ:
                 os.environ["PATH"] = ""
             os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + \
                                  os.environ["PATH"]
 
-            if "LD_LIBRARY_PATH" not in os.environ:
-                os.environ["LD_LIBRARY_PATH"] = ""
-            os.environ["LD_LIBRARY_PATH"] = INSTALLDIR.lib() + \
-                                            os.pathsep + os.environ["LD_LIBRARY_PATH"]
+        # This fails on recent platforms
+        # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
+        # work correctly on Ubuntu 13.10.
+#             if "LD_LIBRARY_PATH" not in os.environ:
+#                 os.environ["LD_LIBRARY_PATH"] = ""
+#             os.environ["LD_LIBRARY_PATH"] = INSTALLDIR.lib() + \
+#                                             os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
         if opt.isisroot is not None:
             ISISROOT = opt.isisroot
@@ -349,12 +373,16 @@ if __name__ == '__main__':
         if mgr.deplist:
             if not opt.force_continue:
                 # For each lib, print who uses it:
+                willThrow = False
                 for lib in mgr.deplist.keys():
                     if lib in mgr.parentlib.keys():
-                        print("Library " + lib + " is not found, and is needed by " \
+                        print("Library '" + lib + "' is not found, and is needed by " \
                               + " ".join(mgr.parentlib[lib]) + "\n" )
-                raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % \
-                                '\n\t'.join(mgr.deplist.keys()))
+                        if lib not in SKIP_IF_NOT_FOUND:
+                            willThrow = True
+                if willThrow:
+                    raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % \
+                                    '\n\t'.join(mgr.deplist.keys()))
             else:
                 print("Warning: missing libs: " + '\n\t'.join(mgr.deplist.keys()) + "\n")
                 
@@ -367,17 +395,16 @@ if __name__ == '__main__':
                     mgr.add_library(lib_path, add_deps = False, is_plugin = True)
                     continue
 
-        print('Adding files in dist-add and python3.6')
+        print('Adding files in dist-add and python_isis7')
         mgr.add_directory('dist-add')
-        # ISIS expects a full Python distribution to be shipped. For
-        # now, that is achieved as follows.  A conda env named
-        # 'python3.6' is created having nothing but this Python
-        # version. That env is copied to the BinaryBuilder
-        # directory. Now we copy it to the build to ship. This is a
-        # fragile solution.  At least ship only some subdirs, not the
-        # whole python3.6 directory which appears to have more things
-        # than what we need.
-        mgr.add_directory('python3.6', subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
+        # now, that is achieved as follows. A conda env named
+        # 'python_isis7' is created having nothing but versions of
+        # python and numpy compatible with this ISIS version. This is
+        # added to the package to ship. See
+        # StereoPipeline/RELEASEGUIDE for more details.  Ship only
+        # some subdirs, not everything in that directory.
+        mgr.add_directory(os.environ['HOME'] + '/miniconda3/envs/python_isis7',
+                          subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
 
         sys.stdout.flush()
 
@@ -397,7 +424,7 @@ if __name__ == '__main__':
             debug_list_name = debuglist.name
         except:
             pass
-        
+
         mgr.make_tarball(exclude = [debug_list_name])
         if P.getsize(debug_list_name) > 0 and opt.debug_build:
             mgr.make_tarball(include = debug_list_name, name = '%s-debug.tar.bz2' % mgr.tarname)

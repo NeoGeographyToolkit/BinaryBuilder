@@ -393,9 +393,6 @@ class liblas(GITPackage, CMakePackage):
             '-DJPEG_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             '-DJPEG_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libjpeg'+ ext),
             '-DBoost_INCLUDE_DIR=' + boost_dir,
-            #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
-            #'include','boost-'+boost.version),            
-            #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DBoost_LIBRARY_DIRS=' + P.join(asp_deps_dir,'lib'),
             '-DWITH_LASZIP=ON',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
@@ -406,8 +403,6 @@ class liblas(GITPackage, CMakePackage):
             '-DTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
             '-DTIFF_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libtiff'+ ext),
             '-DZLIB_LIBRARY_RELEASE=' + P.join(asp_deps_dir,'lib', 'libz'+ ext),
-            #'-DGEOTIFF_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
-            #'-DBoost_USE_STATIC_LIBS=OFF',
             '-DBUILD_SHARED_LIBS=ON',
             '-DBoost_NO_BOOST_CMAKE=OFF',
             '-DCMAKE_VERBOSE_MAKEFILE=ON',
@@ -435,9 +430,6 @@ class laszip(CMakePackage):
     @stage
     def configure(self):
         asp_deps_dir = self.env['ASP_DEPS_DIR']
-
-        # bugfix for linux
-        asp_deps_dir = self.env['ASP_DEPS_DIR']
         boost_dir = P.join(asp_deps_dir,'include')
         self.env['CXXFLAGS'] += ' -I' + boost_dir + ' -pthread'
 
@@ -446,9 +438,6 @@ class laszip(CMakePackage):
             '-DCMAKE_CXX_FLAGS=-O3',
             '-DCMAKE_C_FLAGS=-O3',
             '-DBoost_INCLUDE_DIR=' + boost_dir,
-            #'-DBoost_INCLUDE_DIR='  + P.join(self.env['INSTALL_DIR'],
-            #'include','boost-'+boost.version),            
-            #'-DBoost_LIBRARY_DIRS=' + P.join(self.env['INSTALL_DIR'],'lib'),
             '-DBoost_LIBRARY_DIRS=' + P.join(asp_deps_dir,'lib'),
             '-DWITH_LASZIP=ON',
             '-DLASZIP_INCLUDE_DIR=' + P.join(self.env['INSTALL_DIR'],'include'),
@@ -468,6 +457,29 @@ class laszip(CMakePackage):
             '-DBoost_DETAILED_FAILURE_MSG=ON',
             '-DBoost_NO_SYSTEM_PATHS=ON' # don't use system boost
             ])
+
+class libelas(GITPackage, CMakePackage):
+    src = 'git@github.com:NeoGeographyToolkit/libelas.git'
+
+    @stage
+    def configure(self):
+        asp_deps_dir = self.env['ASP_DEPS_DIR']
+        ext = lib_ext(self.arch.os)
+        super(libelas, self).configure(other=[
+            '-DCMAKE_CXX_FLAGS=-O3',
+            '-DCMAKE_C_FLAGS=-O3',
+            '-DTIFF_INCLUDE_DIR=' + P.join(asp_deps_dir,'include'),
+            '-DTIFF_LIBRARY_RELEASE=' + P.join(asp_deps_dir, 'lib', 'libtiff' + ext),
+            ])
+
+    @stage
+    def install(self):
+        # Copy the 'elas' tool to the plugins subdir meant for it
+        prog = 'elas'
+        bindir = P.join(self.env['INSTALL_DIR'], 'plugins', 'stereo', 'elas', 'bin')
+        self.helper('mkdir', '-p', bindir)
+        cmd = ['cp', '-fv', P.join(self.builddir, 'elas'), bindir]
+        self.helper(*cmd)
 
 class geoid(Package):
     src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline/releases/download/geoid1.0/geoids.tgz'
@@ -664,6 +676,7 @@ class stereopipeline(GITPackage, CMakePackage):
             print("Skipping tests in fast mode.")
         else:
             cmd = ('make', 'gtest_all')
+            # TODO(oalexan1): Replace buildDir below with self.builddir?
             buildDir = os.path.join(self.workdir, 'build_binarybuilder')
             self.helper(*cmd, cwd=buildDir)
 
