@@ -80,6 +80,7 @@ check_libc() {
 set_lib_paths() {
     local add_paths="$ISISROOT/lib:$ISISROOT/3rdParty/lib:${1}"
     export GDAL_DATA="${TOPLEVEL}/share/gdal"
+    export PROJ_LIB="${TOPLEVEL}/share/proj"
     export QT_PLUGIN_PATH="${TOPLEVEL}/plugins"
     case $(uname -s) in
         Linux)
