@@ -100,7 +100,7 @@ bin/lasinfo
 bin/usgscsm_cam_test
 libexec/datum_convert_cpp
 libexec/htdp
-libexec/crs2crs2grid.py
+bin/crs2crs2grid.py
 libexec/rig_utils.py 
 share/gdal
 share/epsg_csv
