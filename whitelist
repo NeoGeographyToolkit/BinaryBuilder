@@ -60,7 +60,6 @@ bin/image_align
 bin/pc_merge
 bin/pansharp
 bin/cam_test
-bin/datum_convert
 bin/convert_pinhole_model
 bin/aster2asp
 bin/icebridge_kmz_to_csv.py
