@@ -53,11 +53,7 @@ A. Produce a Complete Binary Build
 All the ASP dependencies can be fetched with conda. If necessary, conda
 can also be used to rebuild them. This is described at
 
-  https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/INSTALLGUIDE.rst
-
-and
-
-  https://github.com/NeoGeographyToolkit/StereoPipeline/blob/master/docs/conda_build.rst
+  https://stereopipeline.readthedocs.io/en/latest/building_asp.html
 
 Then, VisionWorkbench and Stereo Pipeline can be built either as
 described there, or using the the scripts in this repository. 
@@ -110,17 +106,11 @@ Once the build is successful you should make a distribution tarball to
 store the completed build. 
 
 ASP has to ship a full Python runtime which ISIS depends on. That has
-to be prepared before the build is packaged. Create it with conda as
-follows::
+to be prepared before the build is packaged. How to do that is
+explained in:
 
-    conda create -n python3.6 python=3.6
+  StereoPipeline/RELEASEGUIDE
 
-Then copy the obtained directory, which may be named::
-
-    $HOME/miniconda3/envs/python3.6
-
-to the BinaryBuilder directory.
-        
 Then package the build by running from the BinaryBuilder directory::
 
     ./make-dist.py last-completed-run/install
