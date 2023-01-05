@@ -106,6 +106,7 @@ if get_platform().os == 'linux':
 else:
     # Need to have these on the Mac
     LIB_SHIP_PREFIX += ['libresolv.', 'libcups.', 'libc++abi.', 'libcrypto.']
+    MANUAL_LIBS += ['libintl']
 
 USGSCSM_PLUGINS = ['libusgscsm']
 
