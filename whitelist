@@ -80,6 +80,7 @@ bin/disp_avg
 bin/pc_filter
 bin/scale_bathy_mask.py
 lib/*.plugin
+lib/gdalplugins
 lib/*ImageIO*
 lib/*imageio*
 plugins/platforms
