@@ -79,9 +79,18 @@ check_libc() {
 
 set_lib_paths() {
     local add_paths="$ISISROOT/lib:$ISISROOT/3rdParty/lib:${1}"
+
+    # PROJ and GDAL
+    export PROJ_LIB="${TOPLEVEL}/share/proj" # old api
+    export PROJ_DATA="${TOPLEVEL}/share/proj" # new api
     export GDAL_DATA="${TOPLEVEL}/share/gdal"
-    export PROJ_LIB="${TOPLEVEL}/share/proj"
+    # TODO(oalexan1): Make sure GDAL plugins are always in gdalplugins, and then remove
+    # the second option.
+    export GDAL_DRIVER_PATH="${TOPLEVEL}/lib/gdalplugins:${TOPLEVEL}/lib:${GDAL_DRIVER_PATH}"
+
+    # Qt
     export QT_PLUGIN_PATH="${TOPLEVEL}/plugins"
+    
     case $(uname -s) in
         Linux)
             export LD_LIBRARY_PATH="${add_paths}${LD_LIBRARY_PATH:+:}$LD_LIBRARY_PATH"
