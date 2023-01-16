@@ -124,6 +124,7 @@ bin/export_to_nvm_file
 bin/export_reconstruction_to_vw
 bin/export_matches_file_to_vw
 bin/build_reconstruction
+bin/view_reconstruction
 bin/undistort_image_texrecon
 bin/theia_sfm
 bin/texrecon
