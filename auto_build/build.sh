@@ -107,9 +107,10 @@ find_version $versionFile
 echo "Saving the ASP version ($(cat $versionFile)) to file: $versionFile"
 
 # Make sure all maintainers can access the files.
-# - These commands fail on the VM but that is OK because we don't need them to work on that machine.
-chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
-chmod -R g+rw $HOME/$buildDir
+# Turn this off as there is only one maintainer,
+# and they fail on some machines
+#chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
+#chmod -R g+rw $HOME/$buildDir
 
 echo "Making the distribution..."
 ./make-dist.py last-completed-run/install --asp-deps-dir $isisEnv
@@ -144,7 +145,8 @@ rm -f StereoPipeline*debug.tar.bz2
 echo "$asp_tarball build_done Success" > $HOME/$buildDir/$statusFile
 
 # Last time make sure the permissions are right
-chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
-chmod -R g+rw $HOME/$buildDir
+# Turn this off as these fail on some machines
+#chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
+#chmod -R g+rw $HOME/$buildDir
 
 echo "Finished running build.sh locally!"

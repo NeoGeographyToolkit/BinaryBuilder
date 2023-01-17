@@ -48,6 +48,12 @@ doc=../dist-add/asp_book.pdf
 if [ ! -f "$doc" ]; then echo "Could not find $(pwd)/$doc"; exit 1; fi
 cp -f $doc $out 
 
+# This is a hack for Linux to get the right libGL
+# TODO(oalexan1): Figure out a better approach
+if [ "$(uname -s | grep Linux)" != "" ]; then 
+    rsync -az /lib64/libGL.so* $out/lib
+fi
+
 # Pack back
 tar cjf $out_z $out
 if [ "$?" -ne 0 ]; then echo "Packing back failed"; exit 1; fi
