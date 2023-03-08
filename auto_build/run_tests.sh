@@ -97,8 +97,7 @@ $cmd > $reportFile
 test_status="$?"
 
 if [ "$test_status" -ne 0 ]; then
-    echo "pytest command failed. See StereoPipelineTest/README.txt for how to " \
-        "install and use pytest."
+    echo "pytest command failed. See StereoPipelineTest/README.txt for how to install and use pytest."
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit
 fi
