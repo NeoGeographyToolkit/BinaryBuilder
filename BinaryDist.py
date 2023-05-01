@@ -144,6 +144,7 @@ def doctest_on(os):
 def default_baker(filename, distdir, searchpath):
     '''Updates a files rpath to be relative to distdir and strips it of symbols'''
     if not is_binary(filename):
+        fix_paths(filename)
         return
     set_rpath(filename, distdir, searchpath)
 
@@ -814,6 +815,33 @@ def save_elf_debug(filename):
         if P.exists(debug):
             remove(debug)
 
+def fix_paths(filename):
+    '''
+    Fix paths of the form /home/.../ to be relative to /usr/. This way
+    the build environment paths won't leak. This will apply only to text files.
+    '''
+    # Read all lines from the file
+    try:
+        with open(filename, 'r') as f:
+            lines = f.readlines()
+    except Exception as e:
+        # In case the file cannot be read, just return
+        return
+
+    # Iterate through all lines and replace the paths
+    for count in range(len(lines)):
+        while True:
+            # Use a loop since there can be multiple matches in a single line
+            m = re.match("^(.*?)(\/home[\/\w\s]+\/)(bin|lib|libexec|include|share|plugins|appdata)(.*?\n)", lines[count])
+            if m:
+                lines[count] = m.group(1) + "/usr/" + m.group(3) + m.group(4)
+            else:
+                break
+
+    # Write all lines back to the file
+    with open(filename, 'w') as f:
+        f.writelines(lines)
+        
 def set_rpath(filename, toplevel, searchpath, relative_name=True):
     '''For each input file, set the rpath to contain all the input
        search paths to be relative to the top level.'''
@@ -989,9 +1017,10 @@ def fix_install_paths(installdir, arch):
                 except:
                     print('  Failed %s' % P.basename(library))
 
-    print('Fixing binaries')
-    for binary in glob(P.join(installdir,'bin','*')):
-        if not is_binary(binary):
+    print('Fixing files in bin/')
+    for file in glob(P.join(installdir,'bin','*')):
+        if not is_binary(file):
+            fix_paths(file)
             continue
         print('  %s' % P.basename(binary))
         try:
