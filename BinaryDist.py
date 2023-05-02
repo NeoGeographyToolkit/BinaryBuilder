@@ -832,9 +832,9 @@ def fix_paths(filename):
     for count in range(len(lines)):
         while True:
             # Use a loop since there can be multiple matches in a single line
-            m = re.match("^(.*?)(\/home[\/\w\s]+\/)(bin|lib|libexec|include|share|plugins|appdata)(.*?\n)", lines[count])
+            m = re.match("^(.*?)(\/home|\/Users)([\/\w\s]+\/)(bin|lib|libexec|include|share|plugins|appdata)(.*?\n)", lines[count])
             if m:
-                lines[count] = m.group(1) + "/usr/" + m.group(3) + m.group(4)
+                lines[count] = m.group(1) + "/usr/" + m.group(4) + m.group(5)
             else:
                 break
 
