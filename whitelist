@@ -134,6 +134,6 @@ bin/multi_stereo
 bin/fit_rpc
 bin/sfm_submap
 bin/sfm_merge
+bin/sat_sim
 libexec/list_timestamps
 libexec/extract_bag
-
