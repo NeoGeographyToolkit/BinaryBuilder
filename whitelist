@@ -108,6 +108,7 @@ share/geoids*
 share/proj
 share/theia_flags.txt
 share/wv_correct/*
+share/sfm_view/*
 share/CASP-GO_params.xml
 version
 AUTHORS.rst
