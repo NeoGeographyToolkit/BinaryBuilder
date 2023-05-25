@@ -84,6 +84,8 @@ lib/gdalplugins
 lib/*ImageIO*
 lib/*imageio*
 plugins/platforms
+plugins/egldeviceintegrations
+plugins/xcbglintegrations
 plugins/stereo/*
 lib/libAsp*.[so,dylib]*
 lib/libsuperlu*.[so,dylib,a]*
