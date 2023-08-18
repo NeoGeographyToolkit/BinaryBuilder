@@ -64,8 +64,7 @@ Building VisionWorkbench and Stereo Pipeline using build.py
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Having installed the asp_deps conda environment per the above
-documentation, clone this repository in the directory
-~/projects/BinaryBuilder:
+documentation, clone this repository and set up the environment:
 
     cd $HOME 
     mkdir projects

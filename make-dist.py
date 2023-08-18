@@ -406,11 +406,8 @@ if __name__ == '__main__':
         print('Adding files in dist-add')
         mgr.add_directory('dist-add')
 
-        # ISIS expects a full Python distribution to be shipped. now, that is
-        # achieved as follows. A conda env named 'python_isis' is created having
-        # nothing but versions of python and numpy compatible with this ISIS
-        # version. This is added to the package to ship. Ship only some
-        # subdirs, not everything in that directory.
+        # ISIS expects a full Python distribution to be shipped. See
+        # the option --python-env for more details.
         print('Adding files in ' + opt.python_env)
         mgr.add_directory(opt.python_env,
                           subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
