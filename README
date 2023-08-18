@@ -72,10 +72,6 @@ documentation, clone this repository and set up the environment:
     git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git
     cd BinaryBuilder
     conda activate asp_deps
-    source ./auto_build/utils.sh
-
-The file ``auto_build/utils.sh`` may need to be edited to set up
-some environmental variables.
 
 Build using the command:
 
@@ -122,7 +118,7 @@ explained in:
 Then package the build by running from the BinaryBuilder directory::
 
     /path/to/python3                                  \
-      ./make-dist.py --install-dir build_asp/install  \
+      ./make-dist.py build_asp/install                \
       --asp-deps-dir $HOME/miniconda3/envs/asp_deps   \
       --python-env $HOME/miniconda3/envs/python_isis8
 
