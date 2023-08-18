@@ -87,7 +87,7 @@ set_lib_paths() {
     # TODO(oalexan1): Make sure GDAL plugins are always in gdalplugins, and then remove
     # the second option.
     export GDAL_DRIVER_PATH="${TOPLEVEL}/lib/gdalplugins:${TOPLEVEL}/lib:${GDAL_DRIVER_PATH}"
-
+    
     # Qt
     export QT_PLUGIN_PATH="${TOPLEVEL}/plugins"
     

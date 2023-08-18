@@ -154,6 +154,7 @@ if __name__ == '__main__':
     parser.add_option('--debug',          dest='loglevel',    default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
     parser.add_option('--include',        dest='include',     default='./whitelist', help='A file that lists the binaries for the dist')
     parser.add_option('--asp-deps-dir', dest='asp_deps_dir', default='', help='Path to where conda installed the ASP dependencies. Default: $HOME/miniconda3/envs/asp_deps.')
+    parser.add_option('--python-env', dest='python_env', default='', help='Path of a conda-installed distribution having the same version of Python and numpy as in the ASP dependencies. Must be set. See StereoPipeline/docs/building_asp.rst for more info.')
     parser.add_option('--debug-build',    dest='debug_build', default=False, action='store_true', help='Create a build having debug symbols')
     parser.add_option('--vw-build',       dest='vw_build',    default=False, action='store_true', help='Set to true when packaging a non-ASP build')
     parser.add_option('--keep-temp',      dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
@@ -185,6 +186,12 @@ if __name__ == '__main__':
             opt.include = './whitelist_vw'
         if opt.name == 'StereoPipeline':
             opt.name = 'VisionWorkbench'
+
+    if opt.python_env == "":
+        die('\nMust specify --python-env.')
+    # Check if it is a directory that exists
+    if not P.exists(opt.python_env):
+        die('\nCannot find the Python environment at ' + opt.python_env + '. Specify it via --python-env.')
 
     installdir = P.realpath(args[0])
     if not (P.exists(installdir) and P.isdir(installdir)):
@@ -396,15 +403,16 @@ if __name__ == '__main__':
                     mgr.add_library(lib_path, add_deps = False, is_plugin = True)
                     continue
 
-        print('Adding files in dist-add and python_isis7')
+        print('Adding files in dist-add')
         mgr.add_directory('dist-add')
-        # now, that is achieved as follows. A conda env named
-        # 'python_isis7' is created having nothing but versions of
-        # python and numpy compatible with this ISIS version. This is
-        # added to the package to ship. See
-        # StereoPipeline/RELEASEGUIDE for more details.  Ship only
-        # some subdirs, not everything in that directory.
-        mgr.add_directory(os.environ['HOME'] + '/miniconda3/envs/python_isis7',
+
+        # ISIS expects a full Python distribution to be shipped. now, that is
+        # achieved as follows. A conda env named 'python_isis' is created having
+        # nothing but versions of python and numpy compatible with this ISIS
+        # version. This is added to the package to ship. Ship only some
+        # subdirs, not everything in that directory.
+        print('Adding files in ' + opt.python_env)
+        mgr.add_directory(opt.python_env,
                           subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
 
         sys.stdout.flush()

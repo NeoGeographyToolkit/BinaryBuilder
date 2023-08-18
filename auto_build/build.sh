@@ -112,15 +112,16 @@ echo "Saving the ASP version ($(cat $versionFile)) to file: $versionFile"
 #chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
 #chmod -R g+rw $HOME/$buildDir
 
-echo "Making the distribution..."
-./make-dist.py last-completed-run/install --asp-deps-dir $isisEnv
+echo "Packaging ASP."
+./make-dist.py last-completed-run/install --asp-deps-dir $isisEnv --python-env $pythonEnv
+
 if [ "$?" -ne 0 ]; then
     echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
 # Copy the build to asp_tarballs
-echo "Moving to asp_tarballs..."
+echo "Moving packaged ASP to directory asp_tarballs"
 asp_tarball=$(ls -trd StereoPipeline*bz2 | grep -i -v debug | tail -n 1)
 if [ "$asp_tarball" = "" ]; then
     echo "Fail build_failed" > $HOME/$buildDir/$statusFile

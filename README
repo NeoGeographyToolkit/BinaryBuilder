@@ -65,25 +65,34 @@ Building VisionWorkbench and Stereo Pipeline using build.py
 
 Having installed the asp_deps conda environment per the above
 documentation, clone this repository in the directory
-~/projects/BinaryBuilder and run the build script:
+~/projects/BinaryBuilder:
 
-    cd ~; mkdir projects; cd projects
+    cd $HOME 
+    mkdir projects
+    cd projects
     git clone https://github.com/NeoGeographyToolkit/BinaryBuilder.git
     cd BinaryBuilder
     conda activate asp_deps
     source ./auto_build/utils.sh
-    ./build.py 
 
-One may need to set some paths in ``./auto_build/utils.sh`` to get
-things to work.
-   
-One can specify the compilers as::
+The file ``auto_build/utils.sh`` may need to be edited to set up
+some environmental variables.
 
-    ./build.py --cc=/path/to/gcc --cxx=/path/to/g++ --gfortran=/path/to/gfortran
+Build using the command:
 
-If the conda packages were installed in a location other than
-``$HOME/miniconda3/envs/asp_deps``, the path to that directory should be
-set via ``--asp-deps-dir``.
+    /path/to/python3                                \
+      ./build.py                                    \
+      --cc=<path to C comipler>                     \
+      --cxx=<path to C++ compiler>                  \
+      --gfortran=<path to Fortran compiler>         \
+      --asp-deps-dir $HOME/miniconda3/envs/asp_deps \
+      --build=root build_asp                        \
+      --skip-tests                                  \
+      visionworkbench stereopipeline
+
+The most-up-to-date documentation for building ASP is in:
+
+  https://stereopipeline.readthedocs.io/en/latest/building_asp.html
 
 Due to the amount of code that must be downloaded and built,
 BinaryBuilder will take quite a while to finish.  If you see the
@@ -109,11 +118,14 @@ ASP has to ship a full Python runtime which ISIS depends on. That has
 to be prepared before the build is packaged. How to do that is
 explained in:
 
-  StereoPipeline/RELEASEGUIDE
+    https://stereopipeline.readthedocs.io/en/latest/building_asp.html
 
 Then package the build by running from the BinaryBuilder directory::
 
-    ./make-dist.py last-completed-run/install
+    /path/to/python3                                  \
+      ./make-dist.py --install-dir build_asp/install  \
+      --asp-deps-dir $HOME/miniconda3/envs/asp_deps   \
+      --python-env $HOME/miniconda3/envs/python_isis8
 
 If the conda packages were installed in a location other than
 ``$HOME/miniconda3/envs/asp_deps``, the path to that directory should be
@@ -131,33 +143,7 @@ environment with the command::
 We strongly encourage you to read the output from ./build.py --help and
 ./make-dist.py --help. There are more features not talked about here.
 
-B. Produce a Partial Build or Dev Environment
-
-We usually like to build the dependencies once and then build the
-release binaries with every ASP release. Here's how to build the
-dependencies as an archive tarball:
-
- ./build.py --build-goal 1
- ./make-dist.py --include all --set-name BaseSystem last-completed-run/install
-
-Then, when you are ready to build the ASP release tarballs:
-
- ./build.py --base BaseSystem-*.tar.bz2 visionworkbench stereopipeline
- ./make-dist.py last-completed-run/install
-
-However, if you just want to call and build VW and ASP yourself so
-that you can modify the code, instead of the last two commands use:
-
- ./deploy-base.py BaseSystem-*.tar.bz2 <INSTALL DIR for 3rd Party software>
-
-Inside the <INSTALL DIR> that you specified you'll find the
-appropriate 'bin' and 'lib' directories for all of the used third
-party libraries. You will also find example config.option files for VW
-and ASP. Copy those files into your respective directories for VW and
-ASP. Then you can build VW. Modify the config.options for ASP so that
-it points to where VW is.
-
-C. Produce a VW only build
+B. Produce a VW only build
 
 BinaryBuilder now supports the option to build only for Vision Workbench,
 saving the time of building the extensive libraries needed only for ASP.
