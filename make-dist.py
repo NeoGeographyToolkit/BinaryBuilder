@@ -58,7 +58,8 @@ LIB_SYSTEM_LIST = '''
     IOSurface.framework/Versions/A/IOSurface
     ColorSync.framework/Versions/A/ColorSync
     GSS.framework/Versions/A/GSS
-    
+    Kerberos.framework/Versions/A/Kerberos
+
     libobjc.A.dylib
     libSystem.B.dylib
     libmathCommon.A.dylib

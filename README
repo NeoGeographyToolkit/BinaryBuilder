@@ -77,9 +77,9 @@ Build using the command:
 
     /path/to/python3                                \
       ./build.py                                    \
-      --cc=<path to C comipler>                     \
-      --cxx=<path to C++ compiler>                  \
-      --gfortran=<path to Fortran compiler>         \
+      --cc <path to C comipler>                     \
+      --cxx <path to C++ compiler>                  \
+      --gfortran <path to Fortran compiler>         \
       --asp-deps-dir $HOME/miniconda3/envs/asp_deps \
       --build=root build_asp                        \
       --skip-tests                                  \
