@@ -673,7 +673,7 @@ class stereopipeline(GITPackage, CMakePackage):
         super(stereopipeline, self).install()
 
         if self.fast or int(self.env['SKIP_TESTS']) == 1:
-            print("Skipping tests in fast mode.")
+            print("Skipping tests.")
         else:
             cmd = ('make', 'gtest_all')
             # TODO(oalexan1): Replace buildDir below with self.builddir?
@@ -725,7 +725,7 @@ class visionworkbench(GITPackage, CMakePackage):
         super(visionworkbench, self).install()
 
         if self.fast or int(self.env['SKIP_TESTS']) == 1:
-            print("Skipping tests in fast mode.")
+            print("Skipping tests.")
         else:
             cmd = ('make', 'gtest_all')
             buildDir = os.path.join(self.workdir, 'build_binarybuilder')
