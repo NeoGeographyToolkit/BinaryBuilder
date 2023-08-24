@@ -74,6 +74,7 @@ bin/historical_helper.py
 bin/parallel
 bin/bathy_plane_calc
 bin/bathy_threshold_calc.py
+bin/orbit_plot.py
 bin/otsu_threshold
 bin/corr_eval
 bin/disp_avg
