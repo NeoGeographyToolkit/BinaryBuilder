@@ -210,10 +210,11 @@ class DistManager(object):
         else:
             paths = [inpath]
 
-        # TODO: Why .py files are extempted from having a wrapper
-        # file?  This can cause issues, as .py tools may end up
-        # searching for libraries outside of our lib directory. Fix
-        # and test this.
+        # Note: The .py executables are exempted from having a wrapper
+        # file. This appears by design, as some of these
+        # have external dependencies and must be invoked with an
+        # external python, without the shell wrapper. This is a
+        # haphazard approach, however.
         if base.endswith(".py"):
             self._add_file(inpath, self.distdir.bin(base))
         else:
