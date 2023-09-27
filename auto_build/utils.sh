@@ -127,6 +127,7 @@ function robust_ssh {
     prog=$2
     opts=$3
     outfile=$4
+    echo opts is $opts
     name=$(basename $prog)
 
     for ((count = 0; count < 50; count++)); do
@@ -146,7 +147,10 @@ function robust_ssh {
         fi
 
         # Wait a while and then look for the process name
-        sleep 20
+        # This is very bad logic. Need to find a way to see if that
+        # process is still running or exited. In the latter case
+        # need to check for the exit code.
+        sleep 2
         out=$(ssh $machine "ps ux | grep $name | grep -v grep" \
             2>/dev/null)
         if [ "$out" != "" ]; then
@@ -155,20 +159,43 @@ function robust_ssh {
         fi
         echo "Trying to start $name at $(date) on $machine in attempt $count"
     done
+    
+    # Failed after many attempts
     return 1
 }
 
+# The same machine is used for building and testing on Linux.
+# On macOS, the build is in the cloud, the test is non 'decoder'.
 function get_test_machines {
-
-    # The same machine is used for building and testing. In the future
-    # that may change.
 
     buildMachine=$1
     masterMachine=$2
-
-    testMachines=$buildMachine
-
+   
+    if [ "$buildMachine" != "cloudMacOS" ]; then
+        testMachines=$buildMachine
+    else
+        testMachines="decoder"
+    fi
+    
+    # Echo the result so it is captured by the caller
     echo $testMachines
+}
+
+# The Linux build is run on the same machine. The macOS build is run in the cloud,
+# but monitored on the Linux machine.
+function get_run_machine {
+
+    buildMachine=$1
+    masterMachine=$2
+   
+    if [ "$buildMachine" != "cloudMacOS" ]; then
+        runMachine=$buildMachine
+    else
+        runMachine=$masterMachine
+    fi
+    
+    # Echo the result so it is captured by the caller
+    echo $runMachine
 }
 
 # Infrastructure needed for checking if any remote repositories changed.
@@ -228,7 +255,13 @@ function upload_to_github {
     echo Timestamp is $timestamp
 
     # The path to the gh tool
-    gh=/home/oalexan1/projects/packages/gh_1.11.0_linux_amd64/bin/gh
+    gh=/home/oalexan1/miniconda3/envs/gh/bin/gh
+    # check if $gh exists and is executable
+    if [ ! -x "$gh" ]; then
+        echo "Error: Cannot find the gh tool at $gh"
+        exit 1
+    fi
+    
     repo=git@github.com:NeoGeographyToolkit/StereoPipeline.git
     daily_build="daily-build"
 
