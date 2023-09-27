@@ -24,7 +24,7 @@ statusFile=$2
 buildMachine=$3
 masterMachine=$4
 
-echo now in build.sh
+echo Running $(pwd)/build.sh
 echo buildDir=$buildDir
 echo statusFile=$statusFile
 echo buildMachine=$buildMachine
@@ -75,7 +75,6 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 # The process is very different for cloudMacOS
 # May need to move it to its own file
 if [ "$buildMachine" = "cloudMacOS" ]; then
-    echo wil do cloud
   
     # The path to the gh tool
     gh=/home/oalexan1/miniconda3/envs/gh/bin/gh
@@ -88,7 +87,7 @@ if [ "$buildMachine" = "cloudMacOS" ]; then
     repo=git@github.com:NeoGeographyToolkit/StereoPipeline.git
     
     # Start a new run
-    echo "Starting a new run"
+    echo "Starting a new run in the cloud"
     echo $gh workflow run build_test -R $repo
     $gh workflow run build_test -R $repo
     
@@ -101,7 +100,7 @@ if [ "$buildMachine" = "cloudMacOS" ]; then
      
         # For now just fetch the latest. Must launch and wait till it is done
         ans=$($gh run list -R $repo --workflow=build_test.yml | grep -v STATUS | head -n 1)
-        echo ans is $ans
+        echo Status of latest cloud build is $ans
         # Extract second value from ans with awk
         completed=$(echo $ans | awk '{print $1}')
         success=$(echo $ans | awk '{print $2}')
@@ -112,33 +111,35 @@ if [ "$buildMachine" = "cloudMacOS" ]; then
         
         if [ "$completed" != "completed" ]; then
             # It can be queued, in_progress, or completed
-            echo not completed, will wait
+            echo not completed, will loop and wait
         else
-            echo completed, will break
+            echo completed, will break the loop
             break
         fi
     done
     
     if [ "$success" != "success" ]; then
-        echo failed
+        echo Cloud build failed with status $success
         echo "Fail build_failed" > $HOME/$buildDir/$statusFile
         exit 1
     else
-        echo success    
+        echo Cloud build succeeded
     fi
-    
-    # Wipe a prior directory
-    /bin/rm -rf StereoPipeline-macOS
 
-    # Fetch the build from the cloud. I twill be in StereoPipeline-macOS
-    echo Fetching the build with id $id from the cloud. 
-    echo now in $(pwd)
+    # The cloud directory where the build is stored
+    cloudBuildDir=StereoPipeline-macOS
+    
+    # Wipe any prior local version, or else the fetching can fail
+    /bin/rm -rf $cloudBuildDir
+
+    # Fetch the build from the cloud
+    echo Fetching the build with id $id from the cloud 
     echo $gh run download -R $repo $id
     $gh run download -R $repo $id
     
-    asp_tarball=$(ls StereoPipeline-macOS/StereoPipeline-*.tar.bz2 | head -n 1)
-    echo will list
-    ls StereoPipeline-macOS/*
+    asp_tarball=$(ls $cloudBuildDir/StereoPipeline-*.tar.bz2 | head -n 1)
+    echo List the downloaded build directory
+    ls -ld $cloudBuildDir/*
     # Check if empty, that means it failed
     if [ "$asp_tarball" = "" ]; then
         echo "Fail build_failed" > $HOME/$buildDir/$statusFile
@@ -150,12 +151,12 @@ if [ "$buildMachine" = "cloudMacOS" ]; then
     mv $asp_tarball asp_tarballs
     asp_tarball=asp_tarballs/$(basename $asp_tarball)
 
+    # Wipe the fetched directory
+    /bin/rm -rf $cloudBuildDir
+    
     # Mark the build as finished. This must happen at the very end,
     # otherwise the parent script will take over before this script finished.
     echo "$asp_tarball build_done Success" > $HOME/$buildDir/$statusFile
-    
-    # Wipe the fetched directory
-    /bin/rm -rf StereoPipeline-macOS
     
     echo "Finished running build.sh locally!"
     exit 0
@@ -248,3 +249,5 @@ echo "$asp_tarball build_done Success" > $HOME/$buildDir/$statusFile
 #chmod -R g+rw $HOME/$buildDir
 
 echo "Finished running build.sh locally!"
+
+exit 0

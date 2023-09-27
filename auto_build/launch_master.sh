@@ -22,6 +22,11 @@
 # and tested in the cloud, then tested with a larger test suite on 
 # 'decoder'. This machine will go away.
 
+# TODO(oalexan1): Rename buildMachine to buildId. It should be:
+# localLinuxLunokhod1 and cloudMacOS.
+# Then rename buildMachine to buildId, and runMachine to buildMachine.
+# Adjust the code in here, utils.sh, build.sh, and run_tests.sh. 
+
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 
@@ -56,16 +61,13 @@ source $HOME/$buildDir/auto_build/utils.sh
 # TODO: Need to think of a smart way of doing this.
 filesList=auto_build/filesToCopy.txt
 if [ "$localMode" -eq 0 ]; then
-    echo "Updating from github..."
-    # Update itself from github
+    echo "Updating the BinaryBuilder repo from GitHub"
     failure=1
-    echo "Cloning BinaryBuilder"
-
     ./build.py binarybuilder --asp-deps-dir $isisEnv
     status="$?"
     if [ "$status" -ne 0 ]; then
-	    echo "Could not clone BinaryBuilder"
-	    exit 1
+        echo "Could not clone BinaryBuilder"
+        exit 1
     fi
     
     currDir=$(pwd)
@@ -81,7 +83,7 @@ fi
 
 # As an extra precaution filter out the list of files
 cat $filesList | perl -p -e "s#\s#\n#g" | grep -v -E "build_asp|StereoPipeline|status|pyc|logs|tarballs|output|tmp" > tmp.txt
-/bin/mv -fv tmp.txt $filesList
+/bin/mv -f tmp.txt $filesList
 
 currMachine=$(machine_name)
 if [ "$currMachine" != "$masterMachine" ]; then
@@ -92,7 +94,7 @@ fi
 mkdir -p asp_tarballs
 
 # Wipe the doc before regenerating it
-echo "Wiping the doc..."
+echo "Wiping the doc."
 if [ "$resumeRun" -eq 0 ]; then
     rm -fv dist-add/asp_book.pdf
 fi
@@ -103,7 +105,7 @@ if [ "$resumeRun" -eq 0 ]; then
     for buildMachine in $buildMachines; do
         testMachines=$(get_test_machines $buildMachine $masterMachine)
         for testMachine in $testMachines; do
-            echo test machine for $buildMachine is $testMachine
+            echo Test machine for $buildMachine is $testMachine
 
             outputTestFile=$(output_test_file $buildDir $testMachine)
             echo "" > $HOME/$outputTestFile
@@ -119,7 +121,7 @@ fi
 # Start the builds. The build script will copy back the built tarballs
 # and status files. Note that we build on $masterMachine too,
 # as that is where the doc gets built.
-echo "Starting up the builds..."
+echo "Starting up the builds."
 for buildMachine in $buildMachines; do
 
     # The cloud macOS build is monitored on $masterMachine
@@ -197,14 +199,12 @@ while [ 1 ]; do
         tarBall=$(echo $statusLine | awk '{print $1}')
         progress=$(echo $statusLine | awk '{print $2}')
         testMachines=$(get_test_machines $buildMachine $masterMachine)
-        echo status file is $statusFile
-        echo tarball is $tarBall
-        echo progress is $progress
-        echo testmachines are $testMachines
-        
-        echo test machine for build machine is $testMachines for $buildMachine
+        echo Status file is $statusFile
+        echo Tarball is $tarBall
+        echo Progress is $progress
+        echo Test machines for $buildMachine are $testMachines
         runMachine=$(get_run_machine $buildMachine $masterMachine)
-        echo run machine for $buildMachine is $runMachine
+        echo Run machine for $buildMachine is $runMachine
 
         if [ "$progress" = "now_building" ]; then
             # Keep waiting
@@ -217,8 +217,8 @@ while [ 1 ]; do
 
             echo "Fetching the completed build"
             # Grab the build file from the build machine, unless on same machine
-            echo master machine is $masterMachine
-            echo run machine is $runMachine
+            echo Master machine is $masterMachine
+            echo Run machine is $runMachine
             if [ "$runMachine" != "$masterMachine" ]; then
               echo "rsync -avz  $runMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"
               rsync -avz  $runMachine:$buildDir/$tarBall \
@@ -242,7 +242,7 @@ while [ 1 ]; do
                 if [ "$?" -ne 0 ]; then exit 1; fi
 
                 # Copy the tarball to the test machine
-                echo copy $tarBall to $testMachine for $buildMachine
+                echo Copy $tarBall for $buildMachine to $testMachine 
                 ssh $testMachine "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
                 rsync -avz $tarBall $testMachine:$buildDir/asp_tarballs \
                     2>/dev/null
@@ -270,15 +270,15 @@ while [ 1 ]; do
 
                 # Grab the test status file for this machine.
                 statusTestFile=$(status_test_file $testMachine)
-                echo fetch $testMachine:$buildDir/$statusTestFile
+                echo Fetch $testMachine:$buildDir/$statusTestFile
                 scp $testMachine:$buildDir/$statusTestFile . &> /dev/null
 
                 # Parse the file
                 statusTestLine=$(cat $statusTestFile)
                 testProgress=$(echo $statusTestLine | awk '{print $2}')
                 testStatus=$(echo $statusTestLine | awk '{print $3}')
-                echo test progress is $testProgress
-                echo test status is $testStatus
+                echo Test progress is $testProgress
+                echo Test status is $testStatus
 
                 echo "Status for $testMachine is $statusTestLine"
                 if [ "$testProgress" != "test_done" ]; then
@@ -345,8 +345,8 @@ if [ "$version" = "" ]; then
     find_version $versionFile
     build_asp/install/bin/stereo -v 2 2>&1 # try to catch a bug with this
     version=$(cat $versionFile 2>/dev/null)
-    echo versionFile is $versionFile
-    echo version is $version
+    echo VersionFile is $versionFile
+    echo Version is $version
     
     if [ "$version" = "" ]; then
         version="None" # A non-empty string
@@ -405,9 +405,11 @@ mkdir -p logs
 rm -fv logs/*
 
 # Copy the log files
+# TODO(oalexan1): Must get runMachine for buildMachine below
 for buildMachine in $buildMachines; do
 
     # Copy the build logs
+    # TODO(oalexan1): Must do this for every machine, once we use runMachine
     if [ "$buildMachine" != "cloudMacOS" ]; then
         outputFile=$(output_file $buildDir $buildMachine)
         echo Copying log from $buildMachine:$outputFile
