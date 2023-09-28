@@ -29,6 +29,7 @@ export ISISROOT_DEV=$isisEnv
 export GDAL_DATA=$isisEnv/share/gdal
 export QT_PLUGIN_PATH=$isisEnv/plugins
 
+# Get the machine name. Strip any domain name.
 function machine_name() {
     machine=$(uname -n | perl -p -e "s#\..*?\$##g")
     echo $machine
@@ -86,8 +87,8 @@ function output_test_file () {
 function start_vrts {
 
     if [ "$(whoami)" = "oalexan1" ]; then
-	echo User oalexan1 cannot start the vrts
-	return 0
+        echo User oalexan1 cannot start the vrts
+        return 0
     fi
     
     virtualMachines=$*
@@ -127,7 +128,6 @@ function robust_ssh {
     prog=$2
     opts=$3
     outfile=$4
-    echo opts is $opts
     name=$(basename $prog)
 
     for ((count = 0; count < 50; count++)); do
@@ -138,8 +138,7 @@ function robust_ssh {
             cmd="$prog $opts > $outfile 2>&1"
             echo ssh $machine \"$cmd\"
             ssh $machine "$cmd" 2>/dev/null &
-
-        else # All linux machines
+        else # All Linux machines
             # Start the process on the remote machine
             cmd="nohup nice -19 $prog $opts > $outfile 2>&1&"
             echo ssh $machine \"$cmd\"
@@ -150,7 +149,7 @@ function robust_ssh {
         # This is very bad logic. Need to find a way to see if that
         # process is still running or exited. In the latter case
         # need to check for the exit code.
-        sleep 2
+        sleep 5
         out=$(ssh $machine "ps ux | grep $name | grep -v grep" \
             2>/dev/null)
         if [ "$out" != "" ]; then
@@ -164,38 +163,39 @@ function robust_ssh {
     return 1
 }
 
-# The same machine is used for building and testing on Linux.
-# On macOS, the build is in the cloud, the test is non 'decoder'.
-function get_test_machines {
+# The master machine is used for building and testing on Linux.
+# On macOS, the build is in the cloud, the test is on 'decoder'.
+function get_test_machine {
 
-    buildMachine=$1
+    buildPlatform=$1
     masterMachine=$2
    
-    if [ "$buildMachine" != "cloudMacOS" ]; then
-        testMachines=$buildMachine
+    if [ "$buildPlatform" != "cloudMacOS" ]; then
+        testMachine=$masterMachine
     else
-        testMachines="decoder"
+        testMachine="decoder"
     fi
     
     # Echo the result so it is captured by the caller
-    echo $testMachines
+    echo $testMachine
 }
 
-# The Linux build is run on the same machine. The macOS build is run in the cloud,
-# but monitored on the Linux machine.
-function get_run_machine {
+# The Linux build is run on the same machine, which is the master machine. The
+# macOS build is run in the cloud, but monitored on the master machine. 
+# So the run machine is the master machine in both cases.
+function get_build_machine {
 
-    buildMachine=$1
+    buildPlatform=$1
     masterMachine=$2
    
-    if [ "$buildMachine" != "cloudMacOS" ]; then
-        runMachine=$buildMachine
+    if [ "$buildPlatform" != "cloudMacOS" ]; then
+        buildMachine=$masterMachine
     else
-        runMachine=$masterMachine
+        buildMachine=$masterMachine
     fi
     
     # Echo the result so it is captured by the caller
-    echo $runMachine
+    echo $buildMachine
 }
 
 # Infrastructure needed for checking if any remote repositories changed.

@@ -22,17 +22,12 @@
 # and tested in the cloud, then tested with a larger test suite on 
 # 'decoder'. This machine will go away.
 
-# TODO(oalexan1): Rename buildMachine to buildId. It should be:
-# localLinuxLunokhod1 and cloudMacOS.
-# Then rename buildMachine to buildId, and runMachine to buildMachine.
-# Adjust the code in here, utils.sh, build.sh, and run_tests.sh. 
-
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir
 
 # Machines and paths
 masterMachine="lunokhod1"
-buildMachines="$masterMachine cloudMacOS"
+buildPlatforms="localLinux cloudMacOS"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -102,19 +97,14 @@ fi
 # Wipe the logs and status files of previous tests. We do it before the builds start,
 # as we won't get to the tests if the builds fail.
 if [ "$resumeRun" -eq 0 ]; then
-    for buildMachine in $buildMachines; do
-        testMachines=$(get_test_machines $buildMachine $masterMachine)
-        for testMachine in $testMachines; do
-            echo Test machine for $buildMachine is $testMachine
-
-            outputTestFile=$(output_test_file $buildDir $testMachine)
-            echo "" > $HOME/$outputTestFile
-            scp $HOME/$outputTestFile $testMachine:$outputTestFile  2> /dev/null
-
-            statusTestFile=$(status_test_file $testMachine)
-            rm -fv $statusTestFile
-            
-        done
+    for buildPlatform in $buildPlatforms; do
+        testMachine=$(get_test_machine $buildPlatform $masterMachine)
+        echo Test machine for $buildPlatform is $testMachine
+        outputTestFile=$(output_test_file $buildDir $testMachine)
+        echo "" > $HOME/$outputTestFile
+        scp $HOME/$outputTestFile $testMachine:$outputTestFile 2> /dev/null
+        statusTestFile=$(status_test_file $testMachine)
+        rm -fv $statusTestFile
     done
 fi
 
@@ -122,38 +112,30 @@ fi
 # and status files. Note that we build on $masterMachine too,
 # as that is where the doc gets built.
 echo "Starting up the builds."
-for buildMachine in $buildMachines; do
+for buildPlatform in $buildPlatforms; do
 
     # The cloud macOS build is monitored on $masterMachine
-    runMachine=$(get_run_machine $buildMachine $masterMachine)
-    echo "Setting up and launching: $buildMachine on $runMachine"
+    buildMachine=$(get_build_machine $buildPlatform $masterMachine)
+    echo "Setting up and launching $buildPlatform on $buildMachine"
 
-    statusFile=$(status_file $buildMachine)
-    outputFile=$(output_file $buildDir $buildMachine)
+    statusFile=$(status_file $buildPlatform)
+    outputFile=$(output_file $buildDir $buildPlatform)
 
-    # We will push this to the build machine.
-    #configFile=$(release_conf_file $buildMachine)
-    #isis=$(isis_file)
-    #if [ ! -f "$HOME/$testDir/$configFile" ]; then
-    #    echo Missing $HOME/$testDir/$configFile; exit 1;
-    #fi
-    #grep -i isis $HOME/$testDir/$configFile | grep export > $(isis_file)
-
-    # Make sure all scripts are up-to-date on $runMachine
-    echo "Build: Pushing code to $runMachine for $buildMachine"
-    ./auto_build/push_code.sh $runMachine $buildDir $filesList
+    # Make sure all scripts are up-to-date on $buildMachine
+    echo "Build: Pushing code to $buildMachine for $buildPlatform"
+    ./auto_build/push_code.sh $buildMachine $buildDir $filesList
     if [ "$?" -ne 0 ]; then
       # This only gets tried once, we may need to add retries.
-      echo "Error: Code push to machine $runMachine failed!"
+      echo "Error: Code push to machine $buildMachine failed!"
       exit 1;
     fi
 
     if [ "$resumeRun" -ne 0 ]; then
         # If resuming a run, $statusFile already has some data
         statusLine=$(cat $statusFile 2>/dev/null)
-        tarBall=$(  echo $statusLine | awk '{print $1}' )
-        progress=$( echo $statusLine | awk '{print $2}' )
-        status=$(   echo $statusLine | awk '{print $3}' )
+        tarBall=$(echo $statusLine | awk '{print $1}')
+        progress=$(echo $statusLine | awk '{print $2}')
+        status=$(echo $statusLine | awk '{print $3}')
         # If we resume, rebuild only if the previous build failed
         # or previous testing failed.
         if [ "$progress" != "build_failed" ] && [ "$progress" != "" ] && \
@@ -164,10 +146,10 @@ for buildMachine in $buildMachines; do
     
     # Launch the build
     echo "NoTarballYet now_building" > $statusFile
-    robust_ssh $runMachine $buildDir/auto_build/build.sh \
-               "$buildDir $statusFile $buildMachine $masterMachine" $outputFile
+    robust_ssh $buildMachine $buildDir/auto_build/build.sh \
+               "$buildDir $statusFile $buildPlatform $masterMachine" $outputFile
     if [ $? -ne 0 ]; then
-      echo Error: Unable to launch build on $runMachine
+      echo Error: Unable to launch build on $buildMachine
       exit 1
     fi
     
@@ -178,10 +160,10 @@ done
 while [ 1 ]; do
 
     allTestsAreDone=1
-    for buildMachine in $buildMachines; do
+    for buildPlatform in $buildPlatforms; do
 
         # Parse the current status for this build machine
-        statusFile=$(status_file $buildMachine)
+        statusFile=$(status_file $buildPlatform)
         statusLine=$(cat $statusFile)
         progress=$(echo $statusLine | awk '{print $2}')
 
@@ -191,103 +173,95 @@ while [ 1 ]; do
             #   because we modify this file locally and if overwrite it we won't
             #   make it to the correct if statement below!
             echo "Reading status from $statusFile"
-            scp $runMachine:$buildDir/$statusFile . &> /dev/null
+            scp $buildMachine:$buildDir/$statusFile . &> /dev/null
         fi
 
         # Parse the file
         statusLine=$(cat $statusFile)
         tarBall=$(echo $statusLine | awk '{print $1}')
         progress=$(echo $statusLine | awk '{print $2}')
-        testMachines=$(get_test_machines $buildMachine $masterMachine)
+        testMachine=$(get_test_machine $buildPlatform $masterMachine)
         echo Status file is $statusFile
         echo Tarball is $tarBall
         echo Progress is $progress
-        echo Test machines for $buildMachine are $testMachines
-        runMachine=$(get_run_machine $buildMachine $masterMachine)
-        echo Run machine for $buildMachine is $runMachine
+        echo Test machine for $buildPlatform is $testMachine
+        buildMachine=$(get_build_machine $buildPlatform $masterMachine)
+        echo Run machine for $buildPlatform is $buildMachine
 
         if [ "$progress" = "now_building" ]; then
             # Keep waiting
-            echo "Status for $buildMachine is $statusLine"
+            echo "Status for $buildPlatform is $statusLine"
             allTestsAreDone=0
         elif [ "$progress" = "build_failed" ]; then
             # Nothing can be done for this machine
-            echo "Status for $buildMachine is $statusLine"
+            echo "Status for $buildPlatform is $statusLine"
         elif [ "$progress" = "build_done" ]; then
 
             echo "Fetching the completed build"
             # Grab the build file from the build machine, unless on same machine
-            echo Master machine is $masterMachine
-            echo Run machine is $runMachine
-            if [ "$runMachine" != "$masterMachine" ]; then
-              echo "rsync -avz  $runMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"
-              rsync -avz  $runMachine:$buildDir/$tarBall \
+            if [ "$buildMachine" != "$masterMachine" ]; then
+              echo "rsync -avz  $buildMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"
+              rsync -avz  $buildMachine:$buildDir/$tarBall \
                           $HOME/$buildDir/asp_tarballs/    2>/dev/null
             fi
 
             # Build for current machine is done, need to test it
             allTestsAreDone=0
             echo "$tarBall now_testing" > $statusFile
-            for testMachine in $testMachines; do
+            outputTestFile=$(output_test_file $buildDir $testMachine)
 
-                outputTestFile=$(output_test_file $buildDir $testMachine)
+            echo "Will launch tests on $testMachine"
+            statusTestFile=$(status_test_file $testMachine)
+            echo "$tarBall now_testing" > $statusTestFile
 
-                echo "Will launch tests on $testMachine"
-                statusTestFile=$(status_test_file $testMachine)
-                echo "$tarBall now_testing" > $statusTestFile
+            # Make sure all scripts are up-to-date on $testMachine
+            echo Test: Pushing code to $testMachine for $buildPlatform
+            ./auto_build/push_code.sh $testMachine $buildDir $filesList
+            if [ "$?" -ne 0 ]; then exit 1; fi
 
-                # Make sure all scripts are up-to-date on $testMachine
-                echo Test: Pushing code to $testMachine for $buildMachine
-                ./auto_build/push_code.sh $testMachine $buildDir $filesList
-                if [ "$?" -ne 0 ]; then exit 1; fi
+            # Copy the tarball to the test machine
+            echo Copy $tarBall for $buildPlatform to $testMachine 
+            ssh $testMachine "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
+            rsync -avz $tarBall $testMachine:$buildDir/asp_tarballs \
+                2>/dev/null
 
-                # Copy the tarball to the test machine
-                echo Copy $tarBall for $buildMachine to $testMachine 
-                ssh $testMachine "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
-                rsync -avz $tarBall $testMachine:$buildDir/asp_tarballs \
-                    2>/dev/null
-
-                sleep 5; # Give the filesystem enough time to react
-                if [ "$skipTests" -eq 0 ]; then
-                    # Start the tests
-                    echo will test $buildMachine on $testMachine
-                    robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
-                        "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
-                        $outputTestFile
-                else
-                    # Fake it, so that we skip the testing
-                    echo "$tarBall test_done Success" > $statusFile
-                fi
-                    
-            done
+            sleep 5; # Give the filesystem enough time to react
+            if [ "$skipTests" -eq 0 ]; then
+                # Start the tests
+                echo will test $buildPlatform on $testMachine
+                robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
+                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
+                    $outputTestFile
+            else
+                # Fake it, so that we skip the testing
+                echo "$tarBall test_done Success" > $statusFile
+            fi
 
         elif [ "$progress" = "now_testing" ]; then
 
             # See if we finished testing the current build on all machines
             allDoneForCurrMachine=1
             statusForCurrMachine="Success"
-            for testMachine in $testMachines; do
 
-                # Grab the test status file for this machine.
-                statusTestFile=$(status_test_file $testMachine)
-                echo Fetch $testMachine:$buildDir/$statusTestFile
-                scp $testMachine:$buildDir/$statusTestFile . &> /dev/null
+            # Grab the test status file for this machine.
+            statusTestFile=$(status_test_file $testMachine)
+            echo Fetch $testMachine:$buildDir/$statusTestFile
+            scp $testMachine:$buildDir/$statusTestFile . &> /dev/null
 
-                # Parse the file
-                statusTestLine=$(cat $statusTestFile)
-                testProgress=$(echo $statusTestLine | awk '{print $2}')
-                testStatus=$(echo $statusTestLine | awk '{print $3}')
-                echo Test progress is $testProgress
-                echo Test status is $testStatus
+            # Parse the file
+            statusTestLine=$(cat $statusTestFile)
+            testProgress=$(echo $statusTestLine | awk '{print $2}')
+            testStatus=$(echo $statusTestLine | awk '{print $3}')
+            echo Test progress is $testProgress
+            echo Test status is $testStatus
 
-                echo "Status for $testMachine is $statusTestLine"
-                if [ "$testProgress" != "test_done" ]; then
-                    allDoneForCurrMachine=0
-                elif [ "$testStatus" != "Success" ]; then
-                    # This is case-sensitive
-                    statusForCurrMachine="Fail"
-                fi
-            done
+            echo "Status for $testMachine is $statusTestLine"
+            if [ "$testProgress" != "test_done" ]; then
+                allDoneForCurrMachine=0
+            elif [ "$testStatus" != "Success" ]; then
+                # This is case-sensitive
+                statusForCurrMachine="Fail"
+            fi
 
             if [ "$allDoneForCurrMachine" -eq 0 ]; then
                 allTestsAreDone=0
@@ -303,7 +277,7 @@ while [ 1 ]; do
             echo "Unknown progress value: '$progress'. Will wait."
             allTestsAreDone=0
         else
-            echo "Status for $buildMachine is $statusLine"
+            echo "Status for $buildPlatform is $statusLine"
         fi
 
     done
@@ -330,29 +304,18 @@ echo Status after doc addition is $overallStatus
 
 # Get the ASP version. Hopefully some machine has it.
 version=""
-for buildMachine in $buildMachines; do
-    versionFile=$(version_file $buildMachine)
+for buildPlatform in $buildPlatforms; do
+    buildMachine=$(get_build_machine $buildPlatform $masterMachine)
+    versionFile=$(version_file $buildPlatform)
     localVersion=$(ssh $buildMachine \
         "cat $buildDir/$versionFile 2>/dev/null" 2>/dev/null)
     echo Version on $buildMachine is $localVersion
     if [ "$localVersion" != "" ]; then version=$localVersion; fi
 done
 if [ "$version" = "" ]; then
-    echo Failed to find the version, trying again
-    echo Directory is $(pwd)
-    buildMachine=$(machine_name)
-    versionFile=$(version_file $buildMachine)
-    find_version $versionFile
-    build_asp/install/bin/stereo -v 2 2>&1 # try to catch a bug with this
-    version=$(cat $versionFile 2>/dev/null)
-    echo VersionFile is $versionFile
-    echo Version is $version
-    
-    if [ "$version" = "" ]; then
-        version="None" # A non-empty string
-        echo "Error: Could not determine the ASP version"
-        overallStatus="Fail"
-    fi
+    echo "Error: Could not determine the ASP version"
+    version="unknown"
+    overallStatus="Fail"
 fi
 echo Status after version check is $overallStatus
 
@@ -363,14 +326,14 @@ rm -f $statusMasterFile
 echo "Machine and status" >> $statusMasterFile
 count=0
 timestamp=$(date +%Y-%m-%d)
-for buildMachine in $buildMachines; do
+for buildPlatform in $buildPlatforms; do
     # Check the status
-    statusFile=$(status_file $buildMachine)
+    statusFile=$(status_file $buildPlatform)
     statusLine=$(cat $statusFile)
     tarBall=$( echo $statusLine | awk '{print $1}' )
     progress=$( echo $statusLine | awk '{print $2}' )
     status=$( echo $statusLine | awk '{print $3}' )
-    echo "$(date) Status for $buildMachine is $tarBall $progress $status"
+    echo "$(date) Status for $buildPlatform is $tarBall $progress $status"
     if [ "$status" != "Success" ]; then status="Fail"; fi
     if [ "$progress" != "test_done" ]; then
         echo "Error: Expecting the progress to be: test_done"
@@ -395,7 +358,7 @@ for buildMachine in $buildMachines; do
     echo Status is $status
     
     if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
-    echo $buildMachine $status >> $statusMasterFile
+    echo $buildPlatform $status >> $statusMasterFile
     builds[$count]="$tarBall"
     ((count++))
 done
@@ -405,25 +368,19 @@ mkdir -p logs
 rm -fv logs/*
 
 # Copy the log files
-# TODO(oalexan1): Must get runMachine for buildMachine below
-for buildMachine in $buildMachines; do
-
+for buildPlatform in $buildPlatforms; do
     # Copy the build logs
-    # TODO(oalexan1): Must do this for every machine, once we use runMachine
-    if [ "$buildMachine" != "cloudMacOS" ]; then
-        outputFile=$(output_file $buildDir $buildMachine)
-        echo Copying log from $buildMachine:$outputFile
-        rsync -avz $buildMachine:$outputFile logs 2>/dev/null
-    fi
+    outputFile=$(output_file $buildDir $buildPlatform)
+    buildMachine=$(get_build_machine $buildPlatform $masterMachine)
+    echo Copying log from $buildMachine:$outputFile
+    rsync -avz $buildMachine:$outputFile logs 2>/dev/null
     
     # Append the test logs
-    testMachines=$(get_test_machines $buildMachine $masterMachine)
-    for testMachine in $testMachines; do
-        outputTestFile=$(output_test_file $buildDir $testMachine)
-        rsync -avz $testMachine:$outputTestFile logs 2>/dev/null
-        echo "Logs for testing on $testMachine" >> logs/$(basename $outputFile)
-        cat logs/$(basename $outputTestFile) >> logs/$(basename $outputFile)
-    done
+    testMachine=$(get_test_machine $buildPlatform $masterMachine)
+    outputTestFile=$(output_test_file $buildDir $testMachine)
+    rsync -avz $testMachine:$outputTestFile logs 2>/dev/null
+    echo "Logs for testing on $testMachine" >> logs/$(basename $outputFile)
+    cat logs/$(basename $outputTestFile) >> logs/$(basename $outputFile)
 done
 
 # Copy the builds to GitHub

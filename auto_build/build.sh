@@ -8,7 +8,7 @@
 # set the status.
 
 if [ "$#" -lt 4 ]; then
-    echo Usage: $0 buildDir statusFile buildMachine masterMachine
+    echo Usage: $0 buildDir statusFile buildPlatform masterMachine
     exit 1
 fi
 
@@ -21,12 +21,17 @@ fi
 
 buildDir=$1
 statusFile=$2
-buildMachine=$3
+buildPlatform=$3
 masterMachine=$4
 
 echo Running $(pwd)/build.sh
+
+# Current machine
+buildMachine=$(machine_name)
+
 echo buildDir=$buildDir
 echo statusFile=$statusFile
+echo buildPlatform=$buildPlatform
 echo buildMachine=$buildMachine
 echo masterMachine=$masterMachine
 
@@ -41,8 +46,6 @@ cd $buildDir
 # Set path and load utilities
 source $HOME/$buildDir/auto_build/utils.sh
 
-# Current machine
-runMachine=$(machine_name)
 
 # These are needed primarily for pfe
 ulimit -s unlimited 2>/dev/null
@@ -74,7 +77,7 @@ echo "NoTarballYet now_building" > $HOME/$buildDir/$statusFile
 
 # The process is very different for cloudMacOS
 # May need to move it to its own file
-if [ "$buildMachine" = "cloudMacOS" ]; then
+if [ "$buildPlatform" = "cloudMacOS" ]; then
   
     # The path to the gh tool
     gh=/home/oalexan1/miniconda3/envs/gh/bin/gh
@@ -94,7 +97,6 @@ if [ "$buildMachine" = "cloudMacOS" ]; then
     # Wait for 6 hours, by iterating 720 times with a pause of 30 seconds
     success=""
     for i in {0..720}; do
-        echo "Waiting for the build to finish, iteration $i"
         echo "Will sleep for 30 seconds"
         sleep 30
      
@@ -105,15 +107,15 @@ if [ "$buildMachine" = "cloudMacOS" ]; then
         completed=$(echo $ans | awk '{print $1}')
         success=$(echo $ans | awk '{print $2}')
         id=$(echo $ans | awk '{print $7}')
-        echo completed is $completed
-        echo success is $success
-        echo id is $id
+        echo Completed is $completed
+        echo Success is $success
+        echo Id is $id
         
         if [ "$completed" != "completed" ]; then
             # It can be queued, in_progress, or completed
-            echo not completed, will loop and wait
+            echo Not completed, will loop and wait. Iteration: $i
         else
-            echo completed, will break the loop
+            echo Completed, will break the loop
             break
         fi
     done
@@ -199,8 +201,8 @@ if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
     /bin/mv -fv $pdf_doc dist-add/asp_book.pdf
 fi
 
-# Dump the ASP version
-versionFile=$(version_file $buildMachine)
+# Dump the ASP version. Will be used later.
+versionFile=$(version_file $buildPlatform)
 find_version $versionFile
 echo "Saving the ASP version ($(cat $versionFile)) to file: $versionFile"
 
