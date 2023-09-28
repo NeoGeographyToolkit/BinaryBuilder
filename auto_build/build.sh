@@ -26,7 +26,10 @@ masterMachine=$4
 
 echo Running $(pwd)/build.sh
 
-# Current machine
+# Set path and load utilities
+source $HOME/$buildDir/auto_build/utils.sh
+
+# Current machine (must source auto_build/utils.sh first)
 buildMachine=$(machine_name)
 
 echo buildDir=$buildDir
@@ -42,10 +45,6 @@ if [ ! -d "$buildDir" ]; then
     exit 1
 fi
 cd $buildDir
-
-# Set path and load utilities
-source $HOME/$buildDir/auto_build/utils.sh
-
 
 # These are needed primarily for pfe
 ulimit -s unlimited 2>/dev/null
