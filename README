@@ -151,6 +151,11 @@ For a VW only development environment, run build.py with the argument: --build-g
 Other than using these flag values you can use the make-dist.py and
 deploy-base.py tools in the same manner as if building ASP.
 
+Nightly regressions
+~~~~~~~~~~~~~~~~~~~
+
+See auto_build/README
+
 ************************************************************************
 4. ADDITIONAL BUILD OPTIONS
 
