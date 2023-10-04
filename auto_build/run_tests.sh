@@ -64,7 +64,7 @@ if [ "$failure" -ne 0 ]; then
     exit 1
 fi
 
-cp -rf $newDir/.git* .; cp -rf $newDir/* .; rm -rf $newDir
+cp -rf $newDir/* .; rm -rf $newDir
 
 # Set up the config file
 machine=$(machine_name)
