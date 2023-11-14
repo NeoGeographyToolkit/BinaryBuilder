@@ -99,7 +99,7 @@ libexec/tif_mosaic
 bin/mapproject_single
 libexec/stereo_utils.py
 libexec/asp*.py
-bin/lasinfo
+bin/pdal
 bin/usgscsm_cam_test
 libexec/datum_convert_cpp
 libexec/htdp
