@@ -159,8 +159,8 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
     # Wipe the fetched directory
     /bin/rm -rf $cloudBuildDir
     
-    # Mark the cloud build and test as or failed. This must happen at the very end,
-    # otherwise the parent script will take over before this script finished.
+    # Record build status. This must happen at the very end, otherwise the
+    # parent script will take over before this script finished.
     if [ "$test_ans" != "" ]; then
         echo "$asp_tarball test_done Success" > $HOME/$buildDir/$statusFile
         exit 0
