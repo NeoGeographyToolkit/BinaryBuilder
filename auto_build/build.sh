@@ -147,6 +147,10 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
         exit 1
     fi
     
+    # Check the test status. This file is created by the cloud build.
+    reportFile=$cloudBuildDir/output_test.txt
+    test_ans=$(grep "test_status 0" $reportFile)
+    
     # Move the build to where it is expected, then record the build name
     mkdir -p asp_tarballs
     mv $asp_tarball asp_tarballs
@@ -155,12 +159,16 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
     # Wipe the fetched directory
     /bin/rm -rf $cloudBuildDir
     
-    # Mark the build as finished. This must happen at the very end,
+    # Mark the cloud build and test as or failed. This must happen at the very end,
     # otherwise the parent script will take over before this script finished.
-    echo "$asp_tarball build_done Success" > $HOME/$buildDir/$statusFile
-    
-    echo "Finished running build.sh locally!"
-    exit 0
+    if [ "$test_ans" != "" ]; then
+        echo "$asp_tarball test_done Success" > $HOME/$buildDir/$statusFile
+        exit 0
+    else
+        echo "$asp_tarball test_done Fail" > $HOME/$buildDir/$statusFile
+        exit 1
+    fi
+    # Here exit the cloud build
 fi
   
 # Build everything, including VW and ASP. Only the packages

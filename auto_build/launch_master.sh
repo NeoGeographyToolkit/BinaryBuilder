@@ -102,6 +102,7 @@ if [ "$resumeRun" -eq 0 ]; then
         echo Test machine for $buildPlatform is $testMachine
         outputTestFile=$(output_test_file $buildDir $testMachine)
         echo "" > $HOME/$outputTestFile
+        # Copy to the build machine
         scp $HOME/$outputTestFile $testMachine:$outputTestFile 2> /dev/null
         statusTestFile=$(status_test_file $testMachine)
         rm -fv $statusTestFile
@@ -157,6 +158,8 @@ done
 
 # Whenever a build is done, launch tests for it. For some
 # builds, tests are launched on more than one machine.
+# For the cloud build, the test will be flaged as done by now.
+# That happens in build.sh.
 while [ 1 ]; do
 
     allTestsAreDone=1
@@ -180,13 +183,13 @@ while [ 1 ]; do
         statusLine=$(cat $statusFile)
         tarBall=$(echo $statusLine | awk '{print $1}')
         progress=$(echo $statusLine | awk '{print $2}')
+        buildMachine=$(get_build_machine $buildPlatform $masterMachine)
         testMachine=$(get_test_machine $buildPlatform $masterMachine)
         echo Status file is $statusFile
         echo Tarball is $tarBall
         echo Progress is $progress
+        echo Build machine for $buildPlatform is $buildMachine
         echo Test machine for $buildPlatform is $testMachine
-        buildMachine=$(get_build_machine $buildPlatform $masterMachine)
-        echo Run machine for $buildPlatform is $buildMachine
 
         if [ "$progress" = "now_building" ]; then
             # Keep waiting
@@ -200,9 +203,9 @@ while [ 1 ]; do
             echo "Fetching the completed build"
             # Grab the build file from the build machine, unless on same machine
             if [ "$buildMachine" != "$masterMachine" ]; then
-              echo "rsync -avz  $buildMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"
+              echo "rsync -avz $buildMachine:$buildDir/$tarBall $buildDir/asp_tarballs/"
               rsync -avz  $buildMachine:$buildDir/$tarBall \
-                          $HOME/$buildDir/asp_tarballs/    2>/dev/null
+                          $HOME/$buildDir/asp_tarballs/ 2>/dev/null
             fi
 
             # Build for current machine is done, need to test it
@@ -332,33 +335,33 @@ for buildPlatform in $buildPlatforms; do
     statusLine=$(cat $statusFile)
     tarBall=$( echo $statusLine | awk '{print $1}' )
     progress=$( echo $statusLine | awk '{print $2}' )
-    status=$( echo $statusLine | awk '{print $3}' )
-    echo "$(date) Status for $buildPlatform is $tarBall $progress $status"
-    if [ "$status" != "Success" ]; then status="Fail"; fi
+    statusAns=$( echo $statusLine | awk '{print $3}' )
+    echo "$(date) Status for $buildPlatform is $tarBall $progress $statusAns"
+    if [ "$statusAns" != "Success" ]; then statusAns="Fail"; fi
     if [ "$progress" != "test_done" ]; then
         echo "Error: Expecting the progress to be: test_done"
-        status="Fail"
+        statusAns="Fail"
     fi
-    echo Status so far is $status
+    echo Status so far is $statusAns
     
     # Check the tarballs
     if [[ ! $tarBall =~ \.tar\.bz2$ ]]; then
         echo "Error: Expecting '$tarBall' to be with .tar.bz2 extension"
-            status="Fail"
+            statusAns="Fail"
     else
         if [ ! -f "$HOME/$buildDir/$tarBall" ]; then
             echo "Error: Could not find $HOME/$buildDir/$tarBall"
-            status="Fail"
+            statusAns="Fail"
         fi
         echo "Renaming build $tarBall"
         echo "./auto_build/rename_build.sh $tarBall $version $timestamp"
         tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp | tail -n 1)
-        if [ ! -f "$tarBall" ]; then echo "Error: Renaming failed."; status="Fail"; fi
+        if [ ! -f "$tarBall" ]; then echo "Error: Renaming failed."; statusAns="Fail"; fi
     fi
-    echo Status is $status
+    echo Status is $statusAns
     
-    if [ "$status" != "Success" ]; then overallStatus="Fail"; fi
-    echo $buildPlatform $status >> $statusMasterFile
+    if [ "$statusAns" != "Success" ]; then overallStatus="Fail"; fi
+    echo $buildPlatform $statusAns >> $statusMasterFile
     builds[$count]="$tarBall"
     ((count++))
 done
@@ -399,9 +402,8 @@ if [ "$overallStatus" = "Success" ]; then
         echo Error: Failed to upload to GitHub
         overallStatus="Fail"
     fi
-
-    echo See the daily build at https://github.com/NeoGeographyToolkit/StereoPipeline/releases \
-        >> status_master.txt
+    url="https://github.com/NeoGeographyToolkit/StereoPipeline/releases"
+    echo See the daily build at $url >> status_master.txt
 fi
 
 cat $statusMasterFile

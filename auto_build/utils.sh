@@ -67,7 +67,7 @@ function isis_file (){
 
 function ncpus(){
     ncpu=$(cat /proc/cpuinfo 2>/dev/null |grep processor |wc | awk '{print $1}')
-    if [ "$ncpu" = "0" ]; then ncpu=2; fi # For OSX # TODO update when we move to decoder!
+    if [ "$ncpu" = "0" ]; then ncpu=2; fi # For OSX
     echo $ncpu
 }
 
@@ -164,7 +164,7 @@ function robust_ssh {
 }
 
 # The master machine is used for building and testing on Linux.
-# On macOS, the build is in the cloud, the test is on 'decoder'.
+# On macOS, the build and test is in the cloud.
 function get_test_machine {
 
     buildPlatform=$1
@@ -173,7 +173,7 @@ function get_test_machine {
     if [ "$buildPlatform" != "cloudMacOS" ]; then
         testMachine=$masterMachine
     else
-        testMachine="decoder"
+        testMachine=$masterMachine
     fi
     
     # Echo the result so it is captured by the caller
