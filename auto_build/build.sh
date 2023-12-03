@@ -127,10 +127,9 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
         echo Cloud build succeeded
     fi
 
-    # The cloud directory where the build is stored
+    # The cloud directory where the build is stored. Wipe any prior local
+    # version, or else the fetching can fail.
     cloudBuildDir=StereoPipeline-macOS
-    
-    # Wipe any prior local version, or else the fetching can fail
     /bin/rm -rf $cloudBuildDir
 
     # Fetch the build from the cloud
@@ -156,13 +155,13 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
     mv $asp_tarball asp_tarballs
     asp_tarball=asp_tarballs/$(basename $asp_tarball)
 
-    # Wipe the fetched directory
-    /bin/rm -rf $cloudBuildDir
     
     # Record build status. This must happen at the very end, otherwise the
     # parent script will take over before this script finished.
     if [ "$test_ans" != "" ]; then
         echo "$asp_tarball test_done Success" > $HOME/$buildDir/$statusFile
+        # Wipe the fetched directory only on success, otherwise need to inspect it
+        /bin/rm -rf $cloudBuildDir
         exit 0
     else
         echo "$asp_tarball test_done Fail" > $HOME/$buildDir/$statusFile
