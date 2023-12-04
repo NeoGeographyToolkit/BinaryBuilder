@@ -154,7 +154,6 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
     mkdir -p asp_tarballs
     mv $asp_tarball asp_tarballs
     asp_tarball=asp_tarballs/$(basename $asp_tarball)
-
     
     # Record build status. This must happen at the very end, otherwise the
     # parent script will take over before this script finished.
