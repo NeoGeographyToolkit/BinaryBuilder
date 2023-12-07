@@ -33,6 +33,7 @@ LIB_SYSTEM_LIST = '''
     Foundation.framework/Versions/C/Foundation
     GLUT.framework/Versions/A/GLUT
     OpenGL.framework/Versions/A/OpenGL
+    OpenCL.framework/Versions/A/OpenCL
     QuickTime.framework/Versions/A/QuickTime
     Security.framework/Versions/A/Security
     SystemConfiguration.framework/Versions/A/SystemConfiguration
