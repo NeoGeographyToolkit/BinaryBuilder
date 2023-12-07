@@ -43,11 +43,6 @@ if [ "$in" != "$out" ]; then
     cp -rf $in $out # make a copy, keep the original
 fi
 
-# Copy the ASP book
-doc=../dist-add/asp_book.pdf
-if [ ! -f "$doc" ]; then echo "Could not find $(pwd)/$doc"; exit 1; fi
-cp -f $doc $out 
-
 # This is a hack for Linux to get the right libGL
 # TODO(oalexan1): Figure out a better approach
 if [ "$(uname -s | grep Linux)" != "" ]; then 

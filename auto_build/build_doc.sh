@@ -3,6 +3,9 @@
 # Build the pdf doc. Note how we use the sphinx package installed
 # at $SPHINX_PATH. 
 
+# This is obsolete as the pdf doc is no longer shipped. The online doc is used
+# instead.
+
 if [ "$#" -lt 1 ]; then
     echo Usage: $0 buildDir
     exit 1
