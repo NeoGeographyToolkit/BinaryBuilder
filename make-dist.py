@@ -148,7 +148,7 @@ def libc_version():
     for library in locations:
         if P.isfile(library):
             output = run(library).split('\n')[0]
-            return re.search('[^0-9.]*([0-9.]*).*',output).groups()
+            return re.search(r'[^0-9.]*([0-9.]*).*',output).groups()
     return "FAILED"
 
 if __name__ == '__main__':
@@ -240,14 +240,6 @@ if __name__ == '__main__':
                 os.environ["PATH"] = ""
             os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + \
                                  os.environ["PATH"]
-
-        # This fails on recent platforms
-        # Bug fix for osg3. Must set LD_LIBRARY_PATH for ldd to later
-        # work correctly on Ubuntu 13.10.
-#             if "LD_LIBRARY_PATH" not in os.environ:
-#                 os.environ["LD_LIBRARY_PATH"] = ""
-#             os.environ["LD_LIBRARY_PATH"] = INSTALLDIR.lib() + \
-#                                             os.pathsep + os.environ["LD_LIBRARY_PATH"]
 
         if opt.isisroot is not None:
             ISISROOT = opt.isisroot

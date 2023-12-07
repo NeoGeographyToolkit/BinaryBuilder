@@ -499,7 +499,7 @@ def copy(src, dst, hardlink=False, keep_symlink=True):
     # trace those to the source and copy.
     if keep_symlink and P.islink(src):
         if P.isabs(readlink(src)):
-            m = re.match('^/usr', readlink(src))
+            m = re.match(r'^/usr', readlink(src))
             if m:
                 print("Resolving absolute link: ", src)
                 while P.islink(src) and \

@@ -54,12 +54,12 @@ def get_prog_version(prog):
     if p.returncode != 0:
         raise Exception("Checking " + prog + " version caused errors")
 
-    m = re.match("^.*?\).*?(\d+\.\d+)", out)
+    m = re.match(r"^.*?\).*?(\d+\.\d+)", out)
     if m:
         # For GCC
         return float(m.group(1))
 
-    m = re.match("^.*?(\d+\.\d+)", out)
+    m = re.match(r"^.*?(\d+\.\d+)", out)
     if m:
         # For clang
         return float(m.group(1))
