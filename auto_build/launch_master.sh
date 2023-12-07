@@ -88,12 +88,6 @@ fi
 
 mkdir -p asp_tarballs
 
-# Wipe the doc before regenerating it
-echo "Wiping the doc."
-if [ "$resumeRun" -eq 0 ]; then
-    rm -fv dist-add/asp_book.pdf
-fi
-
 # Wipe the logs and status files of previous tests. We do it before the builds start,
 # as we won't get to the tests if the builds fail.
 if [ "$resumeRun" -eq 0 ]; then
@@ -296,15 +290,6 @@ done
 
 overallStatus="Success"
 
-# Builds and tests finished. The documentation is now in
-# dist-add/asp_book.pdf.
-if [ ! -f "dist-add/asp_book.pdf" ]; then
-    echo "Error: Could not find the documentation: dist-add/asp_book.pdf."
-    echo "Error: Check if the build on $masterMachine which makes the doc succeded."
-    overallStatus="Fail";
-fi
-echo Status after doc addition is $overallStatus
-
 # Get the ASP version. Hopefully some machine has it.
 version=""
 for buildPlatform in $buildPlatforms; do
@@ -389,7 +374,7 @@ done
 # Copy the builds to GitHub
 if [ "$overallStatus" = "Success" ]; then
 
-    binaries=$(realpath dist-add/asp_book.pdf)
+    binaries=""
     len="${#builds[@]}"
     for ((count = 0; count < len; count++)); do
         tarBall=${builds[$count]}
@@ -409,11 +394,10 @@ fi
 cat $statusMasterFile
 echo Final status is $overallStatus
 
+# Send mail to the user
 subject="ASP build $timestamp status is $overallStatus"
-
 # For some reason sending mail from lunokhod1 does not work.
 #cat status_master.txt | mailx -s "$subject" $mailto
-
 # But it works from lunokhod2, so do it that way.
 # TODO(oalexan1): A better approach could be some Git action, perhaps.
 rsync -avzP status_master.txt lunokhod2:$(pwd)

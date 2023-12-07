@@ -3,10 +3,10 @@
 # Remove all but several newest directories/files in given directory.
 # WARNING: This script can remove ENTIRE DIRECTORIES! Use with care!
 
-if [ "$#" -lt 2 ]; then echo Usage: $0 rmFromDir numLeft; exit; fi
+if [ "$#" -lt 2 ]; then echo Usage: $0 rmFromDir numKeep; exit; fi
 
 dir=$1
-numLeft=$2
+numKeep=$2
 prefix=$3  # rm file starting with this prefix
 
 if [ ! -d "$dir" ]; then echo Missing directory: $dir; exit 1; fi
@@ -18,7 +18,7 @@ if [ "${dir:0:1}" = "." ] || [ "$dir" = "$(pwd)" ];
 fi
 
 num=$(ls -trd $dir/* |wc | awk '{print $1}')
-((stop=num-numLeft))
+((stop=num-numKeep))
 
 # A precaution, don't remove all files
 if [ "$stop" -eq "$num" ]; then

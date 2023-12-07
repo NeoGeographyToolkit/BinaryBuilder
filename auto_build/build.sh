@@ -193,19 +193,6 @@ if [ "$exitStatus" -ne 0 ]; then
     exit 1
 fi
 
-# Build the documentation on the master machine
-if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
-    ./auto_build/build_doc.sh $buildDir
-    exitStatus=$?
-    if [ "$exitStatus" -ne 0 ]; then
-        echo "Fail build_failed" > $HOME/$buildDir/$statusFile
-        exit 1
-    fi
-
-    pdf_doc=$HOME/$buildDir/build_asp/build/stereopipeline/stereopipeline-git/docs/_build/latex/asp_book.pdf
-    /bin/mv -fv $pdf_doc dist-add/asp_book.pdf
-fi
-
 # Dump the ASP version. Will be used later.
 versionFile=$(version_file $buildPlatform)
 find_version $versionFile

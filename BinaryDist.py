@@ -571,7 +571,7 @@ def readelf(filename):
     '''
 
     Ret = namedtuple('readelf', 'needed soname rpath')
-    r = re.compile(' \((.*?)\).*\[(.*?)\]')
+    r = re.compile(r' \((.*?)\).*\[(.*?)\]')
     needed = []
     soname = None
     rpath = []
@@ -595,7 +595,7 @@ def ldd(filename, search_path):
     '''
 
     libs = {}
-    r = re.compile('^\s*(\S+) => (\S+)')
+    r = re.compile(r'^\s*(\S+) => (\S+)')
 
     # Ensure this is initalized
     if "LD_LIBRARY_PATH" not in os.environ:
@@ -627,7 +627,7 @@ def otool(filename):
     '''
 
     Ret = namedtuple('otool', 'soname sopath libs abs_rpaths rel_rpaths')
-    r = re.compile('^\s*(\S+)')
+    r = re.compile(r'^\s*(\S+)')
     lines = run('otool', '-L', filename, output=True).split('\n')
     libs = {}
 
@@ -677,7 +677,7 @@ def otool(filename):
             if i+2 >= len(lines):
                 continue
             #print('found LC_RPATH: ' + lines[i+2])
-            m = re.match('^.*?path\s+([^\s]+)', lines[i+2])
+            m = re.match(r'^.*?path\s+([^\s]+)', lines[i+2])
             if m:
                 rpath_val = m.group(1)
                 if re.search(os.getcwd(), rpath_val):
@@ -833,7 +833,7 @@ def fix_paths(filename):
     for count in range(len(lines)):
         while True:
             # Use a loop since there can be multiple matches in a single line
-            m = re.match("^(.*?)(\/home|\/Users)([\/\w\s]+\/)(bin|lib|libexec|include|share|plugins|appdata)(.*?\n)", lines[count])
+            m = re.match(r"^(.*?)(\/home|\/Users)([\/\w\s]+\/)(bin|lib|libexec|include|share|plugins|appdata)(.*?\n)", lines[count])
             if m:
                 lines[count] = m.group(1) + "/usr/" + m.group(4) + m.group(5)
             else:
@@ -968,7 +968,7 @@ def fix_install_paths(installdir, arch):
             lines = f.readlines()
         with open(control,'w') as f:
             for line in lines:
-                line = re.sub('[\/\.]+[\w\/\.\-]*?' + binary_builder_prefix() + '\w*[\w\/\.]*?/install', installdir, line)
+                line = re.sub(r'[\/\.]+[\w\/\.\-]*?' + binary_builder_prefix() + r'\w*[\w\/\.]*?/install', installdir, line)
                 f.write( line )
 
     # Create libblas.la (out of existing libsuperlu.la). We need

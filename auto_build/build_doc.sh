@@ -1,16 +1,15 @@
 #!/bin/bash
 
-SPHINX_PATH=/home/oalexan1/miniconda3/envs/sphinx/bin
-
 # Build the pdf doc. Note how we use the sphinx package installed
 # at $SPHINX_PATH. 
-
 
 if [ "$#" -lt 1 ]; then
     echo Usage: $0 buildDir
     exit 1
 fi
 buildDir=$1
+
+SPHINX_PATH=/home/oalexan1/miniconda3/envs/sphinx/bin
 
 # Go to the doc directory
 docDir=$HOME/$buildDir/build_asp/build/stereopipeline/stereopipeline-git/docs

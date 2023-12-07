@@ -122,6 +122,7 @@ README.rst
 stereo.default.example
 THIRDPARTYLICENSES
 examples
+docs
 appdata
 bin/texrecon_bin
 bin/export_to_nvm_file

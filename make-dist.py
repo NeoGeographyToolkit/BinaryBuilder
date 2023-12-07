@@ -135,7 +135,7 @@ def isis_version(isisroot):
         return ".".join(version[0:3])
     # TODO(oalexan1): The isis headers will move from here the miniconda dir at some point
     header = P.join(isisroot, 'include/isis/Constants.h')
-    m      = grep('version\("(.*?)"', header)
+    m      = grep(r'version\("(.*?)"', header)
     if not m:
         raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT (%s) is incorrect?' 
                         % (header, isisroot))
