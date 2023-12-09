@@ -340,8 +340,9 @@ if __name__ == '__main__':
             common_exec.extend( ["libtool"] )
         else:
             common_exec.extend( ["install_name_tool"] )
-            
-    compiler_exec = [build_env['CC'], build_env['CXX'], build_env['GFORTRAN']]
+
+    # Check for C and C++ compilers. Don't check for Fortran. No longer needed.
+    compiler_exec = [build_env['CC'], build_env['CXX']]
     missing_exec = []
     for program in common_exec:
         if not program_exists(program):
