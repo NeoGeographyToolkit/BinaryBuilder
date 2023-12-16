@@ -333,13 +333,11 @@ if __name__ == '__main__':
         # we won't build right then, so we don't need these tools,
         common_exec = []
     else:
-        common_exec = ["make", "tar", "ln", "cp", "csh", "sed", "bzip2",
+        common_exec = ["make", "tar", "ln", "cp", "sed", "bzip2",
                        "unzip", "patch", "git", "curl", "pbzip2"]
         
-        if arch.os == 'linux':
-            common_exec.extend( ["libtool"] )
-        else:
-            common_exec.extend( ["install_name_tool"] )
+    if arch.os != 'linux':
+      common_exec.extend( ["install_name_tool"] )
 
     # Check for C and C++ compilers. Don't check for Fortran. No longer needed.
     compiler_exec = [build_env['CC'], build_env['CXX']]
