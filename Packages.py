@@ -969,16 +969,6 @@ class qt(Package):
     @stage
     def install(self):
         super(qt, self).install()
-
-        # Wipe some odd things in the .la file which I could not
-        # figure out where they are coming from
-        if self.arch.os == 'osx':
-            cmd=['perl', '-pi', '-e',
-                 's#-framework\s*(Security|Foundation|ApplicationServices' + \
-                 '|IOKit|DiskArbitration)##g']                             + \
-                 glob(P.join(self.env['INSTALL_DIR'], 'lib/', '*Qt*.la'))
-            self.helper(*cmd)
-
         # Add a Prefix entry to INSTALL_DIR/bin/qt.conf so that qmake
         #       finds the correct QT install location!
         config_path = os.path.join(self.env['INSTALL_DIR'], 'bin/qt.conf')
