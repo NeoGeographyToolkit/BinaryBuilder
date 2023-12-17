@@ -4,6 +4,9 @@
 # This code must print to STDOUT just one statement,
 # the final build name.
 
+# TODO(oalexan1): This should not be necessary. Must ensure that
+# BinaryBuilder always produces builds with the right name.
+
 if [ "$#" -lt 3 ]; then echo Usage: $0 build version timestamp; exit; fi
 
 in_z=$1
@@ -41,12 +44,6 @@ bzip2 -dc $in_z | tar xfv - > /dev/null 2>&1
 if [ "$?" -ne 0 ]; then echo "Unpacking failed"; exit 1; fi
 if [ "$in" != "$out" ]; then 
     cp -rf $in $out # make a copy, keep the original
-fi
-
-# This is a hack for Linux to get the right libGL
-# TODO(oalexan1): Figure out a better approach
-if [ "$(uname -s | grep Linux)" != "" ]; then 
-    rsync -az /lib64/libGL.so* $out/lib
 fi
 
 # Pack back

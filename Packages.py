@@ -966,30 +966,6 @@ class qt(Package):
             args.append('-qt-xcb') # Not needed on OSX
         self.helper(*args)
 
-        if self.arch.os == 'osx':
-            # Create a script to do a mass edit of all .pro files
-            # to make them compile. Add some flags, and the -lc++ library.
-            # Then execute the script.
-            script = self.workdir + '/edit_pro.sh'
-            print("script is ", script)
-            f = open(script, 'w')
-            f.write('#!/bin/bash\n'                                     + \
-                    'cd ' + self.workdir + '\n'                         + \
-                    'for f in $(find . -name \*pro); do\n'              + \
-                    '  echo Editing $f\n'                               + \
-                    '  cat $f > tmp.txt\n'                              + \
-                    '  echo "CONFIG += c++11" > $f\n'                   + \
-                    '  echo "QMAKE_CXXFLAGS += -stdlib=libc++ -std=c++11" >> $f\n' + \
-                    '  echo "QMAKE_LDLAGS += -stdlib=libc++ -std=c++11"   >> $f\n' + \
-                    '  cat tmp.txt >> $f\n'                             + \
-                    '  perl -pi -e \'s#(QMAKE_LIBS\s+\+=\s)#$1 -lc++ #g\' $f\n' + \
-                    'done\n')
-            f.close()
-            cmd = ['chmod', 'u+x', script]
-            self.helper(*cmd)
-            cmd=[script]
-            self.helper(*cmd)
-
     @stage
     def install(self):
         super(qt, self).install()
@@ -1676,14 +1652,6 @@ class theia(GITPackage, CMakePackage):
             ]
         
         super(theia, self).configure(other=options)
-
-        # Remove this linker tag which just breaks things        
-        output_dir = P.join(self.env['BUILD_DIR'], self.pkgname)
-        build_dir  = P.join(output_dir, self.pkgname + '-git', 'build')
-        cmd = "find "+build_dir+" -name link.txt -exec sed -i -e 's#-lgflags-shared##g' {} \;"
-        print(cmd)
-        os.system(cmd)
-
 
 class xz(Package):
     # This must be synched up with ISIS's miniconda's liblzma.5.2.4
