@@ -80,7 +80,7 @@ def get_platform(pkg=None):
         else:
             raise PackageError(pkg, message)
 
-# List resursively all files in given directory
+# List recursively all files in given directory
 def list_recursively(dir):
     matches = []
     for root, dirnames, filenames in os.walk(dir):
@@ -127,8 +127,12 @@ def strip_flag(flag, key, env):
 
 
 def is_binary(filename):
-    '''Use the linux "file" tool to deterimen if a given file is a binary file'''
-    ret = run('file', filename, output=True)
+    '''Use the linux "file" tool to determine if a given file is a binary file'''
+    try:
+        ret = run('file', filename, output=True)
+    except:
+       # Strange files are considered non-binary. We don't want to modify them.
+       return False 
     return (ret.find('ELF') != -1) or (ret.find('Mach-O') != -1)
 
 def doctest_on(os):
@@ -851,13 +855,16 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
         #small_path = searchpath[0:1] # truncate this as it can't fit
         rpath = '$ORIGIN/../lib'
-        if run('chrpath', '-r', rpath, filename, raise_on_failure = False) is None:
-            # TODO: Apparently patchelf is better than chrpath when the
-            # latter fails. Here, can use instead:
-            # patchelf --set-rpath ':'.join(rpath) filename
-            pass
-            # This warning is too verbose.
-            #logger.warn('Failed to set_rpath on %s' % filename)
+        # The command below can corrupt files. It should not be necessary
+        # since the ASP wrappers set LD_LIBRARY_PATH, and at build time
+        # it sets RPATH to be $ORIGIN/../lib.
+        # if run('chrpath', '-r', rpath, filename, raise_on_failure = False) is None:
+        #     # TODO: Apparently patchelf is better than chrpath when the
+        #     # latter fails. Here, can use instead:
+        #     # patchelf --set-rpath ':'.join(rpath) filename
+        #     pass
+        #     # This warning is too verbose.
+        #     #logger.warn('Failed to set_rpath on %s' % filename)
     def osx():
         info = otool(filename)
 

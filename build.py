@@ -220,11 +220,15 @@ if __name__ == '__main__':
         CXXFLAGS = '-O3',
         BUILD_DIR    = P.join(opt.build_root, 'build'),
         INSTALL_DIR  = install_dir,
+        LDFLAGS  = r'-Wl,-rpath,$ORIGIN/../lib',
         # Use this meaningless RPATH of 'a's so later we have enough room the obtained
         # path to fit in a real path. Also set the paths to the compiler libs
         # and to installed libs.
-        LDFLAGS  = r'-Wl,-rpath,/%s' % ('a'*100) + ' -Wl,-rpath,' + path_to_libs + \
-         ' -Wl,-rpath,' + install_dir + '/lib',
+        # TODO(oalexan1): Trying to see if it works with just setting
+        # the honest $ORIGIN/../lib location, so turning off the rest.
+        #LDFLAGS  = r'-Wl,-rpath,$ORIGIN/../lib -Wl,-rpath,/%s' % ('a'*100) + \
+        # ' -Wl,-rpath,' + path_to_libs + \
+        # ' -Wl,-rpath,' + install_dir + '/lib',
         MAKEOPTS = '-j%s' % opt.threads,
         DOWNLOAD_DIR = opt.download_dir,
         ASP_DEPS_DIR = opt.asp_deps_dir,

@@ -12,13 +12,6 @@ if [ "$#" -lt 4 ]; then
     exit 1
 fi
 
-if [ -x /usr/bin/zsh ] && [ "$MY_BUILD_SHELL" = "" ]; then
-    # Use zsh if available, that helps with compiling on pfe,
-    # more specifically with ulmit.
-    export MY_BUILD_SHELL=zsh
-    exec /usr/bin/zsh $0 $*
-fi
-
 buildDir=$1
 statusFile=$2
 buildPlatform=$3
