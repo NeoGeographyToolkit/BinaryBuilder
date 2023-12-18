@@ -126,7 +126,7 @@ def strip_flag(flag, key, env):
     return hit, env
 
 def is_ascii(filename):
-    '''Use the linux "file" tool to determine if a given file is ascii'''
+    '''Use the "file" tool to determine if a given file is ascii'''
     try:
         ret = run('file', filename, output=True)
     except:
@@ -480,7 +480,6 @@ class DistManager(object):
 
         try:
             copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
-            print("Will copy " + src + " to " + dst)
             self.distlist.add(dst)
         except Exception as e:
             # Bail out if the copying failed.
@@ -702,15 +701,11 @@ def otool(filename):
 
 def required_libs(filename, search_path):
     ''' Returns a dict where the keys are required SONAMEs and the values are proposed full paths. '''
-    def linux():
+    if get_platform().os == 'linux':
         soname = set(readelf(filename).needed)
         return dict((k,v) for k,v in ldd(filename, search_path).items() if k in soname)
-    def osx():
+    else:
         return otool(filename).libs
-
-    # What an obfuscated way of saying things where an if statement could
-    # do the same thing and would also do error checking.
-    return locals()[get_platform().os]()
 
 def grep(regex, filename):
     '''Run a regular expression search inside a file'''
@@ -786,7 +781,6 @@ def mergetree(src, dst, copyfunc):
 def strip(filename):
     '''Discard all symbols from this object file with OS specific flags'''
     flags = None
-    print("zzzStripping: " + filename)
 
     def linux_flags():
         typ = run('file', filename, output=True)
@@ -868,7 +862,7 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         return
         
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
-    def linux():
+    if get_platform().os == 'linux':
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
         #small_path = searchpath[0:1] # truncate this as it can't fit
         rpath = '$ORIGIN/../lib'
@@ -882,7 +876,7 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         #     pass
         #     # This warning is too verbose.
         #     #logger.warn('Failed to set_rpath on %s' % filename)
-    def osx():
+    else:
         info = otool(filename)
 
         # soname is None for an executable
@@ -946,10 +940,6 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         # results in a subtle crash.
         for abs_rpath in info.abs_rpaths:
             run('install_name_tool', '-delete_rpath', abs_rpath, filename)
-
-    # Call one of the two functions above depending on the OS
-    # TODO(oalexan1): Hard to read this code. Just use an if statement.
-    locals()[get_platform().os]()
 
 def snap_symlinks(src):
     '''Build a list of chained symlink files until we reach a non-link file.'''
