@@ -470,12 +470,15 @@ class DistManager(object):
         # asp_deps_dir. Those are portable, unlike potentially the
         # files in the current system.
         if dst in self.dst_to_src:
-            if self.asp_install_dir in self.dst_to_src[dst] and (not self.asp_install_dir in src):
+            if self.asp_install_dir in self.dst_to_src[dst] and \
+                    (not self.asp_install_dir in src):
+                print("Will copy " + self.dst_to_src[dst] + " and not " + src)
                 return
             if self.asp_deps_dir in self.dst_to_src[dst] and \
-                (not self.asp_deps_dir in src):
+                    (not self.asp_deps_dir in src):
+                print("Will copy " + self.dst_to_src[dst] + " and not " + src)
                 return
-
+                       
         self.dst_to_src[dst] = src
 
         try:
