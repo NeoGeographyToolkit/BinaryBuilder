@@ -77,12 +77,17 @@ LIB_SYSTEM_LIST = '''
     libXt.so
     libXxf86vm.so
     libc.so
-    libdl.so
-    libm.so
-    libpthread.so.0
-    librt.so
-    libuuid.so
     libc-
+    libdl.so
+    libdl-
+    libm.so
+    libm-
+    libutil.so
+    libutil-
+    librt.so
+    librt-
+    libuuid.so
+    libpthread.so.0
     libdbus-1.so.3.14.14
     libsystemd.so
 '''.split()
@@ -91,7 +96,7 @@ SKIP_IF_NOT_FOUND = []
 
 if get_platform().os == 'linux':
     # Exclude this from shipping for Linux, but not for Mac, as then things don't work
-    LIB_SYSTEM_LIST += ['libresolv.so', 'libresolv-']
+    LIB_SYSTEM_LIST += ['libresolv.so', 'libresolv-', 'libGL.so', 'libGLX.so', 'libGLdispatch.so']
 else:
     # A recent OSX does not have this, and does not seem necessary
     SKIP_IF_NOT_FOUND += ['libXplugin.1.dylib']
@@ -167,6 +172,9 @@ if __name__ == '__main__':
 
     global opt
     (opt, args) = parser.parse_args()
+    # print here the environment variables
+    for key in os.environ.keys():
+        print(key + "=" + os.environ[key])
 
     def usage(msg, code=-1):
         parser.print_help()
@@ -403,8 +411,8 @@ if __name__ == '__main__':
         # ISIS expects a full Python distribution to be shipped. See
         # the option --python-env for more details.
         print('Adding files in ' + opt.python_env)
-        mgr.add_directory(opt.python_env,
-                          subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
+        mgr.add_directory(opt.python_env)
+        #, subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
 
         sys.stdout.flush()
 

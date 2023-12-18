@@ -125,14 +125,20 @@ def strip_flag(flag, key, env):
         del env[key]
     return hit, env
 
+def is_ascii(filename):
+    '''Use the linux "file" tool to determine if a given file is ascii'''
+    try:
+        ret = run('file', filename, output=True)
+    except:
+       return False
+    return (ret.find('ASCII') != -1)
 
 def is_binary(filename):
     '''Use the linux "file" tool to determine if a given file is a binary file'''
     try:
         ret = run('file', filename, output=True)
     except:
-       # Strange files are considered non-binary. We don't want to modify them.
-       return False 
+       return False
     return (ret.find('ELF') != -1) or (ret.find('Mach-O') != -1)
 
 def doctest_on(os):
@@ -147,10 +153,11 @@ def doctest_on(os):
 
 def default_baker(filename, distdir, searchpath):
     '''Updates a files rpath to be relative to distdir and strips it of symbols'''
-    if not is_binary(filename):
+    if is_ascii(filename):
         fix_paths(filename)
         return
-    set_rpath(filename, distdir, searchpath)
+    if is_binary(filename):
+        set_rpath(filename, distdir, searchpath)
 
     # On linux stripping causes the conda libraries to crash
     if get_platform().os != 'linux':
@@ -326,12 +333,11 @@ class DistManager(object):
         for k in seq:
             files = glob(P.join(self.distdir, '*', k + '*'))
             for f in files:
-                if os.path.exists(f):
-                    try:
-                        print("Removing: " + f)
-                        os.remove(f)
-                    except:
-                        pass
+                try:
+                    print("Removing: " + f)
+                    os.remove(f)
+                except:
+                    pass
         
     def resolve_deps(self, nocopy, copy, search = None):
         ''' Find as many of the currently-listed deps as possible. If the dep
@@ -474,6 +480,7 @@ class DistManager(object):
 
         try:
             copy(src, dst, keep_symlink=keep_symlink, hardlink=hardlink)
+            print("Will copy " + src + " to " + dst)
             self.distlist.add(dst)
         except Exception as e:
             # Bail out if the copying failed.
@@ -779,6 +786,7 @@ def mergetree(src, dst, copyfunc):
 def strip(filename):
     '''Discard all symbols from this object file with OS specific flags'''
     flags = None
+    print("zzzStripping: " + filename)
 
     def linux_flags():
         typ = run('file', filename, output=True)
@@ -931,6 +939,7 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
             run('install_name_tool', '-delete_rpath', abs_rpath, filename)
 
     # Call one of the two functions above depending on the OS
+    # TODO(oalexan1): Hard to read this code. Just use an if statement.
     locals()[get_platform().os]()
 
 def snap_symlinks(src):
@@ -959,8 +968,10 @@ def fix_install_paths(installdir, arch):
     for control in control_files:
 
         # Skip folders and binaries
-        if os.path.isdir(control): continue
-        if is_binary(control): continue
+        if os.path.isdir(control): 
+            continue
+        if not is_ascii(control): 
+            continue
 
         print('  %s' % P.basename(control))
 
