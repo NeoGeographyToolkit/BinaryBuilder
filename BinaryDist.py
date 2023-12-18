@@ -133,8 +133,9 @@ def is_ascii(filename):
        return False
     return (ret.find('ASCII') != -1)
 
-def is_binary(filename):
-    '''Use the linux "file" tool to determine if a given file is a binary file'''
+def is_lib_or_bin_prog(filename):
+    '''Use the "file" tool to determine if a given file is a a library or a binary
+       executable program. Being non-ASCII, on its own, is not enough to qualify.'''
     try:
         ret = run('file', filename, output=True)
     except:
@@ -156,7 +157,7 @@ def default_baker(filename, distdir, searchpath):
     if is_ascii(filename):
         fix_paths(filename)
         return
-    if is_binary(filename):
+    if is_lib_or_bin_prog(filename):
         set_rpath(filename, distdir, searchpath)
 
     # On linux stripping causes the conda libraries to crash
@@ -470,10 +471,9 @@ class DistManager(object):
         # files in the current system.
         if dst in self.dst_to_src:
             if self.asp_install_dir in self.dst_to_src[dst] and (not self.asp_install_dir in src):
-                print("Will copy " + self.dst_to_src[dst] + " and not " + src)
                 return
-            if self.asp_deps_dir in self.dst_to_src[dst] and (not self.asp_deps_dir in src):
-                print("Will copy " + self.dst_to_src[dst] + " and not " + src)
+            if self.asp_deps_dir in self.dst_to_src[dst] and \
+                (not self.asp_deps_dir in src):
                 return
 
         self.dst_to_src[dst] = src
@@ -488,7 +488,7 @@ class DistManager(object):
             print("Warning: " + str(e))
             return
         
-        if add_deps and is_binary(dst):
+        if add_deps and is_lib_or_bin_prog(dst):
             # Search for dependencies in our preferred locations first
             search_path = self.asp_install_dir + "/lib" + ":" + self.asp_deps_dir + "/lib"
             req = required_libs(dst, search_path)
@@ -833,6 +833,10 @@ def fix_paths(filename):
     Fix paths of the form /home/.../ to be relative to /usr/. This way
     the build environment paths won't leak. This will apply only to text files.
     '''
+    # This tool can corrupt non-ascii files, so skip them
+    if not is_ascii(filename):
+        return
+        
     # Read all lines from the file
     try:
         with open(filename, 'r') as f:
@@ -858,6 +862,11 @@ def fix_paths(filename):
 def set_rpath(filename, toplevel, searchpath, relative_name=True):
     '''For each input file, set the rpath to contain all the input
        search paths to be relative to the top level.'''
+      
+    # Careful not to corrupt files   
+    if not is_lib_or_bin_prog(filename):
+        return
+        
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     def linux():
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
@@ -1028,7 +1037,7 @@ def fix_install_paths(installdir, arch):
     for curr_path in SEARCHPATH:
         for extension in library_ext:
             for library in glob(P.join(curr_path,'*.'+extension+'*')):
-                if not is_binary(library):
+                if not is_lib_or_bin_prog(library):
                     continue
                 print('  %s' % P.basename(library))
                 try:
@@ -1038,7 +1047,7 @@ def fix_install_paths(installdir, arch):
 
     print('Fixing files in bin/')
     for file in glob(P.join(installdir,'bin','*')):
-        if not is_binary(file):
+        if is_ascii(file):
             fix_paths(file)
             continue
         print('  %s' % P.basename(binary))

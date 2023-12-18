@@ -96,6 +96,7 @@ SKIP_IF_NOT_FOUND = []
 
 if get_platform().os == 'linux':
     # Exclude this from shipping for Linux, but not for Mac, as then things don't work
+    # TODO(oalexan1): May need to put libGL-related files back, but this works for now.
     LIB_SYSTEM_LIST += ['libresolv.so', 'libresolv-', 'libGL.so', 'libGLX.so', 'libGLdispatch.so']
 else:
     # A recent OSX does not have this, and does not seem necessary
@@ -172,17 +173,14 @@ if __name__ == '__main__':
 
     global opt
     (opt, args) = parser.parse_args()
-    # print here the environment variables
-    for key in os.environ.keys():
-        print(key + "=" + os.environ[key])
-
+    
     def usage(msg, code=-1):
         parser.print_help()
         print('\n%s' % msg)
         sys.exit(code)
 
     if not args:
-        usage('Missing required argument: installdir')
+        usage('Missing required argument: install directory')
 
     if opt.asp_deps_dir == "":
         opt.asp_deps_dir = P.join(os.environ["HOME"], 'miniconda3/envs/asp_deps')
@@ -410,9 +408,10 @@ if __name__ == '__main__':
 
         # ISIS expects a full Python distribution to be shipped. See
         # the option --python-env for more details.
+        # Add the directory wholesale. It is not easy to figure out
+        # what can be excluded.
         print('Adding files in ' + opt.python_env)
         mgr.add_directory(opt.python_env)
-        #, subdirs = ['bin', 'lib', 'share', 'include', 'ssl'])
 
         sys.stdout.flush()
 
