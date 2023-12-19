@@ -112,6 +112,17 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
         fi
     done
     
+    # The cloud directory where the build is stored. Wipe any prior local
+    # version, or else the fetching can fail.
+    cloudBuildDir=StereoPipeline-macOS
+    /bin/rm -rf $cloudBuildDir
+
+    # Fetch the build from the cloud. If it failed,
+    # we will at least have the logs.
+    echo Fetching the build with id $id from the cloud 
+    echo $gh run download -R $repo $id
+    $gh run download -R $repo $id
+    
     if [ "$success" != "success" ]; then
         echo Cloud build failed with status $success
         echo "Fail build_failed" > $HOME/$buildDir/$statusFile
@@ -120,16 +131,6 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
         echo Cloud build succeeded
     fi
 
-    # The cloud directory where the build is stored. Wipe any prior local
-    # version, or else the fetching can fail.
-    cloudBuildDir=StereoPipeline-macOS
-    /bin/rm -rf $cloudBuildDir
-
-    # Fetch the build from the cloud
-    echo Fetching the build with id $id from the cloud 
-    echo $gh run download -R $repo $id
-    $gh run download -R $repo $id
-    
     asp_tarball=$(ls $cloudBuildDir/StereoPipeline-*.tar.bz2 | head -n 1)
     echo List the downloaded build directory
     ls -ld $cloudBuildDir/*
