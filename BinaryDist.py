@@ -767,8 +767,21 @@ def mergetree(src, dst, copyfunc):
         dstname = P.join(dst, name)
         try:
             if P.isdir(srcname):
-                mergetree(srcname, dstname, copyfunc)
+                # A directory or symlink to a directory
+                if not P.islink(srcname):
+                    # Copy a dir that is not a symlink
+                    mergetree(srcname, dstname, copyfunc)
+                else:
+                    # Copy a symlink dir dir
+                    if P.exists(dstname):
+                        # Wipe the destination
+                        print("Overwriting: " + dstname)
+                        shutil.rmtree(dstname)
+                    linkto = os.readlink(srcname)
+                    os.symlink(linkto, dstname)
+                    
             else:
+                # A file or file symlink
                 copyfunc(srcname, dstname)
         except shutil.Error as err:
             errors.extend(err.args[0])
