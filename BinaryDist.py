@@ -882,16 +882,13 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
         #small_path = searchpath[0:1] # truncate this as it can't fit
         rpath = '$ORIGIN/../lib'
-        # The command below can corrupt files. It should not be necessary
-        # since the ASP wrappers set LD_LIBRARY_PATH, and at build time
-        # it sets RPATH to be $ORIGIN/../lib.
-        # if run('chrpath', '-r', rpath, filename, raise_on_failure = False) is None:
-        #     # TODO: Apparently patchelf is better than chrpath when the
-        #     # latter fails. Here, can use instead:
-        #     # patchelf --set-rpath ':'.join(rpath) filename
-        #     pass
-        #     # This warning is too verbose.
-        #     #logger.warn('Failed to set_rpath on %s' % filename)
+        if run('chrpath', '-r', rpath, filename, raise_on_failure = False) is None:
+            # TODO: Apparently patchelf is better than chrpath when the
+            # latter fails. Here, can use instead:
+            # patchelf --set-rpath ':'.join(rpath) filename
+            pass
+            # This warning is too verbose.
+            #logger.warn('Failed to set_rpath on %s' % filename)
     else:
         info = otool(filename)
 
