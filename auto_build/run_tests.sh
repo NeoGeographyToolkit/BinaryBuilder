@@ -90,16 +90,16 @@ echo The envirnonment
 env
 
 # Run the tests with timeout. See StereoPipelineTest/README.txt for usage.
-cmd="$HOME/miniconda3/envs/pytest/bin/python $HOME/miniconda3/envs/pytest/bin/pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile"
+cmd="/usr/bin/time $HOME/miniconda3/envs/pytest/bin/python $HOME/miniconda3/envs/pytest/bin/pytest --timeout=14400 -n $num_cpus -q -s -r a --tb=no --config $configFile"
 echo Running: $cmd
 echo Current directory: $(pwd)
-$cmd > $reportFile
+$cmd > $reportFile 2>&1
 test_status="$?"
 
 if [ "$test_status" -ne 0 ]; then
     echo "pytest command failed. See StereoPipelineTest/README.txt for how to install and use pytest."
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
-    exit
+    exit 1
 fi
 
 # Turn this off. Some groups no longer exists on all machines.
