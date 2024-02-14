@@ -101,7 +101,6 @@ libexec/stereo_utils.py
 libexec/asp*.py
 bin/pdal
 bin/usgscsm_cam_test
-libexec/datum_convert_cpp
 libexec/htdp
 bin/crs2crs2grid.py
 libexec/rig_utils.py 
