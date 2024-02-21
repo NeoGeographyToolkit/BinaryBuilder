@@ -25,6 +25,7 @@ bin/hsv_merge
 bin/image2qtree
 bin/image_mosaic
 bin/cam_gen
+bin/gcp_gen
 bin/ipfind
 bin/ipmatch
 bin/lronac2mosaic.py
