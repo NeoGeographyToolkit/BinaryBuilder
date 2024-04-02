@@ -143,3 +143,4 @@ bin/sfm_view
 bin/sat_sim
 libexec/list_timestamps
 libexec/extract_bag
+bin/disp2ip
