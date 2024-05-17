@@ -98,13 +98,11 @@ bin/stereo_parse
 libexec/rpc_gen
 libexec/tif_mosaic
 bin/mapproject_single
-libexec/stereo_utils.py
 libexec/asp*.py
 bin/pdal
 bin/usgscsm_cam_test
 libexec/htdp
 bin/crs2crs2grid.py
-libexec/rig_utils.py 
 share/gdal
 share/epsg_csv
 share/geoids*
