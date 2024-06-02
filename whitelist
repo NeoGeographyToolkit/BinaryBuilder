@@ -142,3 +142,4 @@ bin/sat_sim
 libexec/list_timestamps
 libexec/extract_bag
 bin/disp2ip
+bin/dem2gcp
