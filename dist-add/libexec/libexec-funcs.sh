@@ -26,10 +26,10 @@ version_comp() {
     return $retval
 }
 
-# Keep this in sync with the function in funcs.sh
+# Keep this in sync with isis_version() in make-dist.py
 isis_version() {
     local ROOT="${1:-$ISISROOT}"
-    local ISIS_HEADER="${ROOT}/version"
+    local ISIS_HEADER="${ROOT}/isis_version.txt"
     if test -s "${ISIS_HEADER}"; then
         local version="$(head -1 < $ISIS_HEADER | sed 's/\([0-9]*\.[0-9]*\.[0-9]*\).*/\1/')"
     else

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# TODO(oalexan1): Must wipe this file. But first check if the nightly run works with it just renamed.
+
 DARWIN_WHITELIST=(
 /System/Library/Frameworks/AGL.framework/Versions/A/AGL
 /System/Library/Frameworks/ApplicationServices.framework/Versions/A/ApplicationServices

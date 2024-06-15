@@ -134,19 +134,14 @@ def sibling_to(dir, name):
 
 # Keep this in sync with the function in libexec-funcs.sh
 def isis_version(isisroot):
-    # Check the ISIS version
-    if P.isfile(P.join(isisroot,'version')):
-        f       = open(P.join(isisroot,'version'),'r')
-        raw     = f.readline().strip()
-        version = raw.split('#')[0].strip().split('.') # Strip out comment first
-        return ".".join(version[0:3])
-    # TODO(oalexan1): The isis headers will move from here the miniconda dir at some point
-    header = P.join(isisroot, 'include/isis/Constants.h')
-    m      = grep(r'version\("(.*?)"', header)
-    if not m:
-        raise Exception('Unable to locate ISIS version header (expected at %s). Perhaps your ISISROOT (%s) is incorrect?' 
-                        % (header, isisroot))
-    return m[0].group(1)
+    isis_version_file = P.join(isisroot,'isis_version.txt')
+    if not P.isfile(isis_version_file):
+        raise Exception('Cannot find: %s' % isis_version_file)
+        
+    f = open(isis_version_file)
+    raw     = f.readline().strip()
+    version = raw.split('#')[0].strip().split('.') # Strip out comment first
+    return ".".join(version[0:3])
 
 def libc_version():
     locations=['/lib/x86_64-linux-gnu/libc.so.6', '/lib/i386-linux-gnu/libc.so.6',
@@ -164,7 +159,6 @@ if __name__ == '__main__':
     parser.add_option('--asp-deps-dir', dest='asp_deps_dir', default='', help='Path to where conda installed the ASP dependencies. Default: $HOME/miniconda3/envs/asp_deps.')
     parser.add_option('--python-env', dest='python_env', default='', help='Path of a conda-installed distribution having the same version of Python and numpy as in the ASP dependencies. Must be set. See StereoPipeline/docs/building_asp.rst for more info.')
     parser.add_option('--debug-build',    dest='debug_build', default=False, action='store_true', help='Create a build having debug symbols')
-    parser.add_option('--vw-build',       dest='vw_build',    default=False, action='store_true', help='Set to true when packaging a non-ASP build')
     parser.add_option('--keep-temp',      dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
     parser.add_option('--set-version',    dest='version',     default=None, help='Set the version number to use for the generated tarball')
     parser.add_option('--set-name',       dest='name',        default='StereoPipeline', help='Tarball name for this dist')
@@ -187,13 +181,6 @@ if __name__ == '__main__':
     if not P.exists(opt.asp_deps_dir):
         die('Cannot find the ASP dependencies directory installed with conda at ' + \
             opt.asp_deps_dir + '. Specify it via --asp-deps-dir.')
-
-    # If the user specified a VW build, update some default options.
-    if opt.vw_build:
-        if opt.include == './whitelist':
-            opt.include = './whitelist_vw'
-        if opt.name == 'StereoPipeline':
-            opt.name = 'VisionWorkbench'
 
     if opt.python_env == "":
         die('\nMust specify --python-env.')
@@ -227,15 +214,15 @@ if __name__ == '__main__':
         lib_ext = '.so'
 
     wrapper_file = 'libexec-helper.sh'
-    if (opt.vw_build):
-        wrapper_file = 'libexec-helper_vw.sh'
         
     INSTALLDIR = DistPrefix(installdir)
     mgr = DistManager(tarball_name(), wrapper_file, INSTALLDIR, opt.asp_deps_dir)
 
     try:
         ISISROOT   = P.join(INSTALLDIR)
-        SEARCHPATH = [INSTALLDIR.lib(), opt.asp_deps_dir + '/lib',
+        SEARCHPATH = [INSTALLDIR.lib(), 
+                      opt.asp_deps_dir + '/lib',
+                      opt.asp_deps_dir + '/lib/csmplugins/',
                       opt.asp_deps_dir + '/x86_64-conda-linux-gnu/sysroot/usr/lib64',
                       opt.asp_deps_dir + '/lib/pulseaudio',
                       '/usr/lib/x86_64-linux-gnu', '/usr/lib', '/opt/X11/lib']
@@ -270,41 +257,39 @@ if __name__ == '__main__':
             mgr.sym_link_lib('libproj.so', 'libproj.0.so')
             mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
                                 
-        if not opt.vw_build:
-            print('Adding the ISIS libraries')
-            sys.stdout.flush()
-            isis_secondary_set = set()
-            for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
-                with open(plugin,'r') as f:
-                    for line in f:
-                        line = line.split()
-                        if not len( line ):
-                            continue
-                        if line[0] == 'Library':
-                            isis_secondary_set.add("lib/lib"+line[2]+"*")
-            for library in isis_secondary_set:
-                mgr.add_glob(library, [INSTALLDIR, opt.asp_deps_dir])
+        print('Adding the ISIS libraries')
+        sys.stdout.flush()
+        isis_secondary_set = set()
+        for plugin in glob(P.join(INSTALLDIR,'lib','*.plugin')):
+            with open(plugin,'r') as f:
+                for line in f:
+                    line = line.split()
+                    if not len( line ):
+                        continue
+                    if line[0] == 'Library':
+                        isis_secondary_set.add("lib/lib"+line[2]+"*")
+        for library in isis_secondary_set:
+            mgr.add_glob(library, [INSTALLDIR, opt.asp_deps_dir])
 
-            # Add all libraries that link to isis, that is, specific instrument libs 
-            for lib in glob(P.join(opt.asp_deps_dir, 'lib','*')):
-                isIsisLib = False
-                try:
-                    search_path = INSTALLDIR + "/lib" + ":" + opt.asp_deps_dir + "/lib"
-                    req = required_libs(lib, search_path)
-                    for key in req.keys():
-                        if 'isis' in key:
-                            isIsisLib = True
-                except:
-                    pass
-                if isIsisLib:
-                    mgr.add_glob(lib, [opt.asp_deps_dir])
+        # Add all libraries that link to isis, that is, specific instrument libs 
+        for lib in glob(P.join(opt.asp_deps_dir, 'lib','*')):
+            isIsisLib = False
+            try:
+                search_path = INSTALLDIR + "/lib" + ":" + opt.asp_deps_dir + "/lib"
+                req = required_libs(lib, search_path)
+                for key in req.keys():
+                    if 'isis' in key:
+                        isIsisLib = True
+            except:
+                pass
+            if isIsisLib:
+                mgr.add_glob(lib, [opt.asp_deps_dir])
 
         print('Adding ISIS and GLIBC version check')
         sys.stdout.flush()
         with mgr.create_file('libexec/constants.sh') as f: # Create constants file
-            if not opt.vw_build:
-                print('BAKED_ISIS_VERSION="%s"' % isis_version(opt.asp_deps_dir), file=f)
-                print('\tFound ISIS version %s' % isis_version(opt.asp_deps_dir))
+            print('BAKED_ISIS_VERSION="%s"' % isis_version(opt.asp_deps_dir), file=f)
+            print('\tFound ISIS version %s' % isis_version(opt.asp_deps_dir))
             print('BAKED_LIBC_VERSION="%s"' % libc_version(), file=f)
             if get_platform().os == 'linux':
                 # glibc is for Linux only
