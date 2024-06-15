@@ -222,7 +222,7 @@ if __name__ == '__main__':
         ISISROOT   = P.join(INSTALLDIR)
         SEARCHPATH = [INSTALLDIR.lib(), 
                       opt.asp_deps_dir + '/lib',
-                      opt.asp_deps_dir + '/lib/csmplugins/',
+                      opt.asp_deps_dir + '/lib/csmplugins',
                       opt.asp_deps_dir + '/x86_64-conda-linux-gnu/sysroot/usr/lib64',
                       opt.asp_deps_dir + '/lib/pulseaudio',
                       '/usr/lib/x86_64-linux-gnu', '/usr/lib', '/opt/X11/lib']
@@ -348,7 +348,8 @@ if __name__ == '__main__':
 
         print('\tFinding deps in search path')
         sys.stdout.flush()
-        mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'), P.join(ISISROOT, '3rdParty', 'lib')],
+        mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'),
+                                   P.join(ISISROOT, '3rdParty', 'lib')],
                          copy = SEARCHPATH + \
                          ['/opt/X11/lib',
                           '/usr/lib',
@@ -360,6 +361,7 @@ if __name__ == '__main__':
                           '/usr/lib/x86_64-linux-gnu',
                           '/System/Library/Frameworks',
                           '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks',
+                          '/usr/local/opt/python@3.12/Frameworks',
                           '/opt/local/lib/libomp'
                           ])
         # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
