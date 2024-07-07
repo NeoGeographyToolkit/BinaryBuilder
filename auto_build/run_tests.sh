@@ -81,7 +81,7 @@ perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFile
 #outputFile=output_test_"$machine".txt
 echo "Launching the tests. Output goes to: $(pwd)/$reportFile"
 num_cpus=$(ncpus)
-if [ "$num_cpus" -gt 4 ]; then num_cpus=4; fi # Don't overload machines
+#if [ "$num_cpus" -gt 8 ]; then num_cpus=8; fi # Don't overload machines
 
 # This is a bugfix for a known issue with pytest.
 export LANG=en_US.UTF-8
