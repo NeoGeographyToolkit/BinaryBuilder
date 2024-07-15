@@ -90,6 +90,8 @@ LIB_SYSTEM_LIST = '''
     libpthread.so.0
     libdbus-1.so.3.14.14
     libsystemd.so
+    libX11-xcb.so
+    libXdmcp.so
 '''.split()
 
 SKIP_IF_NOT_FOUND = []
