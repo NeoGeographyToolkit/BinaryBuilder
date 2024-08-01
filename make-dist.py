@@ -411,7 +411,7 @@ if __name__ == '__main__':
         if get_platform().os != 'linux':
             # Bugfix for missing Python.framework on the Mac
             frameworkDir = '/usr/local/opt/python@3.12/Frameworks/Python.framework'
-            mgr.add_directory(frameworkDir, self.distdir + '/lib')
+            mgr.add_directory(frameworkDir, mgr.distdir + '/lib')
             # /bin/cp -rfv /usr/local/opt/python@3.12/Frameworks/Python.framework \
             #  StereoPipeline-3.5.0-alpha-2024-08-01-x86_64-OSX/lib/
         
