@@ -411,8 +411,11 @@ if __name__ == '__main__':
         if get_platform().os != 'linux':
             # Bugfix for missing Python.framework on the Mac
             frameworkDir = '/usr/local/opt/python@3.12/Frameworks/Python.framework'
-            mgr.add_directory(frameworkDir, mgr.distdir + '/lib/Python.framework')
-            
+            try:
+                mgr.add_directory(frameworkDir, mgr.distdir + '/lib/Python.framework')
+            except:
+                pass
+
         print('Baking RPATH and stripping binaries')
         # TODO(oalexan1): This step takes forever. It should be applied only to 
         # files in lib, bin, and libeexec. We ship many other files.
