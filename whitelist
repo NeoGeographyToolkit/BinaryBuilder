@@ -134,7 +134,6 @@ bin/texrecon
 bin/voxblox_mesh
 bin/rig_calibrator
 bin/multi_stereo
-bin/fit_rpc
 bin/sfm_submap
 bin/sfm_merge
 bin/sfm_view
