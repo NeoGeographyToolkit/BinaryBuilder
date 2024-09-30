@@ -70,6 +70,7 @@ bin/lvis2kml.py
 bin/h5dump
 bin/ortho2pinhole
 bin/cam2rpc
+bin/image_subset
 bin/camera_footprint
 bin/historical_helper.py
 bin/parallel
