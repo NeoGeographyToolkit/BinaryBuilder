@@ -63,6 +63,7 @@ bin/pansharp
 bin/cam_test
 bin/convert_pinhole_model
 bin/aster2asp
+bin/prism2asp
 bin/icebridge_kmz_to_csv.py
 bin/correct_icebridge_l3_dem
 bin/extract_icebridge_ATM_points.py
