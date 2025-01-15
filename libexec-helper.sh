@@ -3,6 +3,13 @@
 self=$$
 trap 'exit 1' TERM
 
+# This if a fix for ASP being called from within an incompatible conda environment.
+unset GDAL_DRIVER_PATH
+unset PDAL_DRIVER_PATH
+unset GDAL_DATA
+unset PROJ_DATA
+unset PROJ_LIB
+
 # Care here if the paths have spaces
 EXEC_PATH="$0"
 DIR_NAME=$(dirname "$EXEC_PATH")
