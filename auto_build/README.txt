@@ -11,8 +11,8 @@ publishes the obtained builds to GitHub, at:
 Machines:
 --------
 
-lunokhod1:        Ubuntu 18 Linux
-decoder:          Mac OS X
+lunokhod1:            Ubuntu 18 Linux
+GitHub cloud machine: Mac OS X with Intel CPU
 
 ssh must be configured so that ssh connections from each machine to
 lunokhod1 and back, and to itself (both using its name and using
@@ -23,13 +23,7 @@ The main script is auto_build/launch_master.sh in BinaryBuilder. It gets started
 on lunokhod1.
 
 The Linux build is done on lunokhod1. The OSX build is created and tested on
-GitHub via Actions. It is then further tested on decoder, but this machine will
-soon be decommissioned, and then the cloud solution will be the only one left.
-
-The obtained builds include the latest pdf documentation, generated on
-lunokhod1 (as other machines lack LaTeX), and later copied to each
-build. The builds are renamed according to the release convention
-before being published.
+GitHub via Actions.
 
 Each time the automated builds are started, a fresh copy is fetched
 not only of VisionWorkbench and StereoPipeline, but also of
