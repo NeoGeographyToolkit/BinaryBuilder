@@ -1,26 +1,23 @@
 #!/bin/bash
 
-# Launch and test all builds on all machines and notify the user of
-# the status. In case of success, copy the resulting builds to byss
-# and update the public link.
+# Launch and test all builds on all machines and notify the user of the status.
+# In case of success, copy the resulting builds to the master machine and update
+# the public link.
 
-# IMPORTANT NOTE: This script assumes that that all VW, ASP,
-# StereoPipelineTest, and BinaryBuilder code is up-to-date in github.
+# This script assumes that that all VW, ASP, StereoPipelineTest, and
+# BinaryBuilder code is up-to-date on GitHub.
 
-# If you have local modifications in the BinaryBuilder directory,
+# If having local modifications in the BinaryBuilder directory,
 # update the list at auto_build/filesToCopy.txt (that list has all
-# top-level files and directories in BinaryBuilder that are checkd
+# top-level files and directories in BinaryBuilder that are checked
 # in), and run this script as
 
 # ./auto_build/launch_master.sh local_mode
 
-# Once you are satisfied that everything works, check in your changes.
-# Then run this script without any options. See auto_build/README.txt
-# for more details.
-
 # The Linux build is built and tested locally. The macOS one is built
-# and tested in the cloud, then tested with a larger test suite on 
-# 'decoder'. This machine will go away.
+# and tested in the cloud.
+
+# See auto_build/README.txt for more information.
 
 buildDir=projects/BinaryBuilder     # must be relative to home dir
 testDir=projects/StereoPipelineTest # must be relative to home dir

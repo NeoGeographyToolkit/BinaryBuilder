@@ -160,9 +160,10 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
         echo "$asp_tarball test_done Fail" > $HOME/$buildDir/$statusFile
         exit 1
     fi
-    # Here exit the cloud build
 fi
-  
+
+# For the Mac build the script exits by now, so this is only for Linux.
+
 # Build everything, including VW and ASP. Only the packages
 # whose checksum changed will get built.
 echo "Building changed packages"
