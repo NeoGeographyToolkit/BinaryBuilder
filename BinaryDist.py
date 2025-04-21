@@ -56,6 +56,7 @@ def run(*args, **kw):
 def get_platform(pkg=None):
     system  = platform.system()
     machine = platform.machine()
+    
     p = namedtuple('Platform', 'os bits osbits system machine prettyos dist_name dist_version')
     if system == 'Linux':
         name  = 'Linux'
@@ -73,12 +74,14 @@ def get_platform(pkg=None):
         return p('osx', 64, 'osx64', system, 'x86_64', 'OSX', name, ver)
     elif system == 'Darwin' and machine == 'x86_64':
         return p('osx', 64, 'osx64', system, machine, 'OSX', name, ver)
+    elif system == 'Darwin' and machine == 'arm64':
+        return p('osx', 64, 'arm64', system, machine, 'OSX', name, ver)
     else:
         message = 'Cannot match system to known platform'
         if pkg is None:
             raise Exception(message)
         else:
-            raise PackageError(pkg, message)
+            raise BinaryBuilder.PackageError(pkg, message)
 
 # List recursively all files in given directory
 def list_recursively(dir):
@@ -674,15 +677,15 @@ def otool(filename):
                 continue
 
             fidx = sopath.rfind('.framework')
-            if fidx >= 0:
+            if fidx >= 0 and '.dylib' not in sopath:
                 soname = sopath[sopath.rfind('/', 0, fidx)+1:]
             else:
                 soname = P.basename(sopath)
             libs[soname] = sopath
 
     # Identify the absolute RPATH dirs in the current install dir.
-    # We'll wipe those later.  Record the relative ones separately.
-    abs_rpaths   = []
+    # We'll wipe those later. Record the relative ones separately.
+    abs_rpaths = []
     rel_rpaths = []
     lines = run('otool', '-l', filename, output=True).split('\n')
     for i in range(0, len(lines)):
@@ -876,7 +879,7 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
     # Careful not to corrupt files   
     if not is_lib_or_bin_prog(filename):
         return
-        
+
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     if get_platform().os == 'linux':
         rel_to_top = P.relpath(toplevel, P.dirname(filename))

@@ -350,9 +350,9 @@ if __name__ == '__main__':
 
         print('\tFinding deps in search path')
         sys.stdout.flush()
-        mgr.resolve_deps(nocopy = [P.join(ISISROOT, 'lib'),
-                                   P.join(ISISROOT, '3rdParty', 'lib')],
-                         copy = SEARCHPATH + \
+        nocopy_libs = [P.join(ISISROOT, 'lib'),
+                       P.join(ISISROOT, '3rdParty', 'lib')]
+        copy_libs = SEARCHPATH + \
                          ['/opt/X11/lib',
                           '/usr/lib',
                           '/usr/lib64',
@@ -365,8 +365,10 @@ if __name__ == '__main__':
                           '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks',
                           '/usr/local/opt/python@3.12/Frameworks',
                           '/opt/local/lib/libomp'
-                          ])
-        # TODO: Including system libraries rather than libaries we build ourselves may be dangerous!
+                          ]
+        mgr.resolve_deps(nocopy = nocopy_libs, copy = copy_libs)
+        # TODO: Including system libraries rather than libaries we build
+        # ourselves may be dangerous.
         if mgr.deplist:
             if not opt.force_continue:
                 # For each lib, print who uses it:
@@ -378,8 +380,13 @@ if __name__ == '__main__':
                         if lib not in SKIP_IF_NOT_FOUND:
                             willThrow = True
                 if willThrow:
-                    raise Exception('Failed to find some libs in any of our dirs:\n\t%s' % \
-                                    '\n\t'.join(mgr.deplist.keys()))
+                    msg = 'Failed to find some libs in the search path:\n\t%s' % \
+                          '\n\t'.join(mgr.deplist.keys()) + "\n" + \
+                          "No-copy search path: " + \
+                          '\n\t'.join(nocopy_libs) + "\n" + \
+                          "Copy search path: " + \
+                          '\n\t'.join(copy_libs) + "\n"
+                    raise Exception(msg)
             else:
                 print("Warning: missing libs: " + '\n\t'.join(mgr.deplist.keys()) + "\n")
                 
