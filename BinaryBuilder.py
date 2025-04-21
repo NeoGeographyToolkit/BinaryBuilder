@@ -43,31 +43,6 @@ def replace_line_in_file(filename, line_in, line_out):
                 line = line_out
             f.write( line + '\n')
 
-def get_prog_version(prog):
-    try:
-        p = subprocess.Popen([prog,"--version"], stdout=subprocess.PIPE)
-        out, err = p.communicate()
-        if out is not None:
-            out = out.decode('utf-8')
-    except:
-        raise Exception("Could not find: " + prog)
-    if p.returncode != 0:
-        raise Exception("Checking " + prog + " version caused errors")
-
-    m = re.match(r"^.*?\).*?(\d+\.\d+)", out)
-    if m:
-        # For GCC
-        return float(m.group(1))
-
-    m = re.match(r"^.*?(\d+\.\d+)", out)
-    if m:
-        # For clang
-        return float(m.group(1))
-    
-    raise Exception("Could not find " + prog + " version")
-
-    return 0.0
-
 class PackageError(Exception):
     def __init__(self, pkg, message):
         super(PackageError, self).__init__('Package[%s] %s' % (pkg.pkgname, message))

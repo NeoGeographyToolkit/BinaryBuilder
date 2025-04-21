@@ -11,7 +11,7 @@ if sys.version_info < (2, 6, 1):
 
 from BinaryDist import grep, DistManager, DistPrefix, run
 
-import time, logging, copy, re, os
+import logging, copy, re, os
 import os.path as P
 from optparse import OptionParser
 from BinaryBuilder import die, program_exists
@@ -120,16 +120,6 @@ else:
 
 USGSCSM_PLUGINS = ['libusgscsm']
 
-def tarball_name():
-    arch = get_platform()
-    if opt.version is not None:
-        return '%s-%s-%s-%s%s' % (opt.name, opt.version, arch.machine, arch.dist_name, arch.dist_version)
-    else:
-        git = run('git', 'describe', '--always', '--dirty', output=False, raise_on_failure=False)
-        if git is None: git = ''
-        if len(git): git = '%s' % git.strip()
-        return '%s-%s-%s%s-%s%s' % (opt.name, arch.machine, arch.dist_name, arch.dist_version, time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime()), git)
-
 def sibling_to(dir, name):
     ''' get a pathname for a directory 'name' which is a sibling of directory 'dir' '''
     return P.join(P.dirname(dir), P.basename(name))
@@ -160,10 +150,7 @@ if __name__ == '__main__':
     parser.add_option('--include',        dest='include',     default='./whitelist', help='A file that lists the binaries for the dist')
     parser.add_option('--asp-deps-dir', dest='asp_deps_dir', default='', help='Path to where conda installed the ASP dependencies. Default: $HOME/miniconda3/envs/asp_deps.')
     parser.add_option('--python-env', dest='python_env', default='', help='Path of a conda-installed distribution having the same version of Python and numpy as in the ASP dependencies. Must be set. See StereoPipeline/docs/building_asp.rst for more info.')
-    parser.add_option('--debug-build',    dest='debug_build', default=False, action='store_true', help='Create a build having debug symbols')
     parser.add_option('--keep-temp',      dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
-    parser.add_option('--set-version',    dest='version',     default=None, help='Set the version number to use for the generated tarball')
-    parser.add_option('--set-name',       dest='name',        default='StereoPipeline', help='Tarball name for this dist')
     parser.add_option('--isisroot',       dest='isisroot',    default=None, help='Use a locally-installed isis at this root')
     parser.add_option('--force-continue', dest='force_continue', default=False, action='store_true', help='Continue despite errors. Not recommended.')
 
@@ -218,8 +205,8 @@ if __name__ == '__main__':
     wrapper_file = 'libexec-helper.sh'
         
     INSTALLDIR = DistPrefix(installdir)
-    mgr = DistManager(tarball_name(), wrapper_file, INSTALLDIR, opt.asp_deps_dir)
-
+    mgr = DistManager(wrapper_file, INSTALLDIR, opt.asp_deps_dir)
+    
     try:
         ISISROOT   = P.join(INSTALLDIR)
         SEARCHPATH = [INSTALLDIR.lib(), 
@@ -238,11 +225,6 @@ if __name__ == '__main__':
 
         if opt.isisroot is not None:
             ISISROOT = opt.isisroot
-
-        if opt.include == 'all':
-            mgr.add_directory(INSTALLDIR, hardlink=True)
-            mgr.make_tarball()
-            sys.exit(0)
 
         print('Adding requested files')
 
@@ -431,16 +413,8 @@ if __name__ == '__main__':
         rel_search_path = list(map(lambda path: P.relpath(path, INSTALLDIR), SEARCHPATH[0:2]))
         mgr.bake(rel_search_path)
 
-        debug_list_name = ''
-        try:
-            debuglist = mgr.find_filter('-name', '*.debug')
-            debug_list_name = debuglist.name
-        except:
-            pass
-
-        mgr.make_tarball(exclude = [debug_list_name])
-        if P.getsize(debug_list_name) > 0 and opt.debug_build:
-            mgr.make_tarball(include = debug_list_name, name = '%s-debug.tar.bz2' % mgr.tarname)
+        mgr.make_tarball()
+        
     finally:
         if not opt.keeptemp:
             mgr.remove_tempdir()

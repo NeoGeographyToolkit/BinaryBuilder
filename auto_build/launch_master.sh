@@ -149,7 +149,7 @@ done
 
 # Whenever a build is done, launch tests for it. For some
 # builds, tests are launched on more than one machine.
-# For the cloud build, the test will be flaged as done by now.
+# For the cloud build, the test will be flagged as done by now.
 # That happens in build.sh.
 while [ 1 ]; do
 
@@ -335,10 +335,6 @@ for buildPlatform in $buildPlatforms; do
             echo "Error: Could not find $HOME/$buildDir/$tarBall"
             statusAns="Fail"
         fi
-        echo "Renaming build $tarBall"
-        echo "./auto_build/rename_build.sh $tarBall $version $timestamp"
-        tarBall=$(./auto_build/rename_build.sh $tarBall $version $timestamp | tail -n 1)
-        if [ ! -f "$tarBall" ]; then echo "Error: Renaming failed."; statusAns="Fail"; fi
     fi
     echo Status is $statusAns
     

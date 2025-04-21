@@ -4,8 +4,7 @@
 # This code must print to STDOUT just one statement,
 # the final build name.
 
-# TODO(oalexan1): This should not be necessary. Must ensure that
-# BinaryBuilder always produces builds with the right name.
+# TODO(oalexan1): This is old and unused code that needs to be wiped.
 
 if [ "$#" -lt 3 ]; then echo Usage: $0 build version timestamp; exit; fi
 

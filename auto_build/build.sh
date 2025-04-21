@@ -188,11 +188,6 @@ if [ "$exitStatus" -ne 0 ]; then
     exit 1
 fi
 
-# Dump the ASP version. Will be used later.
-versionFile=$(version_file $buildPlatform)
-find_version $versionFile
-echo "Saving the ASP version ($(cat $versionFile)) to file: $versionFile"
-
 # Make sure all maintainers can access the files.
 # Turn this off as there is only one maintainer,
 # and they fail on some machines
@@ -200,33 +195,38 @@ echo "Saving the ASP version ($(cat $versionFile)) to file: $versionFile"
 #chmod -R g+rw $HOME/$buildDir
 
 echo "Packaging ASP."
-./make-dist.py last-completed-run/install --asp-deps-dir $isisEnv --python-env $pythonEnv
-
+./make-dist.py last-completed-run/install \
+    --asp-deps-dir $isisEnv \
+    --python-env $pythonEnv
 if [ "$?" -ne 0 ]; then
     echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1
 fi
 
-# Copy the build to asp_tarballs
-echo "Moving packaged ASP to directory asp_tarballs"
-asp_tarball=$(ls -trd StereoPipeline*bz2 | grep -i -v debug | tail -n 1)
+if [ "$isMac" == "" ]; then
+    asp_tarball=$(ls -trd StereoPipeline*bz2 | grep Linux | tail -n 1)
+else 
+    asp_tarball=$(ls -trd StereoPipeline*bz2 | grep -v Linux | tail -n 1)
+fi
 if [ "$asp_tarball" = "" ]; then
     echo "Fail build_failed" > $HOME/$buildDir/$statusFile
     exit 1
 fi
+
+# Move the build to asp_tarballs
+echo "Moving packaged ASP to directory asp_tarballs"
 mkdir -p asp_tarballs
-mv $asp_tarball asp_tarballs
-asp_tarball=asp_tarballs/$asp_tarball
+/bin/mv -fv $asp_tarball asp_tarballs
+asp_tarball=asp_tarballs/$(basename $asp_tarball)
+echo asp_tarball=$asp_tarball
 
 # Wipe old builds on the build machine
-echo "Cleaning old builds..."
+echo "Cleaning old builds."
 numKeep=8
 if [ "$(echo $buildMachine | grep $masterMachine)" != "" ]; then
     numKeep=24 # keep more builds on master machine
 fi
 $HOME/$buildDir/auto_build/rm_old.sh $HOME/$buildDir/asp_tarballs $numKeep
-
-# rm -f StereoPipeline*debug.tar.bz2
 
 # Mark the build as finished. This must happen at the very end,
 # otherwise the parent script will take over before this script finished.

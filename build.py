@@ -21,10 +21,10 @@ from distutils import version
 from glob import glob
 
 from BinaryBuilder import Package, Environment, PackageError, die, info,\
-     get_platform, find_file, run, get_prog_version, logger, warn, \
+     get_platform, find_file, run, logger, warn, \
      program_exists, get_cores
 
-from BinaryDist import fix_install_paths, which, binary_builder_prefix
+from BinaryDist import fix_install_paths, which, binary_builder_prefix, get_prog_version
 
 from Packages import *
 

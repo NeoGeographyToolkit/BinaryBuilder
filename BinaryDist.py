@@ -2,7 +2,7 @@
 
 import os.path as P
 import logging
-import itertools, shutil, re, errno, sys, os, stat, subprocess, platform
+import itertools, shutil, re, errno, sys, os, stat, subprocess, platform, time
 from os import makedirs, remove, listdir, chmod, symlink, readlink, link
 from collections import namedtuple
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -82,6 +82,38 @@ def get_platform(pkg=None):
             raise Exception(message)
         else:
             raise BinaryBuilder.PackageError(pkg, message)
+
+def get_prog_version(prog, returnAsStr = False):
+    try:
+        p = subprocess.Popen([prog,"--version"], stdout=subprocess.PIPE)
+        out, err = p.communicate()
+        if out is not None:
+            out = out.decode('utf-8')
+    except:
+        raise Exception("Could not find: " + prog)
+    if p.returncode != 0:
+        raise Exception("Checking " + prog + " version caused errors")
+
+    # The case when the version also has some other text, such as 'alpha'.
+    if returnAsStr:
+        m = re.match(r"^.*?(\d+\.\d+[^\s]*?)(\s|$)", out)
+        if m:
+            return m.group(1)
+        raise Exception("Could not find " + prog + " version")
+    
+    m = re.match(r"^.*?\).*?(\d+\.\d+)", out)
+    if m:
+        # For GCC
+        return float(m.group(1))
+
+    m = re.match(r"^.*?(\d+\.\d+)", out)
+    if m:
+        # For clang
+        return float(m.group(1))
+    
+    raise Exception("Could not find " + prog + " version")
+
+    return 0.0
 
 # List recursively all files in given directory
 def list_recursively(dir):
@@ -194,14 +226,29 @@ def mkdir_f(dirname):
             return
         raise
 
+def tarball_name(aspVersion):
+    arch = get_platform()
+    
+    os = arch.dist_name
+    if arch.dist_name.lower() == 'Darwin'.lower():
+        os = 'OSX'
+        
+    return '%s-%s-%s-%s-%s' % \
+        ('StereoPipeline', 
+         aspVersion,
+         time.strftime('%Y-%m-%d', time.localtime()),
+         arch.machine, os)
+
 class DistManager(object):
     '''Main class for creating a StereoPipeline binary distribution'''
-    def __init__(self, tarname, exec_wrapper_file, asp_install_dir, asp_deps_dir):
+    def __init__(self, exec_wrapper_file, asp_install_dir, asp_deps_dir):
         self.wrapper_file = exec_wrapper_file
-        self.tarname = tarname
+        self.asp_install_dir = asp_install_dir
+        stereoPath = P.join(self.asp_install_dir, 'bin', 'stereo')
+        aspVersion = get_prog_version(stereoPath, returnAsStr=True)
+        self.tarname = tarball_name(aspVersion)
         self.tempdir = mkdtemp(prefix='dist')
         self.distdir = DistPrefix(P.join(self.tempdir, self.tarname))
-        self.asp_install_dir = asp_install_dir
         self.asp_deps_dir = asp_deps_dir
         self.distlist  = set()  # List of files to be distributed
         self.deplist   = dict() # List of file dependencies
@@ -209,7 +256,7 @@ class DistManager(object):
         self.dst_to_src = dict()
         
         mkdir_f(self.distdir)
-
+        
     def remove_tempdir(self):
         shutil.rmtree(self.tempdir, True)
 
@@ -387,16 +434,12 @@ class DistManager(object):
                 except Exception as e:
                     print(e)
 
-    def make_tarball(self, include = (), exclude = (), name = None):
-        '''Tar up all the files we have written to self.distdir.
-           exclude takes priority over include '''
-
-        if name is None: name = '%s.tar.bz2' % self.tarname
-        if isinstance(include, str):
-            include = [include]
-        if isinstance(exclude, str):
-            exclude = [exclude]
-
+    def make_tarball(self):
+    
+        '''Tar up all the files we have written to self.distdir.'''
+        
+        name = '%s.tar.bz2' % self.tarname
+        
         # Ensure all the files are readable
         cmd = ['chmod', '-R', 'a+r', P.dirname(self.distdir)]
         run(*cmd)
@@ -418,14 +461,6 @@ class DistManager(object):
         
         cmd = ['tar', 'cf', name, '--use-compress-prog=pbzip2']
         cmd += ['-C', P.dirname(self.distdir)]
-
-        if include:
-            cmd += ['--no-recursion']
-        for i in include:
-            cmd += ['-T', i]
-        for e in exclude:
-            if os.path.exists(e):
-                cmd += ['-X', e]
         cmd.append(self.tarname)
 
         logger.info('Creating tarball %s' % name)
