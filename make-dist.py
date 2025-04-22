@@ -176,6 +176,13 @@ if __name__ == '__main__':
     # Check if it is a directory that exists
     if not P.exists(opt.python_env):
         die('\nCannot find the Python environment at ' + opt.python_env + '. Specify it via --python-env.')
+    
+    # TODO(oalexan1): Check that the Python environment has the same version of
+    # Python and numpy as in the ASP dependencies.
+    
+    # ISISROOT env var must be set, as otherwise there's a crash on Mac Arm
+    if 'ISISROOT' not in os.environ:
+        die('The ISISROOT environment variable must be set.')
 
     installdir = P.realpath(args[0])
     if not (P.exists(installdir) and P.isdir(installdir)):
