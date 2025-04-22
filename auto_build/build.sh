@@ -7,6 +7,9 @@
 # On success, copy back to the master machine the built tarball and
 # set the status.
 
+# TODO(oalexan1): Break this up into Linux and Mac functions,
+# rather than a single big script.
+
 if [ "$#" -lt 4 ]; then
     echo Usage: $0 buildDir statusFile buildPlatform masterMachine
     exit 1
@@ -38,15 +41,6 @@ if [ ! -d "$buildDir" ]; then
     exit 1
 fi
 cd $buildDir
-
-# These are needed primarily for pfe
-ulimit -s unlimited 2>/dev/null
-ulimit -f unlimited 2>/dev/null
-ulimit -v unlimited 2>/dev/null
-ulimit -u unlimited 2>/dev/null
-
-# rm -fv ./BaseSystem*bz2
-# rm -fv ./StereoPipeline*bz2
 
 # Set the ISIS env, needed for 'make check' in ASP. Do this only
 # on the Mac, as on other platforms we lack
@@ -82,9 +76,10 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
     repo=git@github.com:NeoGeographyToolkit/StereoPipeline.git
     
     # Start a new run
+    workFlow="build_test_mac_x64"
     echo "Starting a new run in the cloud"
-    echo $gh workflow run build_test -R $repo
-    $gh workflow run build_test -R $repo
+    echo $gh workflow run $workFlow -R $repo
+    $gh workflow run $workFlow -R $repo
     
     # Wait for 6 hours, by iterating 720 times with a pause of 30 seconds
     success=""
@@ -93,7 +88,7 @@ if [ "$buildPlatform" = "cloudMacOS" ]; then
         sleep 30
      
         # For now just fetch the latest. Must launch and wait till it is done
-        ans=$($gh run list -R $repo --workflow=build_test.yml | grep -v STATUS | head -n 1)
+        ans=$($gh run list -R $repo --workflow=$workFlow.yml | grep -v STATUS | head -n 1)
         echo Status of latest cloud build is $ans
         # Extract second value from ans with awk
         completed=$(echo $ans | awk '{print $1}')
