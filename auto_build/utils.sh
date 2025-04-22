@@ -15,7 +15,7 @@ function prepend_to_path () {
 }
 
 # Ensure this is changed when the environment changes.
-# See docs/buiding_asp.rst for more details.
+# See docs/building_asp.rst for more details.
 export isisEnv=$HOME/miniconda3/envs/asp_deps
 export pythonEnv=$HOME/miniconda3/envs/python_isis8 
 
@@ -163,32 +163,15 @@ function robust_ssh {
     return 1
 }
 
-# The master machine is used for building and testing on Linux.
-# On macOS, the build and test is in the cloud.
-function get_test_machine {
-
-    buildPlatform=$1
-    masterMachine=$2
-   
-    if [ "$buildPlatform" != "cloudMacOS" ]; then
-        testMachine=$masterMachine
-    else
-        testMachine=$masterMachine
-    fi
-    
-    # Echo the result so it is captured by the caller
-    echo $testMachine
-}
-
-# The Linux build is run on the same machine, which is the master machine. The
-# macOS build is run in the cloud, but monitored on the master machine. 
-# So the run machine is the master machine in both cases.
+# The Linux build is run on the master machine. The macOS build is run in the
+# cloud, but monitored on the master machine. So the run machine is the master
+# machine in both cases.
 function get_build_machine {
 
     buildPlatform=$1
     masterMachine=$2
    
-    if [ "$buildPlatform" != "cloudMacOS" ]; then
+    if [ "$buildPlatform" == "localLinux" ]; then
         buildMachine=$masterMachine
     else
         buildMachine=$masterMachine
@@ -196,6 +179,24 @@ function get_build_machine {
     
     # Echo the result so it is captured by the caller
     echo $buildMachine
+}
+
+# The master machine is used for building and testing on Linux. On macOS, the
+# build and test is in the cloud. Once that is done, we will copy the files
+# locally, so in that case use the master machine as well.
+function get_test_machine {
+
+    buildPlatform=$1
+    masterMachine=$2
+   
+    if [ "$buildPlatform" == "localLinux" ]; then
+        testMachine=$masterMachine
+    else
+        testMachine=$masterMachine
+    fi
+    
+    # Echo the result so it is captured by the caller
+    echo $testMachine
 }
 
 # Infrastructure needed for checking if any remote repositories changed.

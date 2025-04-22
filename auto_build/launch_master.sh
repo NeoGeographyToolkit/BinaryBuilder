@@ -24,7 +24,7 @@ testDir=projects/StereoPipelineTest # must be relative to home dir
 
 # Machines and paths
 masterMachine="lunokhod1"
-buildPlatforms="localLinux cloudMacOS"
+buildPlatforms="localLinux cloudMacX64 cloudMacArm64"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
@@ -286,23 +286,6 @@ while [ 1 ]; do
 done
 
 overallStatus="Success"
-
-# Get the ASP version. Hopefully some machine has it.
-version=""
-for buildPlatform in $buildPlatforms; do
-    buildMachine=$(get_build_machine $buildPlatform $masterMachine)
-    versionFile=$(version_file $buildPlatform)
-    localVersion=$(ssh $buildMachine \
-        "cat $buildDir/$versionFile 2>/dev/null" 2>/dev/null)
-    echo Version on $buildMachine is $localVersion
-    if [ "$localVersion" != "" ]; then version=$localVersion; fi
-done
-if [ "$version" = "" ]; then
-    echo "Error: Could not determine the ASP version"
-    version="unknown"
-    overallStatus="Fail"
-fi
-echo Status after version check is $overallStatus
 
 # Once we finished testing all builds, rename them for release, and
 # record whether the tests passed.
