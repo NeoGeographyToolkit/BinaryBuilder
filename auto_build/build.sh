@@ -79,7 +79,7 @@ build_cloud_macos() {
     # we will at least have the logs.
     echo Fetching the build with id $id from the cloud 
     echo $gh run download -R $repo $id
-    $gh run download -R $repo $id
+    $gh run download -R $repo $id >/dev/null 2>&1 # this messes up the log
     
     if [ "$success" != "success" ]; then
         echo Cloud build failed with status $success
@@ -106,16 +106,21 @@ build_cloud_macos() {
     mkdir -p asp_tarballs
     mv $asp_tarball asp_tarballs
     asp_tarball=asp_tarballs/$(basename $asp_tarball)
+    echo Saved the tarball as: $asp_tarball
     
     # Record build status. This must happen at the very end, otherwise the
     # parent script will take over before this script finished.
     if [ "$test_ans" != "" ]; then
         echo "$asp_tarball test_done Success" > $HOME/$buildDir/$statusFile
+        cat $HOME/$buildDir/$statusFile
         # Wipe the fetched directory only on success, otherwise need to inspect it
         /bin/rm -rf $cloudBuildDir
         exit 0
     else
+        echo Tests fail. Report:
+        cat $reportFile
         echo "$asp_tarball test_done Fail" > $HOME/$buildDir/$statusFile
+        cat $HOME/$buildDir/$statusFile
         exit 1
     fi
 }
