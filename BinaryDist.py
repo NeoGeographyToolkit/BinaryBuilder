@@ -226,17 +226,19 @@ def mkdir_f(dirname):
             return
         raise
 
-def tarball_name(aspVersion):
+def tarball_prefix(aspVersion):
     arch = get_platform()
     
     os = arch.dist_name
     if arch.dist_name.lower() == 'Darwin'.lower():
         os = 'OSX'
-        
+    
+    # GMT time will give consistent results on local machine
+    # and in the cloud    
     return '%s-%s-%s-%s-%s' % \
         ('StereoPipeline', 
          aspVersion,
-         time.strftime('%Y-%m-%d', time.localtime()),
+         time.strftime('%Y-%m-%d', time.gmtime()),
          arch.machine, os)
 
 class DistManager(object):
@@ -246,9 +248,9 @@ class DistManager(object):
         self.asp_install_dir = asp_install_dir
         stereoPath = P.join(self.asp_install_dir, 'bin', 'stereo')
         aspVersion = get_prog_version(stereoPath, returnAsStr=True)
-        self.tarname = tarball_name(aspVersion)
+        self.tarball_prefix = tarball_prefix(aspVersion)
         self.tempdir = mkdtemp(prefix='dist')
-        self.distdir = DistPrefix(P.join(self.tempdir, self.tarname))
+        self.distdir = DistPrefix(P.join(self.tempdir, self.tarball_prefix))
         self.asp_deps_dir = asp_deps_dir
         self.distlist  = set()  # List of files to be distributed
         self.deplist   = dict() # List of file dependencies
@@ -438,7 +440,7 @@ class DistManager(object):
     
         '''Tar up all the files we have written to self.distdir.'''
         
-        name = '%s.tar.bz2' % self.tarname
+        name = '%s.tar.bz2' % self.tarball_prefix
         
         # Ensure all the files are readable
         cmd = ['chmod', '-R', 'a+r', P.dirname(self.distdir)]
@@ -461,14 +463,14 @@ class DistManager(object):
         
         cmd = ['tar', 'cf', name, '--use-compress-prog=pbzip2']
         cmd += ['-C', P.dirname(self.distdir)]
-        cmd.append(self.tarname)
+        cmd.append(self.tarball_prefix)
 
         logger.info('Creating tarball %s' % name)
         run(*cmd)
 
     def find_filter(self, *filter, **kw):
         '''Call "find" with a filter argument and write results to an opened temporary file'''
-        dir = kw.get('dir', self.tarname)
+        dir = kw.get('dir', self.tarball_prefix)
         cwd = kw.get('cwd', P.dirname(self.distdir))
         cmd = ['find', dir] + list(filter)
         out = run(*cmd, cwd=cwd).encode()
