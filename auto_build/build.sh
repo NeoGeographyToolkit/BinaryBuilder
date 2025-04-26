@@ -135,7 +135,7 @@ build_local_linux() {
     if [ "$isMac" != "" ]; then
         opt="--cc=$isisEnv/bin/clang --cxx=$isisEnv/bin/clang++ --gfortran=$isisEnv/bin/gfortran"
     else
-        opt="--cc=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gcc --cxx=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-g++ --gfortran=$isisEnv/bin/x86_64-conda_cos6-linux-gnu-gfortran"
+        opt="--cc=$isisEnv/bin/x86_64-conda-linux-gnu-gcc --cxx=$isisEnv/bin/x86_64-conda-linux-gnu-g++ --gfortran=$isisEnv/bin/x86_64-conda-linux-gnu-gfortran"
     fi
 
     # The path to the ASP dependencies 
