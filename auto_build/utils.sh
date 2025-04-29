@@ -19,15 +19,7 @@ function prepend_to_path () {
 export isisEnv=$HOME/miniconda3/envs/asp_deps
 export pythonEnv=$HOME/miniconda3/envs/python_isis8 
 
-# TODO(oalexan1): Sort this out. 
-prepend_to_path $isisEnv/bin:$HOME/miniconda3/envs/tools/bin:$HOME/../oalexan1/miniconda3/envs/sparse_disp/bin:/home/smcmich1/programs/latexmk/bin:/home/oalexan1/.local/bin:/Users/oalexan1/.local/bin:/usr/local/bin:/home/oalexan1/.local/bin/pip
-
-# These are needed for the development build and will
-# be set properly for the packaged build.
-# TODO(oalexan1): Are these necessary?
-export ISISROOT_DEV=$isisEnv
-export GDAL_DATA=$isisEnv/share/gdal
-export QT_PLUGIN_PATH=$isisEnv/plugins
+prepend_to_path $isisEnv/bin
 
 # Get the machine name. Strip any domain name.
 function machine_name() {
@@ -176,6 +168,13 @@ function get_build_machine {
     else
         buildMachine=$masterMachine
     fi
+
+    # If this assumption ever changes, need to ensure the various machines
+    # have the code and data in sync.    
+    if [ "$buildMachine" != "$masterMachine" ]; then
+        echo "Error: Expecting build machine to be $masterMachine"
+        exit 1
+    fi
     
     # Echo the result so it is captured by the caller
     echo $buildMachine
@@ -193,6 +192,13 @@ function get_test_machine {
         testMachine=$masterMachine
     else
         testMachine=$masterMachine
+    fi
+    
+    # If this assumption ever changes, need to ensure the various machines
+    # have the code and data in sync.    
+    if [ "$testMachine" != "$masterMachine" ]; then
+        echo "Error: Expecting test machine to be $masterMachine"
+        exit 1
     fi
     
     # Echo the result so it is captured by the caller
@@ -256,7 +262,7 @@ function upload_to_github {
     echo Timestamp is $timestamp
 
     # The path to the gh tool
-    gh=/home/oalexan1/miniconda3/envs/gh/bin/gh
+    gh=$HOME/miniconda3/envs/gh/bin/gh
     # check if $gh exists and is executable
     if [ ! -x "$gh" ]; then
         echo "Error: Cannot find the gh tool at $gh"

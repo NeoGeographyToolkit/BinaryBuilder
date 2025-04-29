@@ -1,18 +1,7 @@
 #!/bin/bash
 
 # Launch and test all builds on all machines and notify the user of the status.
-# In case of success, copy the resulting builds to the master machine and update
-# the public link.
-
-# This script assumes that that all VW, ASP, StereoPipelineTest, and
-# BinaryBuilder code is up-to-date on GitHub.
-
-# If having local modifications in the BinaryBuilder directory,
-# update the list at auto_build/filesToCopy.txt (that list has all
-# top-level files and directories in BinaryBuilder that are checked
-# in), and run this script as
-
-# ./auto_build/launch_master.sh local_mode
+# In case of success, upload the builds to the GitHub release area. 
 
 # The Linux build is built and tested locally. The macOS one is built
 # and tested in the cloud.
@@ -45,37 +34,6 @@ echo "Work directory: $(pwd)"
 
 # Set system paths and load utilities
 source $HOME/$buildDir/auto_build/utils.sh
-
-# This is a very fragile piece of code. We fetch the latest version
-# of this repository in a different directory, identify the files in
-# it, and copy those to here. If there are local changes in this
-# shell script, it will get confused as it is overwritten mid-way.
-# TODO: Need to think of a smart way of doing this.
-filesList=auto_build/filesToCopy.txt
-if [ "$localMode" -eq 0 ]; then
-    echo "Updating the BinaryBuilder repo from GitHub"
-    failure=1
-    ./build.py binarybuilder --asp-deps-dir $isisEnv
-    status="$?"
-    if [ "$status" -ne 0 ]; then
-        echo "Could not clone BinaryBuilder"
-        exit 1
-    fi
-    
-    currDir=$(pwd)
-    cd build_asp/build/binarybuilder/binarybuilder-git
-    files=$(ls -ad *)
-    rsync -avz $files $currDir
-    cd $currDir
-
-    # Need the list of files so that we can mirror those later to the
-    # build machines
-    echo $files > $filesList
-fi
-
-# As an extra precaution filter out the list of files
-cat $filesList | perl -p -e "s#\s#\n#g" | grep -v -E "build_asp|StereoPipeline|status|pyc|logs|tarballs|output|tmp" > tmp.txt
-/bin/mv -f tmp.txt $filesList
 
 currMachine=$(machine_name)
 if [ "$currMachine" != "$masterMachine" ]; then
@@ -112,15 +70,6 @@ for buildPlatform in $buildPlatforms; do
 
     statusFile=$(status_file $buildPlatform)
     outputFile=$(output_file $buildDir $buildPlatform)
-
-    # Make sure all scripts are up-to-date on $buildMachine
-    echo "Build: Pushing code to $buildMachine for $buildPlatform"
-    ./auto_build/push_code.sh $buildMachine $buildDir $filesList
-    if [ "$?" -ne 0 ]; then
-      # This only gets tried once, we may need to add retries.
-      echo "Error: Code push to machine $buildMachine failed!"
-      exit 1;
-    fi
 
     if [ "$resumeRun" -ne 0 ]; then
         # If resuming a run, $statusFile already has some data
@@ -208,16 +157,16 @@ while [ 1 ]; do
             statusTestFile=$(status_test_file $testMachine)
             echo "$tarBall now_testing" > $statusTestFile
 
-            # Make sure all scripts are up-to-date on $testMachine
-            echo Test: Pushing code to $testMachine for $buildPlatform
-            ./auto_build/push_code.sh $testMachine $buildDir $filesList
-            if [ "$?" -ne 0 ]; then exit 1; fi
-
-            # Copy the tarball to the test machine
-            echo Copy $tarBall for $buildPlatform to $testMachine 
-            ssh $testMachine "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
-            rsync -avz $tarBall $testMachine:$buildDir/asp_tarballs \
-                2>/dev/null
+            # This logic is not needed when there's only one local machine
+            # # Make sure all scripts are up-to-date on $testMachine
+            # echo Test: Pushing code to $testMachine for $buildPlatform
+            # ./auto_build/push_code.sh $testMachine $buildDir $filesList
+            # if [ "$?" -ne 0 ]; then exit 1; fi
+            # # Copy the tarball to the test machine
+            # echo Copy $tarBall for $buildPlatform to $testMachine 
+            # ssh $testMachine "mkdir -p $buildDir/asp_tarballs" 2>/dev/null
+            # rsync -avz $tarBall $testMachine:$buildDir/asp_tarballs \
+            #     2>/dev/null
 
             sleep 5; # Give the filesystem enough time to react
             if [ "$skipTests" -eq 0 ]; then
@@ -287,13 +236,12 @@ done
 
 overallStatus="Success"
 
-# Once we finished testing all builds, rename them for release, and
-# record whether the tests passed.
+# Check the status of all builds.
 statusMasterFile="status_master.txt"
 rm -f $statusMasterFile
 echo "Machine and status" >> $statusMasterFile
 count=0
-timestamp=$(date +%Y-%m-%d)
+timestamp=$(date -u +%Y-%m-%d) # UTC time, for consistency with GitHub Actions
 for buildPlatform in $buildPlatforms; do
     # Check the status
     statusFile=$(status_file $buildPlatform)
