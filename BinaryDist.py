@@ -917,6 +917,10 @@ def set_rpath(filename, toplevel, searchpath, relative_name=True):
     if not is_lib_or_bin_prog(filename):
         return
 
+    if get_platform().os != 'linux':
+      # The Mac refuses to run with messed up rpaths
+      return
+
     assert not any(map(P.isabs, searchpath)), 'set_rpath: searchpaths must be relative to distdir (was given %s)' % (searchpath,)
     if get_platform().os == 'linux':
         rel_to_top = P.relpath(toplevel, P.dirname(filename))
