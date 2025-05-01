@@ -108,7 +108,7 @@ else:
 MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libicuuc libswresample libx264 libcsmapi libproj libproj.0 libGLX libGLdispatch'''.split()
 
 # Prefixes of libs that we always ship
-LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb.'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
+LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libomp. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb.'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
 
 if get_platform().os == 'linux':
     MANUAL_LIBS += ['libnettle', 'libhogweed', 'libvorbis', 'libvorbisenc',

@@ -18,8 +18,6 @@ buildPlatforms="localLinux cloudMacX64 cloudMacArm64"
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
 sleepTime=30
-localMode=0 # Run local copy of the code. Must not happen in production.
-if [ "$(echo $* | grep local_mode)" != "" ]; then localMode=1; fi
 
 # If to skip tests. Must be set to 0 in production.
 skipTests=0
