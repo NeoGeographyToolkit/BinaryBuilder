@@ -16,8 +16,15 @@ function prepend_to_path () {
 
 # Ensure this is changed when the environment changes.
 # See docs/building_asp.rst for more details.
-export isisEnv=$HOME/miniconda3/envs/asp_deps
-export pythonEnv=$HOME/miniconda3/envs/python_isis8 
+# Below is a a temporary fix for the latest experimental ISIS 
+# being installed in a different environment.
+if [ "$(uname -s)" = "Linux" ]; then
+    isisEnv=$HOME/miniconda3/envs/isis_dev2
+    pythonEnv=$HOME/miniconda3/envs/python_isis_dev2
+else
+    export isisEnv=$HOME/miniconda3/envs/asp_deps
+    export pythonEnv=$HOME/miniconda3/envs/python_isis8 
+fi
 
 prepend_to_path $isisEnv/bin
 
