@@ -182,7 +182,6 @@ if __name__ == '__main__':
     # The ISISROOT env var must be set to the directory having the ISIS
     # preferences file.
     os.environ['ISISROOT'] = opt.asp_deps_dir
-    print("--set ISISROOT=" + os.environ['ISISROOT'])
 
     installdir = P.realpath(args[0])
     if not (P.exists(installdir) and P.isdir(installdir)):
