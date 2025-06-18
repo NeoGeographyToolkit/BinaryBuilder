@@ -126,7 +126,7 @@ def sibling_to(dir, name):
 
 # Keep this in sync with the function in libexec-funcs.sh
 def isis_version(isisroot):
-    isis_version_file = P.join(isisroot,'isis_version.txt')
+    isis_version_file = P.join(isisroot, 'isis_version.txt')
     if not P.isfile(isis_version_file):
         raise Exception('Cannot find: %s' % isis_version_file)
         
@@ -151,7 +151,6 @@ if __name__ == '__main__':
     parser.add_option('--asp-deps-dir', dest='asp_deps_dir', default='', help='Path to where conda installed the ASP dependencies. Default: $HOME/miniconda3/envs/asp_deps.')
     parser.add_option('--python-env', dest='python_env', default='', help='Path of a conda-installed distribution having the same version of Python and numpy as in the ASP dependencies. Must be set. See StereoPipeline/docs/building_asp.rst for more info.')
     parser.add_option('--keep-temp',      dest='keeptemp',    default=False, action='store_true', help='Keep tmp distdir around for debugging')
-    parser.add_option('--isisroot',       dest='isisroot',    default=None, help='Use a locally-installed isis at this root')
     parser.add_option('--force-continue', dest='force_continue', default=False, action='store_true', help='Continue despite errors. Not recommended.')
 
     global opt
@@ -180,16 +179,14 @@ if __name__ == '__main__':
     # TODO(oalexan1): Check that the Python environment has the same version of
     # Python and numpy as in the ASP dependencies.
     
-    # ISISROOT env var must be set, as otherwise there's a crash on Mac Arm
-    if 'ISISROOT' not in os.environ:
-        die('The ISISROOT environment variable must be set.')
+    # The ISISROOT env var must be set to the directory having the ISIS
+    # preferences file.
+    os.environ['ISISROOT'] = opt.asp_deps_dir
+    print("--set ISISROOT=" + os.environ['ISISROOT'])
 
     installdir = P.realpath(args[0])
     if not (P.exists(installdir) and P.isdir(installdir)):
         usage('Invalid installdir %s (not a directory)' % installdir)
-    if opt.isisroot is not None and not P.isdir(opt.isisroot):
-        parser.print_help()
-        die('\nIllegal argument to --isisroot: path does not exist')
 
     # Ensure asp_deps/bin is in the path, to be able to find chrpath, bzip2, etc.
     if "PATH" not in os.environ: os.environ["PATH"] = ""
@@ -215,7 +212,6 @@ if __name__ == '__main__':
     mgr = DistManager(wrapper_file, INSTALLDIR, opt.asp_deps_dir)
     
     try:
-        ISISROOT   = P.join(INSTALLDIR)
         SEARCHPATH = [INSTALLDIR.lib(), 
                       opt.asp_deps_dir + '/lib',
                       opt.asp_deps_dir + '/lib/csmplugins',
@@ -229,9 +225,6 @@ if __name__ == '__main__':
                 os.environ["PATH"] = ""
             os.environ["PATH"] = P.join(opt.asp_deps_dir, 'bin') + os.pathsep + \
                                  os.environ["PATH"]
-
-        if opt.isisroot is not None:
-            ISISROOT = opt.isisroot
 
         print('Adding requested files')
 
@@ -339,8 +332,8 @@ if __name__ == '__main__':
 
         print('\tFinding deps in search path')
         sys.stdout.flush()
-        nocopy_libs = [P.join(ISISROOT, 'lib'),
-                       P.join(ISISROOT, '3rdParty', 'lib')]
+        nocopy_libs = [P.join(INSTALLDIR, 'lib'),
+                       P.join(INSTALLDIR, '3rdParty', 'lib')]
         copy_libs = SEARCHPATH + \
                          ['/opt/X11/lib',
                           '/usr/lib',

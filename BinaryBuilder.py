@@ -154,7 +154,7 @@ class Environment(dict):
             DOWNLOAD_DIR   = kw['DOWNLOAD_DIR'],
             BUILD_DIR      = kw['BUILD_DIR'],
             INSTALL_DIR    = kw['INSTALL_DIR'],
-            ISISROOT       = P.join(kw['INSTALL_DIR'], 'isis'),
+            ISISROOT       = kw['INSTALL_DIR'],
             GIT_SSL_NO_VERIFY = 'true' # to avoid complaints on pfe27
         ))
         self.update(kw)
