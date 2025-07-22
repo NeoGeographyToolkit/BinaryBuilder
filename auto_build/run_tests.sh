@@ -86,7 +86,7 @@ num_cpus=$(ncpus)
 # This is a bugfix for a known issue with pytest.
 export LANG=en_US.UTF-8
 
-echo The envirnonment
+echo The environment
 env
 
 # Run the tests with timeout. See StereoPipelineTest/README.txt for usage.

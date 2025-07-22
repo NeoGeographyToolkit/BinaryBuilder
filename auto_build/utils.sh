@@ -38,10 +38,6 @@ function status_file () {
     echo "status_"$1".txt"
 }
 
-function status_test_file () {
-    echo "status_test_"$1".txt"
-}
-
 function status_build_file () {
     echo "status_build_"$1".txt"
 }

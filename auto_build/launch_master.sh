@@ -51,8 +51,6 @@ if [ "$resumeRun" -eq 0 ]; then
         echo "" > $HOME/$outputTestFile
         # Copy to the build machine
         scp $HOME/$outputTestFile $testMachine:$outputTestFile 2> /dev/null
-        statusTestFile=$(status_test_file $testMachine)
-        rm -fv $statusTestFile
     done
 fi
 
@@ -94,10 +92,8 @@ for buildPlatform in $buildPlatforms; do
     
 done
 
-# Whenever a build is done, launch tests for it. For some
-# builds, tests are launched on more than one machine.
-# For the cloud build, the test will be flagged as done by now.
-# That happens in build.sh.
+# Whenever a build is done, launch tests for it. For the cloud builds, the test
+# will be flagged as done by now. That happens in build.sh.
 while [ 1 ]; do
 
     allTestsAreDone=1
@@ -152,8 +148,7 @@ while [ 1 ]; do
             outputTestFile=$(output_test_file $buildDir $testMachine)
 
             echo "Will launch tests on $testMachine"
-            statusTestFile=$(status_test_file $testMachine)
-            echo "$tarBall now_testing" > $statusTestFile
+            echo "$tarBall now_testing" > $statusFile
 
             # This logic is not needed when there's only one local machine
             # # Make sure all scripts are up-to-date on $testMachine
@@ -170,8 +165,8 @@ while [ 1 ]; do
             if [ "$skipTests" -eq 0 ]; then
                 # Start the tests
                 echo will test $buildPlatform on $testMachine
-                robust_ssh $testMachine $buildDir/auto_build/run_tests.sh        \
-                    "$buildDir $tarBall $testDir $statusTestFile $masterMachine" \
+                robust_ssh $testMachine $buildDir/auto_build/run_tests.sh    \
+                    "$buildDir $tarBall $testDir $statusFile $masterMachine" \
                     $outputTestFile
             else
                 # Fake it, so that we skip the testing
@@ -185,18 +180,17 @@ while [ 1 ]; do
             statusForCurrMachine="Success"
 
             # Grab the test status file for this machine.
-            statusTestFile=$(status_test_file $testMachine)
-            echo Fetch $testMachine:$buildDir/$statusTestFile
-            scp $testMachine:$buildDir/$statusTestFile . &> /dev/null
+            echo Fetch $testMachine:$buildDir/$statusFile
+            scp $testMachine:$buildDir/$statusFile . &> /dev/null
 
             # Parse the file
-            statusTestLine=$(cat $statusTestFile)
-            testProgress=$(echo $statusTestLine | awk '{print $2}')
-            testStatus=$(echo $statusTestLine | awk '{print $3}')
+            statusLine=$(cat $statusFile)
+            testProgress=$(echo $statusLine | awk '{print $2}')
+            testStatus=$(echo $statusLine | awk '{print $3}')
             echo Test progress is $testProgress
             echo Test status is $testStatus
 
-            echo "Status for $testMachine is $statusTestLine"
+            echo "Status for $testMachine is $statusLine"
             if [ "$testProgress" != "test_done" ]; then
                 allDoneForCurrMachine=0
             elif [ "$testStatus" != "Success" ]; then
@@ -207,8 +201,6 @@ while [ 1 ]; do
             if [ "$allDoneForCurrMachine" -eq 0 ]; then
                 allTestsAreDone=0
             else
-                # Here we modify $statusFile, and not $statusTestFile,
-                # recording the final produced answer. 
                 echo "$tarBall test_done $statusForCurrMachine" > $statusFile
             fi
 
