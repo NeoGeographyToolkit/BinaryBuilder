@@ -23,8 +23,6 @@ sleepTime=30
 skipTests=0
 if [ "$(echo $* | grep skip_tests)" != "" ]; then skipTests=1; echo "Will skip tests."; fi
 
-mailto="oleg.alexandrov@nasa.gov"
-
 cd $HOME
 mkdir -p $buildDir
 cd $buildDir
@@ -308,11 +306,8 @@ fi
 cat $statusMasterFile
 echo Final status is $overallStatus
 
-# Send mail to the user
+# Send mail with the status
+mailto="oleg.alexandrov@nasa.gov"
 subject="ASP build $timestamp status is $overallStatus"
-# For some reason sending mail from lunokhod1 does not work.
-#cat status_master.txt | mailx -s "$subject" $mailto
-# But it works from lunokhod2, so do it that way.
-# TODO(oalexan1): A better approach could be some Git action, perhaps.
-rsync -avzP status_master.txt lunokhod2:$(pwd)
-ssh lunokhod2 "cat $(pwd)/status_master.txt | mailx -s '$subject' $mailto"
+msmtp=/home/oalexan1/miniconda3/envs/gh/bin/msmtp
+echo -e "Subject: $subject\n\n$(cat status_master.txt)" | $msmtp $mailto
