@@ -112,7 +112,7 @@ LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libomp. libgomp
 
 if get_platform().os == 'linux':
     MANUAL_LIBS += ['libnettle', 'libhogweed', 'libvorbis', 'libvorbisenc',
-                    'libp11-kit', 'libopus', 'libFLAC']
+                    'libp11-kit', 'libopus', 'libFLAC', 'libmkl']
 else:
     # Need to have these on the Mac
     LIB_SHIP_PREFIX += ['libresolv.', 'libcups.', 'libc++abi.', 'libcrypto.']
