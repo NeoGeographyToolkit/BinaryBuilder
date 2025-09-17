@@ -104,15 +104,15 @@ else:
     # A recent OSX does not have this, and does not seem necessary
     SKIP_IF_NOT_FOUND += ['libXplugin.1.dylib']
 
-# Lib files that we want to include that don't get pickep up automatically.
+# Lib files that we want to include that don't get picked up automatically.
 MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libicuuc libswresample libx264 libcsmapi libproj libproj.0 libGLX libGLdispatch'''.split()
 
 # Prefixes of libs that we always ship
-LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libomp. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb.'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
+LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libomp. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. libmkl'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
 
 if get_platform().os == 'linux':
     MANUAL_LIBS += ['libnettle', 'libhogweed', 'libvorbis', 'libvorbisenc',
-                    'libp11-kit', 'libopus', 'libFLAC', 'libmkl']
+                    'libp11-kit', 'libopus', 'libFLAC']
 else:
     # Need to have these on the Mac
     LIB_SHIP_PREFIX += ['libresolv.', 'libcups.', 'libc++abi.', 'libcrypto.']
@@ -235,10 +235,11 @@ if __name__ == '__main__':
                     continue # skip empty lines
                 mgr.add_glob(line, [INSTALLDIR, opt.asp_deps_dir])
             
-        # Add some platform specific bugfixes
+        # Platform-specific bugfixes
         if get_platform().os == 'linux':
             mgr.sym_link_lib('libproj.so', 'libproj.0.so')
             mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
+            mgr.add_glob("lib/libmkl*", [INSTALLDIR, opt.asp_deps_dir])
                                 
         print('Adding the ISIS libraries')
         sys.stdout.flush()
