@@ -307,7 +307,7 @@ cat $statusMasterFile
 echo Final status is $overallStatus
 
 # Send mail with the status
-mailto="oleg.alexandrov@nasa.gov"
+mailto="oleg.alexandrov@gmail.com"
 subject="ASP build $timestamp status is $overallStatus"
 msmtp=/home/oalexan1/miniconda3/envs/gh/bin/msmtp
 echo -e "Subject: $subject\n\n$(cat status_master.txt)" | $msmtp $mailto
