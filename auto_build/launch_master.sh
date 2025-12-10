@@ -13,7 +13,8 @@ testDir=projects/StereoPipelineTest # must be relative to home dir
 
 # Machines and paths
 masterMachine="lunokhod1"
-buildPlatforms="localLinux cloudMacX64 cloudMacArm64"
+#buildPlatforms="localLinux cloudMacX64 cloudMacArm64"
+buildPlatforms="localLinux cloudMacArm64"
 
 resumeRun=0 # Must be set to 0 in production. 1=Resume where it left off.
 if [ "$(echo $* | grep resume)" != "" ]; then resumeRun=1; fi
