@@ -19,8 +19,8 @@ function prepend_to_path () {
 # Below is a a temporary fix for the latest experimental ISIS 
 # being installed in a different environment.
 if [ "$(uname -s)" = "Linux" ]; then
-    isisEnv=$HOME/miniconda3/envs/isis_dev
-    pythonEnv=$HOME/miniconda3/envs/python_isis_dev
+    isisEnv=$HOME/miniconda3/envs/isis9.0
+    pythonEnv=$HOME/miniconda3/envs/python_isis9
 else
     export isisEnv=$HOME/miniconda3/envs/asp_deps
     export pythonEnv=$HOME/miniconda3/envs/python_isis8 
