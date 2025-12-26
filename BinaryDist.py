@@ -115,6 +115,13 @@ def get_prog_version(prog, returnAsStr = False):
 
     return 0.0
 
+def get_python_version(python_dir):
+    python_exe = P.join(python_dir, 'bin', 'python')
+    if not P.exists(python_exe):
+            raise Exception("Cannot find python at: " + python_exe)
+    
+    return get_prog_version(python_exe, returnAsStr=True)
+
 # List recursively all files in given directory
 def list_recursively(dir):
     matches = []

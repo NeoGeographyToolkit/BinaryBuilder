@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 
-# TODO(oalexan1): Must check that the asp_deps_dir has the same version of Python
-# and numpy as in the python_env.
-
-from __future__ import print_function
-
 import sys
 code = -1
 # Must have this check before importing other BB modules
@@ -18,7 +13,7 @@ import logging, copy, re, os
 import os.path as P
 from optparse import OptionParser
 from BinaryBuilder import die, program_exists
-from BinaryDist import get_platform, required_libs
+from BinaryDist import get_platform, required_libs, get_python_version
 from glob import glob
 
 # These are the libraries we're allowed to get from the base system.
@@ -147,32 +142,9 @@ def libc_version():
             return re.search(r'[^0-9.]*([0-9.]*).*',output).groups()
     return "FAILED"
 
-def get_python_version(python_dir):
-    python_exe = P.join(python_dir, 'bin', 'python')
-    if not P.exists(python_exe):
-            die("Cannot find python at: " + python_exe)
-    
-    # Use run from BinaryDist
-    out, err = run(python_exe, '--version', want_stderr=True)
-    ver_str = ""
-    if out: ver_str += out
-    if err: ver_str += err
-    ver_str = ver_str.strip()
-    
-    m = re.search(r'Python\s+([0-9\.]+)', ver_str)
-    if m:
-        return m.group(1)
-        
-    die("Could not parse python version from command '" + python_exe + " --version'. Output was: " + ver_str)
-
 def check_python_version(asp_deps_dir, python_env):
-    print("Checking Python versions in " + asp_deps_dir + " and " + python_env)
     ver1 = get_python_version(asp_deps_dir)
     ver2 = get_python_version(python_env)
-
-    print("ASP dependencies Python version: " + ver1)
-    print("Python environment version:      " + ver2)
-
     if ver1 != ver2:
         die("Error: Python versions do not match.")
 
