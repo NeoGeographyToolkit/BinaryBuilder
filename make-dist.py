@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+# TODO(oalexan1): Must check that the asp_deps_dir has the same version of Python
+# and numpy as in the python_env.
+
 from __future__ import print_function
 
 import sys
@@ -144,6 +147,35 @@ def libc_version():
             return re.search(r'[^0-9.]*([0-9.]*).*',output).groups()
     return "FAILED"
 
+def get_python_version(python_dir):
+    python_exe = P.join(python_dir, 'bin', 'python')
+    if not P.exists(python_exe):
+            die("Cannot find python at: " + python_exe)
+    
+    # Use run from BinaryDist
+    out, err = run(python_exe, '--version', want_stderr=True)
+    ver_str = ""
+    if out: ver_str += out
+    if err: ver_str += err
+    ver_str = ver_str.strip()
+    
+    m = re.search(r'Python\s+([0-9\.]+)', ver_str)
+    if m:
+        return m.group(1)
+        
+    die("Could not parse python version from command '" + python_exe + " --version'. Output was: " + ver_str)
+
+def check_python_version(asp_deps_dir, python_env):
+    print("Checking Python versions in " + asp_deps_dir + " and " + python_env)
+    ver1 = get_python_version(asp_deps_dir)
+    ver2 = get_python_version(python_env)
+
+    print("ASP dependencies Python version: " + ver1)
+    print("Python environment version:      " + ver2)
+
+    if ver1 != ver2:
+        die("Error: Python versions do not match.")
+
 if __name__ == '__main__':
     parser = OptionParser(usage='%s installdir' % sys.argv[0])
     parser.add_option('--debug',          dest='loglevel',    default=logging.INFO, action='store_const', const=logging.DEBUG, help='Turn on debug messages')
@@ -176,8 +208,8 @@ if __name__ == '__main__':
     if not P.exists(opt.python_env):
         die('\nCannot find the Python environment at ' + opt.python_env + '. Specify it via --python-env.')
     
-    # TODO(oalexan1): Check that the Python environment has the same version of
-    # Python and numpy as in the ASP dependencies.
+    # The two conda envs must have the same Python version
+    check_python_version(opt.asp_deps_dir, opt.python_env)
     
     # The ISISROOT env var must be set to the directory having the ISIS
     # preferences file.
