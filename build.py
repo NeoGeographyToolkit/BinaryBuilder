@@ -209,7 +209,10 @@ if __name__ == '__main__':
     # From the path to the compiler infer the path to the libs
     # used by the compiler. This is needed for pbzip2 and other tools
     # we build.
-    compiler_root = os.path.dirname(os.path.dirname(which(opt.cc)))
+    cc_path = which(opt.cc)
+    if cc_path is None:
+        die('Cannot find compiler: ' + opt.cc)
+    compiler_root = os.path.dirname(os.path.dirname(cc_path))
     path_to_libs = P.join(compiler_root, 'lib') + ':' +  P.join(compiler_root, 'lib64')
     install_dir = P.join(opt.build_root, 'install')
     build_env = Environment(
