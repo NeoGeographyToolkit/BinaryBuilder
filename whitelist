@@ -37,6 +37,8 @@ bin/orbitviz_pinhole
 bin/nav2cam
 bin/parallel_stereo
 bin/stereo_sweep
+bin/stereo_dist
+bin/stereo_tile
 bin/parallel_bundle_adjust
 bin/parallel_sfs
 bin/parse_match_file.py
