@@ -31,7 +31,7 @@ fi
 tarBallDir=$(dirname $HOME/$buildDir/$tarBall)
 cd $tarBallDir
 echo "Unpacking $HOME/$buildDir/$tarBall"
-tar xjfv $HOME/$buildDir/$tarBall
+tar xjf $HOME/$buildDir/$tarBall
 binDir=$HOME/$buildDir/$tarBall
 binDir=${binDir/.tar.bz2/}
 if [ ! -e "$binDir" ]; then
@@ -96,37 +96,16 @@ echo Current directory: $(pwd)
 $cmd > $reportFile 2>&1
 test_status="$?"
 
+# Append the result of tests to the logfile
+if [ -f "$reportFile" ]; then
+    cat $reportFile
+fi
+
 if [ "$test_status" -ne 0 ]; then
     echo "pytest command failed. See StereoPipelineTest/README.txt for how to install and use pytest."
     echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
     exit 1
 fi
-
-# Turn this off. Some groups no longer exists on all machines.
-# To be revisited when more developers maintain this.
-# # Tests are finished running, make sure all maintainers can access the files.
-# chown -R :ar-gg-ti-asp-maintain $HOME/$testDir
-# chmod -R g+rw $HOME/$testDir
-# chown -R  :ar-gg-ti-asp-maintain $HOME/$buildDir
-# chmod -R g+rw $HOME/$buildDir
-# # Trying these again, for some reason the above does not work, but
-# # this apparently does.  I think it is because $HOME/$testDir is a
-# # symlink and now we are modifying the internals of the actual dir.
-# for d in . *; do 
-#     chown -R :ar-gg-ti-asp-maintain $d
-#     chmod -R g+rw $d
-# done
-
-if [ ! -f "$reportFile" ]; then
-    echo "Error: Final report file does not exist."
-    echo "$tarBall test_done $status" > $HOME/$buildDir/$statusFile
-    exit 1
-fi
-
-# Append the result of tests to the logfile
-echo "###### Contents of the report file ######"
-cat $reportFile
-echo "###### End of the report file ######"
 
 # Wipe old builds on the test machine
 echo "Wiping old builds..."
