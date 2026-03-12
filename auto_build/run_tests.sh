@@ -81,7 +81,10 @@ perl -pi -e "s#(export ASP=).*?\n#\$1$binDir\n#g" $configFile
 #outputFile=output_test_"$machine".txt
 echo "Launching the tests. Output goes to: $(pwd)/$reportFile"
 num_cpus=$(ncpus)
-#if [ "$num_cpus" -gt 8 ]; then num_cpus=8; fi # Don't overload machines
+# Halve the count because individual tests may spawn parallel processes,
+# which can overwhelm the system when all CPUs are used for pytest nodes.
+num_cpus=$(( num_cpus / 2 ))
+if [ "$num_cpus" -lt 1 ]; then num_cpus=1; fi
 
 # This is a bugfix for a known issue with pytest.
 export LANG=en_US.UTF-8
