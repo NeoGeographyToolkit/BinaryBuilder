@@ -58,8 +58,11 @@ LIB_SYSTEM_LIST = '''
     ColorSync.framework/Versions/A/ColorSync
     GSS.framework/Versions/A/GSS
     Kerberos.framework/Versions/A/Kerberos
+    UniformTypeIdentifiers.framework/Versions/A/UniformTypeIdentifiers
+    Network.framework/Versions/A/Network
 
     libobjc.A.dylib
+    libnetwork.dylib
     libSystem.B.dylib
     libmathCommon.A.dylib
 
