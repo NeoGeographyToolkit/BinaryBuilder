@@ -88,8 +88,9 @@ set_lib_paths() {
     # the second option.
     export GDAL_DRIVER_PATH="${TOPLEVEL}/lib/gdalplugins:${TOPLEVEL}/lib:${GDAL_DRIVER_PATH}"
     
-    # Qt
-    export QT_PLUGIN_PATH="${TOPLEVEL}/plugins"
+    # Qt (Qt6 plugins are in lib/qt6/plugins/, Qt5 fallback in plugins/)
+    export QT_PLUGIN_PATH="${TOPLEVEL}/lib/qt6/plugins:${TOPLEVEL}/plugins"
+    export QT_QPA_PLATFORM_PLUGIN_PATH="${TOPLEVEL}/lib/qt6/plugins/platforms"
     
     case $(uname -s) in
         Linux)

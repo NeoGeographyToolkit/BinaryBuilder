@@ -91,22 +91,21 @@ LIB_SYSTEM_LIST = '''
     libpthread.so.0
     libdbus-1.so.3.14.14
     libsystemd.so
-    libX11-xcb.so
-    libXdmcp.so
 '''.split()
 
 SKIP_IF_NOT_FOUND = []
 
 if get_platform().os == 'linux':
     # Exclude this from shipping for Linux, but not for Mac, as then things don't work
-    # TODO(oalexan1): May need to put libGL-related files back, but this works for now.
-    LIB_SYSTEM_LIST += ['libresolv.so', 'libresolv-', 'libGL.so', 'libGLX.so', 'libGLdispatch.so']
+    LIB_SYSTEM_LIST += ['libresolv.so', 'libresolv-']
+    # Note: libGL, libGLX, libGLdispatch were previously excluded here but
+    # Qt6 needs the conda-built versions (system versions cause segfaults).
 else:
     # A recent OSX does not have this, and does not seem necessary
     SKIP_IF_NOT_FOUND += ['libXplugin.1.dylib']
 
 # Lib files that we want to include that don't get picked up automatically.
-MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libQt5Widgets_debug libQt5PrintSupport_debug libQt5Gui_debug libQt5Core_debug libicuuc libswresample libx264 libcsmapi libproj libproj.0 libGLX libGLdispatch'''.split()
+MANUAL_LIBS = '''libpcl_io_ply libopenjp2 libnabo libcurl libicuuc libswresample libx264 libcsmapi libproj libproj.0 libGLX libGLdispatch'''.split()
 
 # Prefixes of libs that we always ship
 LIB_SHIP_PREFIX = '''libc++. libgfortran. libquadmath. libgcc_s. libomp. libgomp. libgobject-2.0. libgthread-2.0. libgmodule-2.0. libglib-2.0. libicui18n. libicuuc. libicudata. libdc1394. libxcb-xlib. libxcb. libmkl'''.split() # libssl. libcrypto.  libk5crypto. libcom_err. libkrb5support. libkeyutils. libresolv.
@@ -245,7 +244,16 @@ if __name__ == '__main__':
         # Platform-specific bugfixes
         if get_platform().os == 'linux':
             mgr.sym_link_lib('libproj.so', 'libproj.0.so')
-            mgr.add_glob("lib/libQt5XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
+            # Qt6 xcb platform plugin and dependencies
+            for d in [INSTALLDIR, opt.asp_deps_dir]:
+                qt6_plat = P.join(d, 'lib/qt6/plugins/platforms')
+                if P.exists(qt6_plat):
+                    mgr.add_directory(qt6_plat,
+                                      P.join(mgr.distdir, 'lib/qt6/plugins/platforms'))
+                    break
+            mgr.add_glob("lib/libQt6XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
+            mgr.add_glob("lib/libxcb-*", [INSTALLDIR, opt.asp_deps_dir])
+            mgr.add_glob("lib/libxkbcommon*", [INSTALLDIR, opt.asp_deps_dir])
             mgr.add_glob("lib/libmkl*", [INSTALLDIR, opt.asp_deps_dir])
                                 
         print('Adding the ISIS libraries')
