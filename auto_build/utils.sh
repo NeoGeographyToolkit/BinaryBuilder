@@ -110,45 +110,45 @@ function start_vrts {
 
 function robust_ssh {
 
-    # Do several attempts to launch a job on a machine.
-    # This is primarily needed for OSX, sometimes
-    # a nohup job on it fails.
+    # Launch a job on a remote machine and verify it started or completed.
+    # Retries on SSH failure (e.g., flaky connections).
 
     machine=$1
     prog=$2
     opts=$3
     outfile=$4
-    name=$(basename $prog)
 
     for ((count = 0; count < 50; count++)); do
 
-        if [ "$machine" = "decoder" ]; then
-            # nohup does not work on Macs any more
-            # Start an ssh process on the local machine in the background
-            cmd="$prog $opts > $outfile 2>&1"
-            echo ssh $machine \"$cmd\"
-            ssh $machine "$cmd" 2>/dev/null &
-        else # All Linux machines
-            # Start the process on the remote machine
-            cmd="nohup nice -19 $prog $opts > $outfile 2>&1&"
-            echo ssh $machine \"$cmd\"
-            ssh $machine "$cmd" 2>/dev/null &
-        fi
+        # Run via nohup (survives SSH drops) but without remote backgrounding,
+        # so SSH stays alive while the process runs. The local '&' backgrounds
+        # SSH here so the caller isn't blocked.
+        cmd="nohup nice -19 $prog $opts > $outfile 2>&1"
+        echo ssh $machine \"$cmd\"
+        ssh $machine "$cmd" 2>/dev/null &
+        ssh_pid=$!
 
-        # Wait a while and then look for the process name
-        # This is very bad logic. Need to find a way to see if that
-        # process is still running or exited. In the latter case
-        # need to check for the exit code.
+        # Give it a moment to connect and start
         sleep 5
-        out=$(ssh $machine "ps ux | grep $name | grep -v grep" \
-            2>/dev/null)
-        if [ "$out" != "" ]; then
-            echo "Success starting on $machine: $out";
+
+        if kill -0 $ssh_pid 2>/dev/null; then
+            # SSH still running means the remote process is alive
+            echo "Success starting on $machine (pid $ssh_pid)"
             return 0
         fi
-        echo "Trying to start $name at $(date) on $machine in attempt $count"
+
+        # SSH already exited - the remote process finished in under 5 seconds
+        # (e.g., fast build with cached results). Check the exit code.
+        wait $ssh_pid
+        exit_code=$?
+        if [ $exit_code -eq 0 ]; then
+            echo "Process completed successfully on $machine"
+            return 0
+        fi
+
+        echo "Trying to start on $machine at $(date), attempt $count (exit code $exit_code)"
     done
-    
+
     # Failed after many attempts
     return 1
 }
