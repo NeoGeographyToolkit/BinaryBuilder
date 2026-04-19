@@ -10,6 +10,10 @@ unset GDAL_DATA
 unset PROJ_DATA
 unset PROJ_LIB
 
+# Prevent MKL thread init from hanging when many ASP processes run in parallel.
+export MKL_NUM_THREADS=1
+export MKL_THREADING_LAYER=SEQUENTIAL
+
 # Care here if the paths have spaces
 EXEC_PATH="$0"
 DIR_NAME=$(dirname "$EXEC_PATH")
