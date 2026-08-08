@@ -251,13 +251,19 @@ if __name__ == '__main__':
         # Platform-specific bugfixes
         if get_platform().os == 'linux':
             mgr.sym_link_lib('libproj.so', 'libproj.0.so')
-            # Qt6 xcb platform plugin and dependencies
-            for d in [INSTALLDIR, opt.asp_deps_dir]:
-                qt6_plat = P.join(d, 'lib/qt6/plugins/platforms')
-                if P.exists(qt6_plat):
-                    mgr.add_directory(qt6_plat,
-                                      P.join(mgr.distdir, 'lib/qt6/plugins/platforms'))
-                    break
+
+        # Qt6 platform plugin, needed on all platforms or stereo_gui cannot
+        # create a window. It is the xcb plugin on Linux and the cocoa plugin
+        # on macOS, both living in lib/qt6/plugins/platforms.
+        for d in [INSTALLDIR, opt.asp_deps_dir]:
+            qt6_plat = P.join(d, 'lib/qt6/plugins/platforms')
+            if P.exists(qt6_plat):
+                mgr.add_directory(qt6_plat,
+                                  P.join(mgr.distdir, 'lib/qt6/plugins/platforms'))
+                break
+
+        if get_platform().os == 'linux':
+            # Dependencies of the xcb platform plugin
             mgr.add_glob("lib/libQt6XcbQpa.*", [INSTALLDIR, opt.asp_deps_dir])
             mgr.add_glob("lib/libxcb-*", [INSTALLDIR, opt.asp_deps_dir])
             mgr.add_glob("lib/libxkbcommon*", [INSTALLDIR, opt.asp_deps_dir])
