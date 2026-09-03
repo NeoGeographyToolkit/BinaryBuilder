@@ -322,7 +322,11 @@ class DistManager(object):
         # have external dependencies and must be invoked with an
         # external python, without the shell wrapper. This is a
         # haphazard approach, however.
-        if base.endswith(".py"):
+        # The tools listed below are the same kind (they run with the user's
+        # own python, having dependencies not in ASP's bundled python), so
+        # they are exempted too, even without a .py extension.
+        external_python_tools = ["glint_correct"]
+        if base.endswith(".py") or base in external_python_tools:
             self._add_file(inpath, self.distdir.bin(base))
         else:
             for path in paths:
