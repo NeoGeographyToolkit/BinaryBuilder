@@ -434,6 +434,13 @@ if __name__ == '__main__':
         print('Adding files in ' + opt.python_env)
         mgr.add_directory(opt.python_env)
 
+        # The python env overwrote the gdal/ogr bin wrappers with its own raw
+        # tools, which lack GDAL_DRIVER_PATH and cannot load plugins (e.g. JP2).
+        # Re-add them so bin/ holds the wrapper again.
+        print('Re-wrapping gdal/ogr command-line tools after the python env')
+        for pat in ['bin/*gdal*', 'bin/ogrinfo', 'bin/ogr2ogr']:
+            mgr.add_glob(pat, [INSTALLDIR, opt.asp_deps_dir])
+
         sys.stdout.flush()
 
         print('\tRemoving system libs')
