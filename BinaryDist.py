@@ -356,13 +356,21 @@ class DistManager(object):
             # This pulls out only the filename for the library. We
             # don't preserve the subdirs underneath 'lib'. This make
             # later rpath code easier to understand.
-            lib = P.normpath(p).split('/')[-1]
-            # Keep libusgscsm in its lib/csmplugins location, not flattened to lib/.
-            lib_is_plugin = is_plugin or lib.startswith('libusgscsm')
-            if not lib_is_plugin:
-                self._add_file(p, self.distdir.lib(lib), add_deps=add_deps)
-            else:
+            np = P.normpath(p)
+            lib = np.split('/')[-1]
+            # Keep plugins in their subdir under lib, not flattened to lib/.
+            # libusgscsm -> lib/csmplugins; gdal drivers -> lib/gdalplugins,
+            # where GDAL auto-discovers them next to libgdal, so the bundled
+            # gdal_translate/gdalinfo (and every wrapped tool) read
+            # JPEG2000/NITF without needing GDAL_DRIVER_PATH set. The fixed
+            # rpath $ORIGIN/../lib resolves the same from either subdir.
+            if is_plugin or lib.startswith('libusgscsm'):
                 self._add_file(p, usgscsm_plugin_path(self.distdir, lib), add_deps=add_deps)
+            elif '/gdalplugins/' in np:
+                self._add_file(p, P.join(self.distdir, 'lib', 'gdalplugins', lib),
+                               add_deps=add_deps)
+            else:
+                self._add_file(p, self.distdir.lib(lib), add_deps=add_deps)
 
     def add_glob(self, pattern, prefixes):
         ''' Add a pattern to the tree. pattern must be relative to an
