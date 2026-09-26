@@ -482,8 +482,8 @@ class libelas(GITPackage, CMakePackage):
         self.helper(*cmd)
 
 class geoid(Package):
-    src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline/releases/download/geoid1.0/geoids.tgz'
-    chksum  = 'e6e3961d6a84e10b4c49039b9a84098d57bd2206'
+    src     = 'https://github.com/NeoGeographyToolkit/StereoPipeline/releases/download/geoid2.0/geoids.tgz'
+    chksum  = '51a20e2d3de503ae1d5a48753d6024d8d66135b3'
 
     @stage
     def configure(self): pass
