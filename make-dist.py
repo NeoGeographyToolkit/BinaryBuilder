@@ -356,14 +356,7 @@ if __name__ == '__main__':
             mgr_keys = mgr.deplist.copy().keys() # make a copy of the keys
             for soname in mgr_keys:
                 if soname.startswith(copy_lib):
-                    # Prefer OUR OWN copy (conda env / ASP install) over whatever
-                    # ldd resolved for this soname. ldd can resolve a force-shipped
-                    # lib to a SYSTEM path (e.g. the Ubuntu /usr glib 2.72 on the
-                    # build host), which then ships a stray duplicate beside our
-                    # env's copy and falsely raises the tarball's apparent glibc
-                    # floor (objdump sees the dead system lib). SEARCHPATH lists
-                    # the conda env before the system dirs, so the first hit there
-                    # is ours.
+                    # Prefer the conda lib over system lib
                     ship_path = mgr.deplist[soname]
                     for lib_dir in SEARCHPATH:
                         cand = P.join(lib_dir, soname)
