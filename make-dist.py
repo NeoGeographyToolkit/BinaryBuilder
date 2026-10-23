@@ -356,14 +356,28 @@ if __name__ == '__main__':
             mgr_keys = mgr.deplist.copy().keys() # make a copy of the keys
             for soname in mgr_keys:
                 if soname.startswith(copy_lib):
+                    # Prefer OUR OWN copy (conda env / ASP install) over whatever
+                    # ldd resolved for this soname. ldd can resolve a force-shipped
+                    # lib to a SYSTEM path (e.g. the Ubuntu /usr glib 2.72 on the
+                    # build host), which then ships a stray duplicate beside our
+                    # env's copy and falsely raises the tarball's apparent glibc
+                    # floor (objdump sees the dead system lib). SEARCHPATH lists
+                    # the conda env before the system dirs, so the first hit there
+                    # is ours.
+                    ship_path = mgr.deplist[soname]
+                    for lib_dir in SEARCHPATH:
+                        cand = P.join(lib_dir, soname)
+                        if P.exists(cand):
+                            ship_path = cand
+                            break
                     # Bugfix: Do an exhaustive search, as same prefix can
                     # refer to multiple libraries, e.g., libgfortran.so.3 and
                     # libgfortran.so.1, and sometimes the wrong one is picked.
-                    if mgr.deplist[soname] in found_set:
+                    if ship_path in found_set:
                         continue
-                    found_set.add(mgr.deplist[soname])
-                    if mgr.deplist[soname] is not None:
-                        mgr.add_library(mgr.deplist[soname])
+                    found_set.add(ship_path)
+                    if ship_path is not None:
+                        mgr.add_library(ship_path)
                     else:
                         print("Skip empty deplist for: " + soname)
                     found_and_to_be_removed.append(soname)
