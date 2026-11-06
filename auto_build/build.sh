@@ -160,7 +160,7 @@ build_local_linux() {
     # The path to the ASP dependencies 
     opt="$opt --asp-deps-dir $isisEnv"
 
-    cmd="./build.py $opt --skip-tests"
+    cmd="./build.py $opt"
     echo $cmd
     eval $cmd
     exitStatus=$?
