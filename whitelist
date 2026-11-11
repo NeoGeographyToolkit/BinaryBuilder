@@ -35,8 +35,6 @@ bin/lronacjitreg
 bin/mapproject
 bin/mer2camera
 bin/orbitviz
-bin/orbitviz_pinhole
-bin/nav2cam
 bin/parallel_stereo
 bin/stereo_sweep
 bin/stereo_dist
@@ -69,10 +67,6 @@ bin/cam_test
 bin/convert_pinhole_model
 bin/aster2asp
 bin/prism2asp
-bin/icebridge_kmz_to_csv.py
-bin/correct_icebridge_l3_dem
-bin/extract_icebridge_ATM_points.py
-bin/lvis2kml.py
 bin/h5dump
 bin/ortho2pinhole
 bin/cam2rpc
